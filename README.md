@@ -29,9 +29,11 @@
 - `assets/css/login.css` - Autenticación
 - `assets/css/panel_administrador.css` - Panel admin
 - `assets/css/panel_empleado.css` - Panel empleado
+- `assets/css/detalle_producto.css` - Detalle de productos
 
 **JavaScript:**
-- `assets/js/utils.js` - Funciones utilitarias
+- `assets/js/app.js`
+- `assets/js/utils.js` 
 - `assets/js/index.js`
 - `assets/js/catalogo.js`
 - `assets/js/carrito.js`
@@ -40,6 +42,7 @@
 - `assets/js/login.js`
 - `assets/js/panel_administrador.js`
 - `assets/js/panel_empleado.js`
+- `assets/js/firebase-config.js`
 
 ### 3. Estructura Final
 

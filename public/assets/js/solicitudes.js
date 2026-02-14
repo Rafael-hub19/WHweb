@@ -1,300 +1,237 @@
-/**
- * solicitudes.js - Wooden House
- * Manejo de Cotizaciones y Citas
- */
 
-// ================================================
-// CONFIGURACIÓN
-// ================================================
-const API_URL = window.location.hostname === 'localhost' 
-  ? 'http://localhost/api'
-  : '/api';
+    // =========================
+    // Hamburguesa
+    // =========================
+    const menuToggle = document.getElementById('menuToggle');
+    const navLinks = document.getElementById('navLinks');
 
-// ================================================
-// VARIABLES GLOBALES
-// ================================================
-let selectedTime = null;
-
-// ================================================
-// INICIALIZACIÓN
-// ================================================
-document.addEventListener('DOMContentLoaded', function() {
-  initTabs();
-  initFormCotizacion();
-  initFormCita();
-  initSeguimiento();
-  initMedidasField();
-  initCartBadge();
-  initMenuToggle();
-  setMinDate();
-});
-
-// ================================================
-// MENU TOGGLE (RESPONSIVE)
-// ================================================
-function initMenuToggle() {
-  const menuToggle = document.getElementById('menuToggle');
-  const navLinks = document.getElementById('navLinks');
-
-  if (menuToggle && navLinks) {
     menuToggle.addEventListener('click', () => {
-      navLinks.classList.toggle('open');
-      const isOpen = navLinks.classList.contains('open');
-      menuToggle.setAttribute('aria-expanded', isOpen);
+      const isOpen = navLinks.classList.toggle('open');
+      menuToggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+      menuToggle.textContent = isOpen ? '✕' : '☰';
     });
-  }
-}
 
-// ================================================
-// CART BADGE
-// ================================================
-function initCartBadge() {
-  const cart = JSON.parse(localStorage.getItem('carrito')) || [];
-  const cartCount = document.getElementById('cartCount');
-  
-  if (cartCount) {
-    const totalItems = cart.reduce((sum, item) => sum + (item.cantidad || 0), 0);
-    cartCount.textContent = totalItems;
-    cartCount.style.display = totalItems > 0 ? 'inline-block' : 'none';
-  }
-}
-
-// ================================================
-// TABS - ALTERNAR ENTRE SECCIONES
-// ================================================
-function initTabs() {
-  const tabButtons = document.querySelectorAll('.tab-btn');
-  const tabContents = document.querySelectorAll('.tab-content');
-
-  tabButtons.forEach(button => {
-    button.addEventListener('click', () => {
-      const targetTab = button.getAttribute('data-tab');
-
-      // Remover active de todos
-      tabButtons.forEach(btn => btn.classList.remove('active'));
-      tabContents.forEach(content => content.classList.remove('active'));
-
-      // Activar el seleccionado
-      button.classList.add('active');
-      const targetContent = document.getElementById(`tab-${targetTab}`);
-      if (targetContent) {
-        targetContent.classList.add('active');
-      }
-    });
-  });
-}
-
-// ================================================
-// FORMULARIO DE COTIZACIÓN
-// ================================================
-function initFormCotizacion() {
-  const form = document.getElementById('formCotizacion');
-  
-  if (!form) return;
-
-  form.addEventListener('submit', async (e) => {
-    e.preventDefault();
-
-    // Recopilar datos del formulario
-    const formData = new FormData(form);
-    const datos = {
-      nombre_cliente: formData.get('nombre'),
-      correo: formData.get('email'),
-      telefono: formData.get('telefono'),
-      ciudad: formData.get('ciudad') || null,
-      tipo_producto: formData.get('tipoMueble'),
-      tiene_medidas: formData.get('tieneMedidas'),
-      medidas: formData.get('medidas') || null,
-      descripcion: formData.get('descripcion'),
-      presupuesto_estimado: formData.get('presupuesto') || null,
-      urgencia: formData.get('urgencia') || null,
-      necesita_instalacion: formData.get('instalacion') || null,
-      referencia: formData.get('referencia') || null
-    };
-
-    // Validación básica
-    if (!datos.nombre_cliente || !datos.correo || !datos.telefono || !datos.tipo_producto || !datos.descripcion) {
-      showAlert('Por favor completa todos los campos requeridos', 'error');
-      return;
-    }
-
-    if (!isValidEmail(datos.correo)) {
-      showAlert('Por favor ingresa un correo válido', 'error');
-      return;
-    }
-
-    // Mostrar loader
-    const submitBtn = form.querySelector('button[type="submit"]');
-    const originalText = submitBtn.textContent;
-    submitBtn.disabled = true;
-    submitBtn.textContent = '⏳ Enviando...';
-
-    try {
-      const response = await fetch(`${API_URL}/cotizaciones/crear.php`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(datos)
+    navLinks.querySelectorAll('a').forEach(link => {
+      link.addEventListener('click', () => {
+        if (navLinks.classList.contains('open')) {
+          navLinks.classList.remove('open');
+          menuToggle.setAttribute('aria-expanded', 'false');
+          menuToggle.textContent = '☰';
+        }
       });
+    });
 
-      const result = await response.json();
+    // =========================
+    // Badge carrito (demo simple)
+    // Si quieres: lee localStorage carrito real
+    // =========================
+    document.addEventListener('DOMContentLoaded', () => {
+      // Si tú guardas algo tipo cartItems:
+      // const items = JSON.parse(localStorage.getItem('cartItems') || '[]');
+      // document.getElementById('cartCount').textContent = items.length;
 
-      if (result.success) {
-        showAlert('✅ ¡Cotización enviada exitosamente! Te contactaremos pronto.', 'success');
-        
-        // Guardar datos en localStorage
-        localStorage.setItem('nombre_cliente', datos.nombre_cliente);
-        localStorage.setItem('correo_cliente', datos.correo);
-        localStorage.setItem('telefono_cliente', datos.telefono);
-        
-        // Limpiar formulario
-        form.reset();
-        
-        // Scroll al mensaje
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+      document.getElementById('cartCount').textContent = '0';
+    });
+
+    // Variables globales
+    let selectedServiceType = '';
+    let selectedTimeSlot = '';
+
+    // =========================
+    // Tabs (FIX: sin usar event global)
+    // =========================
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => switchTab(btn.dataset.tab, btn));
+    });
+
+    function switchTab(tabName, btn) {
+      document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+
+      document.getElementById('tab-' + tabName).classList.add('active');
+      btn.classList.add('active');
+
+      hideAlert();
+    }
+
+    // =========================
+    // Selección de tipo de cita
+    // =========================
+    function selectService(card, serviceType) {
+      document.querySelectorAll('.service-card').forEach(c => c.classList.remove('selected'));
+      card.classList.add('selected');
+      selectedServiceType = serviceType;
+
+      const addressField = document.getElementById('direccionField');
+      const addressInput = addressField.querySelector('input');
+
+      if (serviceType === 'visita') {
+        addressField.style.display = 'block';
+        addressInput.required = true;
       } else {
-        showAlert(result.error || 'Error al enviar cotización', 'error');
+        addressField.style.display = 'none';
+        addressInput.required = false;
+      }
+    }
+
+    // =========================
+    // Horarios
+    // =========================
+    function selectTime(slot) {
+      if (slot.classList.contains('unavailable')) return;
+
+      document.querySelectorAll('.time-slot').forEach(s => s.classList.remove('selected'));
+      slot.classList.add('selected');
+      selectedTimeSlot = slot.textContent;
+    }
+
+    // =========================
+    // Formularios
+    // =========================
+    const formCot = document.getElementById('formCotizacion');
+    const formCita = document.getElementById('formCita');
+
+    formCot.addEventListener('submit', (e) => submitCotizacion(e));
+    formCita.addEventListener('submit', (e) => submitCita(e));
+
+    function submitCotizacion(event) {
+      event.preventDefault();
+      const formData = new FormData(event.target);
+      const data = Object.fromEntries(formData);
+
+      console.log('Cotización enviada:', data);
+
+      const trackingNumber = 'WH-' + new Date().getFullYear() + '-' +
+        Math.floor(Math.random() * 999999).toString().padStart(6, '0');
+
+      showAlert('success',
+        `✅ ¡Cotización enviada exitosamente!\n\n` +
+        `Tu número de seguimiento es: ${trackingNumber}\n\n` +
+        `Nos pondremos en contacto contigo en menos de 24 horas.`
+      );
+
+      event.target.reset();
+      return false;
+    }
+
+    function submitCita(event) {
+      event.preventDefault();
+
+      if (!selectedServiceType) {
+        showAlert('warning', '⚠️ Por favor selecciona el tipo de cita que deseas agendar.');
+        return false;
       }
 
-    } catch (error) {
-      console.error('Error:', error);
-      showAlert('Error de conexión. Por favor intenta nuevamente.', 'error');
-    } finally {
-      submitBtn.disabled = false;
-      submitBtn.textContent = originalText;
+      if (!selectedTimeSlot) {
+        showAlert('warning', '⚠️ Por favor selecciona un horario disponible.');
+        return false;
+      }
+
+      const formData = new FormData(event.target);
+      const data = Object.fromEntries(formData);
+
+      console.log('Cita agendada:', data);
+
+      const trackingNumber = 'WH-' + new Date().getFullYear() + '-' +
+        Math.floor(Math.random() * 999999).toString().padStart(6, '0');
+
+      showAlert('success',
+        `✅ ¡Cita agendada exitosamente!\n\n` +
+        `Número de seguimiento: ${trackingNumber}\n` +
+        `Tipo: ${getServiceName(selectedServiceType)}\n` +
+        `Horario: ${selectedTimeSlot}\n\n` +
+        `Recibirás confirmación por WhatsApp y correo.`
+      );
+
+      event.target.reset();
+      document.querySelectorAll('.service-card').forEach(c => c.classList.remove('selected'));
+      document.querySelectorAll('.time-slot').forEach(s => s.classList.remove('selected'));
+      selectedServiceType = '';
+      selectedTimeSlot = '';
+      document.getElementById('direccionField').style.display = 'none';
+
+      return false;
     }
-  });
-}
 
-// ================================================
-// MOSTRAR/OCULTAR CAMPO MEDIDAS
-// ================================================
-function initMedidasField() {
-  const selectMedidas = document.getElementById('tieneMedidas');
-  const medidasField = document.getElementById('medidasField');
+    function getServiceName(service) {
+      const names = {
+        visita: 'Visita Técnica a Domicilio',
+        showroom: 'Cita en Showroom',
+        virtual: 'Consulta Virtual'
+      };
+      return names[service] || service;
+    }
 
-  if (selectMedidas && medidasField) {
-    selectMedidas.addEventListener('change', (e) => {
-      if (e.target.value === 'no') {
+    // =========================
+    // Medidas
+    // =========================
+    const tieneMedidasSelect = document.getElementById('tieneMedidas');
+    tieneMedidasSelect.addEventListener('change', toggleMedidasField);
+
+    function toggleMedidasField() {
+      const tieneMedidas = document.getElementById('tieneMedidas').value;
+      const medidasField = document.getElementById('medidasField');
+      const medidasInput = medidasField.querySelector('input');
+
+      if (tieneMedidas === 'no') {
         medidasField.style.display = 'none';
-        medidasField.querySelector('input').required = false;
+        medidasInput.required = false;
       } else {
         medidasField.style.display = 'block';
-        medidasField.querySelector('input').required = e.target.value === 'si';
+        medidasInput.required = false;
       }
+    }
+
+    // =========================
+    // Seguimiento
+    // =========================
+    function trackOrder() {
+      const trackingNumber = document.getElementById('trackingNumber').value.trim();
+
+      if (!trackingNumber) {
+        showAlert('warning', '⚠️ Por favor ingresa un número de seguimiento.');
+        return;
+      }
+
+      if (!trackingNumber.match(/^WH-\d{4}-\d{6}$/)) {
+        showAlert('error', '❌ Formato inválido. Debe ser: WH-YYYY-NNNNNN');
+        return;
+      }
+
+      document.getElementById('trackingResult').classList.add('show');
+      document.getElementById('resultOrderNumber').value = trackingNumber;
+
+      showAlert('success', '✅ Solicitud encontrada. Mostrando detalles...');
+    }
+
+    // =========================
+    // Alertas
+    // =========================
+    function showAlert(type, message) {
+      const alertDiv = document.getElementById('alertMessage');
+      alertDiv.className = 'alert show ' + type;
+      alertDiv.textContent = message;
+
+      setTimeout(() => hideAlert(), 5000);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function hideAlert() {
+      const alertDiv = document.getElementById('alertMessage');
+      alertDiv.classList.remove('show');
+    }
+
+    // =========================
+    // Fecha mínima (mañana)
+    // =========================
+    document.addEventListener('DOMContentLoaded', function() {
+      const tomorrow = new Date();
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      const tomorrowStr = tomorrow.toISOString().split('T')[0];
+
+      const fechaCita = document.getElementById('fechaCita');
+      if (fechaCita) fechaCita.min = tomorrowStr;
+
+      toggleMedidasField();
     });
-  }
-}
-
-// ================================================
-// FORMULARIO DE CITA
-// ================================================
-function initFormCita() {
-  const form = document.getElementById('formCita');
   
-  if (!form) return;
-
-  form.addEventListener('submit', async (e) => {
-    e.preventDefault();
-
-    // Validar que se haya seleccionado una hora
-    if (!selectedTime) {
-      showAlert('Por favor selecciona una hora disponible', 'error');
-      return;
-    }
-
-    // Recopilar datos del formulario
-    const formData = new FormData(form);
-    const fechaSeleccionada = formData.get('fecha');
-    const fechaHora = `${fechaSeleccionada} ${selectedTime}:00`;
-
-    const datos = {
-      nombre_cliente: formData.get('nombre'),
-      correo: formData.get('email'),
-      telefono: formData.get('telefono'),
-      direccion: formData.get('direccion'),
-      fecha_hora_preferida: fechaHora,
-      motivo: 'Visita técnica para medición',
-      notas: `Horario seleccionado: ${selectedTime}`
-    };
-
-    // Validación básica
-    if (!datos.nombre_cliente || !datos.correo || !datos.telefono || !datos.direccion) {
-      showAlert('Por favor completa todos los campos requeridos', 'error');
-      return;
-    }
-
-    if (!isValidEmail(datos.correo)) {
-      showAlert('Por favor ingresa un correo válido', 'error');
-      return;
-    }
-
-    // Mostrar loader
-    const submitBtn = form.querySelector('button[type="submit"]');
-    const originalText = submitBtn.textContent;
-    submitBtn.disabled = true;
-    submitBtn.textContent = '⏳ Agendando...';
-
-    try {
-      const response = await fetch(`${API_URL}/citas/crear.php`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(datos)
-      });
-
-      const result = await response.json();
-
-      if (result.success) {
-        showAlert('✅ ¡Cita agendada exitosamente! Recibirás confirmación pronto.', 'success');
-        
-        // Guardar datos en localStorage
-        localStorage.setItem('nombre_cliente', datos.nombre_cliente);
-        localStorage.setItem('correo_cliente', datos.correo);
-        localStorage.setItem('telefono_cliente', datos.telefono);
-        
-        // Limpiar formulario y selección de hora
-        form.reset();
-        selectedTime = null;
-        document.querySelectorAll('.time-slot').forEach(slot => {
-          slot.classList.remove('selected');
-        });
-        
-        // Scroll al mensaje
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-      } else {
-        showAlert(result.error || 'Error al agendar cita', 'error');
-      }
-
-    } catch (error) {
-      console.error('Error:', error);
-      showAlert('Error de conexión. Por favor intenta nuevamente.', 'error');
-    } finally {
-      submitBtn.disabled = false;
-      submitBtn.textContent = originalText;
-    }
-  });
-}
-
-// ================================================
-// SELECCIÓN DE HORA (GLOBAL PARA HTML)
-// ================================================
-function selectTime(element) {
-  // No permitir seleccionar slots no disponibles
-  if (element.classList.contains('unavailable')) {
-    return;
-  }
-
-  // Remover selección previa
-  document.querySelectorAll('.time-slot').forEach(slot => {
-    slot.classList.remove('selected');
-  });
-
-  // Seleccionar nuevo
-  element.classList.add('selected');
-  selectedTime = element.textContent.trim();
-}
-
-// ================================================
