@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Catálogo - Wooden House</title>
+
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #1a1a1a;
+      color: #e0e0e0;
+      line-height: 1.6;
+    }
+
+    /* =========================
+       HEADER (igual que inicio)
+       ========================= */
+    .header-nav {
+      background: #2d2d2d;
+      padding: 20px 40px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      flex-wrap: wrap;
+    }
+
+    .logo {
+      font-size: 28px;
+      font-weight: bold;
+      color: #8b7355;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 30px;
+      align-items: center;
+      transition: .3s;
+    }
+
+    .nav-links a {
+      color: #e0e0e0;
+      text-decoration: none;
+      transition: color 0.3s;
+      font-weight: 500;
+    }
+
+    .nav-links a:hover { color: #8b7355; }
+
+    .login-btn {
+      background: #8b7355;
+      color: white;
+      padding: 10px 25px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      transition: all 0.3s;
+      text-decoration: none;
+      font-weight: 600;
+      display: inline-block;
+    }
+
+    .login-btn:hover {
+      background: #a0865f;
+      transform: scale(1.05);
+    }
+
+    .cart-icon {
+      position: relative;
+      text-decoration: none;
+      font-size: 24px;
+      color: #fff;
+    }
+
+    .cart-badge {
+      position: absolute;
+      top: -6px;
+      right: -10px;
+      background: red;
+      color: white;
+      font-size: 12px;
+      padding: 2px 6px;
+      border-radius: 50%;
+    }
+
+    /* Botón hamburguesa */
+    .menu-toggle {
+      display: none;
+      background: transparent;
+      border: 2px solid #3d3d3d;
+      color: #e0e0e0;
+      font-size: 22px;
+      padding: 8px 12px;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: .3s;
+    }
+
+    .menu-toggle:hover {
+      border-color:#8b7355;
+      color:#8b7355;
+    }
+
+    /* =========================
+       CONTENIDO
+       ========================= */
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 60px 40px;
+    }
+
+    .page-title {
+      color: #8b7355;
+      font-size: clamp(24px, 4vw, 36px);
+      margin-bottom: 40px;
+      text-align: center;
+      position: relative;
+      padding-bottom: 15px;
+    }
+
+    .page-title::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 100px;
+      height: 3px;
+      background: #8b7355;
+    }
+
+    /* Catalog Header */
+    .catalog-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 30px;
+      flex-wrap: wrap;
+      gap: 20px;
+    }
+
+    .search-bar { flex: 1; min-width: 250px; }
+
+    .search-bar input {
+      width: 100%;
+      padding: 15px;
+      background: #3d3d3d;
+      border: 2px solid #4a4a4a;
+      border-radius: 10px;
+      color: #e0e0e0;
+      font-size: 16px;
+      transition: .3s;
+    }
+
+    .search-bar input:focus {
+      outline: none;
+      border-color: #8b7355;
+      box-shadow: 0 0 0 3px rgba(139,115,85,.18);
+    }
+
+    .search-bar input::placeholder { color: #666; }
+
+    .filters { display: flex; gap: 10px; flex-wrap: wrap; }
+
+    .filter-btn {
+      padding: 12px 14px;
+      background: #2d2d2d;
+      border: 2px solid #3d3d3d;
+      border-radius: 10px;
+      color: #e0e0e0;
+      cursor: pointer;
+      transition: all 0.3s;
+      font-weight: 600;
+    }
+
+    .filter-btn:hover {
+      border-color: #8b7355;
+      color: #8b7355;
+    }
+
+    .filter-btn.active {
+      background: #8b7355;
+      border-color: #8b7355;
+      color: white;
+    }
+
+    /* Product Grid */
+    .product-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 25px;
+    }
+
+    .product-card {
+      background: #2d2d2d;
+      border-radius: 15px;
+      overflow: hidden;
+      cursor: pointer;
+      transition: all 0.3s;
+      border: 2px solid #3d3d3d;
+    }
+
+    .product-card:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 15px 40px rgba(139, 115, 85, 0.3);
+      border-color: #8b7355;
+    }
+
+    .product-image {
+      width: 100%;
+      height: 220px;
+      background: linear-gradient(135deg, #4a4a4a, #2d2d2d);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #777;
+      position: relative;
+      font-weight: 600;
+      text-align: center;
+      padding: 10px;
+    }
+
+    .product-badge {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: #8b7355;
+      color: white;
+      padding: 5px 15px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .product-info { padding: 20px; }
+
+    .product-name {
+      color: #8b7355;
+      font-size: 18px;
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+
+    .product-specs {
+      color: #a0a0a0;
+      font-size: 14px;
+      margin-bottom: 15px;
+      line-height: 1.6;
+    }
+
+    .product-price-section {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .price {
+      font-size: 22px;
+      color: #8b7355;
+      font-weight: bold;
+    }
+
+    .btn-details {
+      background: #8b7355;
+      color: white;
+      padding: 10px 18px;
+      border-radius: 10px;
+      border: none;
+      cursor: pointer;
+      transition: all 0.3s;
+      text-decoration: none;
+      display: inline-block;
+      font-weight: 700;
+    }
+
+    .btn-details:hover {
+      background: #a0865f;
+      transform: translateY(-2px);
+      box-shadow: 0 5px 20px rgba(139, 115, 85, 0.35);
+    }
+
+    /* Footer */
+    .footer {
+      background: #2d2d2d;
+      padding: 40px;
+      text-align: center;
+      border-top: 3px solid #8b7355;
+      margin-top: 60px;
+    }
+
+    .footer p { color: #666; font-size: 14px; margin: 5px 0; }
+
+    /* =========================
+       RESPONSIVE + HAMBURGUESA
+       ========================= */
+    @media (max-width: 900px) {
+      .header-nav { padding: 16px 16px; }
+
+      .menu-toggle { display: block; }
+
+      .nav-links {
+        display: none;
+        width: 100%;
+        margin-top: 14px;
+        flex-direction: column;
+        gap: 12px;
+        align-items: stretch;
+
+        background: #2d2d2d;
+        border: 2px solid #3d3d3d;
+        border-radius: 14px;
+        padding: 14px;
+        box-shadow: 0 10px 30px rgba(0,0,0,.35);
+      }
+
+      .nav-links.open { display: flex; }
+
+      .nav-links a {
+        text-align: center;
+        padding: 10px 12px;
+        border: 1px solid #3d3d3d;
+        border-radius: 10px;
+        background: #2d2d2d;
+      }
+
+      .login-btn {
+        width: 100%;
+        text-align: center;
+      }
+
+      .cart-icon {
+        display: flex;
+        justify-content: center;
+        font-size: 22px;
+      }
+
+      .container { padding: 40px 20px; }
+
+      .catalog-header {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .filters { justify-content: center; }
+    }
+
+    @media (max-width: 420px) {
+      .btn-details { width: 100%; text-align: center; }
+      .product-price-section { justify-content: center; }
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Header Navigation -->
+  <div class="header-nav">
+    <div class="logo">WOODEN HOUSE</div>
+
+    <!-- Botón hamburguesa -->
+    <button class="menu-toggle" id="menuToggle" aria-label="Abrir menú" aria-expanded="false">☰</button>
+
+    <div class="nav-links" id="navLinks">
+      <a href="index.html">Inicio</a>
+      <a href="solicitudes.html">Solicitudes</a>
+      <a href="carrito.html" class="cart-icon" id="cartIcon">
+        🛒
+        <span class="cart-badge" id="cartCount">0</span>
+      </a>
+    </div>
+  </div>
+
+  <!-- Container -->
+  <div class="container">
+    <h1 class="page-title">Catálogo de Muebles de Baño</h1>
+
+    <!-- Catalog Header -->
+    <div class="catalog-header">
+      <div class="search-bar">
+        <input type="text" placeholder="🔍 Buscar muebles por nombre, estilo o características...">
+      </div>
+
+      <div class="filters">
+        <button class="filter-btn active">Todos</button>
+        <button class="filter-btn">Modernos</button>
+        <button class="filter-btn">Clásicos</button>
+        <button class="filter-btn">Rústicos</button>
+      </div>
+    </div>
+
+    <!-- Product Grid -->
+    <div class="product-grid">
+      <!-- Producto 1 -->
+      <div class="product-card">
+        <div class="product-image">
+          <span>[Mueble Moderno]</span>
+          <div class="product-badge">Nuevo</div>
+        </div>
+        <div class="product-info">
+          <div class="product-name">Mueble Milano</div>
+          <div class="product-specs">
+            📏 80cm x 45cm x 60cm<br>
+            🪵 Madera MDF + Acabado Nogal<br>
+            🚰 Lavabo cerámico incluido
+          </div>
+          <div class="product-price-section">
+            <span class="price">$8,500</span>
+            <button onclick="window.location.href='detalle_producto.html'" class="btn-details">Ver Detalles</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Producto 2 -->
+      <div class="product-card">
+        <div class="product-image">
+          <span>[Mueble Clásico]</span>
+          <div class="product-badge">Popular</div>
+        </div>
+        <div class="product-info">
+          <div class="product-name">Mueble Venecia</div>
+          <div class="product-specs">
+            📏 90cm x 50cm x 65cm<br>
+            🪵 Madera Natural + Barniz<br>
+            🚰 Lavabo mármol incluido
+          </div>
+          <div class="product-price-section">
+            <span class="price">$12,800</span>
+            <button onclick="window.location.href='detalle_producto.html'" class="btn-details">Ver Detalles</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Producto 3 -->
+      <div class="product-card">
+        <div class="product-image">
+          <span>[Mueble Rústico]</span>
+        </div>
+        <div class="product-info">
+          <div class="product-name">Mueble Toscana</div>
+          <div class="product-specs">
+            📏 100cm x 55cm x 70cm<br>
+            🪵 Madera Pino + Acabado Natural<br>
+            🚰 Doble lavabo cerámica
+          </div>
+          <div class="product-price-section">
+            <span class="price">$15,200</span>
+            <button onclick="window.location.href='detalle_producto.html'" class="btn-details">Ver Detalles</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Producto 4 -->
+      <div class="product-card">
+        <div class="product-image">
+          <span>[Mueble Minimalista]</span>
+        </div>
+        <div class="product-info">
+          <div class="product-name">Mueble Oslo</div>
+          <div class="product-specs">
+            📏 70cm x 40cm x 55cm<br>
+            🪵 MDF Laqueado Blanco<br>
+            🚰 Lavabo integrado
+          </div>
+          <div class="product-price-section">
+            <span class="price">$7,900</span>
+            <button onclick="window.location.href='detalle_producto.html'" class="btn-details">Ver Detalles</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Producto 5 -->
+      <div class="product-card">
+        <div class="product-image">
+          <span>[Mueble Elegante]</span>
+        </div>
+        <div class="product-info">
+          <div class="product-name">Mueble París</div>
+          <div class="product-specs">
+            📏 85cm x 48cm x 62cm<br>
+            🪵 Madera Cedro + Barniz<br>
+            🚰 Lavabo sobre cubierta
+          </div>
+          <div class="product-price-section">
+            <span class="price">$11,500</span>
+            <button onclick="window.location.href='detalle_producto.html'" class="btn-details">Ver Detalles</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Producto 6 -->
+      <div class="product-card">
+        <div class="product-image">
+          <span>[Mueble Compacto]</span>
+          <div class="product-badge">Oferta</div>
+        </div>
+        <div class="product-info">
+          <div class="product-name">Mueble Tokyo</div>
+          <div class="product-specs">
+            📏 60cm x 35cm x 50cm<br>
+            🪵 MDF Gris Mate<br>
+            🚰 Lavabo cerámico pequeño
+          </div>
+          <div class="product-price-section">
+            <span class="price">$6,200</span>
+            <button onclick="window.location.href='detalle_producto.html'" class="btn-details">Ver Detalles</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    <p>&copy; 2025 Wooden House. Todos los derechos reservados.</p>
+    <p style="margin-top: 10px;">Muebles de madera a medida en Guadalajara, Jalisco</p>
+  </div>
+
+  <script>
+    // Hamburguesa
+    const menuToggle = document.getElementById('menuToggle');
+    const navLinks = document.getElementById('navLinks');
+
+    menuToggle.addEventListener('click', () => {
+      const isOpen = navLinks.classList.toggle('open');
+      menuToggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+      menuToggle.textContent = isOpen ? '✕' : '☰';
+    });
+
+    // Cierra menú al dar click en un link
+    navLinks.querySelectorAll('a').forEach(link => {
+      link.addEventListener('click', () => {
+        if (navLinks.classList.contains('open')) {
+          navLinks.classList.remove('open');
+          menuToggle.setAttribute('aria-expanded', 'false');
+          menuToggle.textContent = '☰';
+        }
+      });
+    });
+  </script>
+</body>
+</html>

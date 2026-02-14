@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Detalle del Producto - Wooden House</title>
+
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #1a1a1a;
+      color: #e0e0e0;
+      line-height: 1.6;
+    }
+
+    /* =========================
+       HEADER (igual que inicio)
+       ========================= */
+    .header-nav {
+      background: #2d2d2d;
+      padding: 20px 40px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      flex-wrap: wrap;
+    }
+
+    .logo {
+      font-size: 28px;
+      font-weight: bold;
+      color: #8b7355;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 30px;
+      align-items: center;
+      transition: .3s;
+    }
+
+    .nav-links a {
+      color: #e0e0e0;
+      text-decoration: none;
+      transition: color 0.3s;
+      font-weight: 500;
+    }
+
+    .nav-links a:hover { color: #8b7355; }
+
+    .login-btn {
+      background: #8b7355;
+      color: white;
+      padding: 10px 25px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      transition: all 0.3s;
+      text-decoration: none;
+      font-weight: 600;
+      display: inline-block;
+    }
+
+    .login-btn:hover {
+      background: #a0865f;
+      transform: scale(1.05);
+    }
+
+    .cart-icon {
+      position: relative;
+      text-decoration: none;
+      font-size: 24px;
+      color: #fff;
+    }
+
+    .cart-badge {
+      position: absolute;
+      top: -6px;
+      right: -10px;
+      background: red;
+      color: white;
+      font-size: 12px;
+      padding: 2px 6px;
+      border-radius: 50%;
+    }
+
+    /* Botón hamburguesa */
+    .menu-toggle {
+      display: none;
+      background: transparent;
+      border: 2px solid #3d3d3d;
+      color: #e0e0e0;
+      font-size: 22px;
+      padding: 8px 12px;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: .3s;
+    }
+    .menu-toggle:hover {
+      border-color:#8b7355;
+      color:#8b7355;
+    }
+
+    /* =========================
+       CONTENIDO
+       ========================= */
+    .container { max-width: 1400px; margin: 0 auto; padding: 60px 40px; }
+
+    .product-detail {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 40px;
+      margin-bottom: 50px;
+    }
+
+    .gallery { display: flex; flex-direction: column; gap: 15px; }
+
+    .main-image {
+      width: 100%;
+      height: 400px;
+      background: linear-gradient(135deg, #4a4a4a, #2d2d2d);
+      border-radius: 15px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #777;
+      font-size: 18px;
+      overflow: hidden;
+      border: 2px solid #3d3d3d;
+      box-shadow: 0 10px 25px rgba(0,0,0,.25);
+    }
+
+    .main-image img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: none;
+    }
+
+    .thumbnails {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+    }
+
+    .thumbnail {
+      height: 80px;
+      background: linear-gradient(135deg, #3d3d3d, #2d2d2d);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #777;
+      font-size: 12px;
+      cursor: pointer;
+      border: 2px solid #3d3d3d;
+      transition: all 0.3s;
+      overflow: hidden;
+    }
+    .thumbnail:hover {
+      border-color: #8b7355;
+      box-shadow: 0 10px 25px rgba(139,115,85,.18);
+      transform: translateY(-2px);
+    }
+    .thumbnail img { width: 100%; height: 100%; object-fit: cover; display: none; }
+
+    .product-info { display: flex; flex-direction: column; gap: 20px; }
+
+    .product-title { font-size: clamp(24px, 4vw, 32px); color: #8b7355; font-weight: bold; }
+
+    .rating { display: flex; align-items: center; gap: 10px; color: #ffa500; }
+    .rating span { color: #a0a0a0; }
+
+    .price-large { font-size: clamp(32px, 5vw, 42px); color: #8b7355; font-weight: bold; }
+
+    .stock-indicator {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 14px;
+      background: #2d4a2d;
+      border-radius: 12px;
+      color: #7fdb7f;
+      border: 2px solid rgba(127,219,127,.18);
+    }
+
+    .description { color: #a0a0a0; line-height: 1.8; font-size: 16px; }
+
+    .features-box {
+      background: #2d2d2d;
+      padding: 20px;
+      border-radius: 15px;
+      border: 2px solid #3d3d3d;
+      box-shadow: 0 10px 25px rgba(0,0,0,.2);
+    }
+    .features-box h3 { color: #8b7355; margin-bottom: 15px; }
+
+    .feature-item {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      padding: 12px 0;
+      border-bottom: 1px solid #3d3d3d;
+    }
+    .feature-item:last-child { border-bottom: none; }
+    .feature-icon { font-size: 24px; color: #8b7355; }
+
+    .cart-section {
+      background: #2d2d2d;
+      padding: 25px;
+      border-radius: 15px;
+      border: 2px solid #3d3d3d;
+      box-shadow: 0 10px 25px rgba(0,0,0,.2);
+    }
+    .cart-section h3 { color: #8b7355; margin-bottom: 15px; }
+
+    .quantity-selector {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      margin: 20px 0;
+      flex-wrap: wrap;
+    }
+
+    .quantity-btn {
+      width: 40px;
+      height: 40px;
+      background: #3d3d3d;
+      border: 2px solid #4a4a4a;
+      border-radius: 10px;
+      color: #e0e0e0;
+      font-size: 20px;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    .quantity-btn:hover {
+      background: #8b7355;
+      border-color: #8b7355;
+      transform: translateY(-2px);
+    }
+
+    .quantity-display { font-size: 24px; min-width: 50px; text-align: center; }
+
+    .btn-add-cart {
+      width: 100%;
+      padding: 15px;
+      background: #8b7355;
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-size: 18px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.3s;
+      margin-bottom: 10px;
+    }
+    .btn-add-cart:hover {
+      background: #a0865f;
+      transform: translateY(-2px);
+      box-shadow: 0 5px 20px rgba(139, 115, 85, 0.35);
+    }
+
+    .shipping-note { text-align: center; color: #a0a0a0; font-size: 14px; margin-top: 10px; }
+
+    .tabs { margin-top: 50px; }
+
+    .tabs-header {
+      display: flex;
+      gap: 10px;
+      border-bottom: 2px solid #3d3d3d;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+
+    .tab-btn {
+      padding: 14px 22px;
+      background: transparent;
+      border: none;
+      border-bottom: 3px solid transparent;
+      color: #a0a0a0;
+      font-size: 16px;
+      cursor: pointer;
+      transition: all 0.3s;
+      font-weight: 700;
+    }
+
+    .tab-btn.active { color: #8b7355; border-bottom-color: #8b7355; }
+
+    .tab-content {
+      background: #2d2d2d;
+      padding: 30px;
+      border-radius: 15px;
+      border: 2px solid #3d3d3d;
+      box-shadow: 0 10px 25px rgba(0,0,0,.2);
+    }
+    .tab-content h3 { color: #8b7355; margin-bottom: 20px; }
+
+    .spec-row {
+      display: grid;
+      grid-template-columns: 220px 1fr;
+      padding: 15px 0;
+      border-bottom: 1px solid #3d3d3d;
+      gap: 12px;
+    }
+    .spec-row:last-child { border-bottom: none; }
+    .spec-label { color: #8b7355; font-weight: bold; }
+    .spec-value { color: #e0e0e0; }
+
+    .not-found {
+      background: #2d2d2d;
+      padding: 30px;
+      border-radius: 15px;
+      border: 2px solid #3d3d3d;
+      box-shadow: 0 10px 25px rgba(0,0,0,.2);
+    }
+
+    /* =========================
+       RESPONSIVE
+       ========================= */
+    @media (max-width: 900px) {
+      .header-nav { padding: 16px 16px; }
+
+      .menu-toggle { display: block; }
+
+      .nav-links {
+        display: none;
+        width: 100%;
+        margin-top: 14px;
+        flex-direction: column;
+        gap: 12px;
+        align-items: stretch;
+
+        background: #2d2d2d;
+        border: 2px solid #3d3d3d;
+        border-radius: 14px;
+        padding: 14px;
+        box-shadow: 0 10px 30px rgba(0,0,0,.35);
+      }
+
+      .nav-links.open { display: flex; }
+
+      .nav-links a {
+        text-align: center;
+        padding: 10px 12px;
+        border: 1px solid #3d3d3d;
+        border-radius: 10px;
+        background: #2d2d2d;
+      }
+
+      .login-btn { width: 100%; text-align: center; }
+
+      .cart-icon {
+        display: flex;
+        justify-content: center;
+        font-size: 22px;
+      }
+
+      .container { padding: 40px 20px; }
+
+      .product-detail { grid-template-columns: 1fr; }
+
+      .thumbnails { grid-template-columns: repeat(4, 1fr); }
+      .thumbnail { height: 70px; }
+    }
+
+    @media (max-width: 520px) {
+      .thumbnails { grid-template-columns: repeat(2, 1fr); }
+      .spec-row { grid-template-columns: 1fr; }
+      .main-image { height: 320px; }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="header-nav">
+    <div class="logo">WOODEN HOUSE</div>
+
+    <!-- Hamburguesa -->
+    <button class="menu-toggle" id="menuToggle" aria-label="Abrir menú" aria-expanded="false">☰</button>
+
+    <div class="nav-links" id="navLinks">
+      <a href="index.html">Inicio</a>
+      <a href="solicitudes.html">Solicitudes</a>
+      <a href="catalogo.html">Catálogo</a>
+
+      <a href="carrito.html" class="cart-icon" id="cartIcon" aria-label="Ver carrito">
+        🛒
+        <span class="cart-badge" id="cartCount">0</span>
+      </a>
+    </div>
+  </div>
+
+  <div class="container" id="page">
+    <div class="product-detail" id="productDetail">
+      <div class="gallery">
+        <div class="main-image" id="mainImageBox">
+          <span id="mainImageText">[Imagen Principal]</span>
+          <img id="mainImage" alt="Imagen principal">
+        </div>
+
+        <div class="thumbnails" id="thumbs"></div>
+      </div>
+
+      <div class="product-info">
+        <div>
+          <div class="product-title" id="pNombre">Producto</div>
+          <div class="rating" id="pRating">⭐⭐⭐⭐⭐ <span>(0 reseñas)</span></div>
+        </div>
+
+        <div class="price-large" id="pPrecio">$0</div>
+
+        <div class="stock-indicator" id="pStock">
+          <span style="font-size: 20px;">✅</span>
+          <span><strong>En Stock</strong> - Fabricación bajo pedido</span>
+        </div>
+
+        <div class="description" id="pDesc"></div>
+
+        <div class="features-box">
+          <h3>Características Principales</h3>
+          <div id="pFeatures"></div>
+        </div>
+
+        <div class="cart-section">
+          <h3>Agregar al Carrito</h3>
+
+          <div class="quantity-selector">
+            <span style="color: #a0a0a0;">Cantidad:</span>
+            <button class="quantity-btn" id="btnMinus" type="button">-</button>
+            <span class="quantity-display" id="qty">1</span>
+            <button class="quantity-btn" id="btnPlus" type="button">+</button>
+          </div>
+
+          <button class="btn-add-cart" id="btnAddCart" type="button">🛒 Agregar al Carrito</button>
+          <div class="shipping-note">🚚 Envíos en ZMG | 5-7 días hábiles</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="tabs">
+      <div class="tabs-header">
+        <button class="tab-btn active" type="button">📋 Especificaciones</button>
+        <button class="tab-btn" type="button" disabled>💬 Reseñas</button>
+      </div>
+
+      <div class="tab-content">
+        <h3>Especificaciones Técnicas</h3>
+        <div id="specTable"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // =========================
+    // Hamburguesa
+    // =========================
+    const menuToggle = document.getElementById('menuToggle');
+    const navLinks = document.getElementById('navLinks');
+
+    menuToggle.addEventListener('click', () => {
+      const isOpen = navLinks.classList.toggle('open');
+      menuToggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+      menuToggle.textContent = isOpen ? '✕' : '☰';
+    });
+
+    // Cierra menú al dar click en un link
+    navLinks.querySelectorAll('a').forEach(link => {
+      link.addEventListener('click', () => {
+        if (navLinks.classList.contains('open')) {
+          navLinks.classList.remove('open');
+          menuToggle.setAttribute('aria-expanded', 'false');
+          menuToggle.textContent = '☰';
+        }
+      });
+    });
+
+    // ==== 1) BASE DE DATOS LOCAL (por ahora solo 1 mueble) ====
+    const productos = {
+      milano: {
+        nombre: "Mueble Milano",
+        precio: "$8,500",
+        rating: "⭐⭐⭐⭐⭐",
+        reseñas: 47,
+        stockTexto: "✅ En Stock - Fabricación bajo pedido",
+        descripcion:
+          "Mueble de baño moderno fabricado en MDF de alta densidad con acabado en nogal. Incluye lavabo de cerámica blanca de primera calidad. Diseño minimalista que combina funcionalidad y elegancia, perfecto para baños contemporáneos.",
+        // Si no tienes imágenes aún, deja esto vacío: []
+        imagenes: [],
+        features: [
+          { icon: "📏", text: "Dimensiones: 80cm x 45cm x 60cm" },
+          { icon: "🪵", text: "Material: MDF de alta densidad" },
+          { icon: "🎨", text: "Acabado: Nogal resistente al agua" },
+          { icon: "🚰", text: "Lavabo: Cerámica blanca incluido" },
+          { icon: "🔧", text: "Instalación: Profesional disponible" },
+          { icon: "✅", text: "Garantía: Incluida en el producto" },
+        ],
+        specs: [
+          { label: "Modelo", value: "Milano MM-2024" },
+          { label: "Dimensiones Totales", value: "Alto: 60cm | Ancho: 80cm | Fondo: 45cm" },
+          { label: "Material Principal", value: "MDF 18mm alta densidad" },
+          { label: "Acabado", value: "Nogal mate resistente al agua" },
+          { label: "Lavabo", value: "Cerámica blanca vitrificada - 75cm x 40cm" },
+          { label: "Sistema de Montaje", value: "Flotante con soportes metálicos reforzados" },
+          { label: "Almacenamiento", value: "2 cajones con guías metálicas suaves" },
+          { label: "Peso Máximo Soportado", value: "80 kg" },
+          { label: "País de Fabricación", value: "México" },
+          { label: "Tiempo de Entrega", value: "5-7 días hábiles" },
+        ],
+      },
+    };
+
+    // ==== 2) LEER ID DE LA URL ====
+    const params = new URLSearchParams(window.location.search);
+    const id = params.get("id") || "milano"; // si no manda id, usa milano
+    const p = productos[id];
+
+    // ==== 3) SI NO EXISTE, MOSTRAR MENSAJE ====
+    if (!p) {
+      document.getElementById("page").innerHTML = `
+        <div class="not-found">
+          <h2 style="color:#8b7355; margin-bottom:10px;">Producto no encontrado</h2>
+          <p style="color:#a0a0a0; margin-bottom:20px;">El producto que intentas ver no existe o fue eliminado.</p>
+          <a href="catalogo.html" style="color:#8b7355; text-decoration:none; font-weight:700;">← Volver al catálogo</a>
+        </div>
+      `;
+    } else {
+      // ==== 4) RELLENAR CONTENIDO ====
+      document.title = `${p.nombre} - Wooden House`;
+      document.getElementById("pNombre").textContent = p.nombre;
+      document.getElementById("pPrecio").textContent = p.precio;
+      document.getElementById("pRating").innerHTML = `${p.rating} <span>(${p.reseñas} reseñas)</span>`;
+      document.getElementById("pDesc").textContent = p.descripcion;
+
+      // Stock texto (si quieres mostrar el texto largo)
+      const stockEl = document.getElementById("pStock");
+      if (stockEl && p.stockTexto) {
+        stockEl.innerHTML = `<span style="font-size: 20px;">✅</span><span><strong>En Stock</strong> - ${p.stockTexto.replace("✅ En Stock - ", "")}</span>`;
+      }
+
+      // Features
+      document.getElementById("pFeatures").innerHTML = p.features.map(f => `
+        <div class="feature-item">
+          <span class="feature-icon">${f.icon}</span>
+          <span>${f.text}</span>
+        </div>
+      `).join("");
+
+      // Specs
+      document.getElementById("specTable").innerHTML = p.specs.map(s => `
+        <div class="spec-row">
+          <span class="spec-label">${s.label}</span>
+          <span class="spec-value">${s.value}</span>
+        </div>
+      `).join("");
+
+      // Imágenes (si luego agregas rutas, se mostrará)
+      const imgs = p.imagenes || [];
+      const mainImg = document.getElementById("mainImage");
+      const mainText = document.getElementById("mainImageText");
+      const thumbs = document.getElementById("thumbs");
+
+      if (imgs.length > 0) {
+        mainImg.src = imgs[0];
+        mainImg.style.display = "block";
+        mainText.style.display = "none";
+
+        thumbs.innerHTML = imgs.slice(0, 4).map((src, i) => `
+          <div class="thumbnail" data-src="${src}">
+            <img src="${src}" alt="Vista ${i+1}" style="display:block;">
+          </div>
+        `).join("");
+
+        thumbs.querySelectorAll(".thumbnail").forEach(t => {
+          t.addEventListener("click", () => {
+            mainImg.src = t.dataset.src;
+          });
+        });
+      } else {
+        // sin imágenes aún
+        thumbs.innerHTML = `
+          <div class="thumbnail">[Vista 1]</div>
+          <div class="thumbnail">[Vista 2]</div>
+          <div class="thumbnail">[Vista 3]</div>
+          <div class="thumbnail">[Vista 4]</div>
+        `;
+      }
+    }
+
+    // ==== 5) Cantidad (UI) ====
+    let qty = 1;
+    const qtyEl = document.getElementById("qty");
+    const btnMinus = document.getElementById("btnMinus");
+    const btnPlus = document.getElementById("btnPlus");
+
+    if (btnMinus && btnPlus && qtyEl) {
+      btnMinus.addEventListener("click", () => {
+        qty = Math.max(1, qty - 1);
+        qtyEl.textContent = qty;
+      });
+      btnPlus.addEventListener("click", () => {
+        qty = qty + 1;
+        qtyEl.textContent = qty;
+      });
+    }
+
+    // (demo) Agregar al carrito
+    const btnAddCart = document.getElementById("btnAddCart");
+    if (btnAddCart) {
+      btnAddCart.addEventListener("click", () => {
+        alert(`Agregaste ${qty} x ${p ? p.nombre : "producto"} al carrito ✅`);
+      });
+    }
+  </script>
+</body>
+</html>
