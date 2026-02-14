@@ -1,0 +1,158 @@
+# ================================================
+# WOODEN HOUSE - GITIGNORE
+# Archivos que NO se deben subir a Git/GitHub
+# ================================================
+
+# === ARCHIVOS SENSIBLES (NUNCA SUBIR) ===
+.env
+.env.local
+.env.*.local
+.env.production
+.env.development
+
+# Credenciales Firebase
+firebase-service-account.json
+*-firebase-adminsdk-*.json
+serviceAccountKey.json
+
+# Claves API
+*.pem
+*.key
+secrets.json
+
+# === BASE DE DATOS ===
+# Datos persistentes de MySQL
+db_data/
+mysql-data/
+volumes/
+
+# Backups de base de datos
+*.sql.gz
+*.sql.zip
+backups/*.sql
+!database/schema.sql
+!database/seed.sql
+
+# === DEPENDENCIAS ===
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+yarn.lock
+
+# Composer (PHP)
+vendor/
+composer.phar
+composer.lock
+
+# === LOGS ===
+logs/
+*.log
+log/
+error.log
+access.log
+npm-debug.log
+yarn-error.log
+
+# === ARCHIVOS DE SISTEMA ===
+# macOS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Linux
+*~
+.fuse_hidden*
+.directory
+.Trash-*
+
+# === IDE / EDITORES ===
+# VSCode
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+*.code-workspace
+
+# PhpStorm / JetBrains
+.idea/
+*.iml
+*.ipr
+*.iws
+.idea_modules/
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# Vim
+*.swp
+*.swo
+*.swn
+*~
+
+# Emacs
+*~
+\#*\#
+.\#*
+
+# === TEMPORALES ===
+tmp/
+temp/
+*.tmp
+*.temp
+*.bak
+*.backup
+*.cache
+.cache/
+cache/
+
+# === BUILD / DIST ===
+dist/
+build/
+*.min.js
+*.min.css
+.next/
+out/
+
+# === UPLOADS (opcional) ===
+# Descomentar si NO quieres subir archivos subidos por usuarios
+# public/uploads/*
+# !public/uploads/.gitkeep
+# storage/uploads/*
+# !storage/uploads/.gitkeep
+
+# === PHP ===
+*.php~
+*.php.bak
+
+# === TESTS ===
+coverage/
+.phpunit.result.cache
+phpunit.xml
+
+# === OTROS ===
+# Carpetas de prueba
+test-output/
+sandbox/
+
+# Archivos comprimidos (excepto releases)
+*.zip
+*.tar.gz
+*.rar
+!releases/*.zip
