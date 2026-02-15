@@ -170,24 +170,7 @@ function initTabs() {
     });
   });
 }
-```
 
----
-
-### 5. **ICONOS DE STRIPE Y PAYPAL ERAN TEXTO** ❌ → ✅
-**Problema:** No se usaban iconos reales de Font Awesome.
-
-**Solución:**
-```html
-<!-- Agregado Font Awesome en pago.html -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-
-<!-- Iconos reales -->
-<i class="fab fa-stripe fa-3x" style="color: #635BFF;"></i>
-<i class="fab fa-paypal fa-3x" style="color: #00457C;"></i>
-<i class="fab fa-cc-visa fa-2x"></i>
-<i class="fab fa-cc-mastercard fa-2x"></i>
-<i class="fab fa-cc-amex fa-2x"></i>
 ```
 ## 💡 NOTAS IMPORTANTES
 
