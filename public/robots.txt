@@ -1,5 +1,5 @@
 # ================================================
-# CONFIGURACIÓN PRINCIPAL
+# CONFIGURACION PRINCIPAL
 # ================================================
 
 # Permitir a todos los bots de búsqueda
@@ -9,7 +9,7 @@ User-agent: *
 Allow: /
 
 # ================================================
-# BLOQUEAR PÁGINAS PRIVADAS/ADMIN
+# BLOQUEAR PAGINAS PRIVADAS/ADMIN
 # ================================================
 
 # Panel de Administrador
@@ -28,7 +28,7 @@ Disallow: /src/
 Disallow: /database/
 
 # ================================================
-# BLOQUEAR ARCHIVOS DE CONFIGURACIÓN
+# BLOQUEAR ARCHIVOS DE CONFIGURACION
 # ================================================
 
 # Variables de entorno
@@ -53,7 +53,7 @@ Disallow: /cache/
 Disallow: /logs/
 
 # ================================================
-# PÁGINAS OPCIONALES A BLOQUEAR
+# PAGINAS OPCIONALES A BLOQUEAR
 # ================================================
 
 # Descomentar si NO quieres indexar estas páginas:
@@ -68,14 +68,14 @@ Disallow: /logs/
 Disallow: /login.html
 
 # ================================================
-# UBICACIÓN DEL SITEMAP
+# UBICACION DEL SITEMAP
 # ================================================
 
 # IMPORTANTE: Reemplaza con tu dominio real
 Sitemap: https://muebleswh.com/sitemap.xml
 
 # ================================================
-# CONFIGURACIÓN DE RASTREO
+# CONFIGURACION DE RASTREO
 # ================================================
 
 # Esperar 10 segundos entre peticiones
@@ -83,7 +83,7 @@ Sitemap: https://muebleswh.com/sitemap.xml
 Crawl-delay: 10
 
 # ================================================
-# BOTS ESPECÍFICOS (Opcional)
+# BOTS ESPECIFICOS (Opcional)
 # ================================================
 
 # GoogleBot (motor de búsqueda de Google)
@@ -99,19 +99,3 @@ Crawl-delay: 10
 # Bloquear bots maliciosos (opcional)
 # User-agent: BadBot
 # Disallow: /
-
-# ================================================
-# NOTAS IMPORTANTES
-# ================================================
-
-# 1. Este archivo DEBE estar en la raíz del sitio
-#    URL: https://muebleswh.com/robots.txt
-#
-# 2. Es sensible a mayúsculas/minúsculas
-#    /Admin/ ≠ /admin/
-#
-# 3. Verificar en Google Search Console:
-#    Configuración → robots.txt tester
-#
-# 4. Los bots respetan estas reglas VOLUNTARIAMENTE
-#    (No es un sistema de seguridad)
