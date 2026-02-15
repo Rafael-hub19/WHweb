@@ -1,0 +1,117 @@
+# ================================================
+# CONFIGURACIÓN PRINCIPAL
+# ================================================
+
+# Permitir a todos los bots de búsqueda
+User-agent: *
+
+# Permitir acceso a todo el contenido público
+Allow: /
+
+# ================================================
+# BLOQUEAR PÁGINAS PRIVADAS/ADMIN
+# ================================================
+
+# Panel de Administrador
+Disallow: /admin/
+Disallow: /panel_administrador.html
+
+# Panel de Empleado
+Disallow: /empleado/
+Disallow: /panel_empleado.html
+
+# APIs y backend
+Disallow: /api/
+Disallow: /src/
+
+# Base de datos
+Disallow: /database/
+
+# ================================================
+# BLOQUEAR ARCHIVOS DE CONFIGURACIÓN
+# ================================================
+
+# Variables de entorno
+Disallow: /.env
+Disallow: /.env.local
+
+# Configuración
+Disallow: /config/
+Disallow: /firebase/
+
+# Git
+Disallow: /.git/
+Disallow: /.gitignore
+
+# ================================================
+# BLOQUEAR ARCHIVOS TEMPORALES
+# ================================================
+
+Disallow: /tmp/
+Disallow: /temp/
+Disallow: /cache/
+Disallow: /logs/
+
+# ================================================
+# PÁGINAS OPCIONALES A BLOQUEAR
+# ================================================
+
+# Descomentar si NO quieres indexar estas páginas:
+
+# Proceso de pago (puede causar contenido duplicado)
+# Disallow: /pago.html
+
+# Carrito (no tiene contenido útil para SEO)
+# Disallow: /carrito.html
+
+# Login
+Disallow: /login.html
+
+# ================================================
+# UBICACIÓN DEL SITEMAP
+# ================================================
+
+# IMPORTANTE: Reemplaza con tu dominio real
+Sitemap: https://muebleswh.com/sitemap.xml
+
+# ================================================
+# CONFIGURACIÓN DE RASTREO
+# ================================================
+
+# Esperar 10 segundos entre peticiones
+# (Evita sobrecargar el servidor)
+Crawl-delay: 10
+
+# ================================================
+# BOTS ESPECÍFICOS (Opcional)
+# ================================================
+
+# GoogleBot (motor de búsqueda de Google)
+User-agent: Googlebot
+Allow: /
+Crawl-delay: 5
+
+# BingBot (motor de búsqueda de Bing)
+User-agent: Bingbot
+Allow: /
+Crawl-delay: 10
+
+# Bloquear bots maliciosos (opcional)
+# User-agent: BadBot
+# Disallow: /
+
+# ================================================
+# NOTAS IMPORTANTES
+# ================================================
+
+# 1. Este archivo DEBE estar en la raíz del sitio
+#    URL: https://muebleswh.com/robots.txt
+#
+# 2. Es sensible a mayúsculas/minúsculas
+#    /Admin/ ≠ /admin/
+#
+# 3. Verificar en Google Search Console:
+#    Configuración → robots.txt tester
+#
+# 4. Los bots respetan estas reglas VOLUNTARIAMENTE
+#    (No es un sistema de seguridad)
