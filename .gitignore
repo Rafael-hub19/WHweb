@@ -1,53 +1,101 @@
 # ================================================
 # WOODEN HOUSE - GITIGNORE
 # Archivos que NO se deben subir a Git/GitHub
+# Actualizado para estructura del proyecto
 # ================================================
 
-# === ARCHIVOS SENSIBLES (NUNCA SUBIR) ===
+# ========================================
+# ARCHIVOS SENSIBLES - NUNCA SUBIR ⚠️
+# ========================================
+
+# Variables de entorno
 .env
 .env.local
 .env.*.local
 .env.production
 .env.development
+.env.staging
+.env.test
 
 # Credenciales Firebase
 firebase-service-account.json
 *-firebase-adminsdk-*.json
 serviceAccountKey.json
+firebase-admin-sdk.json
+firebase-credentials.json
 
-# Claves API
+# Claves API y certificados
 *.pem
 *.key
+*.p12
 secrets.json
+credentials.json
+api-keys.json
 
-# === BASE DE DATOS ===
-# Datos persistentes de MySQL
+# Configuración de base de datos con credenciales
+src/config/db.php
+src/config/config.php
+!src/config/db.example.php
+!src/config/config.example.php
+
+# Configuración de servicios externos
+src/config/stripe.php
+src/config/paypal.php
+src/config/mailer.php
+src/config/firebase_admin.php
+!src/config/*.example.php
+
+# ========================================
+# BASE DE DATOS
+# ========================================
+
+# Datos persistentes de MySQL/MariaDB
 db_data/
 mysql-data/
+mariadb-data/
 volumes/
+data/
 
-# Backups de base de datos
+# Backups de base de datos (excepto schema y seed)
+database/backups/*.sql
+database/backups/*.sql.gz
+database/backups/*.sql.zip
+database/backups/*.dump
 *.sql.gz
 *.sql.zip
-backups/*.sql
+*.dump
+
+# IMPORTANTE: Mantener schema y seed
 !database/schema.sql
 !database/seed.sql
 
-# === DEPENDENCIAS ===
+# ========================================
+# DEPENDENCIAS
+# ========================================
+
 # Node.js
 node_modules/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+lerna-debug.log*
 package-lock.json
 yarn.lock
+pnpm-lock.yaml
 
 # Composer (PHP)
 vendor/
 composer.phar
 composer.lock
 
-# === LOGS ===
+# Dependencias Firebase Functions
+firebase/functions/node_modules/
+firebase/fuctions/node_modules/
+
+# ========================================
+# LOGS Y ERRORES
+# ========================================
+
 logs/
 *.log
 log/
@@ -55,8 +103,19 @@ error.log
 access.log
 npm-debug.log
 yarn-error.log
+php_error.log
+mysql-error.log
+apache-error.log
+nginx-error.log
 
-# === ARCHIVOS DE SISTEMA ===
+# Logs de Firebase
+firebase-debug.log
+firestore-debug.log
+
+# ========================================
+# ARCHIVOS DE SISTEMA OPERATIVO
+# ========================================
+
 # macOS
 .DS_Store
 .DS_Store?
@@ -65,6 +124,11 @@ yarn-error.log
 .Trashes
 .AppleDouble
 .LSOverride
+.DocumentRevisions-V100
+.fseventsd
+.TemporaryItems
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
 
 # Windows
 Thumbs.db
@@ -73,21 +137,23 @@ ehthumbs.db
 ehthumbs_vista.db
 Desktop.ini
 $RECYCLE.BIN/
+*.lnk
 
 # Linux
 *~
 .fuse_hidden*
 .directory
 .Trash-*
+.nfs*
 
-# === IDE / EDITORES ===
-# VSCode
-.vscode/*
-!.vscode/settings.json
-!.vscode/tasks.json
-!.vscode/launch.json
-!.vscode/extensions.json
+# ========================================
+# IDEs Y EDITORES
+# ========================================
+
+# VSCode (IGNORAR TODO - es configuración personal)
+.vscode/
 *.code-workspace
+.history/
 
 # PhpStorm / JetBrains
 .idea/
@@ -95,23 +161,45 @@ $RECYCLE.BIN/
 *.ipr
 *.iws
 .idea_modules/
+out/
+atlassian-ide-plugin.xml
 
 # Sublime Text
 *.sublime-project
 *.sublime-workspace
+*.tmlanguage.cache
+*.tmPreferences.cache
+*.stTheme.cache
 
 # Vim
-*.swp
-*.swo
-*.swn
+[._]*.s[a-v][a-z]
+[._]*.sw[a-p]
 *~
+tags
+.netrwhist
 
 # Emacs
 *~
 \#*\#
 .\#*
+.projectile
 
-# === TEMPORALES ===
+# Eclipse
+.buildpath
+.project
+.settings/
+
+# NetBeans
+nbproject/
+nbbuild/
+dist-netbeans/
+nbdist/
+.nb-gradle/
+
+# ========================================
+# ARCHIVOS TEMPORALES Y CACHE
+# ========================================
+
 tmp/
 temp/
 *.tmp
@@ -121,8 +209,17 @@ temp/
 *.cache
 .cache/
 cache/
+.temp/
 
-# === BUILD / DIST ===
+# PHP Cache
+opcache/
+.phpunit.result.cache
+.php_cs.cache
+
+# ========================================
+# BUILD Y COMPILADOS
+# ========================================
+
 dist/
 build/
 *.min.js
@@ -130,29 +227,137 @@ build/
 .next/
 out/
 
-# === UPLOADS (opcional) ===
-# Descomentar si NO quieres subir archivos subidos por usuarios
-# public/uploads/*
-# !public/uploads/.gitkeep
-# storage/uploads/*
-# !storage/uploads/.gitkeep
+# Archivos compilados de CSS
+*.css.map
+*.sass.cache
+*.scss.cache
 
-# === PHP ===
+# ========================================
+# UPLOADS DE USUARIOS
+# ========================================
+
+# Descomenta si NO quieres subir archivos de usuarios
+public/uploads/*
+!public/uploads/.gitkeep
+storage/uploads/*
+!storage/uploads/.gitkeep
+
+# Imágenes temporales de Firebase Storage
+public/assets/images/temp/
+public/assets/images/cache/
+
+# ========================================
+# DOCKER
+# ========================================
+
+# Docker (si usas Docker)
+docker-compose.override.yml
+.docker/
+*.dockerignore
+
+# Volúmenes de Docker
+volumes/
+
+# ========================================
+# PHP
+# ========================================
+
 *.php~
 *.php.bak
+.phpunit.result.cache
+phpunit.xml
+phpcs.xml
+.php_cs
+.php_cs.cache
 
-# === TESTS ===
+# ========================================
+# TESTING
+# ========================================
+
 coverage/
 .phpunit.result.cache
 phpunit.xml
+.nyc_output/
+tests/_output/
+tests/_support/_generated/
 
-# === OTROS ===
-# Carpetas de prueba
-test-output/
-sandbox/
+# ========================================
+# FIREBASE ESPECÍFICO
+# ========================================
 
-# Archivos comprimidos (excepto releases)
+# Configuración local de Firebase
+.firebase/
+
+# Emuladores de Firebase
+firebase-emulators/
+ui-debug.log
+firestore-debug.log
+
+# ========================================
+# ARCHIVOS COMPRIMIDOS
+# ========================================
+
 *.zip
+*.tar
 *.tar.gz
 *.rar
+*.7z
+*.bz2
+*.xz
+
+# Excepciones: releases oficiales
 !releases/*.zip
+!downloads/*.zip
+
+# ========================================
+# OTROS
+# ========================================
+
+# Carpetas de pruebas
+test-output/
+sandbox/
+playground/
+draft/
+experiments/
+
+# Documentación generada
+docs/generated/
+api-docs/
+
+# SSL/TLS Certificates
+*.crt
+*.cer
+*.der
+*.pfx
+
+# Lockfiles de seguridad
+security.lock
+.security/
+
+# ========================================
+# PROYECTO WOODEN HOUSE ESPECÍFICO
+# ========================================
+
+# Respaldos manuales
+backups/manual/
+backups/temp/
+
+# Archivos de migración temporal
+migrations/temp/
+migrations/*.bak
+
+# Scripts de desarrollo personal
+scripts/dev-*.sh
+scripts/local-*.sh
+scripts/test-*.php
+
+# Notas personales
+NOTAS.md
+TODO.md
+PERSONAL.md
+notes/
+
+# Archivos de desarrollo
+dev/
+development/
+local/

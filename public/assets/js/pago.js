@@ -6,7 +6,7 @@ const API_URL = window.location.hostname === 'localhost'
   : '/api';
 
 // Stripe - REEMPLAZAR CON TU CLAVE PÚBLICA
-const STRIPE_PUBLIC_KEY = 'pk_test_TU_CLAVE_PUBLICA_AQUI';
+const STRIPE_PUBLIC_KEY = 'pk_test_TU_CLAVE_AQUI';
 const stripe = Stripe(STRIPE_PUBLIC_KEY);
 const elements = stripe.elements();
 
