@@ -1,62 +1,204 @@
-/**
- * Funciones Utilitarias - Wooden House
- * Helpers reutilizables en toda la aplicación
- */
+// ================================================
+// VALIDACIONES
+// ================================================
 
-/**
- * Formatea un número como moneda MXN
- */
-function formatCurrency(amount) {
-  return new Intl.NumberFormat('es-MX', {
-    style: 'currency',
-    currency: 'MXN'
-  }).format(amount);
-}
-
-/**
- * Formatea una fecha
- */
-function formatDate(date) {
-  return new Intl.DateTimeFormat('es-MX', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric'
-  }).format(new Date(date));
-}
-
-/**
- * Valida un email
- */
 function isValidEmail(email) {
-  const regex = /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/;
+  const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   return regex.test(email);
 }
 
-/**
- * Valida un teléfono mexicano
- */
 function isValidPhone(phone) {
   const cleaned = phone.replace(/\D/g, '');
   return cleaned.length === 10;
 }
 
-/**
- * Sanitiza un string para prevenir XSS
- */
-function sanitize(str) {
-  const map = {
-    '&': '&amp;',
-    '<': '&lt;',
-    '>': '&gt;',
-    '"': '&quot;',
-    "'": '&#039;'
-  };
-  return String(str).replace(/[&<>"']/g, (m) => map[m]);
+function isValidCurrency(value) {
+  return !isNaN(parseFloat(value)) && parseFloat(value) > 0;
 }
 
-/**
- * Debounce function
- */
+// ================================================
+// FORMATEO
+// ================================================
+
+function formatCurrency(amount) {
+  return new Intl.NumberFormat('es-MX', {
+    style: 'currency',
+    currency: 'MXN',
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  }).format(amount);
+}
+
+function formatDate(dateString) {
+  const date = new Date(dateString);
+  return new Intl.DateTimeFormat('es-MX', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  }).format(date);
+}
+
+function formatDateTime(dateString) {
+  const date = new Date(dateString);
+  return new Intl.DateTimeFormat('es-MX', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  }).format(date);
+}
+
+function formatNumber(number) {
+  return new Intl.NumberFormat('es-MX').format(number);
+}
+
+// ================================================
+// LOCALSTORAGE HELPERS
+// ================================================
+
+function getFromStorage(key) {
+  try {
+    const item = localStorage.getItem(key);
+    return item ? JSON.parse(item) : null;
+  } catch (error) {
+    console.error('Error reading from localStorage:', error);
+    return null;
+  }
+}
+
+function saveToStorage(key, value) {
+  try {
+    localStorage.setItem(key, JSON.stringify(value));
+    return true;
+  } catch (error) {
+    console.error('Error saving to localStorage:', error);
+    return false;
+  }
+}
+
+function removeFromStorage(key) {
+  try {
+    localStorage.removeItem(key);
+    return true;
+  } catch (error) {
+    console.error('Error removing from localStorage:', error);
+    return false;
+  }
+}
+
+// ================================================
+// API HELPERS
+// ================================================
+
+async function apiRequest(endpoint, options = {}) {
+  const API_BASE = window.location.hostname === 'localhost' 
+    ? 'http://localhost/api'
+    : '/api';
+
+  const defaultOptions = {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  };
+
+  const config = { ...defaultOptions, ...options };
+
+  try {
+    const response = await fetch(`${API_BASE}${endpoint}`, config);
+    const data = await response.json();
+    
+    if (!response.ok) {
+      throw new Error(data.error || 'Error en la petición');
+    }
+    
+    return data;
+  } catch (error) {
+    console.error('API Error:', error);
+    throw error;
+  }
+}
+
+// ================================================
+// DOM HELPERS
+// ================================================
+
+function showLoader(message = 'Cargando...') {
+  const loader = document.createElement('div');
+  loader.id = 'global-loader';
+  loader.style.cssText = `
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 99999;
+    color: white;
+  `;
+  loader.innerHTML = `
+    <div style="font-size: 48px; margin-bottom: 20px;">⏳</div>
+    <div style="font-size: 18px;">${message}</div>
+  `;
+  document.body.appendChild(loader);
+  return loader;
+}
+
+function hideLoader() {
+  const loader = document.getElementById('global-loader');
+  if (loader) {
+    loader.remove();
+  }
+}
+
+function showNotification(message, type = 'info', duration = 4000) {
+  const colors = {
+    success: '#4caf50',
+    error: '#f44336',
+    warning: '#ff9800',
+    info: '#2196f3'
+  };
+
+  const notification = document.createElement('div');
+  notification.style.cssText = `
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 15px 25px;
+    background: ${colors[type] || colors.info};
+    color: white;
+    border-radius: 8px;
+    z-index: 10000;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    animation: slideInRight 0.3s ease;
+    max-width: 400px;
+  `;
+  notification.textContent = message;
+  
+  document.body.appendChild(notification);
+  
+  setTimeout(() => {
+    notification.style.animation = 'slideOutRight 0.3s ease';
+    setTimeout(() => notification.remove(), 300);
+  }, duration);
+}
+
+function createElement(tag, className, content = '') {
+  const element = document.createElement(tag);
+  if (className) element.className = className;
+  if (content) element.innerHTML = content;
+  return element;
+}
+
+// ================================================
+// DEBOUNCE
+// ================================================
+
 function debounce(func, wait = 300) {
   let timeout;
   return function executedFunction(...args) {
@@ -69,136 +211,93 @@ function debounce(func, wait = 300) {
   };
 }
 
-/**
- * Obtiene un parámetro de la URL
- */
-function getURLParameter(name) {
-  const params = new URLSearchParams(window.location.search);
-  return params.get(name);
+// ================================================
+// URL HELPERS
+// ================================================
+
+function getUrlParam(param) {
+  const urlParams = new URLSearchParams(window.location.search);
+  return urlParams.get(param);
 }
 
-/**
- * Scroll suave a un elemento
- */
-function scrollToElement(selector) {
-  const element = document.querySelector(selector);
-  if (element) {
-    element.scrollIntoView({ 
-      behavior: 'smooth',
-      block: 'start'
-    });
-  }
+function setUrlParam(param, value) {
+  const url = new URL(window.location.href);
+  url.searchParams.set(param, value);
+  window.history.pushState({}, '', url);
 }
 
-/**
- * Muestra una notificación temporal
- */
-function showNotification(message, type = 'info', duration = 5000) {
-  const notification = document.createElement('div');
-  notification.className = `notification notification-${type}`;
-  notification.style.cssText = `
-    position: fixed;
-    top: 90px;
-    right: 20px;
-    min-width: 300px;
-    max-width: 400px;
-    padding: 20px;
-    background: #2d2d2d;
-    border: 2px solid ${type === 'success' ? '#4a8b5a' : type === 'error' ? '#8b4a4a' : '#4a7c8b'};
-    border-radius: 10px;
-    box-shadow: 0 10px 40px rgba(0,0,0,0.4);
-    z-index: 3000;
-    animation: slideIn 0.3s ease;
-  `;
-  notification.innerHTML = `
-    <p style="color: #e0e0e0; margin: 0;">${sanitize(message)}</p>
-    <button onclick="this.parentElement.remove()" style="position: absolute; top: 10px; right: 10px; background: transparent; color: #a0a0a0; border: none; font-size: 18px; cursor: pointer;">&times;</button>
-  `;
+// ================================================
+// STRING HELPERS
+// ================================================
 
-  document.body.appendChild(notification);
-
-  setTimeout(() => {
-    notification.style.animation = 'slideOut 0.3s ease';
-    setTimeout(() => notification.remove(), 300);
-  }, duration);
+function truncate(str, maxLength = 100) {
+  if (str.length <= maxLength) return str;
+  return str.slice(0, maxLength) + '...';
 }
 
-/**
- * Muestra un loader
- */
-function showLoader(message = 'Cargando...') {
-  const loader = document.createElement('div');
-  loader.id = 'global-loader';
-  loader.style.cssText = `
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.7);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    z-index: 9999;
-  `;
-  loader.innerHTML = `
-    <div style="width: 40px; height: 40px; border: 4px solid #4a4a4a; border-top-color: #8b7355; border-radius: 50%; animation: spin 0.8s linear infinite;"></div>
-    <p style="color: white; margin-top: 20px;">${sanitize(message)}</p>
-  `;
-
-  document.body.appendChild(loader);
-  return loader;
+function slugify(text) {
+  return text
+    .toString()
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, '-')
+    .replace(/[^\w\-]+/g, '')
+    .replace(/\-\-+/g, '-');
 }
 
-/**
- * Oculta el loader
- */
-function hideLoader() {
-  const loader = document.getElementById('global-loader');
-  if (loader) {
-    loader.remove();
-  }
+function capitalize(str) {
+  return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
 }
 
-/**
- * Actualiza el badge del carrito
- */
-function updateCartBadge(count) {
-  const badge = document.querySelector('.cart-badge');
-  if (badge) {
-    badge.textContent = count;
-    badge.style.display = count > 0 ? 'inline-block' : 'none';
-  }
+// ================================================
+// ARRAY HELPERS
+// ================================================
+
+function groupBy(array, key) {
+  return array.reduce((result, item) => {
+    (result[item[key]] = result[item[key]] || []).push(item);
+    return result;
+  }, {});
 }
 
-// Agregar estilos de animación
-const style = document.createElement('style');
-style.textContent = `
-  @keyframes slideIn {
-    from {
-      transform: translateX(400px);
-      opacity: 0;
-    }
-    to {
-      transform: translateX(0);
-      opacity: 1;
-    }
+function unique(array) {
+  return [...new Set(array)];
+}
+
+function shuffle(array) {
+  const shuffled = [...array];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
   }
-  @keyframes slideOut {
-    from {
-      transform: translateX(0);
-      opacity: 1;
-    }
-    to {
-      transform: translateX(400px);
-      opacity: 0;
-    }
-  }
-  @keyframes spin {
-    to {
-      transform: rotate(360deg);
-    }
-  }
-`;
-document.head.appendChild(style);
+  return shuffled;
+}
+
+// ================================================
+// EXPORT (para ES6 modules si es necesario)
+// ================================================
+
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = {
+    isValidEmail,
+    isValidPhone,
+    formatCurrency,
+    formatDate,
+    formatDateTime,
+    getFromStorage,
+    saveToStorage,
+    removeFromStorage,
+    apiRequest,
+    showLoader,
+    hideLoader,
+    showNotification,
+    debounce,
+    getUrlParam,
+    truncate,
+    slugify,
+    groupBy,
+    unique
+  };
+}
+
+console.log('✅ utils.js cargado correctamente');

@@ -1,8 +1,3 @@
-/**
- * login.js - Funcionalidad de Autenticación
- * Wooden House E-commerce
- */
-
 // Importar Firebase (asumiendo que firebase-config.js ya se cargó)
 let auth;
 

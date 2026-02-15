@@ -1,161 +1,382 @@
+// ================================================
+// VARIABLES GLOBALES
+// ================================================
+let productoActual = null;
+let imagenActualIndex = 0;
 
-    // =========================
-    // Hamburguesa
-    // =========================
-    const menuToggle = document.getElementById('menuToggle');
-    const navLinks = document.getElementById('navLinks');
+// ================================================
+// INICIALIZACIÓN
+// ================================================
+document.addEventListener('DOMContentLoaded', function() {
+  initMenuHamburguesa();
+  initCartBadge();
+  initTabs();
+  initCantidadControls();
+  initAgregarCarrito();
+  cargarProducto();
+});
 
-    menuToggle.addEventListener('click', () => {
-      const isOpen = navLinks.classList.toggle('open');
-      menuToggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
-      menuToggle.textContent = isOpen ? '✕' : '☰';
+// ================================================
+// MENÚ HAMBURGUESA (CRITICAL)
+// ================================================
+function initMenuHamburguesa() {
+  const menuToggle = document.getElementById('menuToggle');
+  const navLinks = document.getElementById('navLinks');
+
+  if (menuToggle && navLinks) {
+    menuToggle.addEventListener('click', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      navLinks.classList.toggle('open');
+      const isOpen = navLinks.classList.contains('open');
+      menuToggle.setAttribute('aria-expanded', isOpen);
     });
 
-    // Cierra menú al dar click en un link
-    navLinks.querySelectorAll('a').forEach(link => {
-      link.addEventListener('click', () => {
-        if (navLinks.classList.contains('open')) {
-          navLinks.classList.remove('open');
-          menuToggle.setAttribute('aria-expanded', 'false');
-          menuToggle.textContent = '☰';
+    // Cerrar al click fuera
+    document.addEventListener('click', function(e) {
+      if (!menuToggle.contains(e.target) && !navLinks.contains(e.target)) {
+        navLinks.classList.remove('open');
+        menuToggle.setAttribute('aria-expanded', 'false');
+      }
+    });
+  }
+}
+
+// ================================================
+// BADGE DEL CARRITO
+// ================================================
+function initCartBadge() {
+  const cartBadge = document.getElementById('cartCount');
+  if (!cartBadge) return;
+
+  const carrito = JSON.parse(localStorage.getItem('carrito')) || [];
+  const totalItems = carrito.reduce((sum, item) => sum + (item.cantidad || 0), 0);
+  
+  cartBadge.textContent = totalItems;
+  cartBadge.style.display = totalItems > 0 ? 'inline-block' : 'none';
+}
+
+// ================================================
+// TABS (CRITICAL - FALTABA COMPLETAMENTE)
+// ================================================
+function initTabs() {
+  const tabButtons = document.querySelectorAll('.tab-button');
+  const tabContents = document.querySelectorAll('.tab-pane');
+
+  console.log('Tabs encontrados:', tabButtons.length);
+
+  tabButtons.forEach(button => {
+    button.addEventListener('click', function() {
+      const targetTab = this.getAttribute('data-tab');
+      console.log('Tab clickeado:', targetTab);
+
+      // Remover active de todos
+      tabButtons.forEach(btn => btn.classList.remove('active'));
+      tabContents.forEach(content => content.classList.remove('active'));
+
+      // Activar el clickeado
+      this.classList.add('active');
+      const targetContent = document.getElementById(targetTab);
+      if (targetContent) {
+        targetContent.classList.add('active');
+        console.log('Tab activado:', targetTab);
+      }
+    });
+  });
+}
+
+// ================================================
+// CONTROLES DE CANTIDAD
+// ================================================
+function initCantidadControls() {
+  const btnMenos = document.querySelector('.btn-cantidad-menos');
+  const btnMas = document.querySelector('.btn-cantidad-mas');
+  const inputCantidad = document.getElementById('cantidad');
+
+  if (btnMenos && inputCantidad) {
+    btnMenos.addEventListener('click', function() {
+      let cantidad = parseInt(inputCantidad.value) || 1;
+      if (cantidad > 1) {
+        inputCantidad.value = cantidad - 1;
+      }
+    });
+  }
+
+  if (btnMas && inputCantidad) {
+    btnMas.addEventListener('click', function() {
+      let cantidad = parseInt(inputCantidad.value) || 1;
+      const stock = productoActual?.stock_disponible || 100;
+      if (cantidad < stock) {
+        inputCantidad.value = cantidad + 1;
+      }
+    });
+  }
+
+  if (inputCantidad) {
+    inputCantidad.addEventListener('change', function() {
+      let valor = parseInt(this.value) || 1;
+      const stock = productoActual?.stock_disponible || 100;
+      
+      if (valor < 1) valor = 1;
+      if (valor > stock) valor = stock;
+      
+      this.value = valor;
+    });
+  }
+}
+
+// ================================================
+// CARGAR PRODUCTO
+// ================================================
+async function cargarProducto() {
+  const urlParams = new URLSearchParams(window.location.search);
+  const productId = urlParams.get('id');
+
+  if (!productId) {
+    mostrarError('No se especificó un producto');
+    return;
+  }
+
+  try {
+    // Datos de ejemplo (reemplazar con API real)
+    productoActual = {
+      id: productId,
+      nombre: 'Mueble de Baño Milano Premium',
+      precio: 8500,
+      descripcion: 'Mueble de baño premium con acabados de lujo',
+      stock_disponible: 5,
+      categoria: 'Baño',
+      imagenes: [
+        'https://via.placeholder.com/600x400/8b7355/ffffff?text=Vista+1',
+        'https://via.placeholder.com/600x400/8b7355/ffffff?text=Vista+2',
+        'https://via.placeholder.com/600x400/8b7355/ffffff?text=Vista+3'
+      ],
+      especificaciones: [
+        { nombre: 'Material', valor: 'MDF enchapado' },
+        { nombre: 'Dimensiones', valor: '120 x 45 x 85 cm' },
+        { nombre: 'Acabado', valor: 'Blanco mate' },
+        { nombre: 'Incluye', valor: 'Lavabo de cerámica' }
+      ],
+      resenas: [
+        {
+          autor: 'María González',
+          calificacion: 5,
+          comentario: 'Excelente calidad, muy satisfecha',
+          fecha: '2025-01-15'
         }
-      });
-    });
-
-    // ==== 1) BASE DE DATOS LOCAL (por ahora solo 1 mueble) ====
-    const productos = {
-      milano: {
-        nombre: "Mueble Milano",
-        precio: "$8,500",
-        rating: "⭐⭐⭐⭐⭐",
-        reseñas: 47,
-        stockTexto: "✅ En Stock - Fabricación bajo pedido",
-        descripcion:
-          "Mueble de baño moderno fabricado en MDF de alta densidad con acabado en nogal. Incluye lavabo de cerámica blanca de primera calidad. Diseño minimalista que combina funcionalidad y elegancia, perfecto para baños contemporáneos.",
-        // Si no tienes imágenes aún, deja esto vacío: []
-        imagenes: [],
-        features: [
-          { icon: "📏", text: "Dimensiones: 80cm x 45cm x 60cm" },
-          { icon: "🪵", text: "Material: MDF de alta densidad" },
-          { icon: "🎨", text: "Acabado: Nogal resistente al agua" },
-          { icon: "🚰", text: "Lavabo: Cerámica blanca incluido" },
-          { icon: "🔧", text: "Instalación: Profesional disponible" },
-          { icon: "✅", text: "Garantía: Incluida en el producto" },
-        ],
-        specs: [
-          { label: "Modelo", value: "Milano MM-2024" },
-          { label: "Dimensiones Totales", value: "Alto: 60cm | Ancho: 80cm | Fondo: 45cm" },
-          { label: "Material Principal", value: "MDF 18mm alta densidad" },
-          { label: "Acabado", value: "Nogal mate resistente al agua" },
-          { label: "Lavabo", value: "Cerámica blanca vitrificada - 75cm x 40cm" },
-          { label: "Sistema de Montaje", value: "Flotante con soportes metálicos reforzados" },
-          { label: "Almacenamiento", value: "2 cajones con guías metálicas suaves" },
-          { label: "Peso Máximo Soportado", value: "80 kg" },
-          { label: "País de Fabricación", value: "México" },
-          { label: "Tiempo de Entrega", value: "5-7 días hábiles" },
-        ],
-      },
+      ]
     };
 
-    // ==== 2) LEER ID DE LA URL ====
-    const params = new URLSearchParams(window.location.search);
-    const id = params.get("id") || "milano"; // si no manda id, usa milano
-    const p = productos[id];
+    renderProducto();
+    renderEspecificaciones();
+    renderResenas();
 
-    // ==== 3) SI NO EXISTE, MOSTRAR MENSAJE ====
-    if (!p) {
-      document.getElementById("page").innerHTML = `
-        <div class="not-found">
-          <h2 style="color:#8b7355; margin-bottom:10px;">Producto no encontrado</h2>
-          <p style="color:#a0a0a0; margin-bottom:20px;">El producto que intentas ver no existe o fue eliminado.</p>
-          <a href="catalogo.html" style="color:#8b7355; text-decoration:none; font-weight:700;">← Volver al catálogo</a>
-        </div>
-      `;
-    } else {
-      // ==== 4) RELLENAR CONTENIDO ====
-      document.title = `${p.nombre} - Wooden House`;
-      document.getElementById("pNombre").textContent = p.nombre;
-      document.getElementById("pPrecio").textContent = p.precio;
-      document.getElementById("pRating").innerHTML = `${p.rating} <span>(${p.reseñas} reseñas)</span>`;
-      document.getElementById("pDesc").textContent = p.descripcion;
+  } catch (error) {
+    console.error('Error:', error);
+    mostrarError('Error al cargar el producto');
+  }
+}
 
-      // Stock texto (si quieres mostrar el texto largo)
-      const stockEl = document.getElementById("pStock");
-      if (stockEl && p.stockTexto) {
-        stockEl.innerHTML = `<span style="font-size: 20px;">✅</span><span><strong>En Stock</strong> - ${p.stockTexto.replace("✅ En Stock - ", "")}</span>`;
-      }
+// ================================================
+// RENDER PRODUCTO
+// ================================================
+function renderProducto() {
+  if (!productoActual) return;
 
-      // Features
-      document.getElementById("pFeatures").innerHTML = p.features.map(f => `
-        <div class="feature-item">
-          <span class="feature-icon">${f.icon}</span>
-          <span>${f.text}</span>
-        </div>
-      `).join("");
+  // Nombre
+  const nombreElement = document.getElementById('producto-nombre');
+  if (nombreElement) nombreElement.textContent = productoActual.nombre;
 
-      // Specs
-      document.getElementById("specTable").innerHTML = p.specs.map(s => `
-        <div class="spec-row">
-          <span class="spec-label">${s.label}</span>
-          <span class="spec-value">${s.value}</span>
-        </div>
-      `).join("");
+  // Precio
+  const precioElement = document.getElementById('producto-precio');
+  if (precioElement) {
+    precioElement.textContent = formatCurrency(productoActual.precio);
+  }
 
-      // Imágenes (si luego agregas rutas, se mostrará)
-      const imgs = p.imagenes || [];
-      const mainImg = document.getElementById("mainImage");
-      const mainText = document.getElementById("mainImageText");
-      const thumbs = document.getElementById("thumbs");
+  // Descripción
+  const descElement = document.getElementById('producto-descripcion');
+  if (descElement) descElement.textContent = productoActual.descripcion;
 
-      if (imgs.length > 0) {
-        mainImg.src = imgs[0];
-        mainImg.style.display = "block";
-        mainText.style.display = "none";
+  // Stock
+  const stockElement = document.getElementById('producto-stock');
+  if (stockElement) {
+    stockElement.textContent = `Stock disponible: ${productoActual.stock_disponible} unidades`;
+  }
 
-        thumbs.innerHTML = imgs.slice(0, 4).map((src, i) => `
-          <div class="thumbnail" data-src="${src}">
-            <img src="${src}" alt="Vista ${i+1}" style="display:block;">
-          </div>
-        `).join("");
+  // Imagen principal
+  const imgElement = document.getElementById('imagen-principal');
+  if (imgElement && productoActual.imagenes && productoActual.imagenes.length > 0) {
+    imgElement.src = productoActual.imagenes[0];
+    imgElement.alt = productoActual.nombre;
+  }
 
-        thumbs.querySelectorAll(".thumbnail").forEach(t => {
-          t.addEventListener("click", () => {
-            mainImg.src = t.dataset.src;
-          });
-        });
-      } else {
-        // sin imágenes aún
-        thumbs.innerHTML = `
-          <div class="thumbnail">[Vista 1]</div>
-          <div class="thumbnail">[Vista 2]</div>
-          <div class="thumbnail">[Vista 3]</div>
-          <div class="thumbnail">[Vista 4]</div>
-        `;
-      }
-    }
+  // Miniaturas
+  renderMiniaturas();
+}
 
-    // ==== 5) Cantidad (UI) ====
-    let qty = 1;
-    const qtyEl = document.getElementById("qty");
-    const btnMinus = document.getElementById("btnMinus");
-    const btnPlus = document.getElementById("btnPlus");
+// ================================================
+// RENDER MINIATURAS
+// ================================================
+function renderMiniaturas() {
+  const container = document.getElementById('imagenes-miniaturas');
+  if (!container || !productoActual.imagenes) return;
 
-    if (btnMinus && btnPlus && qtyEl) {
-      btnMinus.addEventListener("click", () => {
-        qty = Math.max(1, qty - 1);
-        qtyEl.textContent = qty;
-      });
-      btnPlus.addEventListener("click", () => {
-        qty = qty + 1;
-        qtyEl.textContent = qty;
-      });
-    }
-
-    // (demo) Agregar al carrito
-    const btnAddCart = document.getElementById("btnAddCart");
-    if (btnAddCart) {
-      btnAddCart.addEventListener("click", () => {
-        alert(`Agregaste ${qty} x ${p ? p.nombre : "producto"} al carrito ✅`);
-      });
-    }
+  container.innerHTML = '';
   
+  productoActual.imagenes.forEach((url, index) => {
+    const miniatura = document.createElement('img');
+    miniatura.src = url;
+    miniatura.alt = `Vista ${index + 1}`;
+    miniatura.className = 'miniatura' + (index === 0 ? ' active' : '');
+    miniatura.onclick = () => cambiarImagen(index);
+    container.appendChild(miniatura);
+  });
+}
+
+function cambiarImagen(index) {
+  imagenActualIndex = index;
+  const imgPrincipal = document.getElementById('imagen-principal');
+  
+  if (imgPrincipal && productoActual.imagenes[index]) {
+    imgPrincipal.src = productoActual.imagenes[index];
+  }
+
+  // Actualizar miniaturas activas
+  document.querySelectorAll('.miniatura').forEach((mini, i) => {
+    mini.classList.toggle('active', i === index);
+  });
+}
+
+// ================================================
+// RENDER ESPECIFICACIONES
+// ================================================
+function renderEspecificaciones() {
+  const container = document.getElementById('especificaciones-lista');
+  if (!container || !productoActual.especificaciones) return;
+
+  container.innerHTML = productoActual.especificaciones.map(spec => `
+    <div class="especificacion-item">
+      <strong>${spec.nombre}:</strong> ${spec.valor}
+    </div>
+  `).join('');
+}
+
+// ================================================
+// RENDER RESEÑAS
+// ================================================
+function renderResenas() {
+  const container = document.getElementById('resenas-lista');
+  if (!container || !productoActual.resenas) return;
+
+  if (productoActual.resenas.length === 0) {
+    container.innerHTML = '<p>Aún no hay reseñas para este producto.</p>';
+    return;
+  }
+
+  container.innerHTML = productoActual.resenas.map(resena => `
+    <div class="resena-item">
+      <div class="resena-header">
+        <strong>${resena.autor}</strong>
+        <span class="estrellas">${'⭐'.repeat(resena.calificacion)}</span>
+      </div>
+      <p>${resena.comentario}</p>
+      <small>${formatDate(resena.fecha)}</small>
+    </div>
+  `).join('');
+}
+
+// ================================================
+// AGREGAR AL CARRITO
+// ================================================
+function initAgregarCarrito() {
+  const btnAgregar = document.getElementById('btn-agregar-carrito');
+  if (!btnAgregar) return;
+
+  btnAgregar.addEventListener('click', function() {
+    if (!productoActual) {
+      alert('Error: Producto no cargado');
+      return;
+    }
+
+    const cantidad = parseInt(document.getElementById('cantidad')?.value || 1);
+    
+    // Obtener carrito actual
+    let carrito = JSON.parse(localStorage.getItem('carrito')) || [];
+    
+    // Buscar si ya existe
+    const existente = carrito.find(item => item.id === productoActual.id);
+    
+    if (existente) {
+      existente.cantidad += cantidad;
+    } else {
+      carrito.push({
+        id: productoActual.id,
+        nombre: productoActual.nombre,
+        precio: productoActual.precio,
+        cantidad: cantidad,
+        imagen: productoActual.imagenes?.[0] || ''
+      });
+    }
+
+    // Guardar
+    localStorage.setItem('carrito', JSON.stringify(carrito));
+    
+    // Actualizar badge
+    initCartBadge();
+    
+    // Mostrar mensaje
+    mostrarMensaje('✅ Producto agregado al carrito', 'success');
+    
+    // Opcional: redirigir al carrito
+    // setTimeout(() => window.location.href = 'carrito.html', 1000);
+  });
+}
+
+// ================================================
+// HELPERS
+// ================================================
+function formatCurrency(amount) {
+  return new Intl.NumberFormat('es-MX', {
+    style: 'currency',
+    currency: 'MXN'
+  }).format(amount);
+}
+
+function formatDate(dateString) {
+  const date = new Date(dateString);
+  return new Intl.DateTimeFormat('es-MX', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  }).format(date);
+}
+
+function mostrarMensaje(mensaje, tipo = 'info') {
+  // Crear elemento de alerta
+  const alert = document.createElement('div');
+  alert.className = `alert alert-${tipo}`;
+  alert.textContent = mensaje;
+  alert.style.cssText = `
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 15px 20px;
+    background: ${tipo === 'success' ? '#4caf50' : '#f44336'};
+    color: white;
+    border-radius: 8px;
+    z-index: 10000;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  `;
+  
+  document.body.appendChild(alert);
+  
+  setTimeout(() => {
+    alert.remove();
+  }, 3000);
+}
+
+function mostrarError(mensaje) {
+  mostrarMensaje(mensaje, 'error');
+}
+
+console.log('✅ detalle_producto.js cargado correctamente');

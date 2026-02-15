@@ -1,8 +1,3 @@
-/**
- * carrito.js - Funcionalidad del Carrito de Compras
- * Wooden House E-commerce
- */
-
 let carritoItems = [];
 let carritoTotal = 0;
 

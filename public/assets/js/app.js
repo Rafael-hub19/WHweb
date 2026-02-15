@@ -1,8 +1,3 @@
-/**
- * app.js - Funcionalidad Global de la Aplicación
- * Wooden House E-commerce
- */
-
 // Configuración de la API
 const API_BASE_URL = window.location.hostname === 'localhost' 
   ? 'http://localhost/api'

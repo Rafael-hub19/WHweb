@@ -1,37 +1,123 @@
-function toggleFAQ(item) {
-  item.classList.toggle('active');
+// ================================================
+// MENÚ HAMBURGUESA (CRITICAL - FALTABA COMPLETAMENTE)
+// ================================================
+document.addEventListener('DOMContentLoaded', function() {
+  const menuToggle = document.getElementById('menuToggle');
+  const navLinks = document.getElementById('navLinks');
+
+  if (menuToggle && navLinks) {
+    menuToggle.addEventListener('click', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      
+      // Toggle clase 'open'
+      navLinks.classList.toggle('open');
+      
+      // Actualizar aria-expanded
+      const isOpen = navLinks.classList.contains('open');
+      menuToggle.setAttribute('aria-expanded', isOpen);
+      
+      console.log('Menú hamburguesa:', isOpen ? 'ABIERTO' : 'CERRADO');
+    });
+
+    // Cerrar menú al hacer click fuera
+    document.addEventListener('click', function(e) {
+      if (!menuToggle.contains(e.target) && !navLinks.contains(e.target)) {
+        navLinks.classList.remove('open');
+        menuToggle.setAttribute('aria-expanded', 'false');
+      }
+    });
+
+    // Cerrar menú al hacer click en un enlace
+    const navItems = navLinks.querySelectorAll('a');
+    navItems.forEach(item => {
+      item.addEventListener('click', function() {
+        navLinks.classList.remove('open');
+        menuToggle.setAttribute('aria-expanded', 'false');
+      });
+    });
+  }
+
+  // Inicializar otras funciones
+  initCartBadge();
+  initFAQ();
+  initSmoothScroll();
+});
+
+// ================================================
+// BADGE DEL CARRITO
+// ================================================
+function initCartBadge() {
+  const cartBadge = document.getElementById('cartCount');
+  if (!cartBadge) return;
+
+  const carrito = JSON.parse(localStorage.getItem('carrito')) || [];
+  const totalItems = carrito.reduce((sum, item) => sum + (item.cantidad || 0), 0);
+  
+  cartBadge.textContent = totalItems;
+  cartBadge.style.display = totalItems > 0 ? 'inline-block' : 'none';
 }
 
-// Smooth scroll para navegación
-document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-  anchor.addEventListener('click', function (e) {
-    const href = this.getAttribute('href');
-    const target = document.querySelector(href);
+// ================================================
+// FAQ ACCORDION (CRITICAL - FALTABA LA FUNCIÓN)
+// ================================================
+function initFAQ() {
+  console.log('Inicializando FAQ...');
+}
 
-    if (target) {
+// Función GLOBAL para FAQ (llamada desde HTML onclick)
+function toggleFAQ(element) {
+  console.log('Toggle FAQ llamado');
+  
+  // Toggle clase 'active'
+  element.classList.toggle('active');
+  
+  // Log para debug
+  const isActive = element.classList.contains('active');
+  console.log('FAQ estado:', isActive ? 'ABIERTO' : 'CERRADO');
+}
+
+// ================================================
+// SMOOTH SCROLL
+// ================================================
+function initSmoothScroll() {
+  document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+    anchor.addEventListener('click', function(e) {
+      const href = this.getAttribute('href');
+      
+      // Ignorar # solo
+      if (href === '#') return;
+      
       e.preventDefault();
-      target.scrollIntoView({ behavior: 'smooth' });
-    }
+      const target = document.querySelector(href);
+      
+      if (target) {
+        target.scrollIntoView({
+          behavior: 'smooth',
+          block: 'start'
+        });
+      }
+    });
   });
-});
+}
 
-// Hamburguesa
-const menuToggle = document.getElementById('menuToggle');
-const navLinks = document.getElementById('navLinks');
+// ================================================
+// HELPERS
+// ================================================
+function formatCurrency(amount) {
+  return new Intl.NumberFormat('es-MX', {
+    style: 'currency',
+    currency: 'MXN'
+  }).format(amount);
+}
 
-menuToggle.addEventListener('click', () => {
-  const isOpen = navLinks.classList.toggle('open');
-  menuToggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
-  menuToggle.textContent = isOpen ? '✕' : '☰';
-});
+function formatDate(dateString) {
+  const date = new Date(dateString);
+  return new Intl.DateTimeFormat('es-MX', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  }).format(date);
+}
 
-// Cierra el menú al dar click en un link (solo si estaba abierto)
-navLinks.querySelectorAll('a').forEach(link => {
-  link.addEventListener('click', () => {
-    if (navLinks.classList.contains('open')) {
-      navLinks.classList.remove('open');
-      menuToggle.setAttribute('aria-expanded', 'false');
-      menuToggle.textContent = '☰';
-    }
-  });
-});
+console.log('✅ index.js cargado correctamente');

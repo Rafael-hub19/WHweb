@@ -5,6 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Proceso de Pago - Wooden House</title>
   
+  <!-- Stripe SDK -->
+  <script src="https://js.stripe.com/v3/"></script>
+  
+  <!-- PayPal SDK -->
+  <script src="https://www.paypal.com/sdk/js?client-id=TU_CLIENT_ID_AQUI&currency=MXN"></script>
+  
   <link rel="stylesheet" href="./assets/css/pago.css">
 </head>
 <body>
@@ -44,12 +50,14 @@
         <h2 class="section-title"><span>💳</span> Selecciona tu Método de Pago</h2>
 
         <div class="payment-methods">
+          <!-- STRIPE -->
           <div class="payment-option selected" data-method="card">
             <div class="payment-icon">💳</div>
             <h3>Tarjeta de Crédito/Débito</h3>
-            <p>Pago seguro con pasarela certificada</p>
+            <p>Pago seguro con Stripe</p>
           </div>
 
+          <!-- PAYPAL -->
           <div class="payment-option" data-method="paypal">
             <div class="payment-icon">🅿️</div>
             <h3>PayPal</h3>
@@ -57,28 +65,33 @@
           </div>
         </div>
 
-        <!-- ✅ TARJETA (PASARELA) -->
+        <!-- STRIPE CARD ELEMENT (SDK) -->
         <div id="cardInfo" class="active">
           <div class="payment-info-icon">💳</div>
           <h3 class="payment-info-title">Pagar con Tarjeta</h3>
           <p class="payment-info-text">
-            Para proteger tu información, el pago con tarjeta se realiza en una pasarela certificada.<br>
-            Serás redirigido para completar el pago de forma segura.
+            Ingresa los datos de tu tarjeta de forma segura. Tu información está protegida con encriptación SSL.
           </p>
-          <button class="payment-action-btn" onclick="startCardCheckout()">
-            Continuar a pago con tarjeta
+          
+          <!-- Elemento de tarjeta de Stripe (lo genera el SDK) -->
+          <div id="card-element" class="stripe-element"></div>
+          <div id="card-errors" role="alert"></div>
+          
+          <button class="payment-action-btn" id="submit-stripe">
+            🔒 Pagar Ahora
           </button>
         </div>
 
-        <!-- ✅ PAYPAL -->
+        <!-- PAYPAL BUTTON (SDK) -->
         <div id="paypalInfo">
           <div class="payment-info-icon">🅿️</div>
           <h3 class="payment-info-title">Pagar con PayPal</h3>
           <p class="payment-info-text">
-            Serás redirigido a PayPal para completar tu pago de forma segura.<br>
-            Tu información estará protegida en todo momento.
+            Click en el botón de PayPal para completar tu pago de forma segura.
           </p>
-          <button class="payment-action-btn" onclick="processPayPalPayment()">Continuar a PayPal</button>
+          
+          <!-- Botón de PayPal (lo genera el SDK) -->
+          <div id="paypal-button-container"></div>
         </div>
 
         <div class="promo-section">
@@ -132,10 +145,6 @@
           <span>Total a Pagar</span>
           <span id="totalDisplay">$0</span>
         </div>
-
-        <!-- este botón ya no procesa tarjeta “manual”; solo sirve para tarjeta si quieres,
-             pero ahora el flujo se hace con los botones de cada método -->
-        <button class="btn-pay" id="payButton" onclick="processPayment()">🔒 Continuar</button>
 
         <div class="secure-badges">
           🔒 Pago 100% seguro y encriptado<br>

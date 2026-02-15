@@ -1,8 +1,3 @@
-/**
- * catalogo.js - Funcionalidad del Catálogo de Productos
- * Wooden House E-commerce
- */
-
 let productos = [];
 let categorias = [];
 let filtroActual = {
