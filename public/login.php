@@ -49,6 +49,10 @@
     <div class="divider">Solo para personal autorizado</div>
   </div>
 
+  <div class="back-to-site">
+      <a href="index.html">← Volver al sitio web</a>
+    </div>
+
   <!-- Firebase config -->
   <script src="./assets/js/firebase-config.js"></script>
   <script src="../assets/js/login.js"></script>
