@@ -244,10 +244,10 @@ async function loginConGoogle() {
 function redirigirSegunRol(rol) {
   switch (rol) {
     case 'administrador':
-      window.location.href = '/admin/panel_administrador.html';
+      window.location.href = '/admin/panel_administrador.php';
       break;
     case 'empleado':
-      window.location.href = '/empleado/panel_empleado.html';
+      window.location.href = '/empleado/panel_empleado.php';
       break;
     default:
       window.location.href = '/inicio';
