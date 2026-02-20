@@ -1,15 +1,9 @@
 # ================================================================
 # Wooden House - .htaccess /public/
 # ================================================================
-Options -Indexes -ExecCGI          # Sin listado de directorios # Sin ejecución CGI directa
+Options -Indexes -ExecCGI
 
 # ── URLs limpias sin extensión ────────────────────────────────────
-# /catalogo        → catalogo.php
-# /login           → login.php
-# /carrito         → carrito-checkout.php
-# /pago            → pago.php
-# /solicitudes     → solicitudes.php
-# /detalle/123     → detalle_producto.php?id=123
 <IfModule mod_rewrite.c>
     RewriteEngine On
     RewriteBase /
@@ -18,108 +12,104 @@ Options -Indexes -ExecCGI          # Sin listado de directorios # Sin ejecución
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteCond %{REQUEST_FILENAME} !-d
 
-    # Rutas con nombre bonito → archivo PHP real
-    RewriteRule ^catalogo/?$           catalogo.php           [L,QSA]
-    RewriteRule ^login/?$              login.php              [L,QSA]
-    RewriteRule ^carrito/?$            carrito-checkout.php   [L,QSA]
-    RewriteRule ^pago/?$               pago.php               [L,QSA]
-    RewriteRule ^solicitudes/?$        solicitudes.php        [L,QSA]
-    RewriteRule ^detalle/([0-9]+)/?$   detalle_producto.php?id=$1  [L,QSA]
-    RewriteRule ^inicio/?$             index.php              [L,QSA]
+    # Rutas limpias → archivo PHP real
+    RewriteRule ^catalogo/?$                catalogo.php                [L,QSA]
+    RewriteRule ^login/?$                   login.php                   [L,QSA]
+    RewriteRule ^carrito/?$                 carrito-checkout.php        [L,QSA]
+    RewriteRule ^pago/?$                    pago.php                    [L,QSA]
+    RewriteRule ^solicitudes/?$             solicitudes.php             [L,QSA]
+    RewriteRule ^detalle/([0-9]+)/?$        detalle_producto.php?id=$1  [L,QSA]
+    RewriteRule ^inicio/?$                  index.php                   [L,QSA]
 </IfModule>
 
 # ── Seguridad de archivos ─────────────────────────────────────────
-# Bloquear acceso a archivos sensibles dentro de /public
-<FilesMatch "\.(env|log|bak|sql|sh|git|md|json|lock|yaml|yml)$">
+<FilesMatch "\.(env|log|bak|sql|sh|md|lock|yaml|yml)$">
     Require all denied
 </FilesMatch>
 
+<Files ".env">
+    Require all denied
+</Files>
+
 # ── Headers de seguridad HTTP ─────────────────────────────────────
 <IfModule mod_headers.c>
-    # No indexar por motores de búsqueda páginas del panel
-    Header set X-Robots-Tag "noindex, nofollow" env=IS_ADMIN
 
-    # Evitar que el navegador "adivine" el tipo MIME
     Header always set X-Content-Type-Options "nosniff"
-
-    # No permitir embeber en iframes de otros dominios
     Header always set X-Frame-Options "SAMEORIGIN"
-
-    # XSS Protection
     Header always set X-XSS-Protection "1; mode=block"
-
-    # Referrer Policy: no filtrar URL completa a sitios externos
     Header always set Referrer-Policy "strict-origin-when-cross-origin"
-
-    # Ocultar info del servidor
     Header unset X-Powered-By
     Header unset Server
 
-    # Permissions Policy: deshabilitar APIs del navegador que no usas
-    Header always set Permissions-Policy "geolocation=(), camera=(), microphone=(), payment=()"
+    # Permissions Policy
+    Header always set Permissions-Policy "geolocation=(), camera=(), microphone=(), payment=(self https://www.paypal.com)"
 
-    # Content Security Policy
-    # Ajusta los dominios según tus CDNs reales
-    Header always set Content-Security-Policy "\
-        default-src 'self'; \
+    # ── Content Security Policy ───────────────────────────────────
+    Header always set Content-Security-Policy "default-src 'self'; \
         script-src 'self' 'unsafe-inline' \
             https://js.stripe.com \
             https://www.paypal.com \
+            https://www.paypalobjects.com \
             https://www.gstatic.com \
-            https://apis.google.com; \
-        style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; \
-        font-src 'self' https://fonts.gstatic.com; \
-        img-src 'self' data: https:; \
+            https://apis.google.com \
+            https://maps.googleapis.com \
+            https://maps.google.com \
+            https://www.googletagmanager.com; \
+        style-src 'self' 'unsafe-inline' \
+            https://fonts.googleapis.com \
+            https://maps.googleapis.com; \
+        font-src 'self' \
+            https://fonts.gstatic.com; \
+        img-src 'self' data: blob: https: \
+            https://maps.gstatic.com \
+            https://maps.googleapis.com \
+            https://www.paypalobjects.com \
+            https://firebasestorage.googleapis.com; \
         connect-src 'self' \
             https://*.firebaseio.com \
             https://firestore.googleapis.com \
+            https://firebase.googleapis.com \
+            https://identitytoolkit.googleapis.com \
+            https://securetoken.googleapis.com \
             https://oauth2.googleapis.com \
+            https://firebasestorage.googleapis.com \
             https://js.stripe.com \
+            https://api.stripe.com \
             https://api-m.sandbox.paypal.com \
-            https://api-m.paypal.com; \
-        frame-src https://js.stripe.com https://www.paypal.com; \
+            https://api-m.paypal.com \
+            https://maps.googleapis.com; \
+        frame-src \
+            https://js.stripe.com \
+            https://hooks.stripe.com \
+            https://www.paypal.com \
+            https://www.google.com \
+            https://maps.google.com \
+            https://www.google.com/maps; \
+        worker-src blob:; \
         object-src 'none'; \
         base-uri 'self';"
-</IfModule>
 
-# ── HTTPS forzado (activar cuando tengas SSL) ─────────────────────
-# <IfModule mod_rewrite.c>
-#     RewriteEngine On
-#     RewriteCond %{HTTPS} off
-#     RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
-# </IfModule>
+    # Sin caché en paneles de administración
+    <FilesMatch "^(panel_administrador|panel_empleado)\.php$">
+        Header always set Cache-Control "no-store, no-cache, must-revalidate"
+        Header always set Pragma "no-cache"
+    </FilesMatch>
+
+</IfModule>
 
 # ── Caché para assets estáticos ───────────────────────────────────
 <IfModule mod_expires.c>
     ExpiresActive On
-    ExpiresByType text/css             "access plus 1 month"
-    ExpiresByType application/javascript "access plus 1 month"
-    ExpiresByType image/jpeg           "access plus 6 months"
-    ExpiresByType image/png            "access plus 6 months"
-    ExpiresByType image/webp           "access plus 6 months"
-    ExpiresByType image/svg+xml        "access plus 1 month"
-    ExpiresByType font/woff2           "access plus 1 year"
+    ExpiresByType text/css                  "access plus 1 month"
+    ExpiresByType application/javascript    "access plus 1 month"
+    ExpiresByType image/jpeg                "access plus 6 months"
+    ExpiresByType image/png                 "access plus 6 months"
+    ExpiresByType image/webp                "access plus 6 months"
+    ExpiresByType image/svg+xml             "access plus 1 month"
+    ExpiresByType font/woff2                "access plus 1 year"
 </IfModule>
 
 # ── Comprimir respuestas ──────────────────────────────────────────
 <IfModule mod_deflate.c>
     AddOutputFilterByType DEFLATE text/html text/css application/javascript application/json
 </IfModule>
-
-# Bloquear .env si alguien lo pone accidentalmente en /public
-<Files ".env">
-    Require all denied
-</Files>
-
-# Bloquear acceso directo a PHP en /admin y /empleado sin pasar por auth
-<FilesMatch "^(panel_administrador|panel_empleado)\.php$">
-    # PHP maneja la auth, pero asegurar que no se cacheen
-    <IfModule mod_headers.c>
-        Header always set Cache-Control "no-store, no-cache, must-revalidate"
-        Header always set Pragma "no-cache"
-    </IfModule>
-</FilesMatch>
-
-    # Paneles internos (con auth PHP)
-    # No se agregan aquí porque están en subcarpetas /admin/ y /empleado/
-    # Apache los sirve directamente como index de esa carpeta
