@@ -1,8 +1,7 @@
 # ================================================================
 # Wooden House - .htaccess /public/
 # ================================================================
-Options -Indexes           # Sin listado de directorios
-Options -ExecCGI           # Sin ejecución CGI directa
+Options -Indexes -ExecCGI          # Sin listado de directorios # Sin ejecución CGI directa
 
 # ── URLs limpias sin extensión ────────────────────────────────────
 # /catalogo        → catalogo.php
