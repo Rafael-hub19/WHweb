@@ -50,7 +50,7 @@
   </div>
 
   <div class="back-to-site">
-      <a href="index.html">← Volver al sitio web</a>
+      <a href="index.php">← Volver al sitio web</a>
     </div>
 
   <!-- Firebase config -->
