@@ -34,11 +34,6 @@ Options -Indexes -ExecCGI          # Sin listado de directorios # Sin ejecución
     Require all denied
 </FilesMatch>
 
-# Bloquear acceso a carpetas ocultas (.git, .vscode)
-<DirectoryMatch "/(\.git|\.vscode|node_modules)">
-    Require all denied
-</DirectoryMatch>
-
 # ── Headers de seguridad HTTP ─────────────────────────────────────
 <IfModule mod_headers.c>
     # No indexar por motores de búsqueda páginas del panel
