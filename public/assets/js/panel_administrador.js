@@ -108,12 +108,12 @@
 
     function confirmDelete(id){
       if(confirm('¿Eliminar este elemento?')){
-        showNotification('✓ Elemento eliminado (demo)', 'success');
+        showNotification('<i class="fa-solid fa-check"></i> Elemento eliminado (demo)', 'success');
       }
     }
 
     function logout(){
-      if(confirm('¿Cerrar sesión?')) window.location.href = 'login.html';
+      if(confirm('¿Cerrar sesión?')) window.location.href = '/login';
     }
 
     /* =========================
@@ -333,7 +333,7 @@
           specsResumen:{
             dimensiones:'120cm x 50cm x 85cm',
             material:'Madera de encino + acabado mate',
-            acabado:'', /* ✅ FIX */
+            acabado:'', /* <i class="fa-solid fa-circle-check"></i> FIX */
             lavabo:'Cerámica blanca incluida'
           },
           rating:4.8,
@@ -369,7 +369,7 @@
           specsResumen:{
             dimensiones:'140cm x 55cm x 90cm',
             material:'Madera de cedro + barniz satinado',
-            acabado:'', /* ✅ FIX */
+            acabado:'', /* <i class="fa-solid fa-circle-check"></i> FIX */
             lavabo:'Piedra natural opcional'
           },
           rating:4.6,
@@ -481,8 +481,8 @@
                 <div class="cat-price">${money(p.precio)}</div>
                 <div class="cat-actions">
                   <button class="btn btn-secondary btn-small" onclick="openProductoDetalle('${escapeHtml(p.id)}')">Ver detalle</button>
-                  <button class="btn btn-secondary btn-small" onclick="openProductoModal('edit','${escapeHtml(p.id)}')">✏️</button>
-                  <button class="btn btn-danger btn-small" onclick="deleteProducto('${escapeHtml(p.id)}')">🗑️</button>
+                  <button class="btn btn-secondary btn-small" onclick="openProductoModal('edit','${escapeHtml(p.id)}')"><i class="fa-solid fa-pen"></i></button>
+                  <button class="btn btn-danger btn-small" onclick="deleteProducto('${escapeHtml(p.id)}')"><i class="fa-solid fa-trash"></i></button>
                 </div>
               </div>
 
@@ -515,8 +515,8 @@
             <td><span class="status-badge ${p.estado==='activo'?'status-completed':'status-disabled'}">${p.estado==='activo'?'Activo':'Inactivo'}</span></td>
             <td>
               <button class="btn btn-secondary btn-small" onclick="openProductoDetalle('${escapeHtml(p.id)}')">Ver</button>
-              <button class="btn btn-secondary btn-small" onclick="openProductoModal('edit','${escapeHtml(p.id)}')">✏️</button>
-              <button class="btn btn-danger btn-small" onclick="deleteProducto('${escapeHtml(p.id)}')">🗑️</button>
+              <button class="btn btn-secondary btn-small" onclick="openProductoModal('edit','${escapeHtml(p.id)}')"><i class="fa-solid fa-pen"></i></button>
+              <button class="btn btn-danger btn-small" onclick="deleteProducto('${escapeHtml(p.id)}')"><i class="fa-solid fa-trash"></i></button>
             </td>
           `;
           body.appendChild(tr);
@@ -636,7 +636,7 @@
 
       const err = validateProductoPayload(payload, isEdit);
       if(err){
-        showNotification('❌ ' + err, 'error');
+        showNotification('<i class="fa-solid fa-xmark"></i> ' + err, 'error');
         return;
       }
 
@@ -645,20 +645,20 @@
       if(!isEdit){
         const exists = list.some(p => p.id === payload.id || p.sku === payload.sku);
         if(exists){
-          showNotification('❌ Ya existe un producto con ese ID o SKU', 'error');
+          showNotification('<i class="fa-solid fa-xmark"></i> Ya existe un producto con ese ID o SKU', 'error');
           return;
         }
         list.unshift(payload);
         setProductos(list);
         closeModal('productoModal');
         renderCatalogo();
-        showNotification('✓ Producto creado', 'success');
+        showNotification('<i class="fa-solid fa-check"></i> Producto creado', 'success');
         return;
       }
 
       const idx = list.findIndex(p => p.id === oldId);
       if(idx === -1){
-        showNotification('❌ No se encontró el producto para actualizar', 'error');
+        showNotification('<i class="fa-solid fa-xmark"></i> No se encontró el producto para actualizar', 'error');
         return;
       }
 
@@ -666,7 +666,7 @@
 
       const dupSku = list.some(p => p.id !== oldId && p.sku === payload.sku);
       if(dupSku){
-        showNotification('❌ Ya existe otro producto con ese SKU', 'error');
+        showNotification('<i class="fa-solid fa-xmark"></i> Ya existe otro producto con ese SKU', 'error');
         return;
       }
 
@@ -674,7 +674,7 @@
       setProductos(list);
       closeModal('productoModal');
       renderCatalogo();
-      showNotification('✓ Producto actualizado', 'success');
+      showNotification('<i class="fa-solid fa-check"></i> Producto actualizado', 'success');
     }
 
     function deleteProducto(id){
@@ -682,7 +682,7 @@
       const list = getProductos().filter(p => p.id !== id);
       setProductos(list);
       renderCatalogo();
-      showNotification('✓ Producto eliminado', 'success');
+      showNotification('<i class="fa-solid fa-check"></i> Producto eliminado', 'success');
     }
 
     let _detailCurrentId = '';
@@ -697,11 +697,11 @@
       $('#detalleModalTitle').textContent = `Detalle: ${p.nombre} (${p.id})`;
 
       const stockText = (p.stock <= 0) ? 'Sin stock' : (p.stock <= 5 ? 'Bajo stock' : 'En stock');
-      const ratingTxt = (p.rating ? `${p.rating.toFixed(1)} ⭐` : '—');
+      const ratingTxt = (p.rating ? `${p.rating.toFixed(1)} <i class="fa-solid fa-star"></i>` : '—');
       const reviewsTxt = (p.reviews ? `(${p.reviews} reseñas)` : '');
 
       const featuresHTML = (p.features || []).length
-        ? (p.features || []).map(f => `<div class="detail-pill"><span>${escapeHtml(f)}</span><span>✓</span></div>`).join('')
+        ? (p.features || []).map(f => `<div class="detail-pill"><span>${escapeHtml(f)}</span><span><i class="fa-solid fa-check"></i></span></div>`).join('')
         : `<div class="detail-pill"><span>Sin features registradas</span><span>—</span></div>`;
 
       const specsHTML = (p.specs || []).length
@@ -797,7 +797,7 @@
       }
       localStorage.setItem(QUOTES_KEY, JSON.stringify(quotes));
 
-      showNotification('✓ Datos demo generados para reportes', 'success');
+      showNotification('<i class="fa-solid fa-check"></i> Datos demo generados para reportes', 'success');
       renderReportes();
       refreshKPIs();
     }
@@ -916,7 +916,7 @@
       a.remove();
       URL.revokeObjectURL(url);
 
-      showNotification('✓ CSV exportado (Excel)', 'success');
+      showNotification('<i class="fa-solid fa-check"></i> CSV exportado (Excel)', 'success');
     }
 
     function printReportPDF(){
@@ -935,7 +935,7 @@
       $('#kpiProductos').textContent = String(productos.length);
 
       const low = productos.filter(p => Number(p.stock||0) <= 5).length;
-      $('#kpiStockLow').textContent = low ? `⚠️ ${low} bajo stock` : 'Stock OK';
+      $('#kpiStockLow').textContent = low ? `<i class="fa-solid fa-triangle-exclamation"></i> ${low} bajo stock` : 'Stock OK';
 
       const k = computeKpis();
       $('#kpiVentasMes').textContent = money(k.total);
@@ -1069,3 +1069,360 @@
       setTimeout(() => showNotification('Bienvenido, Administrador', 'success'), 450);
     });
   
+// =============================================================
+// API LAYER - Conexión real al backend PHP
+// Reemplaza las funciones simuladas de localStorage
+// =============================================================
+
+const API_BASE = '/api';
+
+/**
+ * Obtener Firebase token para llamadas a API autenticadas
+ */
+async function getAuthToken() {
+  try {
+    if (typeof firebaseAuth !== 'undefined' && firebaseAuth?.currentUser) {
+      return await firebaseAuth.currentUser.getIdToken(true);
+    }
+    // Fallback: sessionStorage
+    return sessionStorage.getItem('wh_firebase_token') || '';
+  } catch (e) { return ''; }
+}
+
+/**
+ * Fetch autenticado
+ */
+async function apiFetch(url, options = {}) {
+  const token = await getAuthToken();
+  options.headers = options.headers || {};
+  if (token) options.headers['Authorization'] = 'Bearer ' + token;
+  options.headers['Content-Type'] = options.headers['Content-Type'] || 'application/json';
+  const res = await fetch(url, options);
+  return res.json();
+}
+
+/**
+ * Logout con Firebase
+ */
+async function logoutAdmin() {
+  if (!confirm('¿Cerrar sesión?')) return;
+  try {
+    if (typeof logoutFirebase === 'function') await logoutFirebase();
+    else if (typeof firebaseAuth !== 'undefined') await firebaseAuth.signOut();
+  } catch(e) {}
+  await fetch('/api/auth.php?action=logout', { method: 'POST' });
+  window.location.href = '/login';
+}
+
+// ============================================================
+// KPIs - Cargar desde API real
+// ============================================================
+async function refreshKPIsFromAPI() {
+  try {
+    const data = await apiFetch(`${API_BASE}/reportes.php?tipo=resumen`);
+    if (!data.success) return;
+
+    const r = data;
+    // Ventas del mes
+    const ventasEl = document.getElementById('kpiVentasMes');
+    if (ventasEl) ventasEl.textContent = new Intl.NumberFormat('es-MX', {style:'currency',currency:'MXN'}).format(r.ingresos_mes || 0);
+
+    // Pedidos
+    const pedEl = document.getElementById('kpiPedidos');
+    if (pedEl) pedEl.textContent = r.total_pedidos || 0;
+
+    // Clientes (proxy: pedidos totales únicos)
+    const cliEl = document.getElementById('kpiClientes');
+    if (cliEl) cliEl.textContent = r.total_pedidos || 0;
+
+    // Productos
+    const prodEl = document.getElementById('kpiProductos');
+    if (prodEl) prodEl.textContent = r.productos_activos || 0;
+
+    const hintEl = document.getElementById('kpiVentasHint');
+    if (hintEl) hintEl.textContent = `${r.pedidos_mes || 0} pedidos este mes`;
+
+    const stockEl = document.getElementById('kpiStockLow');
+    if (stockEl) stockEl.textContent = `${r.pedidos_pendientes || 0} pendientes`;
+
+  } catch (e) { console.warn('KPIs API error:', e); }
+}
+
+// Llamar al cargar dashboard
+document.addEventListener('DOMContentLoaded', () => {
+  setTimeout(refreshKPIsFromAPI, 500);
+});
+
+// ============================================================
+// CATÁLOGO - Conectar a API real
+// ============================================================
+let apiProductos = [];
+let apiCategorias = [];
+
+async function cargarProductosAPI() {
+  try {
+    const [prodData, catData] = await Promise.all([
+      apiFetch(`${API_BASE}/productos.php?limit=100&activo=`),
+      apiFetch(`${API_BASE}/categorias.php?todas=1`),
+    ]);
+
+    if (prodData.success) {
+      apiProductos = (prodData.productos || []).map(p => ({
+        id:          String(p.id),
+        nombre:      p.nombre,
+        descripcion: p.descripcion || '',
+        precio:      parseFloat(p.precio || 0),
+        stock:       parseInt(p.stock_disponible || 0),
+        categoria:   p.categoria_nombre || '',
+        categoria_id:p.categoria_id,
+        etiqueta:    p.etiqueta || '',
+        estado:      p.activo ? 'activo' : 'inactivo',
+        specsResumen:{ dimensiones: '', material: '', acabado: '', lavabo: '' },
+        descCorta:   (p.descripcion || '').substring(0, 100),
+        descLarga:   p.descripcion || '',
+        badge:       p.etiqueta || '',
+        imgs:        [],
+      }));
+    }
+
+    if (catData.success) {
+      apiCategorias = catData.categorias || [];
+      // Actualizar select de categorías en el modal
+      const catSelect = document.getElementById('p_categoria');
+      if (catSelect) {
+        catSelect.innerHTML = apiCategorias.map(c => `<option value="${c.id}">${c.nombre}</option>`).join('');
+      }
+    }
+
+    return apiProductos;
+  } catch (e) {
+    console.error('Error cargando productos API:', e);
+    return [];
+  }
+}
+
+// Wrapper: getProductos() ahora usa datos de API si disponibles
+const _originalGetProductos = typeof getProductos === 'function' ? getProductos : () => [];
+function getProductos() {
+  return apiProductos.length > 0 ? apiProductos : _originalGetProductos();
+}
+
+// Al entrar a catálogo: cargar de API
+const _originalShowSection = typeof showSection === 'function' ? showSection : () => {};
+function showSection(section, ev) {
+  if (section === 'catalogo') {
+    cargarProductosAPI().then(() => renderCatalogo());
+  }
+  if (section === 'dashboard') {
+    setTimeout(refreshKPIsFromAPI, 100);
+  }
+  if (section === 'pedidos') {
+    cargarPedidosAPI();
+  }
+  if (section === 'reportes') {
+    cargarReportesAPI();
+  }
+  if (section === 'empleados') {
+    cargarEmpleadosAPI();
+  }
+  _originalShowSection(section, ev);
+}
+
+// ============================================================
+// GUARDAR PRODUCTO - Enviar a API real
+// ============================================================
+async function saveProductoAPI(payload) {
+  const isEdit = payload.mode === 'edit';
+  const method = isEdit ? 'PUT' : 'POST';
+  const url    = isEdit
+    ? `${API_BASE}/productos.php?id=${payload.id}`
+    : `${API_BASE}/productos.php`;
+
+  // Mapear payload al formato de la API
+  const body = {
+    nombre:           payload.nombre,
+    descripcion:      payload.descLarga || payload.descCorta || '',
+    precio_base:      parseFloat(payload.precio || 0),
+    stock_disponible: parseInt(payload.stock || 0),
+    etiqueta:         payload.badge || payload.etiqueta || null,
+    categoria_id:     parseInt(payload.categoria_id || payload.categoria || 1),
+    activo:           payload.estado === 'activo' ? 1 : 0,
+    imagenes:         (payload.imgs || []).map(url => ({ url })),
+    especificaciones: Object.entries(payload.specsResumen || {}).filter(([,v]) => v).map(([k,v]) => ({ clave: k, valor: v })),
+  };
+
+  // Agregar specs adicionales si vienen de textarea
+  if (payload.specs && payload.specs.length) {
+    body.especificaciones = payload.specs.map(s => ({ clave: s.label || s.clave, valor: s.value || s.valor }));
+  }
+
+  try {
+    const data = await apiFetch(`${url}`, {
+      method,
+      body: JSON.stringify(body),
+    });
+
+    if (data.success) {
+      showNotification(`<i class="fa-solid fa-circle-check"></i> Producto ${isEdit ? 'actualizado' : 'creado'} correctamente`, 'success');
+      await cargarProductosAPI();
+      renderCatalogo();
+    } else {
+      showNotification('<i class="fa-solid fa-xmark"></i> ' + (data.error || 'Error al guardar'), 'error');
+    }
+  } catch (e) {
+    showNotification('<i class="fa-solid fa-xmark"></i> Error de conexión: ' + e.message, 'error');
+  }
+}
+
+// ============================================================
+// PEDIDOS - Cargar y gestionar desde API
+// ============================================================
+async function cargarPedidosAPI() {
+  const tbody = document.getElementById('pedidosTable');
+  if (!tbody) return;
+
+  try {
+    const data = await apiFetch(`${API_BASE}/pedidos.php?limit=30`);
+    if (!data.success) return;
+
+    const statusMap = {
+      pendiente:     'status-pending',
+      pagado:        'status-progress',
+      en_produccion: 'status-progress',
+      listo:         'status-info',
+      entregado:     'status-completed',
+      cancelado:     'status-disabled',
+    };
+    const labelMap = {
+      pendiente: 'Pendiente', pagado: 'Pagado', en_produccion: 'En Producción',
+      listo: 'Listo', entregado: 'Entregado', cancelado: 'Cancelado',
+    };
+
+    tbody.innerHTML = (data.pedidos || []).map(p => `
+      <tr data-status="${p.estado}" data-id="${p.id}">
+        <td>${p.numero_pedido}</td>
+        <td>${escapeHtml(p.nombre_cliente)}</td>
+        <td>${escapeHtml(p.correo_cliente)}</td>
+        <td>${p.fecha_estimada || '—'}</td>
+        <td><span class="status-badge ${statusMap[p.estado] || ''}">${labelMap[p.estado] || p.estado}</span></td>
+        <td style="color:var(--accent);font-weight:800;">${money(p.total)}</td>
+        <td>
+          <select class="form-select" style="width:140px;" onchange="actualizarEstadoPedido(${p.id}, this.value)">
+            ${['pendiente','pagado','en_produccion','listo','entregado','cancelado'].map(s =>
+              `<option value="${s}" ${s === p.estado ? 'selected' : ''}>${labelMap[s]}</option>`
+            ).join('')}
+          </select>
+        </td>
+      </tr>
+    `).join('');
+
+  } catch(e) { console.error('Pedidos API error:', e); }
+}
+
+async function actualizarEstadoPedido(id, estado) {
+  try {
+    const data = await apiFetch(`${API_BASE}/pedidos.php?id=${id}`, {
+      method: 'PUT',
+      body: JSON.stringify({ estado }),
+    });
+    if (data.success) {
+      showNotification('<i class="fa-solid fa-circle-check"></i> Estado actualizado', 'success');
+    } else {
+      showNotification('<i class="fa-solid fa-xmark"></i> ' + (data.error || 'Error'), 'error');
+    }
+  } catch(e) {
+    showNotification('<i class="fa-solid fa-xmark"></i> Error de conexión', 'error');
+  }
+}
+
+// ============================================================
+// EMPLEADOS - API real
+// ============================================================
+async function cargarEmpleadosAPI() {
+  const tbody = document.querySelector('#empleados-section table tbody');
+  if (!tbody) return;
+  try {
+    const data = await apiFetch(`${API_BASE}/empleados.php`);
+    if (!data.success) return;
+
+    tbody.innerHTML = (data.empleados || []).map(e => `
+      <tr>
+        <td>#${e.id}</td>
+        <td>${escapeHtml(e.nombre_completo)}</td>
+        <td>${e.rol === 'administrador' ? 'Administrador' : 'Empleado'}</td>
+        <td>${escapeHtml(e.correo)}</td>
+        <td><span class="status-badge ${e.activo ? 'status-completed' : 'status-disabled'}">${e.activo ? 'Activo' : 'Inactivo'}</span></td>
+        <td>
+          <button class="btn btn-danger btn-small" onclick="desactivarEmpleado(${e.id})">${e.activo ? '<i class="fa-solid fa-lock"></i> Desactivar' : '<i class="fa-solid fa-lock-open"></i> Activar'}</button>
+        </td>
+      </tr>
+    `).join('');
+  } catch(e) { console.error('Empleados API error:', e); }
+}
+
+async function desactivarEmpleado(id) {
+  if (!confirm('¿Cambiar estado del empleado?')) return;
+  const data = await apiFetch(`${API_BASE}/empleados.php?id=${id}`, {
+    method: 'DELETE',
+  });
+  if (data.success) {
+    showNotification('<i class="fa-solid fa-circle-check"></i> Empleado actualizado', 'success');
+    cargarEmpleadosAPI();
+  }
+}
+
+// ============================================================
+// REPORTES - API real
+// ============================================================
+async function cargarReportesAPI() {
+  try {
+    const [resumen, productos] = await Promise.all([
+      apiFetch(`${API_BASE}/reportes.php?tipo=resumen`),
+      apiFetch(`${API_BASE}/reportes.php?tipo=productos`),
+    ]);
+
+    if (resumen.success) {
+      setText('repVentas',  money(resumen.ingresos_mes || 0));
+      setText('repOrdenes', resumen.pedidos_mes || 0);
+      const ticket = resumen.pedidos_mes > 0 ? resumen.ingresos_mes / resumen.pedidos_mes : 0;
+      setText('repTicket', money(ticket));
+    }
+
+    // Top productos table
+    if (productos.success && productos.productos) {
+      const tbody = document.querySelector('#reportes-section table tbody');
+      if (tbody) {
+        tbody.innerHTML = (productos.productos || []).map(p => `
+          <tr>
+            <td>${escapeHtml(p.nombre_producto)}</td>
+            <td>${p.unidades_vendidas || 0}</td>
+            <td style="color:var(--accent);font-weight:800;">${money(p.ingresos_generados || 0)}</td>
+            <td>${p.num_pedidos || 0}</td>
+          </tr>
+        `).join('');
+      }
+    }
+  } catch(e) { console.error('Reportes API error:', e); }
+}
+
+function setText(id, val) {
+  const el = document.getElementById(id);
+  if (el) el.textContent = val;
+}
+
+// Cargar al inicio si ya estamos en dashboard
+document.addEventListener('DOMContentLoaded', () => {
+  // Verificar autenticación
+  if (typeof firebaseAuth !== 'undefined') {
+    firebaseAuth.onAuthStateChanged(async (user) => {
+      if (!user) {
+        window.location.href = '/login';
+      }
+    });
+  }
+  setTimeout(refreshKPIsFromAPI, 300);
+});
+
+window.logoutAdmin              = logoutAdmin;
+window.actualizarEstadoPedido   = actualizarEstadoPedido;
+window.desactivarEmpleado       = desactivarEmpleado;

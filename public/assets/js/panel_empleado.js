@@ -21,7 +21,7 @@
     }
 
     function logout(){
-      if(confirm('¿Cerrar sesión?')) window.location.href = 'login.html';
+      if(confirm('¿Cerrar sesión?')) window.location.href = '/login';
     }
 
     // ================== MENÚ HAMBURGUESA (MÓVIL) ==================
@@ -162,7 +162,7 @@
 
     function markNotifAsRead(){
       setUnread(false);
-      showNotification('✓ Notificaciones marcadas como leídas', 'success');
+      showNotification('<i class="fa-solid fa-check"></i> Notificaciones marcadas como leídas', 'success');
     }
 
     // ================== DASH: ACTIVIDAD RECIENTE ==================
@@ -184,7 +184,7 @@
       if(!list.length){
         box.innerHTML = `
           <div class="activity-item">
-            <div class="t">📋 Sin actividad reciente</div>
+            <div class="t"><i class="fa-solid fa-clipboard-list"></i> Sin actividad reciente</div>
             <div class="m">Cuando actualices pedidos/inventario aparecerán aquí.</div>
           </div>`;
         return;
@@ -200,9 +200,9 @@
     }
 
     function seedActivityDemo(){
-      addActivity('📦 Pedido #002 actualizado', 'Estado: En proceso → Instalación');
-      addActivity('🧱 Inventario MAT-003', 'Salida (-2) | consumo_producción');
-      addActivity('📅 Evento agregado', 'Cita con Ana Martínez');
+      addActivity('<i class="fa-solid fa-box"></i> Pedido #002 actualizado', 'Estado: En proceso → Instalación');
+      addActivity('<i class="fa-solid fa-cubes"></i> Inventario MAT-003', 'Salida (-2) | consumo_producción');
+      addActivity('<i class="fa-solid fa-calendar-days"></i> Evento agregado', 'Cita con Ana Martínez');
       pushNotif('Pedido #002 listo para instalación', 'Revisar cita y confirmar horario');
       renderActivity();
       showNotification('Demo agregada', 'success');
@@ -352,11 +352,11 @@
       }
 
       const meta = `Estado: ${statusLabel(newStatus)}${newEntrega ? ' | Entrega: ' + fmtISOtoDMY(newEntrega) : ''}${notas ? ' | Nota: ' + notas : ''}`;
-      addActivity(`📦 Pedido #${id} actualizado`, meta);
+      addActivity(`<i class="fa-solid fa-box"></i> Pedido #${id} actualizado`, meta);
       pushNotif(`Pedido #${id} actualizado`, meta);
 
       closeModal('updatePedidoModal');
-      showNotification('✓ Pedido actualizado', 'success');
+      showNotification('<i class="fa-solid fa-check"></i> Pedido actualizado', 'success');
 
       refreshKpisFromPedidosTable();
       renderActivity();
@@ -478,12 +478,12 @@
       saveItems(items);
       logMovement({ type:'alta_insumo', id, name, delta: stock, reason:'alta_inicial' });
 
-      addActivity('🧱 Insumo agregado', `${id} | ${name} | Stock inicial: ${stock}`);
+      addActivity('<i class="fa-solid fa-cubes"></i> Insumo agregado', `${id} | ${name} | Stock inicial: ${stock}`);
       pushNotif('Insumo agregado', `${id} | ${name}`);
 
       closeModal('addItemModal');
       renderInventory();
-      showNotification('✓ Insumo agregado', 'success');
+      showNotification('<i class="fa-solid fa-check"></i> Insumo agregado', 'success');
       renderActivity();
     }
 
@@ -528,9 +528,9 @@
 
         closeModal('stockModal');
         renderInventory();
-        showNotification('✓ Ajuste guardado', 'success');
+        showNotification('<i class="fa-solid fa-check"></i> Ajuste guardado', 'success');
 
-        addActivity('🧱 Ajuste de inventario', `${id} | Δ ${realDelta} | ${reason}`);
+        addActivity('<i class="fa-solid fa-cubes"></i> Ajuste de inventario', `${id} | Δ ${realDelta} | ${reason}`);
         pushNotif('Ajuste inventario', `${id} | Δ ${realDelta} | ${reason}`);
         renderActivity();
         return;
@@ -548,9 +548,9 @@
 
       closeModal('stockModal');
       renderInventory();
-      showNotification('✓ Movimiento guardado', 'success');
+      showNotification('<i class="fa-solid fa-check"></i> Movimiento guardado', 'success');
 
-      addActivity('🧱 Movimiento de inventario', `${id} | Δ ${realDelta} | ${reason}`);
+      addActivity('<i class="fa-solid fa-cubes"></i> Movimiento de inventario', `${id} | Δ ${realDelta} | ${reason}`);
       pushNotif('Movimiento inventario', `${id} | Δ ${realDelta} | ${reason}`);
       renderActivity();
     }
@@ -577,7 +577,7 @@
           const delta = next - cur;
           items[idx].stock = next;
           logMovement({ type:'auto', id:c.id, name: items[idx].name, delta, reason: c.reason || 'auto' });
-          addActivity('🧱 Auto-actualizar inventario', `${c.id} | Δ ${delta} | ${c.reason || 'auto'}`);
+          addActivity('<i class="fa-solid fa-cubes"></i> Auto-actualizar inventario', `${c.id} | Δ ${delta} | ${c.reason || 'auto'}`);
         }
       });
 
@@ -675,7 +675,7 @@
         cell.addEventListener('click', () => {
           selectedDateISO = dayISO;
           renderDayEvents(dayISO);
-          showNotification(`📅 Día seleccionado: ${dayISO}`, 'info');
+          showNotification(`<i class="fa-solid fa-calendar-days"></i> Día seleccionado: ${dayISO}`, 'info');
         });
 
         if(!selectedDateISO && dayISO === todayISO) selectedDateISO = todayISO;
@@ -784,9 +784,9 @@
       selectedDateISO = date;
       buildCalendar();
       renderNext7();
-      showNotification('✓ Evento guardado', 'success');
+      showNotification('<i class="fa-solid fa-check"></i> Evento guardado', 'success');
 
-      addActivity('📅 Evento agregado', `${date} ${time || ''} | ${title}`);
+      addActivity('<i class="fa-solid fa-calendar-days"></i> Evento agregado', `${date} ${time || ''} | ${title}`);
       pushNotif('Evento agregado', `${date} ${time || ''} | ${title}`);
       renderActivity();
     }
@@ -800,8 +800,8 @@
     }
 
     // ================== FORM DUMMIES ==================
-    function saveCita(){ closeModal('nuevaCita'); showNotification('✓ Cita agendada (demo)', 'success'); }
-    function saveCotizacion(){ closeModal('nuevaCotizacion'); showNotification('✓ Cotización creada (demo)', 'success'); }
+    function saveCita(){ closeModal('nuevaCita'); showNotification('<i class="fa-solid fa-check"></i> Cita agendada (demo)', 'success'); }
+    function saveCotizacion(){ closeModal('nuevaCotizacion'); showNotification('<i class="fa-solid fa-check"></i> Cotización creada (demo)', 'success'); }
 
     // ================== INIT ==================
     document.addEventListener('DOMContentLoaded', () => {
@@ -830,8 +830,184 @@
       // bienvenida + actividad
       setTimeout(() => showNotification('Bienvenido, Juan Pérez', 'success'), 400);
       if(!getActivity().length){
-        addActivity('✅ Panel empleado inicializado', 'Acceso limitado: ver/actualizar pedidos y citas.');
+        addActivity('<i class="fa-solid fa-circle-check"></i> Panel empleado inicializado', 'Acceso limitado: ver/actualizar pedidos y citas.');
       }
       renderActivity();
     });
   
+// =============================================================
+// API LAYER - Empleado (conexión real a backend)
+// =============================================================
+
+const API_BASE = '/api';
+
+async function getAuthToken() {
+  try {
+    if (typeof firebaseAuth !== 'undefined' && firebaseAuth?.currentUser) {
+      return await firebaseAuth.currentUser.getIdToken(true);
+    }
+    return sessionStorage.getItem('wh_firebase_token') || '';
+  } catch(e) { return ''; }
+}
+
+async function apiFetch(url, options = {}) {
+  const token = await getAuthToken();
+  options.headers = options.headers || {};
+  if (token) options.headers['Authorization'] = 'Bearer ' + token;
+  options.headers['Content-Type'] = options.headers['Content-Type'] || 'application/json';
+  const res = await fetch(url, options);
+  return res.json();
+}
+
+async function logout() {
+  if (!confirm('¿Cerrar sesión?')) return;
+  try {
+    if (typeof firebaseAuth !== 'undefined') await firebaseAuth.signOut();
+  } catch(e) {}
+  await fetch('/api/auth.php?action=logout', { method: 'POST' });
+  window.location.href = '/login';
+}
+
+// --- Pedidos ---
+async function cargarPedidosEmpleadoAPI() {
+  const tbody = document.getElementById('pedidosTable');
+  if (!tbody) return;
+  try {
+    const data = await apiFetch(`${API_BASE}/pedidos.php?limit=30`);
+    if (!data.success) return;
+
+    const labMap = { pendiente:'Pendiente', pagado:'Pagado', en_produccion:'En Producción', listo:'Listo', entregado:'Entregado', cancelado:'Cancelado' };
+    const clsMap = { pendiente:'status-pending', pagado:'status-progress', en_produccion:'status-progress', listo:'status-info', entregado:'status-completed', cancelado:'status-disabled' };
+
+    tbody.innerHTML = (data.pedidos || []).map(p => `
+      <tr data-status="${p.estado}" data-id="${p.id}">
+        <td>${p.numero_pedido}</td>
+        <td>${escapeHtml(p.nombre_cliente)}</td>
+        <td>${p.correo_cliente}</td>
+        <td>${p.fecha_estimada || '—'}</td>
+        <td><span class="status-badge ${clsMap[p.estado] || ''}">${labMap[p.estado] || p.estado}</span></td>
+        <td style="color:var(--accent);font-weight:800;">$${parseFloat(p.total||0).toLocaleString('es-MX')}</td>
+        <td>
+          <select class="form-select" style="width:140px;" onchange="actualizarEstadoPedidoEmp(${p.id}, this.value)">
+            ${['pendiente','pagado','en_produccion','listo','entregado'].map(s =>
+              `<option value="${s}" ${s===p.estado?'selected':''}>${labMap[s]}</option>`
+            ).join('')}
+          </select>
+        </td>
+      </tr>
+    `).join('');
+  } catch(e) { console.error('Pedidos API error:', e); }
+}
+
+async function actualizarEstadoPedidoEmp(id, estado) {
+  try {
+    const data = await apiFetch(`${API_BASE}/pedidos.php?id=${id}`, {
+      method: 'PUT',
+      body: JSON.stringify({ estado }),
+    });
+    if (data.success) showNotification('<i class="fa-solid fa-circle-check"></i> Estado actualizado', 'success');
+    else showNotification('<i class="fa-solid fa-xmark"></i> ' + (data.error || 'Error'), 'error');
+  } catch(e) { showNotification('<i class="fa-solid fa-xmark"></i> Error de conexión', 'error'); }
+}
+
+// --- Citas ---
+async function cargarCitasAPI() {
+  const tbody = document.querySelector('#citas-section table tbody');
+  if (!tbody) return;
+  try {
+    const data = await apiFetch(`${API_BASE}/citas.php?limit=30`);
+    if (!data.success) return;
+
+    const clsMap = { nueva:'status-pending', confirmada:'status-progress', completada:'status-completed', cancelada:'status-disabled' };
+    tbody.innerHTML = (data.citas || []).map(c => `
+      <tr>
+        <td>${c.numero_cita}</td>
+        <td>${escapeHtml(c.nombre_cliente)}</td>
+        <td>${c.fecha_cita}</td>
+        <td>${c.rango_horario || '—'}</td>
+        <td>${c.tipo}</td>
+        <td><span class="status-badge ${clsMap[c.estado]||''}">${c.estado}</span></td>
+        <td>
+          <button class="btn btn-secondary btn-small" onclick="confirmarCita(${c.id})">Confirmar</button>
+          <button class="btn btn-secondary btn-small" onclick="completarCita(${c.id})">Completar</button>
+        </td>
+      </tr>
+    `).join('');
+  } catch(e) { console.error('Citas API error:', e); }
+}
+
+async function confirmarCita(id) {
+  const data = await apiFetch(`${API_BASE}/citas.php?id=${id}`, { method:'PUT', body: JSON.stringify({ estado: 'confirmada' }) });
+  if (data.success) { showNotification('<i class="fa-solid fa-circle-check"></i> Cita confirmada', 'success'); cargarCitasAPI(); }
+}
+async function completarCita(id) {
+  const data = await apiFetch(`${API_BASE}/citas.php?id=${id}`, { method:'PUT', body: JSON.stringify({ estado: 'completada' }) });
+  if (data.success) { showNotification('<i class="fa-solid fa-circle-check"></i> Cita completada', 'success'); cargarCitasAPI(); }
+}
+
+// --- Cotizaciones ---
+async function cargarCotizacionesAPI() {
+  const tbody = document.querySelector('#cotizaciones-section table tbody');
+  if (!tbody) return;
+  try {
+    const data = await apiFetch(`${API_BASE}/cotizaciones.php?limit=30`);
+    if (!data.success) return;
+    const clsMap = { nueva:'status-pending', en_revision:'status-progress', respondida:'status-completed', cerrada:'status-disabled' };
+    tbody.innerHTML = (data.cotizaciones || []).map(c => `
+      <tr>
+        <td>${c.numero_cotizacion}</td>
+        <td>${escapeHtml(c.nombre_cliente)}</td>
+        <td>${escapeHtml(c.tipo_mueble || '—')}</td>
+        <td>${c.rango_presupuesto || '—'}</td>
+        <td><span class="status-badge ${clsMap[c.estado]||''}">${c.estado}</span></td>
+        <td>
+          <select class="form-select" style="width:130px;" onchange="actualizarCotizacion(${c.id}, this.value)">
+            ${['nueva','en_revision','respondida','cerrada'].map(s =>
+              `<option value="${s}" ${s===c.estado?'selected':''}>${s}</option>`
+            ).join('')}
+          </select>
+        </td>
+      </tr>
+    `).join('');
+  } catch(e) { console.error('Cotizaciones API error:', e); }
+}
+
+async function actualizarCotizacion(id, estado) {
+  const data = await apiFetch(`${API_BASE}/cotizaciones.php?id=${id}`, { method:'PUT', body: JSON.stringify({ estado }) });
+  if (data.success) showNotification('<i class="fa-solid fa-circle-check"></i> Cotización actualizada', 'success');
+}
+
+// --- KPIs dashboard ---
+async function refreshKpisAPI() {
+  try {
+    const data = await apiFetch(`${API_BASE}/reportes.php?tipo=resumen`);
+    if (!data.success) return;
+    const el = document.getElementById('kpiPendientes');
+    if (el) el.textContent = data.pedidos_pendientes || 0;
+  } catch(e) {}
+}
+
+// Verificar auth y cargar datos al iniciar
+document.addEventListener('DOMContentLoaded', () => {
+  if (typeof firebaseAuth !== 'undefined') {
+    firebaseAuth.onAuthStateChanged(user => {
+      if (!user) window.location.href = '/login';
+    });
+  }
+  setTimeout(refreshKpisAPI, 400);
+});
+
+// Extender showSection del empleado para cargar datos de API
+const _empOrigShowSection = typeof showSection === 'function' ? showSection : () => {};
+function showSection(section) {
+  _empOrigShowSection(section);
+  if (section === 'pedidos')       cargarPedidosEmpleadoAPI();
+  if (section === 'citas')         cargarCitasAPI();
+  if (section === 'cotizaciones')  cargarCotizacionesAPI();
+  if (section === 'dashboard')     refreshKpisAPI();
+}
+
+window.actualizarEstadoPedidoEmp = actualizarEstadoPedidoEmp;
+window.confirmarCita  = confirmarCita;
+window.completarCita  = completarCita;
+window.actualizarCotizacion = actualizarCotizacion;

@@ -133,3 +133,38 @@ SELECT 'Base de datos cargada exitosamente' AS Mensaje;
 SELECT COUNT(*) AS total_productos FROM productos;
 SELECT COUNT(*) AS total_usuarios FROM usuarios_personal;
 SELECT COUNT(*) AS total_pedidos FROM pedidos;
+-- ================================================================
+-- Capacidad de producción: próximas 16 semanas
+-- Ajusta slots_produccion y slots_entrega según tu taller
+-- ================================================================
+INSERT IGNORE INTO capacidad_produccion (semana_inicio, slots_produccion, slots_entrega, bloqueado) VALUES
+-- Calcular desde hoy al lunes de cada semana
+-- (en producción esto se genera dinámicamente con el script de admin)
+('2026-02-16', 3, 5, 0),
+('2026-02-23', 3, 5, 0),
+('2026-03-02', 3, 5, 0),
+('2026-03-09', 3, 5, 0),
+('2026-03-16', 3, 4, 0),
+('2026-03-23', 3, 5, 0),
+('2026-03-30', 2, 3, 0),
+('2026-04-06', 0, 0, 1),   -- Semana Santa (bloqueada)
+('2026-04-13', 3, 5, 0),
+('2026-04-20', 3, 5, 0),
+('2026-04-27', 3, 5, 0),
+('2026-05-04', 3, 5, 0),
+('2026-05-11', 3, 5, 0),
+('2026-05-18', 3, 5, 0),
+('2026-05-25', 3, 5, 0),
+('2026-06-01', 3, 5, 0);
+
+-- Días festivos oficiales México 2026
+INSERT IGNORE INTO dias_bloqueados (fecha, motivo) VALUES
+('2026-02-02', 'Día de la Constitución (lunes)'),
+('2026-03-16', 'Natalicio de Benito Juárez (lunes)'),
+('2026-04-02', 'Jueves Santo'),
+('2026-04-03', 'Viernes Santo'),
+('2026-05-01', 'Día del Trabajo'),
+('2026-09-16', 'Día de la Independencia'),
+('2026-11-02', 'Día de Muertos'),
+('2026-11-16', 'Revolución Mexicana (lunes)'),
+('2026-12-25', 'Navidad');

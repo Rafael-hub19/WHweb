@@ -5,7 +5,7 @@ let auth;
  * Inicializar página de login
  */
 document.addEventListener('DOMContentLoaded', () => {
-  console.log('🔐 Login Iniciado');
+  console.log('[AUTH] Login Iniciado');
   
   // Verificar si ya hay sesión
   verificarSesionExistente();
@@ -77,12 +77,12 @@ async function handleLogin(e) {
   
   // Validar campos
   if (!email || !password) {
-    showNotification('❌ Por favor completa todos los campos', 'error');
+    showNotification('<i class="fa-solid fa-xmark"></i> Por favor completa todos los campos', 'error');
     return;
   }
   
   if (!isValidEmail(email)) {
-    showNotification('❌ Email inválido', 'error');
+    showNotification('<i class="fa-solid fa-xmark"></i> Email inválido', 'error');
     return;
   }
   
@@ -116,7 +116,7 @@ async function handleLogin(e) {
         // Guardar token
         localStorage.setItem('wh_token', data.token);
         
-        showNotification('✅ ¡Bienvenido!', 'success');
+        showNotification('<i class="fa-solid fa-circle-check"></i> ¡Bienvenido!', 'success');
         
         // Redirigir según rol
         setTimeout(() => {
@@ -144,7 +144,7 @@ async function handleLogin(e) {
       
       if (data.success) {
         localStorage.setItem('wh_token', data.token);
-        showNotification('✅ ¡Bienvenido!', 'success');
+        showNotification('<i class="fa-solid fa-circle-check"></i> ¡Bienvenido!', 'success');
         
         setTimeout(() => {
           redirigirSegunRol(data.usuario.rol);
@@ -157,18 +157,18 @@ async function handleLogin(e) {
   } catch (error) {
     console.error('Error de login:', error);
     
-    let mensaje = '❌ Error al iniciar sesión';
+    let mensaje = '<i class="fa-solid fa-xmark"></i> Error al iniciar sesión';
     
     if (error.code === 'auth/user-not-found') {
-      mensaje = '❌ Usuario no encontrado';
+      mensaje = '<i class="fa-solid fa-xmark"></i> Usuario no encontrado';
     } else if (error.code === 'auth/wrong-password') {
-      mensaje = '❌ Contraseña incorrecta';
+      mensaje = '<i class="fa-solid fa-xmark"></i> Contraseña incorrecta';
     } else if (error.code === 'auth/invalid-email') {
-      mensaje = '❌ Email inválido';
+      mensaje = '<i class="fa-solid fa-xmark"></i> Email inválido';
     } else if (error.code === 'auth/user-disabled') {
-      mensaje = '❌ Usuario deshabilitado';
+      mensaje = '<i class="fa-solid fa-xmark"></i> Usuario deshabilitado';
     } else if (error.message) {
-      mensaje = `❌ ${error.message}`;
+      mensaje = `<i class="fa-solid fa-xmark"></i> ${error.message}`;
     }
     
     showNotification(mensaje, 'error');
@@ -183,7 +183,7 @@ async function handleLogin(e) {
  */
 async function loginConGoogle() {
   if (!auth) {
-    showNotification('❌ Firebase no está configurado', 'error');
+    showNotification('<i class="fa-solid fa-xmark"></i> Firebase no está configurado', 'error');
     return;
   }
   
@@ -215,7 +215,7 @@ async function loginConGoogle() {
     
     if (data.success) {
       localStorage.setItem('wh_token', data.token);
-      showNotification('✅ ¡Bienvenido!', 'success');
+      showNotification('<i class="fa-solid fa-circle-check"></i> ¡Bienvenido!', 'success');
       
       setTimeout(() => {
         redirigirSegunRol(data.usuario.rol);
@@ -228,9 +228,9 @@ async function loginConGoogle() {
     console.error('Error Google login:', error);
     
     if (error.code === 'auth/popup-closed-by-user') {
-      showNotification('ℹ️ Inicio de sesión cancelado', 'info');
+      showNotification('[INFO] Inicio de sesión cancelado', 'info');
     } else {
-      showNotification('❌ Error al iniciar sesión con Google', 'error');
+      showNotification('<i class="fa-solid fa-xmark"></i> Error al iniciar sesión con Google', 'error');
     }
     
   } finally {
@@ -250,7 +250,7 @@ function redirigirSegunRol(rol) {
       window.location.href = '/empleado/panel_empleado.html';
       break;
     default:
-      window.location.href = '/index.html';
+      window.location.href = '/inicio';
       break;
   }
 }
@@ -264,10 +264,10 @@ function toggleMostrarPassword() {
   
   if (passwordInput.type === 'password') {
     passwordInput.type = 'text';
-    btn.textContent = '🙈';
+    btn.textContent = '<i class="fa-solid fa-eye-slash"></i>';
   } else {
     passwordInput.type = 'password';
-    btn.textContent = '👁️';
+    btn.textContent = '<i class="fa-solid fa-eye"></i>';
   }
 }
 
@@ -280,12 +280,12 @@ async function recuperarPassword() {
   if (!email) return;
   
   if (!isValidEmail(email)) {
-    showNotification('❌ Email inválido', 'error');
+    showNotification('<i class="fa-solid fa-xmark"></i> Email inválido', 'error');
     return;
   }
   
   if (!auth) {
-    showNotification('❌ Función no disponible', 'error');
+    showNotification('<i class="fa-solid fa-xmark"></i> Función no disponible', 'error');
     return;
   }
   
@@ -294,15 +294,15 @@ async function recuperarPassword() {
   try {
     await auth.sendPasswordResetEmail(email);
     
-    showNotification('✅ Email de recuperación enviado. Revisa tu bandeja.', 'success');
+    showNotification('<i class="fa-solid fa-circle-check"></i> Email de recuperación enviado. Revisa tu bandeja.', 'success');
     
   } catch (error) {
     console.error('Error:', error);
     
     if (error.code === 'auth/user-not-found') {
-      showNotification('❌ Email no registrado', 'error');
+      showNotification('<i class="fa-solid fa-xmark"></i> Email no registrado', 'error');
     } else {
-      showNotification('❌ Error al enviar email', 'error');
+      showNotification('<i class="fa-solid fa-xmark"></i> Error al enviar email', 'error');
     }
     
   } finally {
@@ -313,4 +313,110 @@ async function recuperarPassword() {
 // Exponer función globalmente
 window.recuperarPassword = recuperarPassword;
 
-console.log('✅ Login.js cargado');
+console.log('[OK] Login.js cargado');
+
+
+// ── Integración Firebase Auth (desde login.php) ─────────────────
+// ============================================================
+    // Login con Firebase Auth + Backend PHP
+    // ============================================================
+    const loginForm  = document.getElementById('loginForm');
+    const alertBox   = document.getElementById('alertBox');
+    const btnLogin   = document.getElementById('btnLogin');
+    const togglePass = document.getElementById('togglePass');
+    const forgotLink = document.getElementById('forgotLink');
+
+    function showAlert(msg, type = 'error') {
+      alertBox.textContent = msg;
+      alertBox.className   = `alert alert-${type}`;
+      alertBox.style.display = 'block';
+    }
+
+    togglePass?.addEventListener('click', () => {
+      const pwd = document.getElementById('password');
+      pwd.type = pwd.type === 'password' ? 'text' : 'password';
+      togglePass.textContent = pwd.type === 'password' ? '<i class="fa-solid fa-eye"></i>' : '<i class="fa-solid fa-eye-slash"></i>';
+    });
+
+    forgotLink?.addEventListener('click', (e) => {
+      e.preventDefault();
+      const email = document.getElementById('email').value.trim();
+      if (!email) { showAlert('Ingresa tu correo primero', 'error'); return; }
+      if (!firebaseAuth) { showAlert('Firebase no disponible', 'error'); return; }
+      firebaseAuth.sendPasswordResetEmail(email)
+        .then(() => showAlert('Correo de recuperación enviado. Revisa tu bandeja.', 'success'))
+        .catch(err => showAlert('Error: ' + err.message, 'error'));
+    });
+
+    loginForm?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email    = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+
+      if (!email || !password) { showAlert('Ingresa correo y contraseña', 'error'); return; }
+
+      btnLogin.disabled     = true;
+      btnLogin.textContent  = 'Iniciando sesión...';
+      alertBox.style.display = 'none';
+
+      try {
+        if (!firebaseAuth) throw new Error('Firebase no inicializado');
+
+        const credential = await firebaseAuth.signInWithEmailAndPassword(email, password);
+        const idToken    = await credential.user.getIdToken(true);
+
+        // Verificar con backend
+        const res  = await fetch('/api/auth.php?action=login', {
+          method:  'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body:    JSON.stringify({ firebase_token: idToken }),
+        });
+        const data = await res.json();
+
+        if (data.success) {
+          showAlert('<i class="fa-solid fa-circle-check"></i> Bienvenido, redirigiendo...', 'success');
+          // Guardar token para próximas llamadas API
+          sessionStorage.setItem('wh_firebase_token', idToken);
+          sessionStorage.setItem('wh_usuario', JSON.stringify(data.usuario));
+          setTimeout(() => { window.location.href = data.redirect; }, 800);
+        } else {
+          throw new Error(data.error || 'Usuario no autorizado');
+        }
+      } catch (err) {
+        console.error('Login error:', err);
+        let msg = 'Error al iniciar sesión';
+        if (err.code === 'auth/user-not-found')   msg = 'Correo no registrado';
+        else if (err.code === 'auth/wrong-password') msg = 'Contraseña incorrecta';
+        else if (err.code === 'auth/too-many-requests') msg = 'Demasiados intentos. Espera un momento.';
+        else if (err.message) msg = err.message;
+        showAlert(msg, 'error');
+      } finally {
+        btnLogin.disabled    = false;
+        btnLogin.textContent = 'Iniciar Sesión';
+      }
+    });
+
+    // Verificar si ya está logueado
+    document.addEventListener('DOMContentLoaded', () => {
+      if (firebaseAuth) {
+        firebaseAuth.onAuthStateChanged(async (user) => {
+          if (user) {
+            // Verificar sesión con backend
+            try {
+              const token = await user.getIdToken();
+              const res   = await fetch('/api/auth.php?action=verificar', {
+                headers: { 'Authorization': 'Bearer ' + token }
+              });
+              const data  = await res.json();
+              if (data.success && data.autenticado) {
+                const rol = data.usuario?.rol || '';
+                const redirect = rol === 'administrador'
+                  ? '/public/admin/panel_administrador.php'
+                  : '/public/empleado/panel_empleado.php';
+                window.location.href = redirect;
+              }
+            } catch (e) { /* continuar con el login normal */ }
+          }
+        });
+      }
+    });

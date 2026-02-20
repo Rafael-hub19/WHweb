@@ -1,3 +1,18 @@
+<?php
+// ── Guardia de autenticación server-side ─────────────────────────
+require_once dirname(__DIR__, 2) . "/includes/config.php";
+require_once dirname(__DIR__, 2) . "/includes/db.php";
+require_once dirname(__DIR__, 2) . "/includes/functions.php";
+require_once dirname(__DIR__, 2) . "/includes/auth.php";
+
+$_usuario = sesionActiva();
+if (!$_usuario || !in_array($_usuario["rol"], ["administrador", "empleado"], true)) {
+    header("Location: /public/login.php?redirect=empleado&error=sesion");
+    exit;
+}
+unset($_usuario);
+?>
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -7,19 +22,20 @@
 
 
   <link rel="stylesheet" href="../assets/css/panel_empleado.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 </head>
 
 <body>
   <!-- HEADER -->
   <div class="header">
     <div class="header-left">
-      <button class="menu-toggle" id="menuToggle" aria-label="Abrir menú" aria-expanded="false">☰</button>
+      <button class="menu-toggle" id="menuToggle" aria-label="Abrir menú" aria-expanded="false"><i class="fa-solid fa-bars"></i></button>
       <div class="logo">WOODEN HOUSE</div>
     </div>
 
     <div class="header-right">
       <button class="icon-btn" id="notifBtn" aria-label="Notificaciones" title="Notificaciones">
-        🔔
+        <i class="fa-solid fa-bell"></i>
         <span class="badge-dot" id="notifDot"></span>
       </button>
 
@@ -47,11 +63,11 @@
     <button class="nav-close" id="navClose" aria-label="Cerrar menú">×</button>
     <div class="nav-title">Panel Empleado</div>
 
-    <a href="#" data-section="dashboard" class="active">📊 Dashboard</a>
-    <a href="#" data-section="pedidos">📦 Gestión de Pedidos</a>
-    <a href="#" data-section="citas">📅 Citas Programadas</a>
-    <a href="#" data-section="cotizaciones">💼 Cotizaciones</a>
-    <a href="#" data-section="calendario">📆 Mi Calendario</a>
+    <a href="#" data-section="dashboard" class="active"><i class="fa-solid fa-chart-bar"></i> Dashboard</a>
+    <a href="#" data-section="pedidos"><i class="fa-solid fa-box"></i> Gestión de Pedidos</a>
+    <a href="#" data-section="citas"><i class="fa-solid fa-calendar-days"></i> Citas Programadas</a>
+    <a href="#" data-section="cotizaciones"><i class="fa-solid fa-briefcase"></i> Cotizaciones</a>
+    <a href="#" data-section="calendario"><i class="fa-solid fa-calendar-check"></i> Mi Calendario</a>
   </div>
 
   <!-- LAYOUT -->
@@ -59,29 +75,29 @@
     <!-- SIDEBAR (DESKTOP) -->
     <aside class="sidebar" id="sidebarDesktop">
       <div class="sidebar-item active" onclick="showSection('dashboard')">
-        <span class="icon">📊</span>
+        <span class="icon"><i class="fa-solid fa-chart-bar"></i></span>
         <span>Dashboard</span>
       </div>
 
       <div class="sidebar-section">GESTIÓN</div>
 
       <div class="sidebar-item" onclick="showSection('pedidos')">
-        <span class="icon">📦</span>
+        <span class="icon"><i class="fa-solid fa-box"></i></span>
         <span>Gestión de Pedidos</span>
       </div>
 
       <div class="sidebar-item" onclick="showSection('citas')">
-        <span class="icon">📅</span>
+        <span class="icon"><i class="fa-solid fa-calendar-days"></i></span>
         <span>Citas Programadas</span>
       </div>
 
       <div class="sidebar-item" onclick="showSection('cotizaciones')">
-        <span class="icon">💼</span>
+        <span class="icon"><i class="fa-solid fa-briefcase"></i></span>
         <span>Cotizaciones</span>
       </div>
 
       <div class="sidebar-item" onclick="showSection('calendario')">
-        <span class="icon">📆</span>
+        <span class="icon"><i class="fa-solid fa-calendar-check"></i></span>
         <span>Mi Calendario</span>
       </div>
     </aside>
@@ -119,7 +135,7 @@
 
           <div class="activity-list" id="activityList">
             <div class="activity-item">
-              <div class="t">📋 Panel listo</div>
+              <div class="t"><i class="fa-solid fa-clipboard-list"></i> Panel listo</div>
               <div class="m">Aquí verás cambios recientes (pedidos, citas, inventario).</div>
             </div>
           </div>
@@ -635,6 +651,11 @@
   </div>
 
   
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+  <script src="../assets/js/firebase-config.js"></script>
   <script src="../assets/js/panel_empleado.js"></script>
 </body>
 </html>

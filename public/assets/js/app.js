@@ -15,7 +15,7 @@ const AppState = {
  * Inicializar aplicación cuando carga el DOM
  */
 document.addEventListener('DOMContentLoaded', () => {
-  console.log('🚀 Wooden House App Iniciada');
+  console.log('[INIT] Wooden House App Iniciada');
   
   // Cargar estado del carrito desde localStorage
   cargarCarritoDesdeStorage();
@@ -99,7 +99,7 @@ function agregarAlCarrito(producto) {
   guardarCarritoEnStorage();
   actualizarBadgeCarrito();
   
-  showNotification(`✅ ${producto.nombre} agregado al carrito`, 'success');
+  showNotification(`<i class="fa-solid fa-circle-check"></i> ${producto.nombre} agregado al carrito`, 'success');
 }
 
 /**
@@ -116,7 +116,7 @@ function eliminarDelCarrito(productoId) {
     guardarCarritoEnStorage();
     actualizarBadgeCarrito();
     
-    showNotification(`🗑️ ${producto.nombre} eliminado del carrito`, 'info');
+    showNotification(`<i class="fa-solid fa-trash"></i> ${producto.nombre} eliminado del carrito`, 'info');
     return true;
   }
   
@@ -155,7 +155,7 @@ function vaciarCarrito() {
   guardarCarritoEnStorage();
   actualizarBadgeCarrito();
   
-  showNotification('🗑️ Carrito vaciado', 'info');
+  showNotification('<i class="fa-solid fa-trash"></i> Carrito vaciado', 'info');
 }
 
 /**
@@ -212,11 +212,11 @@ function cerrarSesion() {
   localStorage.removeItem('wh_token');
   AppState.usuario = null;
   
-  showNotification('👋 Sesión cerrada', 'info');
+  showNotification('<i class="fa-solid fa-hand-wave"></i> Sesión cerrada', 'info');
   
   // Redirigir a login después de 1 segundo
   setTimeout(() => {
-    window.location.href = '/login.html';
+    window.location.href = '/login';
   }, 1000);
 }
 
@@ -232,7 +232,7 @@ function inicializarMenuMovil() {
   menuToggle.addEventListener('click', () => {
     const isOpen = navLinks.classList.toggle('open');
     menuToggle.setAttribute('aria-expanded', isOpen);
-    menuToggle.textContent = isOpen ? '✕' : '☰';
+    menuToggle.innerHTML = isOpen ? '<i class="fa-solid fa-xmark"></i>' : '<i class="fa-solid fa-bars"></i>';
   });
   
   // Cerrar menú al hacer click en un link
@@ -241,7 +241,7 @@ function inicializarMenuMovil() {
       if (navLinks.classList.contains('open')) {
         navLinks.classList.remove('open');
         menuToggle.setAttribute('aria-expanded', 'false');
-        menuToggle.textContent = '☰';
+        menuToggle.textContent = '<i class="fa-solid fa-bars"></i>';
       }
     });
   });
@@ -309,4 +309,4 @@ window.WoodenHouse = {
   apiRequest
 };
 
-console.log('✅ Wooden House App Ready');
+console.log('[OK] Wooden House App Ready');

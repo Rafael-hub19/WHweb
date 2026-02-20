@@ -120,4 +120,4 @@ function formatDate(dateString) {
   }).format(date);
 }
 
-console.log('✅ index.js cargado correctamente');
+console.log('[OK] index.js cargado correctamente');

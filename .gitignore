@@ -1,363 +1,116 @@
 # ================================================
 # WOODEN HOUSE - GITIGNORE
-# Archivos que NO se deben subir a Git/GitHub
-# Actualizado para estructura del proyecto
 # ================================================
 
-# ========================================
-# ARCHIVOS SENSIBLES - NUNCA SUBIR ⚠️
-# ========================================
-
-# Variables de entorno
+# ── NUNCA SUBIR — Credenciales y datos sensibles ─────────────────
 .env
 .env.local
-.env.*.local
 .env.production
-.env.development
 .env.staging
-.env.test
 
-# Credenciales Firebase
+# Claves Firebase Admin SDK
 firebase-service-account.json
 *-firebase-adminsdk-*.json
 serviceAccountKey.json
-firebase-admin-sdk.json
 firebase-credentials.json
 
-# Claves API y certificados
+# Certificados y claves
 *.pem
 *.key
 *.p12
 secrets.json
 credentials.json
-api-keys.json
 
-# Configuración de base de datos con credenciales
-src/config/db.php
-src/config/config.php
-!src/config/db.example.php
-!src/config/config.example.php
-
-# Configuración de servicios externos
-src/config/stripe.php
-src/config/paypal.php
-src/config/mailer.php
-src/config/firebase_admin.php
-!src/config/*.example.php
-
-# ========================================
-# BASE DE DATOS
-# ========================================
-
-# Datos persistentes de MySQL/MariaDB
-db_data/
-mysql-data/
-mariadb-data/
-volumes/
-data/
-
-# Backups de base de datos (excepto schema y seed)
-database/backups/*.sql
-database/backups/*.sql.gz
-database/backups/*.sql.zip
-database/backups/*.dump
+# ── BASE DE DATOS ─────────────────────────────────────────────────
+database/backups/
 *.sql.gz
 *.sql.zip
 *.dump
 
-# IMPORTANTE: Mantener schema y seed
+# Sí subir (estructura y datos de prueba)
 !database/schema.sql
 !database/seed.sql
 
-# ========================================
-# DEPENDENCIAS
-# ========================================
+# ── LOGS ─────────────────────────────────────────────────────────
+logs/
+*.log
+firebase-debug.log
+firestore-debug.log
+ui-debug.log
 
-# Node.js
+# ── DEPENDENCIAS ─────────────────────────────────────────────────
 node_modules/
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-lerna-debug.log*
-package-lock.json
-yarn.lock
-pnpm-lock.yaml
-
-# Composer (PHP)
+firebase/functions/node_modules/
 vendor/
 composer.phar
 composer.lock
 
-# Dependencias Firebase Functions
-firebase/functions/node_modules/
-firebase/fuctions/node_modules/
+# ── UPLOADS DE USUARIOS ──────────────────────────────────────────
+public/uploads/*
+!public/uploads/.gitkeep
 
-# ========================================
-# LOGS Y ERRORES
-# ========================================
-
-logs/
-*.log
-log/
-error.log
-access.log
-npm-debug.log
-yarn-error.log
-php_error.log
-mysql-error.log
-apache-error.log
-nginx-error.log
-
-# Logs de Firebase
-firebase-debug.log
-firestore-debug.log
-
-# ========================================
-# ARCHIVOS DE SISTEMA OPERATIVO
-# ========================================
-
+# ── SISTEMA OPERATIVO ─────────────────────────────────────────────
 # macOS
 .DS_Store
 .DS_Store?
 ._*
 .Spotlight-V100
 .Trashes
-.AppleDouble
-.LSOverride
-.DocumentRevisions-V100
-.fseventsd
-.TemporaryItems
-.VolumeIcon.icns
-.com.apple.timemachine.donotpresent
 
 # Windows
 Thumbs.db
-Thumbs.db:encryptable
 ehthumbs.db
-ehthumbs_vista.db
 Desktop.ini
 $RECYCLE.BIN/
-*.lnk
 
 # Linux
 *~
 .fuse_hidden*
-.directory
 .Trash-*
-.nfs*
 
-# ========================================
-# IDEs Y EDITORES
-# ========================================
-
-# VSCode (IGNORAR TODO - es configuración personal)
+# ── IDEs Y EDITORES ───────────────────────────────────────────────
 .vscode/
 *.code-workspace
 .history/
-
-# PhpStorm / JetBrains
 .idea/
 *.iml
-*.ipr
-*.iws
-.idea_modules/
-out/
-atlassian-ide-plugin.xml
-
-# Sublime Text
 *.sublime-project
 *.sublime-workspace
-*.tmlanguage.cache
-*.tmPreferences.cache
-*.stTheme.cache
 
-# Vim
-[._]*.s[a-v][a-z]
-[._]*.sw[a-p]
-*~
-tags
-.netrwhist
-
-# Emacs
-*~
-\#*\#
-.\#*
-.projectile
-
-# Eclipse
-.buildpath
-.project
-.settings/
-
-# NetBeans
-nbproject/
-nbbuild/
-dist-netbeans/
-nbdist/
-.nb-gradle/
-
-# ========================================
-# ARCHIVOS TEMPORALES Y CACHE
-# ========================================
-
+# ── ARCHIVOS TEMPORALES ───────────────────────────────────────────
 tmp/
 temp/
 *.tmp
-*.temp
 *.bak
 *.backup
 *.cache
 .cache/
 cache/
-.temp/
-
-# PHP Cache
-opcache/
 .phpunit.result.cache
 .php_cs.cache
 
-# ========================================
-# BUILD Y COMPILADOS
-# ========================================
-
-dist/
-build/
-*.min.js
-*.min.css
-.next/
-out/
-
-# Archivos compilados de CSS
-*.css.map
-*.sass.cache
-*.scss.cache
-
-# ========================================
-# UPLOADS DE USUARIOS
-# ========================================
-
-# Descomenta si NO quieres subir archivos de usuarios
-public/uploads/*
-!public/uploads/.gitkeep
-storage/uploads/*
-!storage/uploads/.gitkeep
-
-# Imágenes temporales de Firebase Storage
-public/assets/images/temp/
-public/assets/images/cache/
-
-# ========================================
-# DOCKER
-# ========================================
-
-# Docker (si usas Docker)
-docker-compose.override.yml
-.docker/
-*.dockerignore
-
-# Volúmenes de Docker
-volumes/
-
-# ========================================
-# PHP
-# ========================================
-
-*.php~
-*.php.bak
-.phpunit.result.cache
-phpunit.xml
-phpcs.xml
-.php_cs
-.php_cs.cache
-
-# ========================================
-# TESTING
-# ========================================
-
-coverage/
-.phpunit.result.cache
-phpunit.xml
-.nyc_output/
-tests/_output/
-tests/_support/_generated/
-
-# ========================================
-# FIREBASE ESPECÍFICO
-# ========================================
-
-# Configuración local de Firebase
+# ── FIREBASE ──────────────────────────────────────────────────────
 .firebase/
-
-# Emuladores de Firebase
 firebase-emulators/
-ui-debug.log
-firestore-debug.log
 
-# ========================================
-# ARCHIVOS COMPRIMIDOS
-# ========================================
-
+# ── ARCHIVOS COMPRIMIDOS ──────────────────────────────────────────
 *.zip
 *.tar
 *.tar.gz
 *.rar
 *.7z
-*.bz2
-*.xz
 
-# Excepciones: releases oficiales
-!releases/*.zip
-!downloads/*.zip
-
-# ========================================
-# OTROS
-# ========================================
-
-# Carpetas de pruebas
-test-output/
-sandbox/
-playground/
-draft/
-experiments/
-
-# Documentación generada
-docs/generated/
-api-docs/
-
-# SSL/TLS Certificates
-*.crt
-*.cer
-*.der
-*.pfx
-
-# Lockfiles de seguridad
-security.lock
-.security/
-
-# ========================================
-# PROYECTO WOODEN HOUSE ESPECÍFICO
-# ========================================
-
-# Respaldos manuales
-backups/manual/
-backups/temp/
-
-# Archivos de migración temporal
-migrations/temp/
-migrations/*.bak
-
-# Scripts de desarrollo personal
-scripts/dev-*.sh
-scripts/local-*.sh
-scripts/test-*.php
-
-# Notas personales
+# ── NOTAS Y ARCHIVOS PERSONALES ──────────────────────────────────
 NOTAS.md
 TODO.md
 PERSONAL.md
 notes/
+sandbox/
+draft/
 
-# Archivos de desarrollo
-dev/
-development/
-local/
+# ── SÍ SUBIR (explícito) ─────────────────────────────────────────
+!.env.example
+!.htaccess
+!public/.htaccess
+!database/schema.sql
+!database/seed.sql

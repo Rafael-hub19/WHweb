@@ -17,22 +17,22 @@
     <div class="logo">WOODEN HOUSE</div>
 
     <!-- Botón hamburguesa (solo móvil/tablet) -->
-    <button class="menu-toggle" id="menuToggle" aria-label="Abrir menú" aria-expanded="false">☰</button>
+    <button class="menu-toggle" id="menuToggle" aria-label="Abrir menú" aria-expanded="false"><i class="fa-solid fa-bars"></i></button>
 
     <div class="nav-links" id="navLinks">
       <a href="#inicio">Inicio</a>
       <a href="#servicios">Servicios</a>
       <a href="#proyectos">Proyectos</a>
-      <a href="catalogo.html">Catálogo</a>
+      <a href="/catalogo">Catálogo</a>
       <a href="#contacto">Contacto</a>
-      <a href="solicitudes.html">Solicitudes</a>
+      <a href="/solicitudes">Solicitudes</a>
 
-      <a href="carrito.html" class="cart-icon" id="cartIcon">
-        🛒
+      <a href="/carrito" class="cart-icon" id="cartIcon">
+        <i class="fa-solid fa-cart-shopping"></i>
         <span class="cart-badge" id="cartCount">0</span>
       </a>
 
-      <a href="login.html" class="login-btn">Iniciar sesión</a>
+      <a href="/login" class="login-btn">Iniciar sesión</a>
     </div>
   </div>
 
@@ -40,10 +40,10 @@
   <div class="hero" id="inicio">
     <h1>WOODEN HOUSE</h1>
     <p class="tagline">Muebles de Madera a Medida | Calidad Artesanal en Guadalajara</p>
-    <p style="color: #666; font-size: 16px; margin-top: 10px;">📍 Guadalajara, Jalisco | Servicio en toda la ZMG</p>
+    <p style="color: #666; font-size: 16px; margin-top: 10px;"><i class="fa-solid fa-location-dot"></i> Guadalajara, Jalisco | Servicio en toda la ZMG</p>
     <div class="hero-buttons">
-      <a href="solicitudes.html" class="btn-primary">💰 Solicitar Cotización</a>
-      <a href="#servicios" class="btn-secondary">🛠️ Ver Servicios</a>
+      <a href="/solicitudes" class="btn-primary"><i class="fa-solid fa-tag"></i> Solicitar Cotización</a>
+      <a href="#servicios" class="btn-secondary"><i class="fa-solid fa-screwdriver-wrench"></i> Ver Servicios</a>
     </div>
   </div>
 
@@ -65,20 +65,20 @@
 
     <!-- Services Section -->
     <div id="servicios">
-      <h2 class="section-title">🛠️ Nuestros Servicios</h2>
+      <h2 class="section-title"><i class="fa-solid fa-screwdriver-wrench"></i> Nuestros Servicios</h2>
       <div class="services-grid">
         <div class="service-card">
-          <div class="service-icon">🍳</div>
+          <div class="service-icon"><i class="fa-solid fa-utensils"></i></div>
           <h3>Cocinas Integrales</h3>
           <p>Diseño y fabricación de cocinas funcionales y elegantes, adaptadas a tu espacio y necesidades. Incluye gabinetes, barras y acabados personalizados.</p>
         </div>
         <div class="service-card">
-          <div class="service-icon">👔</div>
+          <div class="service-icon"><i class="fa-solid fa-shirt"></i></div>
           <h3>Clósets a Medida</h3>
           <p>Maximiza tu espacio con clósets diseñados específicamente para ti. Múltiples compartimentos, cajones y opciones de organización.</p>
         </div>
         <div class="service-card">
-          <div class="service-icon">🚿</div>
+          <div class="service-icon"><i class="fa-solid fa-bath"></i></div>
           <h3>Muebles de Baño</h3>
           <p>Muebles resistentes a la humedad con diseños modernos y clásicos. Incluye lavabo, espejo y almacenamiento optimizado.</p>
         </div>
@@ -87,30 +87,30 @@
 
     <!-- Why Choose Us -->
     <div>
-      <h2 class="section-title">⭐ ¿Por Qué Elegirnos?</h2>
+      <h2 class="section-title"><i class="fa-solid fa-star"></i> ¿Por Qué Elegirnos?</h2>
       <div class="reasons-grid">
         <div class="reason-card">
-          <h4>🎨 Diseño Personalizado</h4>
+          <h4><i class="fa-solid fa-palette"></i> Diseño Personalizado</h4>
           <p>Cada mueble es único y diseñado específicamente para ti. Trabajamos contigo desde el concepto hasta la instalación.</p>
         </div>
         <div class="reason-card">
-          <h4>🌳 Materiales de Calidad</h4>
+          <h4><i class="fa-solid fa-tree"></i> Materiales de Calidad</h4>
           <p>Utilizamos maderas nobles y materiales de primera calidad que garantizan durabilidad y belleza.</p>
         </div>
         <div class="reason-card">
-          <h4>👨‍🔧 Instalación Profesional</h4>
+          <h4><i class="fa-solid fa-wrench"></i> Instalación Profesional</h4>
           <p>Equipo técnico especializado se encarga de la instalación perfecta en tu hogar.</p>
         </div>
         <div class="reason-card">
-          <h4>⚡ Entrega Puntual</h4>
+          <h4><i class="fa-solid fa-bolt"></i> Entrega Puntual</h4>
           <p>Cumplimos con los tiempos de entrega acordados. Tu proyecto es nuestra prioridad.</p>
         </div>
         <div class="reason-card">
-          <h4>💰 Precios Justos</h4>
+          <h4><i class="fa-solid fa-tag"></i> Precios Justos</h4>
           <p>Cotizaciones transparentes y competitivas sin costos ocultos. Calidad al mejor precio.</p>
         </div>
         <div class="reason-card">
-          <h4>🛡️ Garantía Total</h4>
+          <h4><i class="fa-solid fa-shield-halved"></i> Garantía Total</h4>
           <p>1 año de garantía contra defectos de fabricación y 30 días de garantía de satisfacción.</p>
         </div>
       </div>
@@ -118,7 +118,7 @@
 
     <!-- Process -->
     <div>
-      <h2 class="section-title">📋 Proceso de Trabajo</h2>
+      <h2 class="section-title"><i class="fa-solid fa-clipboard-list"></i> Proceso de Trabajo</h2>
       <div class="process-grid">
         <div class="process-step">
           <div class="process-number">1</div>
@@ -150,59 +150,59 @@
 
     <!-- Projects Gallery -->
     <div id="proyectos">
-      <h2 class="section-title">✨ Proyectos Realizados</h2>
+      <h2 class="section-title"><i class="fa-solid fa-sparkles"></i> Proyectos Realizados</h2>
       <div class="work-grid">
         <div class="work-card">
-          <div class="work-image">🚿 [Imagen: Baño Moderno]</div>
+          <div class="work-image"><i class="fa-solid fa-bath"></i> [Imagen: Baño Moderno]</div>
           <div class="work-info">
             <h3>Baño Minimalista Premium</h3>
             <p>Instalación completa con mueble flotante, lavabo de cerámica y espejo LED. Acabado en blanco mate con detalles en madera natural.</p>
-            <p class="work-location">📍 Providencia, Guadalajara</p>
+            <p class="work-location"><i class="fa-solid fa-location-dot"></i> Providencia, Guadalajara</p>
           </div>
         </div>
 
         <div class="work-card">
-          <div class="work-image">🍳 [Imagen: Cocina Integral]</div>
+          <div class="work-image"><i class="fa-solid fa-utensils"></i> [Imagen: Cocina Integral]</div>
           <div class="work-info">
             <h3>Cocina Integral Moderna</h3>
             <p>Cocina completa con gabinetes superiores e inferiores, barra desayunadora y cubierta de cuarzo. Diseño en L optimizado.</p>
-            <p class="work-location">📍 Chapalita, Guadalajara</p>
+            <p class="work-location"><i class="fa-solid fa-location-dot"></i> Chapalita, Guadalajara</p>
           </div>
         </div>
 
         <div class="work-card">
-          <div class="work-image">👔 [Imagen: Clóset]</div>
+          <div class="work-image"><i class="fa-solid fa-shirt"></i> [Imagen: Clóset]</div>
           <div class="work-info">
             <h3>Clóset Walk-In Personalizado</h3>
             <p>Vestidor completo con múltiples compartimentos, zapateras, cajones y espejos. Iluminación LED integrada.</p>
-            <p class="work-location">📍 Americana, Guadalajara</p>
+            <p class="work-location"><i class="fa-solid fa-location-dot"></i> Americana, Guadalajara</p>
           </div>
         </div>
 
         <div class="work-card">
-          <div class="work-image">🛋️ [Imagen: Sala]</div>
+          <div class="work-image"><i class="fa-solid fa-couch"></i> [Imagen: Sala]</div>
           <div class="work-info">
             <h3>Centro de Entretenimiento</h3>
             <p>Mueble para TV con repisas flotantes, compartimentos para consolas y sistema de organización de cables integrado.</p>
-            <p class="work-location">📍 Zapopan Centro</p>
+            <p class="work-location"><i class="fa-solid fa-location-dot"></i> Zapopan Centro</p>
           </div>
         </div>
 
         <div class="work-card">
-          <div class="work-image">🛏️ [Imagen: Recámara]</div>
+          <div class="work-image"><i class="fa-solid fa-bed"></i> [Imagen: Recámara]</div>
           <div class="work-info">
             <h3>Recámara Completa</h3>
             <p>Cabecera acolchada con repisas integradas, burós a juego y armario empotrado. Diseño contemporáneo en tonos neutros.</p>
-            <p class="work-location">📍 Tlaquepaque</p>
+            <p class="work-location"><i class="fa-solid fa-location-dot"></i> Tlaquepaque</p>
           </div>
         </div>
 
         <div class="work-card">
-          <div class="work-image">💼 [Imagen: Oficina]</div>
+          <div class="work-image"><i class="fa-solid fa-briefcase"></i> [Imagen: Oficina]</div>
           <div class="work-info">
             <h3>Home Office Ejecutivo</h3>
             <p>Escritorio en L con cajonera, librero de pared a pared y panel para monitor. Espacio ergonómico y funcional.</p>
-            <p class="work-location">📍 Colinas de San Javier</p>
+            <p class="work-location"><i class="fa-solid fa-location-dot"></i> Colinas de San Javier</p>
           </div>
         </div>
       </div>
@@ -210,35 +210,35 @@
 
     <!-- Testimonials -->
     <div>
-      <h2 class="section-title">💬 Testimonios de Clientes</h2>
+      <h2 class="section-title"><i class="fa-solid fa-comments"></i> Testimonios de Clientes</h2>
       <div class="testimonials-grid">
         <div class="testimonial-card">
-          <div class="stars">⭐⭐⭐⭐⭐</div>
+          <div class="stars"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i></div>
           <p>"Excelente servicio desde la cotización hasta la instalación. El mueble de baño quedó perfecto, justo como lo imaginaba. Muy profesionales y puntuales. Totalmente recomendable."</p>
           <p class="testimonial-author">- María González</p>
         </div>
         <div class="testimonial-card">
-          <div class="stars">⭐⭐⭐⭐⭐</div>
+          <div class="stars"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i></div>
           <p>"Calidad excepcional en los materiales y acabados. El equipo fue muy profesional y cumplió con todos los tiempos. Mi cocina integral quedó hermosa y funcional."</p>
           <p class="testimonial-author">- Carlos Ramírez</p>
         </div>
         <div class="testimonial-card">
-          <div class="stars">⭐⭐⭐⭐⭐</div>
+          <div class="stars"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i></div>
           <p>"Los mejores precios sin sacrificar calidad. Hice cotizaciones en varios lugares y Wooden House superó mis expectativas. El clóset quedó increíble."</p>
           <p class="testimonial-author">- Ana López</p>
         </div>
         <div class="testimonial-card">
-          <div class="stars">⭐⭐⭐⭐⭐</div>
+          <div class="stars"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i></div>
           <p>"Transformaron completamente mi espacio. La atención al detalle y el seguimiento constante hicieron la diferencia. Definitivamente volveré a trabajar con ellos."</p>
           <p class="testimonial-author">- Roberto Sánchez</p>
         </div>
         <div class="testimonial-card">
-          <div class="stars">⭐⭐⭐⭐⭐</div>
+          <div class="stars"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i></div>
           <p>"Me ayudaron a diseñar el home office perfecto. Muy creativos y atentos a mis necesidades. El resultado final superó lo que esperaba."</p>
           <p class="testimonial-author">- Laura Martínez</p>
         </div>
         <div class="testimonial-card">
-          <div class="stars">⭐⭐⭐⭐⭐</div>
+          <div class="stars"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i></div>
           <p>"Excelente relación calidad-precio. Los materiales son de primera y la instalación fue impecable. Muy satisfecho con mi nueva recámara."</p>
           <p class="testimonial-author">- Miguel Torres</p>
         </div>
@@ -247,22 +247,22 @@
 
     <!-- Call to Action -->
     <div class="cta-section">
-      <h2>🏡 ¿Listo para Transformar tu Espacio?</h2>
+      <h2><i class="fa-solid fa-house"></i> ¿Listo para Transformar tu Espacio?</h2>
       <p>Contáctanos hoy y recibe una cotización personalizada sin compromiso</p>
       <div class="cta-buttons">
-        <a href="solicitudes.html" class="btn-primary">💰 Solicitar Cotización Gratis</a>
-        <a href="#contacto" class="btn-secondary">📞 Contactar Ahora</a>
+        <a href="/solicitudes" class="btn-primary"><i class="fa-solid fa-tag"></i> Solicitar Cotización Gratis</a>
+        <a href="#contacto" class="btn-secondary"><i class="fa-solid fa-phone"></i> Contactar Ahora</a>
       </div>
     </div>
 
     <!-- FAQ Section -->
     <div class="faq-section">
-      <h2 class="section-title">❓ Preguntas Frecuentes</h2>
+      <h2 class="section-title"><i class="fa-solid fa-circle-question"></i> Preguntas Frecuentes</h2>
 
       <div class="faq-item" onclick="toggleFAQ(this)">
         <div class="faq-question">
           ¿Hacen entregas a domicilio?
-          <span class="faq-icon">▼</span>
+          <span class="faq-icon"><i class="fa-solid fa-chevron-down"></i></span>
         </div>
         <div class="faq-answer">
           Sí, realizamos entregas en toda la Zona Metropolitana de Guadalajara. El costo de envío varía según la ubicación y tamaño del mueble. El tiempo de entrega es de 5-7 días hábiles después de la confirmación del pedido.
@@ -272,7 +272,7 @@
       <div class="faq-item" onclick="toggleFAQ(this)">
         <div class="faq-question">
           ¿Incluyen instalación profesional?
-          <span class="faq-icon">▼</span>
+          <span class="faq-icon"><i class="fa-solid fa-chevron-down"></i></span>
         </div>
         <div class="faq-answer">
           Sí, todos nuestros proyectos incluyen instalación profesional. Nuestro equipo técnico especializado se encargará de instalar tu mueble de manera segura, profesional y dejando todo limpio.
@@ -282,7 +282,7 @@
       <div class="faq-item" onclick="toggleFAQ(this)">
         <div class="faq-question">
           ¿Qué garantía tienen los muebles?
-          <span class="faq-icon">▼</span>
+          <span class="faq-icon"><i class="fa-solid fa-chevron-down"></i></span>
         </div>
         <div class="faq-answer">
           Todos nuestros muebles cuentan con garantía de 1 año contra defectos de fabricación. Además, ofrecemos 30 días de garantía de satisfacción: si no estás conforme con tu compra, trabajaremos contigo para resolver cualquier inconformidad.
@@ -292,7 +292,7 @@
       <div class="faq-item" onclick="toggleFAQ(this)">
         <div class="faq-question">
           ¿Puedo ver ejemplos antes de decidir?
-          <span class="faq-icon">▼</span>
+          <span class="faq-icon"><i class="fa-solid fa-chevron-down"></i></span>
         </div>
         <div class="faq-answer">
           Sí, puedes agendar una cita para visitar nuestro showroom o solicitar que uno de nuestros asesores visite tu hogar con muestras de materiales, acabados y fotos de proyectos anteriores.
@@ -302,7 +302,7 @@
       <div class="faq-item" onclick="toggleFAQ(this)">
         <div class="faq-question">
           ¿Cuánto tiempo tarda la fabricación?
-          <span class="faq-icon">▼</span>
+          <span class="faq-icon"><i class="fa-solid fa-chevron-down"></i></span>
         </div>
         <div class="faq-answer">
           Los tiempos varían según la complejidad del proyecto. Generalmente, los muebles personalizados tienen un tiempo de fabricación de 2-4 semanas. Te proporcionaremos un cronograma específico en tu cotización.
@@ -312,7 +312,7 @@
       <div class="faq-item" onclick="toggleFAQ(this)">
         <div class="faq-question">
           ¿Aceptan pagos en parcialidades?
-          <span class="faq-icon">▼</span>
+          <span class="faq-icon"><i class="fa-solid fa-chevron-down"></i></span>
         </div>
         <div class="faq-answer">
           Sí, aceptamos pagos a meses sin intereses con tarjetas de crédito participantes: 3, 6, 9 y 12 meses sin intereses en compras mayores a $5,000. También manejamos esquemas de pago: 50% anticipo y 50% al recibir.
@@ -322,7 +322,7 @@
       <div class="faq-item" onclick="toggleFAQ(this)">
         <div class="faq-question">
           ¿Qué tipo de maderas utilizan?
-          <span class="faq-icon">▼</span>
+          <span class="faq-icon"><i class="fa-solid fa-chevron-down"></i></span>
         </div>
         <div class="faq-answer">
           Trabajamos con diversas maderas de calidad: pino, encino, cedro, MDF, triplay y melamina. Durante la consulta inicial te asesoraremos sobre el mejor material para tu proyecto según uso, presupuesto y estilo.
@@ -332,7 +332,7 @@
       <div class="faq-item" onclick="toggleFAQ(this)">
         <div class="faq-question">
           ¿La cotización tiene costo?
-          <span class="faq-icon">▼</span>
+          <span class="faq-icon"><i class="fa-solid fa-chevron-down"></i></span>
         </div>
         <div class="faq-answer">
           No, la cotización es completamente gratuita y sin compromiso. Incluye visita a domicilio, toma de medidas, diseño preliminar y propuesta detallada con precios transparentes.
@@ -342,28 +342,28 @@
 
     <!-- Contact Section -->
     <div id="contacto">
-      <h2 class="section-title">📞 Información de Contacto</h2>
+      <h2 class="section-title"><i class="fa-solid fa-phone"></i> Información de Contacto</h2>
       <div class="contact-grid">
         <div class="contact-card">
-          <div class="contact-icon">📱</div>
+          <div class="contact-icon"><i class="fa-solid fa-mobile-screen"></i></div>
           <h4>WhatsApp</h4>
           <p><a href="https://wa.me/5213317054017" target="_blank">33 1705 4017</a></p>
           <small>Lun - Sáb: 9:00 AM - 7:00 PM</small>
         </div>
         <div class="contact-card">
-          <div class="contact-icon">✉️</div>
+          <div class="contact-icon"><i class="fa-solid fa-envelope"></i></div>
           <h4>Email</h4>
           <p><a href="mailto:contacto@juan432.jpml.com">contacto@juan432.jpml.com</a></p>
           <small>Respuesta en 24 hrs</small>
         </div>
         <div class="contact-card">
-          <div class="contact-icon">📍</div>
+          <div class="contact-icon"><i class="fa-solid fa-location-dot"></i></div>
           <h4>Ubicación</h4>
           <p>Guadalajara, Jalisco</p>
           <small>Servicio en toda la ZMG</small>
         </div>
         <div class="contact-card">
-          <div class="contact-icon">🕐</div>
+          <div class="contact-icon"><i class="fa-solid fa-clock"></i></div>
           <h4>Horario</h4>
           <p>Lunes a Sábado</p>
           <small>9:00 AM - 7:00 PM</small>
@@ -373,7 +373,7 @@
 
     <!-- Map Section - MAPA REAL DE GOOGLE MAPS -->
     <div class="map-section">
-      <h2>📍 Nuestra Ubicación</h2>
+      <h2><i class="fa-solid fa-location-dot"></i> Nuestra Ubicación</h2>
       <p>Servicio de entrega e instalación en toda la Zona Metropolitana de Guadalajara</p>
       
       <!-- MAPA INTERACTIVO -->
@@ -392,7 +392,7 @@
 
     <!-- Social Media - ICONOS SVG -->
     <div class="social-section">
-      <h3>🌐 Síguenos en Redes Sociales</h3>
+      <h3><i class="fa-solid fa-globe"></i> Síguenos en Redes Sociales</h3>
       <p style="color: #a0a0a0; margin-bottom: 20px;">Mantente al día con nuestros proyectos más recientes</p>
       
       <div class="social-links">

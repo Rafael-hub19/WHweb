@@ -1,0 +1,236 @@
+<?php
+require_once __DIR__ . '/_helpers.php';
+
+$method = requestMethod();
+$id = isset($_GET['id']) ? sanitizeInt($_GET['id']) : null;
+
+switch ($method) {
+    // ---- GET: Listar o detalle ----
+    case 'GET':
+        if ($id) {
+            // Detalle de producto
+            $producto = dbRow(
+                "SELECT p.*, c.nombre AS categoria_nombre
+                 FROM productos p
+                 LEFT JOIN categorias c ON c.id = p.categoria_id
+                 WHERE p.id = ? AND p.activo = 1",
+                [$id]
+            );
+            if (!$producto) jsonError('Producto no encontrado', 404);
+
+            // Imágenes
+            $imagenes = dbRows(
+                "SELECT id, url_imagen, es_principal, orden FROM imagenes_producto WHERE producto_id = ? ORDER BY es_principal DESC, orden ASC",
+                [$id]
+            );
+
+            // Especificaciones
+            $specs = dbRows(
+                "SELECT clave, valor FROM especificaciones_producto WHERE producto_id = ? ORDER BY id ASC",
+                [$id]
+            );
+
+            $producto['imagenes']          = $imagenes;
+            $producto['especificaciones']  = $specs;
+            $producto['imagen_principal']  = $imagenes[0]['url_imagen'] ?? null;
+
+            jsonSuccess(['producto' => $producto]);
+        }
+
+        // Listado con filtros
+        $page     = max(1, sanitizeInt($_GET['page'] ?? 1));
+        $limit    = min(48, max(1, sanitizeInt($_GET['limit'] ?? 12)));
+        $offset   = ($page - 1) * $limit;
+        $busqueda = trim($_GET['busqueda'] ?? '');
+        $catId    = sanitizeInt($_GET['categoria_id'] ?? 0);
+        $etiqueta = trim($_GET['etiqueta'] ?? '');
+        $orden    = $_GET['orden'] ?? 'recientes';
+        $activo   = isset($_GET['activo']) ? sanitizeInt($_GET['activo']) : 1;
+
+        $where  = ['p.activo = ?'];
+        $params = [$activo];
+
+        if ($busqueda) {
+            $where[]  = '(p.nombre LIKE ? OR p.descripcion LIKE ?)';
+            $params[] = "%$busqueda%";
+            $params[] = "%$busqueda%";
+        }
+        if ($catId) {
+            $where[]  = 'p.categoria_id = ?';
+            $params[] = $catId;
+        }
+        if ($etiqueta) {
+            $where[]  = 'p.etiqueta = ?';
+            $params[] = $etiqueta;
+        }
+
+        $whereStr = 'WHERE ' . implode(' AND ', $where);
+
+        $orderMap = [
+            'precio-asc'  => 'p.precio_base ASC',
+            'precio-desc' => 'p.precio_base DESC',
+            'nombre'      => 'p.nombre ASC',
+            'recientes'   => 'p.fecha_creacion DESC',
+            'populares'   => 'p.etiqueta ASC, p.nombre ASC',
+        ];
+        $orderBy = $orderMap[$orden] ?? 'p.fecha_creacion DESC';
+
+        // Count total
+        $total = (int)(dbRow(
+            "SELECT COUNT(*) AS n FROM productos p $whereStr",
+            $params
+        )['n'] ?? 0);
+
+        // Datos
+        $params[] = $limit;
+        $params[] = $offset;
+        $productos = dbRows(
+            "SELECT p.id, p.nombre, p.descripcion, p.precio_base AS precio, p.stock_disponible,
+                    p.etiqueta, p.activo, p.categoria_id, p.fecha_creacion,
+                    c.nombre AS categoria_nombre,
+                    (SELECT url_imagen FROM imagenes_producto ip WHERE ip.producto_id = p.id AND ip.es_principal = 1 LIMIT 1) AS imagen_principal
+             FROM productos p
+             LEFT JOIN categorias c ON c.id = p.categoria_id
+             $whereStr
+             ORDER BY $orderBy
+             LIMIT ? OFFSET ?",
+            $params
+        );
+
+        jsonSuccess([
+            'productos'  => $productos,
+            'paginacion' => getPaginacion($total, $page, $limit),
+        ]);
+        break;
+
+    // ---- POST: Crear producto (admin) ----
+    case 'POST':
+        requerirAdmin();
+        $body = getJsonBody();
+        requireFields($body, ['nombre', 'categoria_id', 'precio_base']);
+
+        $nombre     = sanitize($body['nombre']);
+        $catId      = sanitizeInt($body['categoria_id']);
+        $precio     = sanitizeFloat($body['precio_base']);
+        $desc       = sanitize($body['descripcion'] ?? '');
+        $stock      = sanitizeInt($body['stock_disponible'] ?? 0);
+        $etiqueta   = sanitize($body['etiqueta'] ?? '');
+        $activo     = isset($body['activo']) ? (int)(bool)$body['activo'] : 1;
+
+        if ($precio <= 0) jsonError('precio_base debe ser mayor a 0', 422);
+        if (!dbRow("SELECT id FROM categorias WHERE id = ?", [$catId])) {
+            jsonError('categoria_id no válido', 422);
+        }
+
+        $productoId = dbInsert('productos', [
+            'categoria_id'     => $catId,
+            'nombre'           => $nombre,
+            'descripcion'      => $desc,
+            'precio_base'      => $precio,
+            'stock_disponible' => $stock,
+            'etiqueta'         => $etiqueta ?: null,
+            'activo'           => $activo,
+        ]);
+
+        // Imágenes opcionales
+        if (!empty($body['imagenes']) && is_array($body['imagenes'])) {
+            foreach ($body['imagenes'] as $i => $img) {
+                $url = sanitize($img['url'] ?? $img);
+                if ($url) {
+                    dbInsert('imagenes_producto', [
+                        'producto_id'  => $productoId,
+                        'url_imagen'   => $url,
+                        'es_principal' => $i === 0 ? 1 : 0,
+                        'orden'        => $i,
+                    ]);
+                }
+            }
+        }
+
+        // Especificaciones opcionales
+        if (!empty($body['especificaciones']) && is_array($body['especificaciones'])) {
+            foreach ($body['especificaciones'] as $spec) {
+                $clave = sanitize($spec['clave'] ?? $spec['nombre'] ?? '');
+                $valor = sanitize($spec['valor'] ?? '');
+                if ($clave && $valor) {
+                    dbInsert('especificaciones_producto', [
+                        'producto_id' => $productoId,
+                        'clave'       => $clave,
+                        'valor'       => $valor,
+                    ]);
+                }
+            }
+        }
+
+        jsonSuccess(['id' => $productoId, 'mensaje' => 'Producto creado'], 201);
+        break;
+
+    // ---- PUT: Actualizar producto (admin) ----
+    case 'PUT':
+        requerirAdmin();
+        if (!$id) jsonError('ID requerido', 400);
+        if (!dbRow("SELECT id FROM productos WHERE id = ?", [$id])) {
+            jsonError('Producto no encontrado', 404);
+        }
+
+        $body = getJsonBody();
+        $update = [];
+
+        if (isset($body['nombre']))           $update['nombre']           = sanitize($body['nombre']);
+        if (isset($body['descripcion']))       $update['descripcion']      = sanitize($body['descripcion']);
+        if (isset($body['precio_base']))       $update['precio_base']      = sanitizeFloat($body['precio_base']);
+        if (isset($body['stock_disponible']))  $update['stock_disponible'] = sanitizeInt($body['stock_disponible']);
+        if (isset($body['etiqueta']))          $update['etiqueta']         = sanitize($body['etiqueta']) ?: null;
+        if (isset($body['activo']))            $update['activo']           = (int)(bool)$body['activo'];
+        if (isset($body['categoria_id']))      $update['categoria_id']     = sanitizeInt($body['categoria_id']);
+
+        if (empty($update)) jsonError('No hay campos para actualizar', 422);
+        dbUpdate('productos', $update, 'id = ?', [$id]);
+
+        // Actualizar imágenes si vienen
+        if (isset($body['imagenes']) && is_array($body['imagenes'])) {
+            dbQuery("DELETE FROM imagenes_producto WHERE producto_id = ?", [$id]);
+            foreach ($body['imagenes'] as $i => $img) {
+                $url = sanitize($img['url'] ?? $img);
+                if ($url) {
+                    dbInsert('imagenes_producto', [
+                        'producto_id'  => $id,
+                        'url_imagen'   => $url,
+                        'es_principal' => $i === 0 ? 1 : 0,
+                        'orden'        => $i,
+                    ]);
+                }
+            }
+        }
+
+        // Actualizar especificaciones si vienen
+        if (isset($body['especificaciones']) && is_array($body['especificaciones'])) {
+            dbQuery("DELETE FROM especificaciones_producto WHERE producto_id = ?", [$id]);
+            foreach ($body['especificaciones'] as $spec) {
+                $clave = sanitize($spec['clave'] ?? $spec['nombre'] ?? '');
+                $valor = sanitize($spec['valor'] ?? '');
+                if ($clave && $valor) {
+                    dbInsert('especificaciones_producto', [
+                        'producto_id' => $id,
+                        'clave'       => $clave,
+                        'valor'       => $valor,
+                    ]);
+                }
+            }
+        }
+
+        jsonSuccess(['mensaje' => 'Producto actualizado']);
+        break;
+
+    // ---- DELETE: Desactivar (soft delete) ----
+    case 'DELETE':
+        requerirAdmin();
+        if (!$id) jsonError('ID requerido', 400);
+        $rows = dbUpdate('productos', ['activo' => 0], 'id = ?', [$id]);
+        if (!$rows) jsonError('Producto no encontrado', 404);
+        jsonSuccess(['mensaje' => 'Producto desactivado']);
+        break;
+
+    default:
+        jsonError('Método no permitido', 405);
+}

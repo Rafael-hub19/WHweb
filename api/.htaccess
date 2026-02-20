@@ -1,0 +1,5 @@
+# La API solo acepta peticiones de tu propio frontend
+# Si el DocumentRoot está bien configurado, esto es defensa adicional
+<IfModule mod_headers.c>
+    Header always set X-Content-Type-Options "nosniff"
+</IfModule>

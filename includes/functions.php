@@ -1,0 +1,176 @@
+<?php
+// =============================================================
+// Wooden House - Funciones de Utilidad
+// =============================================================
+require_once __DIR__ . '/config.php';
+
+// ---- Respuestas JSON ----
+function jsonSuccess(array $data = [], int $code = 200): void {
+    http_response_code($code);
+    header('Content-Type: application/json; charset=utf-8');
+    echo json_encode(array_merge(['success' => true], $data), JSON_UNESCAPED_UNICODE);
+    exit;
+}
+
+function jsonError(string $message, int $code = 400, array $extra = []): void {
+    http_response_code($code);
+    header('Content-Type: application/json; charset=utf-8');
+    echo json_encode(array_merge(['success' => false, 'error' => $message], $extra), JSON_UNESCAPED_UNICODE);
+    exit;
+}
+
+// ---- Sanitización ----
+function sanitize(mixed $val): string {
+    return htmlspecialchars(strip_tags(trim((string)$val)), ENT_QUOTES, 'UTF-8');
+}
+
+function sanitizeInt(mixed $val, int $default = 0): int {
+    $v = filter_var($val, FILTER_VALIDATE_INT);
+    return $v !== false ? (int)$v : $default;
+}
+
+function sanitizeFloat(mixed $val, float $default = 0.0): float {
+    $v = filter_var($val, FILTER_VALIDATE_FLOAT);
+    return $v !== false ? (float)$v : $default;
+}
+
+// ---- Validaciones ----
+function isValidEmail(string $email): bool {
+    return filter_var($email, FILTER_VALIDATE_EMAIL) !== false;
+}
+
+function isValidPhone(string $phone): bool {
+    return (bool)preg_match('/^[\d\s\(\)\+\-]{7,20}$/', $phone);
+}
+
+function requireFields(array $body, array $fields): void {
+    $missing = [];
+    foreach ($fields as $f) {
+        if (!isset($body[$f]) || (is_string($body[$f]) && trim($body[$f]) === '')) {
+            $missing[] = $f;
+        }
+    }
+    if ($missing) {
+        jsonError('Campos requeridos faltantes: ' . implode(', ', $missing), 422);
+    }
+}
+
+// ---- Request helpers ----
+function getJsonBody(): array {
+    $raw = file_get_contents('php://input');
+    $data = json_decode($raw, true);
+    return is_array($data) ? $data : [];
+}
+
+function requestMethod(): string {
+    return strtoupper($_SERVER['REQUEST_METHOD'] ?? 'GET');
+}
+
+// ---- Folios ----
+function generarNumeroPedido(): string {
+    $year = date('Y');
+    $row = dbRow("SELECT MAX(CAST(SUBSTRING_INDEX(numero_pedido, '-', -1) AS UNSIGNED)) AS max_n FROM pedidos WHERE numero_pedido LIKE ?", ["WH-$year-%"]);
+    $n = ($row['max_n'] ?? 0) + 1;
+    return sprintf('WH-%s-%06d', $year, $n);
+}
+
+function generarNumeroCotizacion(): string {
+    $year = date('Y');
+    $row = dbRow("SELECT MAX(CAST(SUBSTRING_INDEX(numero_cotizacion, '-', -1) AS UNSIGNED)) AS max_n FROM cotizaciones WHERE numero_cotizacion LIKE ?", ["COT-$year-%"]);
+    $n = ($row['max_n'] ?? 0) + 1;
+    return sprintf('COT-%s-%06d', $year, $n);
+}
+
+function generarNumeroCita(): string {
+    $year = date('Y');
+    $row = dbRow("SELECT MAX(CAST(SUBSTRING_INDEX(numero_cita, '-', -1) AS UNSIGNED)) AS max_n FROM citas WHERE numero_cita LIKE ?", ["CIT-$year-%"]);
+    $n = ($row['max_n'] ?? 0) + 1;
+    return sprintf('CIT-%s-%06d', $year, $n);
+}
+
+function generarTokenSeguimiento(): string {
+    return bin2hex(random_bytes(16));
+}
+
+// ---- Fechas ----
+function fechaEstimadaPedido(int $diasHabiles = DIAS_FABRICACION): string {
+    $fecha = new DateTime();
+    $added = 0;
+    while ($added < $diasHabiles) {
+        $fecha->modify('+1 day');
+        $dow = (int)$fecha->format('N'); // 1=Mon, 7=Sun
+        if ($dow < 6) $added++;
+    }
+    return $fecha->format('Y-m-d');
+}
+
+function formatearFecha(string $fecha, string $formato = 'd/m/Y'): string {
+    $dt = DateTime::createFromFormat('Y-m-d', $fecha);
+    return $dt ? $dt->format($formato) : $fecha;
+}
+
+// ---- Paginación ----
+function getPaginacion(int $total, int $page, int $limit): array {
+    $totalPages = max(1, (int)ceil($total / $limit));
+    return [
+        'total'        => $total,
+        'pagina'       => $page,
+        'limite'       => $limit,
+        'total_paginas'=> $totalPages,
+        'hay_siguiente'=> $page < $totalPages,
+        'hay_anterior' => $page > 1,
+    ];
+}
+
+// ---- Moneda ----
+function formatearMoneda(float $monto): string {
+    return '$' . number_format($monto, 2, '.', ',');
+}
+
+// ---- Logging ----
+function appLog(string $level, string $message, array $context = []): void {
+    $logDir = dirname(__DIR__) . '/logs';
+    $file = $logDir . '/' . date('Y-m') . '_app.log';
+    $line = sprintf('[%s] [%s] %s %s', date('Y-m-d H:i:s'), strtoupper($level), $message, $context ? json_encode($context) : '');
+    @file_put_contents($file, $line . PHP_EOL, FILE_APPEND | LOCK_EX);
+}
+
+// ---- ID desde URL ----
+function getIdFromUrl(): ?int {
+    $parts = explode('/', trim(parse_url($_SERVER['REQUEST_URI'] ?? '', PHP_URL_PATH), '/'));
+    $last = end($parts);
+    $id = filter_var($last, FILTER_VALIDATE_INT);
+    return $id !== false ? (int)$id : null;
+}
+
+// ── Alias de compatibilidad ────────────────────────────────────────
+
+/**
+ * logError — alias de appLog para compatibilidad
+ */
+function logError(string $message, array $context = []): void {
+    appLog('error', $message, $context);
+}
+
+/**
+ * formatMoney — formatea un número como moneda MXN
+ */
+function formatMoney(float $amount): string {
+    return '$' . number_format($amount, 2);
+}
+
+/**
+ * firestoreEscribir — alias de crearNotificacionFirestore para compatibilidad
+ */
+function firestoreEscribir(string $coleccion, string $docId, array $datos): bool {
+    // Delegamos a la función real si existe
+    if (function_exists('crearNotificacionFirestore')) {
+        return crearNotificacionFirestore(
+            $datos['tipo'] ?? 'general',
+            $datos['titulo'] ?? '',
+            $datos['mensaje'] ?? '',
+            $datos
+        );
+    }
+    return false;
+}

@@ -14,7 +14,7 @@ let selectedTime = null;
 // INICIALIZACIÓN
 // ================================================
 document.addEventListener('DOMContentLoaded', function() {
-  console.log('🚀 Inicializando solicitudes.js...');
+  console.log('[INIT] Inicializando solicitudes.js...');
   
   initMenuHamburguesa();
   initCartBadge();
@@ -92,9 +92,9 @@ function initTabs() {
       
       if (targetContent) {
         targetContent.classList.add('active');
-        console.log('✅ Tab activado:', targetTab);
+        console.log('[OK] Tab activado:', targetTab);
       } else {
-        console.error('❌ No se encontró tab-content para:', targetTab);
+        console.error('[ERROR] No se encontró tab-content para:', targetTab);
       }
     });
   });
@@ -106,11 +106,11 @@ function initTabs() {
 function initFormCotizacion() {
   const form = document.getElementById('formCotizacion');
   if (!form) {
-    console.log('⚠️ Formulario de cotización no encontrado');
+    console.log('[WARN] Formulario de cotización no encontrado');
     return;
   }
 
-  console.log('✅ Formulario de cotización inicializado');
+  console.log('[OK] Formulario de cotización inicializado');
 
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -145,13 +145,13 @@ function initFormCotizacion() {
     const submitBtn = form.querySelector('button[type="submit"]');
     const originalText = submitBtn.textContent;
     submitBtn.disabled = true;
-    submitBtn.textContent = '⏳ Enviando...';
+    submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Enviando...';
 
     try {
       // Simular envío (reemplazar con API real)
       await new Promise(resolve => setTimeout(resolve, 1500));
       
-      showAlert('✅ ¡Cotización enviada exitosamente! Te contactaremos pronto.', 'success');
+      showAlert('<i class="fa-solid fa-circle-check"></i> ¡Cotización enviada exitosamente! Te contactaremos pronto.', 'success');
       
       // Guardar en localStorage
       localStorage.setItem('nombre_cliente', datos.nombre_cliente);
@@ -177,11 +177,11 @@ function initFormCotizacion() {
 function initFormCita() {
   const form = document.getElementById('formCita');
   if (!form) {
-    console.log('⚠️ Formulario de cita no encontrado');
+    console.log('[WARN] Formulario de cita no encontrado');
     return;
   }
 
-  console.log('✅ Formulario de cita inicializado');
+  console.log('[OK] Formulario de cita inicializado');
 
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -218,12 +218,12 @@ function initFormCita() {
     const submitBtn = form.querySelector('button[type="submit"]');
     const originalText = submitBtn.textContent;
     submitBtn.disabled = true;
-    submitBtn.textContent = '⏳ Agendando...';
+    submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Agendando...';
 
     try {
       await new Promise(resolve => setTimeout(resolve, 1500));
       
-      showAlert('✅ ¡Cita agendada exitosamente! Recibirás confirmación pronto.', 'success');
+      showAlert('<i class="fa-solid fa-circle-check"></i> ¡Cita agendada exitosamente! Recibirás confirmación pronto.', 'success');
       
       localStorage.setItem('nombre_cliente', datos.nombre_cliente);
       localStorage.setItem('correo_cliente', datos.correo);
@@ -292,7 +292,7 @@ function trackOrder() {
 
   if (trackingResult) {
     trackingResult.style.display = 'block';
-    showAlert('✅ Solicitud encontrada', 'success');
+    showAlert('<i class="fa-solid fa-circle-check"></i> Solicitud encontrada', 'success');
     trackingResult.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 }
@@ -419,4 +419,4 @@ function autocompletarDatos() {
   }
 }
 
-console.log('✅ solicitudes.js cargado correctamente');
+console.log('[OK] solicitudes.js cargado correctamente');

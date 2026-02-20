@@ -260,3 +260,44 @@ ON imagenes_producto (producto_id, es_principal);
 -- No repetir la misma clave de especificación en el mismo producto
 CREATE UNIQUE INDEX uq_especificacion_clave
 ON especificaciones_producto (producto_id, clave);
+-- ================================================================
+-- CAPACIDAD DE PRODUCCIÓN Y ENTREGAS
+-- Controla cuántos pedidos/entregas pueden agendarse por semana
+-- El admin configura esto desde el panel
+-- ================================================================
+
+CREATE TABLE IF NOT EXISTS capacidad_produccion (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+
+  -- Semana representada como el lunes de esa semana
+  semana_inicio DATE NOT NULL UNIQUE,
+
+  -- Cuántos pedidos NUEVOS puede entrar a producción esa semana
+  slots_produccion INT NOT NULL DEFAULT 3,
+
+  -- Cuántas entregas/instalaciones pueden hacerse esa semana
+  slots_entrega INT NOT NULL DEFAULT 5,
+
+  -- Bloqueo total (vacaciones, cierre, etc.)
+  bloqueado TINYINT(1) NOT NULL DEFAULT 0,
+  motivo_bloqueo VARCHAR(150) NULL,
+
+  fecha_creacion TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  fecha_actualizacion TIMESTAMP NULL ON UPDATE CURRENT_TIMESTAMP,
+
+  INDEX idx_semana (semana_inicio),
+  INDEX idx_bloqueado (bloqueado)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ================================================================
+-- DÍAS BLOQUEADOS ESPECÍFICOS
+-- Para días festivos, mantenimiento, etc.
+-- ================================================================
+CREATE TABLE IF NOT EXISTS dias_bloqueados (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  fecha DATE NOT NULL UNIQUE,
+  motivo VARCHAR(150) NOT NULL DEFAULT 'Día no hábil',
+  fecha_creacion TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+  INDEX idx_fecha (fecha)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

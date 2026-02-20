@@ -1,382 +1,301 @@
-// ================================================
-// VARIABLES GLOBALES
-// ================================================
-let productoActual = null;
-let imagenActualIndex = 0;
+// =============================================================
+// Wooden House - Detalle Producto (conectado a API real)
+// =============================================================
+const API_BASE = '/api';
 
-// ================================================
-// INICIALIZACIÓN
-// ================================================
-document.addEventListener('DOMContentLoaded', function() {
-  initMenuHamburguesa();
+let productoActual = null;
+let imagenIndex    = 0;
+
+document.addEventListener('DOMContentLoaded', () => {
+  initNavHamburger();
   initCartBadge();
   initTabs();
-  initCantidadControls();
-  initAgregarCarrito();
   cargarProducto();
 });
 
-// ================================================
-// MENÚ HAMBURGUESA (CRITICAL)
-// ================================================
-function initMenuHamburguesa() {
-  const menuToggle = document.getElementById('menuToggle');
-  const navLinks = document.getElementById('navLinks');
-
-  if (menuToggle && navLinks) {
-    menuToggle.addEventListener('click', function(e) {
-      e.preventDefault();
-      e.stopPropagation();
-      navLinks.classList.toggle('open');
-      const isOpen = navLinks.classList.contains('open');
-      menuToggle.setAttribute('aria-expanded', isOpen);
-    });
-
-    // Cerrar al click fuera
-    document.addEventListener('click', function(e) {
-      if (!menuToggle.contains(e.target) && !navLinks.contains(e.target)) {
-        navLinks.classList.remove('open');
-        menuToggle.setAttribute('aria-expanded', 'false');
-      }
-    });
-  }
+// ---- Nav hamburger ----
+function initNavHamburger() {
+  const toggle = document.getElementById('menuToggle');
+  const nav    = document.getElementById('navLinks');
+  if (!toggle || !nav) return;
+  toggle.addEventListener('click', () => {
+    const open = nav.classList.toggle('open');
+    toggle.setAttribute('aria-expanded', open);
+  });
+  document.addEventListener('click', (e) => {
+    if (!toggle.contains(e.target) && !nav.contains(e.target)) {
+      nav.classList.remove('open');
+    }
+  });
 }
 
-// ================================================
-// BADGE DEL CARRITO
-// ================================================
+// ---- Cart badge ----
 function initCartBadge() {
-  const cartBadge = document.getElementById('cartCount');
-  if (!cartBadge) return;
-
-  const carrito = JSON.parse(localStorage.getItem('carrito')) || [];
-  const totalItems = carrito.reduce((sum, item) => sum + (item.cantidad || 0), 0);
-  
-  cartBadge.textContent = totalItems;
-  cartBadge.style.display = totalItems > 0 ? 'inline-block' : 'none';
+  const badge = document.getElementById('cartCount');
+  if (!badge) return;
+  const carrito = JSON.parse(localStorage.getItem('wh_carrito') || '[]');
+  const total = carrito.reduce((s, i) => s + (i.cantidad || 0), 0);
+  badge.textContent = total;
+  badge.style.display = total > 0 ? 'inline-block' : 'none';
 }
 
-// ================================================
-// TABS (CRITICAL - FALTABA COMPLETAMENTE)
-// ================================================
+// ---- Tabs ----
 function initTabs() {
-  const tabButtons = document.querySelectorAll('.tab-button');
-  const tabContents = document.querySelectorAll('.tab-pane');
-
-  console.log('Tabs encontrados:', tabButtons.length);
-
-  tabButtons.forEach(button => {
-    button.addEventListener('click', function() {
-      const targetTab = this.getAttribute('data-tab');
-      console.log('Tab clickeado:', targetTab);
-
-      // Remover active de todos
-      tabButtons.forEach(btn => btn.classList.remove('active'));
-      tabContents.forEach(content => content.classList.remove('active'));
-
-      // Activar el clickeado
-      this.classList.add('active');
-      const targetContent = document.getElementById(targetTab);
-      if (targetContent) {
-        targetContent.classList.add('active');
-        console.log('Tab activado:', targetTab);
-      }
+  document.querySelectorAll('.tab-button').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.tab-button').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+      btn.classList.add('active');
+      const target = document.getElementById(btn.dataset.tab);
+      if (target) target.classList.add('active');
     });
   });
 }
 
-// ================================================
-// CONTROLES DE CANTIDAD
-// ================================================
-function initCantidadControls() {
-  const btnMenos = document.querySelector('.btn-cantidad-menos');
-  const btnMas = document.querySelector('.btn-cantidad-mas');
-  const inputCantidad = document.getElementById('cantidad');
-
-  if (btnMenos && inputCantidad) {
-    btnMenos.addEventListener('click', function() {
-      let cantidad = parseInt(inputCantidad.value) || 1;
-      if (cantidad > 1) {
-        inputCantidad.value = cantidad - 1;
-      }
-    });
-  }
-
-  if (btnMas && inputCantidad) {
-    btnMas.addEventListener('click', function() {
-      let cantidad = parseInt(inputCantidad.value) || 1;
-      const stock = productoActual?.stock_disponible || 100;
-      if (cantidad < stock) {
-        inputCantidad.value = cantidad + 1;
-      }
-    });
-  }
-
-  if (inputCantidad) {
-    inputCantidad.addEventListener('change', function() {
-      let valor = parseInt(this.value) || 1;
-      const stock = productoActual?.stock_disponible || 100;
-      
-      if (valor < 1) valor = 1;
-      if (valor > stock) valor = stock;
-      
-      this.value = valor;
-    });
-  }
-}
-
-// ================================================
-// CARGAR PRODUCTO
-// ================================================
+// ---- Cargar producto desde API ----
 async function cargarProducto() {
-  const urlParams = new URLSearchParams(window.location.search);
-  const productId = urlParams.get('id');
+  const params    = new URLSearchParams(window.location.search);
+  const productId = params.get('id');
 
   if (!productId) {
-    mostrarError('No se especificó un producto');
+    mostrarError();
     return;
   }
 
   try {
-    // Datos de ejemplo (reemplazar con API real)
-    productoActual = {
-      id: productId,
-      nombre: 'Mueble de Baño Milano Premium',
-      precio: 8500,
-      descripcion: 'Mueble de baño premium con acabados de lujo',
-      stock_disponible: 5,
-      categoria: 'Baño',
-      imagenes: [
-        'https://via.placeholder.com/600x400/8b7355/ffffff?text=Vista+1',
-        'https://via.placeholder.com/600x400/8b7355/ffffff?text=Vista+2',
-        'https://via.placeholder.com/600x400/8b7355/ffffff?text=Vista+3'
-      ],
-      especificaciones: [
-        { nombre: 'Material', valor: 'MDF enchapado' },
-        { nombre: 'Dimensiones', valor: '120 x 45 x 85 cm' },
-        { nombre: 'Acabado', valor: 'Blanco mate' },
-        { nombre: 'Incluye', valor: 'Lavabo de cerámica' }
-      ],
-      resenas: [
-        {
-          autor: 'María González',
-          calificacion: 5,
-          comentario: 'Excelente calidad, muy satisfecha',
-          fecha: '2025-01-15'
-        }
-      ]
-    };
+    const res  = await fetch(`${API_BASE}/productos.php?id=${productId}`);
+    const data = await res.json();
 
-    renderProducto();
-    renderEspecificaciones();
-    renderResenas();
-
-  } catch (error) {
-    console.error('Error:', error);
-    mostrarError('Error al cargar el producto');
-  }
-}
-
-// ================================================
-// RENDER PRODUCTO
-// ================================================
-function renderProducto() {
-  if (!productoActual) return;
-
-  // Nombre
-  const nombreElement = document.getElementById('producto-nombre');
-  if (nombreElement) nombreElement.textContent = productoActual.nombre;
-
-  // Precio
-  const precioElement = document.getElementById('producto-precio');
-  if (precioElement) {
-    precioElement.textContent = formatCurrency(productoActual.precio);
-  }
-
-  // Descripción
-  const descElement = document.getElementById('producto-descripcion');
-  if (descElement) descElement.textContent = productoActual.descripcion;
-
-  // Stock
-  const stockElement = document.getElementById('producto-stock');
-  if (stockElement) {
-    stockElement.textContent = `Stock disponible: ${productoActual.stock_disponible} unidades`;
-  }
-
-  // Imagen principal
-  const imgElement = document.getElementById('imagen-principal');
-  if (imgElement && productoActual.imagenes && productoActual.imagenes.length > 0) {
-    imgElement.src = productoActual.imagenes[0];
-    imgElement.alt = productoActual.nombre;
-  }
-
-  // Miniaturas
-  renderMiniaturas();
-}
-
-// ================================================
-// RENDER MINIATURAS
-// ================================================
-function renderMiniaturas() {
-  const container = document.getElementById('imagenes-miniaturas');
-  if (!container || !productoActual.imagenes) return;
-
-  container.innerHTML = '';
-  
-  productoActual.imagenes.forEach((url, index) => {
-    const miniatura = document.createElement('img');
-    miniatura.src = url;
-    miniatura.alt = `Vista ${index + 1}`;
-    miniatura.className = 'miniatura' + (index === 0 ? ' active' : '');
-    miniatura.onclick = () => cambiarImagen(index);
-    container.appendChild(miniatura);
-  });
-}
-
-function cambiarImagen(index) {
-  imagenActualIndex = index;
-  const imgPrincipal = document.getElementById('imagen-principal');
-  
-  if (imgPrincipal && productoActual.imagenes[index]) {
-    imgPrincipal.src = productoActual.imagenes[index];
-  }
-
-  // Actualizar miniaturas activas
-  document.querySelectorAll('.miniatura').forEach((mini, i) => {
-    mini.classList.toggle('active', i === index);
-  });
-}
-
-// ================================================
-// RENDER ESPECIFICACIONES
-// ================================================
-function renderEspecificaciones() {
-  const container = document.getElementById('especificaciones-lista');
-  if (!container || !productoActual.especificaciones) return;
-
-  container.innerHTML = productoActual.especificaciones.map(spec => `
-    <div class="especificacion-item">
-      <strong>${spec.nombre}:</strong> ${spec.valor}
-    </div>
-  `).join('');
-}
-
-// ================================================
-// RENDER RESEÑAS
-// ================================================
-function renderResenas() {
-  const container = document.getElementById('resenas-lista');
-  if (!container || !productoActual.resenas) return;
-
-  if (productoActual.resenas.length === 0) {
-    container.innerHTML = '<p>Aún no hay reseñas para este producto.</p>';
-    return;
-  }
-
-  container.innerHTML = productoActual.resenas.map(resena => `
-    <div class="resena-item">
-      <div class="resena-header">
-        <strong>${resena.autor}</strong>
-        <span class="estrellas">${'⭐'.repeat(resena.calificacion)}</span>
-      </div>
-      <p>${resena.comentario}</p>
-      <small>${formatDate(resena.fecha)}</small>
-    </div>
-  `).join('');
-}
-
-// ================================================
-// AGREGAR AL CARRITO
-// ================================================
-function initAgregarCarrito() {
-  const btnAgregar = document.getElementById('btn-agregar-carrito');
-  if (!btnAgregar) return;
-
-  btnAgregar.addEventListener('click', function() {
-    if (!productoActual) {
-      alert('Error: Producto no cargado');
+    if (!data.success || !data.producto) {
+      mostrarError();
       return;
     }
 
-    const cantidad = parseInt(document.getElementById('cantidad')?.value || 1);
-    
-    // Obtener carrito actual
-    let carrito = JSON.parse(localStorage.getItem('carrito')) || [];
-    
-    // Buscar si ya existe
-    const existente = carrito.find(item => item.id === productoActual.id);
-    
-    if (existente) {
-      existente.cantidad += cantidad;
+    productoActual = data.producto;
+    mostrarProducto();
+    cargarRelacionados(productoActual.categoria_id, productoActual.id);
+
+  } catch (e) {
+    console.error('Error cargando producto:', e);
+    mostrarError();
+  }
+}
+
+// ---- Mostrar producto ----
+function mostrarProducto() {
+  const p = productoActual;
+
+  // Ocultar loading, mostrar contenido
+  document.getElementById('loadingState').style.display = 'none';
+  document.getElementById('page').style.display = 'block';
+
+  // SEO / Title
+  document.title = `${p.nombre} - Wooden House`;
+  const breadcrumb = document.getElementById('breadcrumbNombre');
+  if (breadcrumb) breadcrumb.textContent = p.nombre;
+
+  // Nombre y categoría
+  setText('pNombre', p.nombre);
+  const catEl = document.getElementById('pCategoria');
+  if (catEl && p.categoria_nombre) {
+    catEl.textContent = p.categoria_nombre;
+  }
+
+  // Etiqueta
+  const etiqEl = document.getElementById('pEtiqueta');
+  if (etiqEl && p.etiqueta) {
+    etiqEl.textContent = p.etiqueta;
+    etiqEl.style.display = 'inline-block';
+  }
+
+  // Precio
+  setText('pPrecio', formatCurrency(p.precio_base || p.precio));
+
+  // Stock
+  const stock = parseInt(p.stock_disponible || 0);
+  const iconEl = document.getElementById('pStockIcon');
+  const textEl = document.getElementById('pStockText');
+  if (stock <= 0) {
+    if (iconEl) iconEl.textContent = '<i class="fa-solid fa-xmark"></i>';
+    if (textEl) textEl.innerHTML = '<strong>Sin stock</strong> - No disponible actualmente';
+    const btn = document.getElementById('btnAddCart');
+    if (btn) { btn.disabled = true; btn.textContent = 'Sin stock'; btn.style.opacity = '0.5'; }
+  } else if (stock <= 3) {
+    if (iconEl) iconEl.textContent = '<i class="fa-solid fa-triangle-exclamation"></i>';
+    if (textEl) textEl.innerHTML = `<strong>¡Últimas ${stock} unidades!</strong>`;
+    const qtyInput = document.getElementById('cantidad');
+    if (qtyInput) qtyInput.max = stock;
+  }
+
+  // Descripción
+  const descEl = document.getElementById('pDesc');
+  if (descEl) descEl.textContent = p.descripcion || '';
+
+  // Especificaciones en tabs
+  const specTable = document.getElementById('specTable');
+  if (specTable) {
+    const specs = p.especificaciones || [];
+    if (specs.length > 0) {
+      specTable.innerHTML = specs.map(s => `
+        <div class="spec-row">
+          <span class="spec-key">${escHtml(s.clave || s.nombre || '')}</span>
+          <span class="spec-val">${escHtml(s.valor || '')}</span>
+        </div>
+      `).join('');
+
+      // También mostrar las primeras 4 como features
+      const featuresBox = document.getElementById('featuresBox');
+      const pFeatures   = document.getElementById('pFeatures');
+      if (featuresBox && pFeatures && specs.length > 0) {
+        featuresBox.style.display = 'block';
+        pFeatures.innerHTML = specs.slice(0, 4).map(s => `
+          <div class="feature-item">
+            <span class="feature-key"><i class="fa-solid fa-thumbtack"></i> ${escHtml(s.clave || '')}</span>
+            <span class="feature-val">${escHtml(s.valor || '')}</span>
+          </div>
+        `).join('');
+      }
     } else {
-      carrito.push({
-        id: productoActual.id,
-        nombre: productoActual.nombre,
-        precio: productoActual.precio,
-        cantidad: cantidad,
-        imagen: productoActual.imagenes?.[0] || ''
-      });
+      specTable.innerHTML = '<p style="color:#888;">No hay especificaciones registradas.</p>';
+    }
+  }
+
+  // Imágenes
+  const imagenes = p.imagenes || [];
+  const mainImg  = document.getElementById('mainImage');
+  const thumbsEl = document.getElementById('thumbs');
+  const placeholder = document.getElementById('imgPlaceholder');
+
+  if (imagenes.length > 0) {
+    const primera = imagenes[0]?.url_imagen || '';
+    if (mainImg && primera) {
+      mainImg.src = primera;
+      mainImg.alt = p.nombre;
+      mainImg.style.display = 'block';
+      if (placeholder) placeholder.style.display = 'none';
     }
 
-    // Guardar
-    localStorage.setItem('carrito', JSON.stringify(carrito));
-    
-    // Actualizar badge
-    initCartBadge();
-    
-    // Mostrar mensaje
-    mostrarMensaje('✅ Producto agregado al carrito', 'success');
-    
-    // Opcional: redirigir al carrito
-    // setTimeout(() => window.location.href = 'carrito.html', 1000);
-  });
+    if (thumbsEl && imagenes.length > 1) {
+      thumbsEl.innerHTML = imagenes.map((img, idx) => `
+        <div class="thumb ${idx === 0 ? 'active' : ''}" onclick="cambiarImagen(${idx}, '${escHtml(img.url_imagen)}')">
+          <img src="${escHtml(img.url_imagen)}" alt="Vista ${idx+1}" loading="lazy">
+        </div>
+      `).join('');
+    }
+  }
+
+  // Botón agregar al carrito
+  const btnAdd = document.getElementById('btnAddCart');
+  if (btnAdd && stock > 0) {
+    btnAdd.addEventListener('click', agregarAlCarrito);
+  }
 }
 
-// ================================================
-// HELPERS
-// ================================================
-function formatCurrency(amount) {
-  return new Intl.NumberFormat('es-MX', {
-    style: 'currency',
-    currency: 'MXN'
-  }).format(amount);
+// ---- Cambiar imagen ----
+function cambiarImagen(idx, url) {
+  imagenIndex = idx;
+  const mainImg = document.getElementById('mainImage');
+  const placeholder = document.getElementById('imgPlaceholder');
+  if (mainImg && url) {
+    mainImg.src = url;
+    mainImg.style.display = 'block';
+    if (placeholder) placeholder.style.display = 'none';
+  }
+  document.querySelectorAll('.thumb').forEach((t, i) => t.classList.toggle('active', i === idx));
 }
 
-function formatDate(dateString) {
-  const date = new Date(dateString);
-  return new Intl.DateTimeFormat('es-MX', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric'
-  }).format(date);
+// ---- Cambiar cantidad ----
+function cambiarCantidad(delta) {
+  const input = document.getElementById('cantidad');
+  if (!input) return;
+  let val = parseInt(input.value || 1) + delta;
+  const max = productoActual?.stock_disponible || 99;
+  val = Math.max(1, Math.min(val, max));
+  input.value = val;
 }
 
-function mostrarMensaje(mensaje, tipo = 'info') {
-  // Crear elemento de alerta
-  const alert = document.createElement('div');
-  alert.className = `alert alert-${tipo}`;
-  alert.textContent = mensaje;
-  alert.style.cssText = `
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    padding: 15px 20px;
-    background: ${tipo === 'success' ? '#4caf50' : '#f44336'};
-    color: white;
-    border-radius: 8px;
-    z-index: 10000;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-  `;
-  
-  document.body.appendChild(alert);
-  
-  setTimeout(() => {
-    alert.remove();
-  }, 3000);
+// ---- Agregar al carrito ----
+function agregarAlCarrito() {
+  if (!productoActual) return;
+  const cantidad = parseInt(document.getElementById('cantidad')?.value || 1);
+  let carrito = JSON.parse(localStorage.getItem('wh_carrito') || '[]');
+
+  const exist = carrito.find(i => i.id == productoActual.id);
+  if (exist) {
+    exist.cantidad += cantidad;
+  } else {
+    carrito.push({
+      id:       productoActual.id,
+      nombre:   productoActual.nombre,
+      precio:   productoActual.precio_base || productoActual.precio,
+      imagen:   productoActual.imagenes?.[0]?.url_imagen || '',
+      cantidad: cantidad,
+    });
+  }
+  localStorage.setItem('wh_carrito', JSON.stringify(carrito));
+  initCartBadge();
+
+  // Mostrar botón ver carrito
+  const btn = document.getElementById('btnVerCarrito');
+  if (btn) btn.style.display = 'inline-block';
+
+  showToast(`<i class="fa-solid fa-circle-check"></i> ${cantidad}x ${productoActual.nombre} agregado al carrito`);
 }
 
-function mostrarError(mensaje) {
-  mostrarMensaje(mensaje, 'error');
+// ---- Cargar productos relacionados ----
+async function cargarRelacionados(catId, excludeId) {
+  if (!catId) return;
+  try {
+    const res  = await fetch(`${API_BASE}/productos.php?categoria_id=${catId}&limit=4`);
+    const data = await res.json();
+    const container = document.getElementById('relacionados');
+    if (!container || !data.success) return;
+
+    const items = (data.productos || []).filter(p => p.id != excludeId).slice(0, 4);
+    if (!items.length) { container.closest('.related-section').style.display = 'none'; return; }
+
+    container.innerHTML = items.map(p => {
+      const img = p.imagen_principal ? `<img src="${escHtml(p.imagen_principal)}" alt="${escHtml(p.nombre)}" loading="lazy">` : '<div class="placeholder-img-small"><i class="fa-solid fa-tree"></i></div>';
+      return `
+        <a href="detalle/${p.id}" class="related-card">
+          <div class="related-img">${img}</div>
+          <div class="related-info">
+            <div class="related-name">${escHtml(p.nombre)}</div>
+            <div class="related-price">${formatCurrency(p.precio)}</div>
+          </div>
+        </a>
+      `;
+    }).join('');
+  } catch (e) { console.warn('Relacionados no disponibles:', e); }
 }
 
-console.log('✅ detalle_producto.js cargado correctamente');
+// ---- Helpers ----
+function mostrarError() {
+  document.getElementById('loadingState').style.display = 'none';
+  document.getElementById('errorState').style.display = 'block';
+}
+
+function setText(id, val) {
+  const el = document.getElementById(id);
+  if (el) el.textContent = val;
+}
+
+function escHtml(str) {
+  return String(str ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function formatCurrency(n) {
+  return new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(Number(n || 0));
+}
+
+function showToast(msg, type = 'success') {
+  const toast = document.createElement('div');
+  toast.style.cssText = `position:fixed;top:20px;right:20px;padding:14px 20px;background:${type==='success'?'#22c55e':'#ef4444'};color:#fff;border-radius:8px;z-index:10000;font-weight:600;box-shadow:0 4px 12px rgba(0,0,0,.25);`;
+  toast.textContent = msg;
+  document.body.appendChild(toast);
+  setTimeout(() => toast.remove(), 3000);
+}
+
+// Globales
+window.cambiarImagen   = cambiarImagen;
+window.cambiarCantidad = cambiarCantidad;

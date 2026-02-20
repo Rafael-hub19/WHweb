@@ -1,0 +1,11 @@
+# ================================================================
+# Wooden House - .htaccess RAÍZ DEL PROYECTO
+# Bloquea acceso web directo a includes/, api/, logs/, database/, .env
+# ================================================================
+
+# Denegar acceso a todo por defecto en la raíz
+Require all denied
+
+# Redirigir todo tráfico a /public
+RewriteEngine On
+RewriteRule ^$ /public/ [L,R=301]

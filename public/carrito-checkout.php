@@ -3,270 +3,230 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Carrito - Wooden House</title>
-    
-  <link rel="stylesheet" href="./assets/css/carrito.css">
+    <title>Carrito – Wooden House</title>
+    <link rel="stylesheet" href="./assets/css/carrito.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 </head>
 <body>
 
-    <!-- ========== HEADER NAVIGATION ========== -->
-    <div class="header-nav">
-        <div class="logo">WOODEN HOUSE</div>
+<!-- ── Header ───────────────────────────────────────────────────── -->
+<div class="header-nav">
+    <div class="logo">WOODEN HOUSE</div>
+    <button class="menu-toggle" id="menuToggle" aria-label="Menú" aria-expanded="false"><i class="fa-solid fa-bars"></i></button>
+    <div class="nav-links" id="navLinks">
+        <a href="/inicio">Inicio</a>
+        <a href="/solicitudes">Solicitudes</a>
+        <a href="/catalogo">Catálogo</a>
+    </div>
+</div>
 
-        <!-- Hamburguesa -->
-        <button class="menu-toggle" id="menuToggle" aria-label="Abrir menú" aria-expanded="false">☰</button>
+<!-- ── Pasos ─────────────────────────────────────────────────────── -->
+<div class="steps-indicator">
+    <div class="step active"><div class="step-number">1</div><span>Carrito</span></div>
+    <div class="step"><div class="step-number">2</div><span>Pago</span></div>
+    <div class="step"><div class="step-number">3</div><span>Confirmación</span></div>
+</div>
 
-        <div class="nav-links" id="navLinks">
-            <a href="index.html">Inicio</a>
-            <a href="solicitudes.html">Solicitudes</a>
-            <a href="catalogo.html">Catálogo</a>
-        </div>
+<!-- ── Main ──────────────────────────────────────────────────────── -->
+<div class="container">
+    <div class="page-header">
+        <h1 class="page-title"><i class="fa-solid fa-cart-shopping"></i> Tu Carrito de Compras</h1>
+        <p class="page-subtitle">Revisa tu pedido, elige opciones de entrega y selecciona tu semana</p>
     </div>
 
-    <!-- ========== PROGRESS STEPS ========== -->
-    <div class="steps-indicator">
-        <div class="step active">
-            <div class="step-number">1</div>
-            <span>Carrito</span>
-        </div>
-        <div class="step">
-            <div class="step-number">2</div>
-            <span>Pago</span>
-        </div>
-        <div class="step">
-            <div class="step-number">3</div>
-            <span>Confirmación</span>
-        </div>
-    </div>
+    <div class="cart-container">
+        <!-- ── Columna izquierda ───────────────────────────────── -->
+        <div class="cart-items">
 
-    <!-- ========== MAIN CONTAINER ========== -->
-    <div class="container">
-        <div class="page-header">
-            <h1 class="page-title">🛒 Tu Carrito de Compras</h1>
-            <p class="page-subtitle">Revisa tu mueble de baño personalizado y completa tu pedido</p>
-        </div>
+            <!-- Productos -->
+            <div class="section-card">
+                <h3 class="section-title"><span class="section-icon"><i class="fa-solid fa-bath"></i></span> Productos en tu carrito</h3>
+                <div id="carritoItems">
+                    <div class="fecha-loading">Cargando carrito</div>
+                </div>
+            </div>
 
-        <div class="cart-container">
-            <!-- ========== LEFT COLUMN: CART ITEMS & OPTIONS ========== -->
-            <div class="cart-items">
-
-                <!-- PRODUCTO EN EL CARRITO -->
-                <div class="section-card">
-                    <h3 class="section-title">
-                        <span class="section-icon">🚿</span>
-                        Mueble de Baño Seleccionado
-                    </h3>
-
-                    <div class="cart-item" id="cartItemContainer">
-                        <div class="cart-item-image">🪑</div>
-                        <div class="cart-item-details">
-                            <div class="cart-item-name">Mueble Milano Personalizado</div>
-                            <div class="cart-item-specs">
-                                <strong>🪵 Material:</strong> MDF de alta calidad<br>
-                                <strong>🎨 Acabado:</strong> Nogal oscuro<br>
-                                <strong>🚰 Lavabo:</strong> Cerámica blanca incluido<br>
-                                <strong>📏 Dimensiones:</strong> 80cm × 45cm × 60cm
+            <!-- Tipo de entrega -->
+            <div class="section-card">
+                <h3 class="section-title"><span class="section-icon"><i class="fa-solid fa-truck"></i></span> Tipo de entrega</h3>
+                <div class="delivery-options">
+                    <div class="option-card selected" id="optionEnvio" onclick="seleccionarEntrega('envio')">
+                        <input type="radio" name="tipoEntrega" value="envio" checked>
+                        <div class="option-content">
+                            <div class="option-header">
+                                <span class="option-title">Envío a domicilio</span>
+                                <span class="option-price" id="precioEnvioLabel">$500</span>
                             </div>
-                            <div class="cart-item-footer">
-                                <div class="cart-item-price">$8,500</div>
-                                <button class="btn-remove" onclick="removeItem()">
-                                    🗑️ Eliminar
-                                </button>
+                            <div class="option-description">
+                                Entregamos en tu domicilio en Guadalajara y área metropolitana.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="option-card" id="optionRecoger" onclick="seleccionarEntrega('recoger')">
+                        <input type="radio" name="tipoEntrega" value="recoger">
+                        <div class="option-content">
+                            <div class="option-header">
+                                <span class="option-title">Recoger en showroom</span>
+                                <span class="option-price">GRATIS</span>
+                            </div>
+                            <div class="option-description">
+                                <i class="fa-solid fa-location-dot"></i> Av. Chapultepec #1234, Col. Americana, Guadalajara
                             </div>
                         </div>
                     </div>
                 </div>
+            </div>
 
-                <!-- OPCIONES DE ENTREGA -->
-                <div class="section-card">
-                    <h3 class="section-title">
-                        <span class="section-icon">🚚</span>
-                        Opciones de Entrega
-                    </h3>
-
-                    <div class="delivery-options">
-                        <div class="option-card selected" id="deliveryOption" onclick="selectDelivery('delivery')">
-                            <input type="radio" name="deliveryType" value="delivery" checked>
-                            <div class="option-content">
-                                <div class="option-header">
-                                    <span class="option-title">Envío a Domicilio</span>
-                                    <span class="option-price">$500</span>
-                                </div>
-                                <div class="option-description">
-                                    Entregamos tu mueble de baño directamente en tu domicilio.
-                                    Tiempo estimado según fecha seleccionada.
-                                </div>
+            <!-- Instalación -->
+            <div class="section-card">
+                <h3 class="section-title"><span class="section-icon"><i class="fa-solid fa-wrench"></i></span> Servicios adicionales</h3>
+                <div class="installation-toggle" id="installationToggle">
+                    <label class="toggle-label">
+                        <input type="checkbox" id="instalacionCheck" onchange="toggleInstalacion()">
+                        <div class="option-content">
+                            <div class="option-header">
+                                <span class="option-title">Instalación profesional</span>
+                                <span class="option-price">+ $1,500</span>
+                            </div>
+                            <div class="option-description">
+                                Instalación por expertos incluye conexión de lavabo y ajustes finales.
                             </div>
                         </div>
+                    </label>
+                </div>
+            </div>
 
-                        <div class="option-card" id="pickupOption" onclick="selectDelivery('pickup')">
-                            <input type="radio" name="deliveryType" value="pickup">
-                            <div class="option-content">
-                                <div class="option-header">
-                                    <span class="option-title">Recoger en Showroom</span>
-                                    <span class="option-price">GRATIS</span>
-                                </div>
-                                <div class="option-description">
-                                    Recoge tu mueble en nuestro showroom.
-                                    📍 Av. Chapultepec #1234, Guadalajara, Jalisco
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+            <!-- ── SELECTOR DE FECHA ──────────────────────────── -->
+            <div class="section-card">
+                <h3 class="section-title"><span class="section-icon"><i class="fa-solid fa-calendar-days"></i></span> Semana de entrega</h3>
+
+                <div class="date-info">
+                    <strong id="fabricacionLabel"><i class="fa-solid fa-clock"></i> Tiempo de fabricación: <span id="diasFabLabel">15</span> días hábiles</strong>
+                    <p>
+                        Cada mueble se fabrica a medida. Las semanas disponibles reflejan
+                        la <strong>capacidad real de nuestro taller</strong> — cuando una semana
+                        se llena, desaparece del selector.
+                    </p>
                 </div>
 
-                <!-- INSTALACIÓN PROFESIONAL -->
-                <div class="section-card">
-                    <h3 class="section-title">
-                        <span class="section-icon">🔧</span>
-                        Servicios Adicionales
-                    </h3>
-
-                    <div class="installation-toggle" id="installationToggle">
-                        <label class="toggle-label">
-                            <input type="checkbox" id="installationCheck" onchange="toggleInstallation()">
-                            <div class="option-content">
-                                <div class="option-header">
-                                    <span class="option-title">Instalación Profesional</span>
-                                    <span class="option-price">+ $1,500</span>
-                                </div>
-                                <div class="option-description">
-                                    Nuestros expertos instalarán tu mueble de baño de manera profesional,
-                                    incluyendo conexión de lavabo y ajustes finales para un acabado perfecto.
-                                </div>
-                            </div>
-                        </label>
-                    </div>
+                <!-- Leyenda -->
+                <div class="disponibilidad-indicator">
+                    <span class="dot dot-ok"></span><span>Semana disponible</span>
+                    <span class="dot dot-lleno" style="margin-left:12px"></span><span>Capacidad llena</span>
                 </div>
 
-                <!-- FECHA DE ENTREGA -->
-                <div class="section-card">
-                    <h3 class="section-title">
-                        <span class="section-icon">📅</span>
-                        Fecha de Entrega Estimada
-                    </h3>
-
-                    <div class="date-info">
-                        <strong>⏱️ Tiempo de Fabricación: 2-3 semanas</strong>
-                        <p>
-                            Cada mueble de baño se fabrica bajo pedido con los más altos estándares de calidad.
-                            Selecciona una fecha aproximada y te confirmaremos la fecha exacta por WhatsApp.
-                        </p>
-                    </div>
-
-                    <div class="available-dates" id="availableDates"></div>
-
-                    <div class="info-box">
-                        <p>
-                            💡 <strong>Importante:</strong> La fecha seleccionada es aproximada.
-                            Nos comunicaremos contigo para confirmar la fecha exacta según nuestra
-                            capacidad de producción actual.
-                        </p>
-                    </div>
+                <!-- Grid de semanas (se llena desde la API) -->
+                <div id="semanasGrid" class="semanas-grid">
+                    <div class="fecha-loading">Consultando disponibilidad en tiempo real</div>
                 </div>
 
-                <!-- INFORMACIÓN DE CONTACTO -->
-                <div class="section-card">
-                    <h3 class="section-title">
-                        <span class="section-icon">👤</span>
-                        Información de Contacto
-                    </h3>
+                <input type="hidden" id="semanaSeleccionada" value="">
+                <input type="hidden" id="fechaSugerida"      value="">
 
-                    <form id="customerForm">
+                <div class="info-box">
+                    <p>
+                        <i class="fa-solid fa-lightbulb"></i> <strong>Nota:</strong> La semana seleccionada es el rango de entrega estimado.
+                        Te confirmaremos el día exacto por WhatsApp o correo.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Datos de contacto -->
+            <div class="section-card">
+                <h3 class="section-title"><span class="section-icon"><i class="fa-solid fa-user"></i></span> Datos de contacto</h3>
+                <form id="formularioCliente" novalidate>
+                    <div class="form-group">
+                        <label>Nombre completo <span class="required">*</span></label>
+                        <input type="text" id="clienteNombre" placeholder="Juan Pérez López" required>
+                    </div>
+                    <div class="form-row">
                         <div class="form-group">
-                            <label>Nombre Completo <span class="required">*</span></label>
-                            <input type="text" id="customerName" placeholder="Ej: Juan Pérez López" required>
+                            <label>Teléfono / WhatsApp <span class="required">*</span></label>
+                            <input type="tel" id="clienteTelefono" placeholder="33 1234 5678" required>
                         </div>
+                        <div class="form-group">
+                            <label>Correo electrónico <span class="required">*</span></label>
+                            <input type="email" id="clienteCorreo" placeholder="correo@ejemplo.com" required>
+                        </div>
+                    </div>
 
+                    <!-- Dirección (solo si es envío) -->
+                    <div id="seccionDireccion">
+                        <div class="form-group">
+                            <label>Dirección de entrega <span class="required">*</span></label>
+                            <input type="text" id="clienteDireccion" placeholder="Calle, Número, Colonia" required>
+                        </div>
                         <div class="form-row">
                             <div class="form-group">
-                                <label>Teléfono <span class="required">*</span></label>
-                                <input type="tel" id="customerPhone" placeholder="33 1234 5678" required>
-                                <div class="help-text">Preferiblemente WhatsApp</div>
+                                <label>Ciudad <span class="required">*</span></label>
+                                <input type="text" id="clienteCiudad" placeholder="Guadalajara" required>
                             </div>
                             <div class="form-group">
-                                <label>Correo Electrónico <span class="required">*</span></label>
-                                <input type="email" id="customerEmail" placeholder="correo@ejemplo.com" required>
+                                <label>Código Postal <span class="required">*</span></label>
+                                <input type="text" id="clienteCP" placeholder="45000" required maxlength="5">
                             </div>
                         </div>
-
-                        <!-- SECCIÓN DE DIRECCIÓN (solo visible si selecciona envío) -->
-                        <div id="deliveryAddressSection">
-                            <div class="form-group">
-                                <label>Dirección de Entrega <span class="required">*</span></label>
-                                <input type="text" id="deliveryAddress" placeholder="Calle, Número, Colonia" required>
-                            </div>
-
-                            <div class="form-row">
-                                <div class="form-group">
-                                    <label>Ciudad <span class="required">*</span></label>
-                                    <input type="text" id="deliveryCity" placeholder="Guadalajara" required>
-                                </div>
-                                <div class="form-group">
-                                    <label>Código Postal <span class="required">*</span></label>
-                                    <input type="text" id="deliveryZip" placeholder="45000" required>
-                                </div>
-                            </div>
-
-                            <div class="form-group">
-                                <label>Referencias / Indicaciones Adicionales</label>
-                                <textarea id="deliveryNotes"
-                                    placeholder="Ej: Entre calles X y Y, casa color azul, portón negro..."
-                                    rows="3"></textarea>
-                                <div class="help-text">Ayúdanos a encontrar tu domicilio más fácilmente</div>
-                            </div>
+                        <div class="form-group">
+                            <label>Referencias adicionales</label>
+                            <textarea id="clienteNotas" rows="3"
+                                placeholder="Entre calles X y Y, portón negro…"></textarea>
+                            <div class="help-text">Ayúdanos a encontrar tu domicilio</div>
                         </div>
-                    </form>
-                </div>
+                    </div>
+                </form>
+            </div>
+        </div><!-- /cart-items -->
+
+        <!-- ── Columna derecha: resumen ───────────────────────── -->
+        <div class="cart-summary">
+            <h3 class="summary-title"><i class="fa-solid fa-clipboard-list"></i> Resumen del pedido</h3>
+
+            <div id="resumenItems">
+                <!-- Se llena dinámicamente -->
             </div>
 
-            <!-- ========== RIGHT COLUMN: SUMMARY ========== -->
-            <div class="cart-summary">
-                <h3 class="summary-title">📋 Resumen del Pedido</h3>
-
-                <div class="summary-item">
-                    <span>Mueble de baño Milano</span>
-                    <span id="subtotalDisplay">$8,500</span>
-                </div>
-
-                <div class="summary-item" id="shippingLine">
-                    <span>Envío a domicilio</span>
-                    <span id="shippingDisplay">$500</span>
-                </div>
-
-                <div class="summary-item" id="installationLine" style="display: none;">
-                    <span>Instalación profesional</span>
-                    <span id="installationDisplay">$1,500</span>
-                </div>
-
-                <div class="summary-total">
-                    <span>Total a Pagar</span>
-                    <span id="totalDisplay">$9,000</span>
-                </div>
-
-                <button class="btn-checkout" id="checkoutBtn" onclick="proceedToCheckout()">
-                    Proceder al Pago 💳
-                </button>
-
-                <p class="secure-note">
-                    🔒 Pago 100% seguro y protegido<br>
-                    📦 Garantía de satisfacción incluida
-                </p>
+            <div class="summary-item" id="lineaEnvio">
+                <span>Envío a domicilio</span>
+                <span id="totalEnvio">$500</span>
             </div>
+            <div class="summary-item" id="lineaInstalacion" style="display:none">
+                <span>Instalación profesional</span>
+                <span>$1,500</span>
+            </div>
+            <div class="summary-total">
+                <span>Total a pagar</span>
+                <span id="totalFinal">$0</span>
+            </div>
+
+            <!-- Semana elegida en el resumen -->
+            <div class="fecha-resumen-box" id="fechaResumenBox">
+                <strong><i class="fa-solid fa-calendar-days"></i> Semana de entrega elegida</strong>
+                <span id="fechaResumenTexto">—</span>
+            </div>
+
+            <button class="btn-checkout" id="btnCheckout" onclick="procederAlPago()">
+                Proceder al pago <i class="fa-solid fa-credit-card"></i>
+            </button>
+
+            <p class="secure-note">
+                <i class="fa-solid fa-lock"></i> Pago 100% seguro · Stripe &amp; PayPal<br>
+                <i class="fa-solid fa-box"></i> Garantía de satisfacción incluida
+            </p>
         </div>
     </div>
+</div>
 
-    <!-- Footer -->
+<!-- Footer -->
 <div class="footer">
-    <p>&copy; 2025 Wooden House. Todos los derechos reservados.</p>
-    <p style="margin-top: 10px;">Muebles de madera a medida en Guadalajara, Jalisco</p>
-    <p style="margin-top: 10px; font-size: 14px;">
-      <a href="mailto:contacto@juan432.jpml.com" style="color: #8b7355;">contacto@juan432.jpml.com</a> | 
-      <a href="tel:3317054017" style="color: #8b7355;">33 1705 4017</a>
+    <p>© 2026 Wooden House · Guadalajara, Jalisco</p>
+    <p style="margin-top:8px;font-size:14px;">
+        <a href="mailto:contacto@woodenhouse.com.mx" style="color:#8b7355">contacto@woodenhouse.com.mx</a> |
+        <a href="tel:3317054017" style="color:#8b7355">33 1705 4017</a>
     </p>
-  </div>
+</div>
 
-    <!-- ========== JAVASCRIPT ========== -->
-  <script src="./assets/js/carrito.js"></script>
+<script src="./assets/js/carrito.js"></script>
+<script src="./assets/js/checkout.js"></script>
 </body>
 </html>

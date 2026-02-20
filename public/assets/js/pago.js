@@ -1,326 +1,343 @@
-// ================================================
-// CONFIGURACIÓN
-// ================================================
-const API_URL = window.location.hostname === 'localhost' 
-  ? 'http://localhost/api'
-  : '/api';
+// =============================================================
+// Wooden House - Pago.js (Stripe SDK + PayPal SDK)
+// Conectado a API PHP real
+// =============================================================
 
-// Stripe - REEMPLAZAR CON TU CLAVE PÚBLICA
-const STRIPE_PUBLIC_KEY = 'pk_test_TU_CLAVE_AQUI';
-const stripe = Stripe(STRIPE_PUBLIC_KEY);
-const elements = stripe.elements();
+const API_BASE = '/api';
 
-// Variables globales
-let cardElement;
-let currentMethod = 'card';
-let orderData = null;
+let stripe, cardElement;
+let pedidoCreado = null;
+let metodoPago   = 'card';
+let orderData    = null;
 
-// ================================================
-// INICIALIZACIÓN
-// ================================================
-document.addEventListener('DOMContentLoaded', function() {
-  loadOrderData();
-  initPaymentMethods();
-  initStripe();
-  initPayPal();
+initMenuHamburguesa();
+document.addEventListener('DOMContentLoaded', () => {
+  cargarResumen();
+  initMetodosPago();
+  // Stripe se inicia después de cargar el resumen (necesita saber si hay pedido)
 });
 
-// ================================================
-// CARGAR DATOS DEL PEDIDO
-// ================================================
-function loadOrderData() {
-  // Cargar datos del localStorage (desde carrito)
-  const cart = JSON.parse(localStorage.getItem('carrito')) || [];
-  const deliveryData = JSON.parse(localStorage.getItem('deliveryData')) || {};
-  
-  if (cart.length === 0) {
+// ============================================================
+// RESUMEN DEL PEDIDO
+// ============================================================
+function cargarResumen() {
+  const carrito      = JSON.parse(localStorage.getItem('wh_carrito') || '[]');
+  const deliveryData = JSON.parse(localStorage.getItem('wh_delivery') || '{}');
+
+  if (!carrito.length) {
     document.getElementById('noticeBox').style.display = 'block';
+    document.getElementById('btnStripe')?.setAttribute('disabled', true);
     return;
   }
 
-  // Calcular totales
-  const subtotal = cart.reduce((sum, item) => sum + (item.precio * item.cantidad), 0);
-  const shipping = deliveryData.deliveryType === 'domicilio' ? 500 : 0;
-  const installation = deliveryData.installation ? 1000 : 0;
-  const discount = parseFloat(localStorage.getItem('discount')) || 0;
-  const total = subtotal + shipping + installation - discount;
+  const subtotal     = carrito.reduce((s, i) => s + (i.precio * i.cantidad), 0);
+  const envio        = deliveryData.tipo === 'domicilio' ? 500 : 0;
+  const instalacion  = deliveryData.instalacion ? 1000 : 0;
+  const descuento    = parseFloat(localStorage.getItem('wh_descuento') || '0');
+  const total        = subtotal + envio + instalacion - descuento;
 
-  // Actualizar resumen
-  document.getElementById('subtotalDisplay').textContent = '$' + subtotal.toFixed(2);
-  document.getElementById('shippingDisplay').textContent = '$' + shipping.toFixed(2);
-  document.getElementById('totalDisplay').textContent = '$' + total.toFixed(2);
+  setText('subtotalDisplay',    formatCurrency(subtotal));
+  setText('shippingDisplay',    formatCurrency(envio));
+  setText('totalDisplay',       `<strong>${formatCurrency(total)}</strong>`);
 
-  if (installation > 0) {
+  if (instalacion > 0) {
     document.getElementById('installationLine').style.display = 'flex';
-    document.getElementById('installationDisplay').textContent = '$' + installation.toFixed(2);
+    setText('installationDisplay', formatCurrency(instalacion));
   }
-
-  if (discount > 0) {
+  if (descuento > 0) {
     document.getElementById('discountLine').style.display = 'flex';
-    document.getElementById('discountDisplay').textContent = '-$' + discount.toFixed(2);
+    setText('discountDisplay', '-' + formatCurrency(descuento));
   }
 
-  // Guardar datos del pedido
-  orderData = {
-    items: cart,
-    subtotal,
-    shipping,
-    installation,
-    discount,
-    total,
-    delivery: deliveryData
-  };
-}
-
-// ================================================
-// MÉTODOS DE PAGO - ALTERNAR
-// ================================================
-function initPaymentMethods() {
-  const paymentOptions = document.querySelectorAll('.payment-option');
-
-  paymentOptions.forEach(option => {
-    option.addEventListener('click', function() {
-      const method = this.getAttribute('data-method');
-      selectPaymentMethod(method);
-    });
-  });
-}
-
-function selectPaymentMethod(method) {
-  currentMethod = method;
-
-  // Actualizar selección visual
-  document.querySelectorAll('.payment-option').forEach(opt => {
-    opt.classList.remove('selected');
-  });
-  document.querySelector(`[data-method="${method}"]`).classList.add('selected');
-
-  // Mostrar/ocultar formularios
-  const cardInfo = document.getElementById('cardInfo');
-  const paypalInfo = document.getElementById('paypalInfo');
-
-  if (method === 'card') {
-    cardInfo.classList.add('active');
-    paypalInfo.classList.remove('active');
-  } else if (method === 'paypal') {
-    paypalInfo.classList.add('active');
-    cardInfo.classList.remove('active');
+  // Resumen de items
+  const itemsEl = document.getElementById('cart-items-summary');
+  if (itemsEl) {
+    itemsEl.innerHTML = carrito.map(i => `
+      <div class="summary-item">
+        <span>${i.nombre} × ${i.cantidad}</span>
+        <span>${formatCurrency(i.precio * i.cantidad)}</span>
+      </div>
+    `).join('');
   }
+
+  orderData = { carrito, deliveryData, subtotal, envio, instalacion, descuento, total };
+
+  // Inicializar SDKs con los datos del pedido
+  initStripe();
+  initPayPal();
 }
 
-// ================================================
-// STRIPE - INICIALIZACIÓN
-// ================================================
+// ============================================================
+// STRIPE
+// ============================================================
 function initStripe() {
-  // Crear elemento de tarjeta
+  const STRIPE_PK = 'pk_test_REEMPLAZAR_CON_TU_CLAVE_PUBLICA'; // ← Reemplazar en .env
+
+  if (!window.Stripe) { console.warn('Stripe SDK no cargado'); return; }
+
+  stripe = Stripe(STRIPE_PK);
+  const elements = stripe.elements({
+    locale: 'es',
+    appearance: {
+      theme: 'night',
+      variables: { colorPrimary: '#8b6914', fontFamily: 'Arial, sans-serif' }
+    }
+  });
+
   cardElement = elements.create('card', {
     style: {
-      base: {
-        color: '#e0e0e0',
-        fontFamily: '"Segoe UI", sans-serif',
-        fontSmoothing: 'antialiased',
-        fontSize: '16px',
-        '::placeholder': {
-          color: '#a0a0a0'
-        }
-      },
-      invalid: {
-        color: '#ff4444',
-        iconColor: '#ff4444'
-      }
+      base: { fontSize: '16px', color: '#fff', '::placeholder': { color: '#aaa' } }
     }
   });
 
-  cardElement.mount('#card-element');
+  const cardEl = document.getElementById('card-element');
+  if (cardEl) {
+    cardElement.mount('#card-element');
+    cardElement.on('ready', () => {
+      const btn = document.getElementById('btnStripe');
+      if (btn) btn.disabled = false;
+    });
+    cardElement.on('change', (e) => {
+      const errEl = document.getElementById('card-errors');
+      if (errEl) errEl.textContent = e.error ? e.error.message : '';
+    });
+  }
 
-  // Escuchar errores
-  cardElement.on('change', function(event) {
-    const displayError = document.getElementById('card-errors');
-    if (event.error) {
-      displayError.textContent = event.error.message;
-    } else {
-      displayError.textContent = '';
-    }
-  });
-
-  // Botón de pago
-  const submitButton = document.getElementById('submit-stripe');
-  if (submitButton) {
-    submitButton.addEventListener('click', handleStripePayment);
+  const btnStripe = document.getElementById('btnStripe');
+  if (btnStripe) {
+    btnStripe.addEventListener('click', pagarConStripe);
   }
 }
 
-// ================================================
-// STRIPE - PROCESAR PAGO
-// ================================================
-async function handleStripePayment(e) {
-  e.preventDefault();
-
-  if (!orderData) {
-    alert('Error: No hay datos del pedido');
-    return;
+async function pagarConStripe() {
+  if (!orderData || !pedidoCreado) {
+    // Crear el pedido primero si no existe
+    pedidoCreado = await crearPedidoEnBD();
+    if (!pedidoCreado) return;
   }
 
-  const submitButton = document.getElementById('submit-stripe');
-  submitButton.disabled = true;
-  submitButton.textContent = '⏳ Procesando...';
+  const btn = document.getElementById('btnStripe');
+  const spinner = document.getElementById('stripeSpinner');
+  btn.disabled  = true;
+  if (spinner) spinner.style.display = 'inline-block';
 
   try {
-    // 1. Crear Payment Intent en el backend
-    const response = await fetch(`${API_URL}/pagos/tarjeta_crear_sesion.php`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        amount: Math.round(orderData.total * 100), // En centavos
-        currency: 'mxn',
-        order_data: orderData
-      })
+    // 1. Crear Payment Intent en backend
+    const intentRes  = await fetch(`${API_BASE}/pagos.php?action=stripe_intent`, {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ pedido_id: pedidoCreado.pedido_id }),
+    });
+    const intentData = await intentRes.json();
+    if (!intentData.success) throw new Error(intentData.error || 'Error al iniciar pago');
+
+    const clientSecret = intentData.client_secret;
+
+    // 2. Confirmar con Stripe JS SDK
+    const result = await stripe.confirmCardPayment(clientSecret, {
+      payment_method: { card: cardElement }
     });
 
-    const { clientSecret } = await response.json();
+    if (result.error) throw new Error(result.error.message);
 
-    // 2. Confirmar el pago con Stripe
-    const { error, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
-      payment_method: {
-        card: cardElement
-      }
+    // 3. Confirmar con backend
+    const confirmRes  = await fetch(`${API_BASE}/pagos.php?action=stripe_confirm`, {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({
+        payment_intent_id: result.paymentIntent.id,
+        pedido_id:         pedidoCreado.pedido_id,
+      }),
     });
+    const confirmData = await confirmRes.json();
 
-    if (error) {
-      // Error al procesar pago
-      document.getElementById('card-errors').textContent = error.message;
-      submitButton.disabled = false;
-      submitButton.textContent = '🔒 Pagar Ahora';
-    } else if (paymentIntent.status === 'succeeded') {
-      // Pago exitoso
-      await registerPayment({
-        method: 'stripe',
-        transaction_id: paymentIntent.id,
-        amount: orderData.total,
-        status: 'completed',
-        order_data: orderData
-      });
-
-      // Limpiar carrito y redirigir
-      localStorage.removeItem('carrito');
-      window.location.href = 'confirmacion.html?payment=' + paymentIntent.id;
+    if (confirmData.success) {
+      irAConfirmacion();
+    } else {
+      throw new Error(confirmData.error || 'Error confirmando pago');
     }
 
-  } catch (error) {
-    console.error('Error:', error);
-    document.getElementById('card-errors').textContent = 'Error al procesar el pago. Intenta nuevamente.';
-    submitButton.disabled = false;
-    submitButton.textContent = '🔒 Pagar Ahora';
+  } catch (err) {
+    console.error('Stripe error:', err);
+    showError(err.message || 'Error en el pago. Intenta nuevamente.');
+    btn.disabled = false;
+    if (spinner) spinner.style.display = 'none';
   }
 }
 
-// ================================================
-// PAYPAL - INICIALIZACIÓN
-// ================================================
+// ============================================================
+// PAYPAL
+// ============================================================
 function initPayPal() {
-  if (!orderData) return;
-
-  // Verificar que PayPal SDK esté cargado
-  if (typeof paypal === 'undefined') {
-    console.error('PayPal SDK no está cargado');
-    return;
-  }
+  if (!window.paypal) { console.warn('PayPal SDK no cargado'); return; }
 
   paypal.Buttons({
-    createOrder: function(data, actions) {
-      return actions.order.create({
-        purchase_units: [{
-          amount: {
-            currency_code: 'MXN',
-            value: orderData.total.toFixed(2)
-          },
-          description: 'Pedido Wooden House'
-        }]
-      });
-    },
-    onApprove: async function(data, actions) {
-      const order = await actions.order.capture();
+    style: { layout: 'vertical', color: 'gold', shape: 'rect', label: 'paypal' },
 
-      // Registrar pago exitoso
-      await registerPayment({
-        method: 'paypal',
-        transaction_id: order.id,
-        amount: orderData.total,
-        status: 'completed',
-        order_data: orderData,
-        paypal_data: order
+    createOrder: async (data, actions) => {
+      // Crear pedido en BD si no existe
+      if (!pedidoCreado) {
+        pedidoCreado = await crearPedidoEnBD();
+        if (!pedidoCreado) throw new Error('No se pudo crear el pedido');
+      }
+      // Crear orden PayPal en backend
+      const res  = await fetch(`${API_BASE}/pagos.php?action=paypal_orden`, {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ pedido_id: pedidoCreado.pedido_id }),
       });
-
-      // Limpiar carrito y redirigir
-      localStorage.removeItem('carrito');
-      window.location.href = 'confirmacion.html?payment=' + order.id;
+      const data = await res.json();
+      if (!data.success) throw new Error(data.error || 'Error PayPal');
+      return data.order_id;
     },
-    onError: function(err) {
-      console.error('Error PayPal:', err);
-      alert('Error al procesar el pago con PayPal. Intenta nuevamente.');
-    }
+
+    onApprove: async (data, actions) => {
+      try {
+        const res  = await fetch(`${API_BASE}/pagos.php?action=paypal_capturar`, {
+          method:  'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body:    JSON.stringify({ order_id: data.orderID, pedido_id: pedidoCreado?.pedido_id }),
+        });
+        const result = await res.json();
+        if (result.success) {
+          irAConfirmacion();
+        } else {
+          throw new Error(result.error || 'Error al capturar pago PayPal');
+        }
+      } catch (err) {
+        showError(err.message || 'Error en el pago PayPal');
+      }
+    },
+
+    onError: (err) => {
+      console.error('PayPal error:', err);
+      showError('Error en PayPal. Por favor intenta nuevamente.');
+    },
+
+    onCancel: () => {
+      showError('Pago cancelado. Puedes intentarlo nuevamente.', 'warning');
+    },
+
   }).render('#paypal-button-container');
 }
 
-// ================================================
-// REGISTRAR PAGO EN BASE DE DATOS
-// ================================================
-async function registerPayment(paymentData) {
+// ============================================================
+// CREAR PEDIDO EN BD
+// ============================================================
+async function crearPedidoEnBD() {
+  if (!orderData) return null;
+
+  const clienteData = JSON.parse(localStorage.getItem('wh_cliente') || '{}');
+  if (!clienteData.nombre || !clienteData.correo) {
+    showError('Faltan datos del cliente. Regresa al carrito.');
+    return null;
+  }
+
   try {
-    const response = await fetch(`${API_URL}/pagos/registrar.php`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(paymentData)
+    const body = {
+      nombre_cliente:     clienteData.nombre,
+      correo_cliente:     clienteData.correo,
+      telefono_cliente:   clienteData.telefono || '',
+      tipo_entrega:       orderData.deliveryData.tipo || 'sucursal',
+      direccion_envio:    orderData.deliveryData.direccion || '',
+      incluye_instalacion: !!orderData.deliveryData.instalacion,
+      items:              orderData.carrito.map(i => ({ producto_id: i.id, cantidad: i.cantidad })),
+      descuento:          orderData.descuento || 0,
+    };
+
+    const res  = await fetch(`${API_BASE}/pedidos.php`, {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify(body),
     });
+    const data = await res.json();
 
-    const result = await response.json();
-    
-    if (!result.success) {
-      console.error('Error al registrar pago:', result.error);
-    }
+    if (!data.success) throw new Error(data.error || 'Error creando pedido');
 
-    return result;
+    // Guardar datos del pedido creado
+    localStorage.setItem('wh_pedido_creado', JSON.stringify(data));
+    return data;
 
-  } catch (error) {
-    console.error('Error al registrar pago:', error);
+  } catch (err) {
+    console.error('Error creando pedido:', err);
+    showError('Error al registrar pedido: ' + err.message);
+    return null;
   }
 }
 
-// ================================================
-// CÓDIGOS PROMOCIONALES
-// ================================================
-function applyPromoCode() {
-  const code = document.getElementById('promoCode').value.trim().toUpperCase();
+// ============================================================
+// MÉTODOS DE PAGO - TOGGLE
+// ============================================================
+function initMetodosPago() {
+  document.querySelectorAll('.payment-option').forEach(opt => {
+    opt.addEventListener('click', () => {
+      document.querySelectorAll('.payment-option').forEach(o => o.classList.remove('selected'));
+      opt.classList.add('selected');
+      metodoPago = opt.dataset.method;
 
-  const promoCodes = {
-    'WOODEN10': 0.10,      // 10% descuento
-    'BIENVENIDO': 0.05     // 5% descuento
-  };
+      document.getElementById('stripe-section').style.display = metodoPago === 'card' ? 'block' : 'none';
+      document.getElementById('paypal-section').style.display = metodoPago === 'paypal' ? 'block' : 'none';
+    });
+  });
+}
 
-  if (promoCodes[code]) {
-    const discountPercent = promoCodes[code];
-    const discount = orderData.subtotal * discountPercent;
-    
-    // Actualizar total
-    orderData.discount = discount;
-    orderData.total = orderData.subtotal + orderData.shipping + orderData.installation - discount;
+// ============================================================
+// CONFIRMACIÓN
+// ============================================================
+function irAConfirmacion() {
+  const pedido = JSON.parse(localStorage.getItem('wh_pedido_creado') || 'null') || pedidoCreado;
+  // Limpiar carrito
+  localStorage.removeItem('wh_carrito');
+  localStorage.removeItem('wh_delivery');
+  localStorage.removeItem('wh_cliente');
+  localStorage.removeItem('wh_descuento');
 
-    // Actualizar UI
-    document.getElementById('discountLine').style.display = 'flex';
-    document.getElementById('discountDisplay').textContent = '-$' + discount.toFixed(2);
-    document.getElementById('totalDisplay').textContent = '$' + orderData.total.toFixed(2);
-
-    // Guardar en localStorage
-    localStorage.setItem('discount', discount);
-
-    alert(`✅ Código "${code}" aplicado! Descuento de ${(discountPercent * 100)}%`);
+  // Redirigir a solicitudes con token de seguimiento
+  if (pedido?.token_seguimiento) {
+    window.location.href = `solicitudes.php?token=${pedido.token_seguimiento}&pedido=${pedido.numero_pedido}`;
   } else {
-    alert('❌ Código promocional inválido');
+    window.location.href = '/solicitudes?pago=exitoso';
   }
 }
 
-console.log('✅ pago.js cargado correctamente');
+// ============================================================
+// HELPERS
+// ============================================================
+function setText(id, html) {
+  const el = document.getElementById(id);
+  if (el) el.innerHTML = html;
+}
+
+function formatCurrency(n) {
+  return new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(Number(n || 0));
+}
+
+function showError(msg, type = 'error') {
+  const errEl = document.getElementById('card-errors');
+  if (errEl) { errEl.textContent = msg; return; }
+  alert(msg);
+}
+
+// ── Menú hamburguesa ─────────────────────────────────────────────
+function initMenuHamburguesa() {
+  const menuToggle = document.getElementById("menuToggle");
+  const navLinks   = document.getElementById("navLinks");
+  if (!menuToggle || !navLinks) return;
+
+  menuToggle.addEventListener("click", function (e) {
+    e.preventDefault();
+    e.stopPropagation();
+    navLinks.classList.toggle("open");
+    const isOpen = navLinks.classList.contains("open");
+    menuToggle.setAttribute("aria-expanded", isOpen);
+  });
+
+  // Cerrar al hacer click fuera
+  document.addEventListener("click", function (e) {
+    if (!menuToggle.contains(e.target) && !navLinks.contains(e.target)) {
+      navLinks.classList.remove("open");
+      menuToggle.setAttribute("aria-expanded", "false");
+    }
+  });
+}
+

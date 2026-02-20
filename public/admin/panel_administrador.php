@@ -1,3 +1,21 @@
+<?php
+// ── Guardia de autenticación server-side ─────────────────────────
+// Si el usuario no tiene sesión PHP válida, redirigir al login
+// Esto se hace ANTES de servir cualquier HTML
+require_once dirname(__DIR__, 2) . "/includes/config.php";
+require_once dirname(__DIR__, 2) . "/includes/db.php";
+require_once dirname(__DIR__, 2) . "/includes/functions.php";
+require_once dirname(__DIR__, 2) . "/includes/auth.php";
+
+$_usuario = sesionActiva();
+if (!$_usuario || $_usuario["rol"] !== "administrador") {
+    header("Location: /public/login.php?redirect=admin&error=sesion");
+    exit;
+}
+// No exponer datos de sesión en el HTML
+unset($_usuario);
+?>
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -7,19 +25,20 @@
 
   
   <link rel="stylesheet" href="../assets/css/panel_administrador.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 </head>
 
 <body>
   <div class="header">
     <div class="header-left">
-      <button class="menu-toggle" id="menuToggle" aria-label="Abrir menú" aria-expanded="false">☰</button>
+      <button class="menu-toggle" id="menuToggle" aria-label="Abrir menú" aria-expanded="false"><i class="fa-solid fa-bars"></i></button>
       <div class="logo">WOODEN HOUSE</div>
     </div>
 
     <div class="user-info">
       <div class="user-avatar">AD</div>
       <span>Administrador</span>
-      <button class="logout-btn" onclick="logout()">Salir</button>
+      <button class="logout-btn" onclick="logoutAdmin()">Salir</button>
     </div>
   </div>
 
@@ -30,34 +49,34 @@
       <button class="nav-close" id="navClose" aria-label="Cerrar menú">×</button>
     </div>
 
-    <a href="#" data-section="dashboard" class="active" onclick="showSection('dashboard', event)"><span class="icon">📊</span> Dashboard</a>
+    <a href="#" data-section="dashboard" class="active" onclick="showSection('dashboard', event)"><span class="icon"><i class="fa-solid fa-chart-bar"></i></span> Dashboard</a>
 
-    <a href="#" data-section="pedidos" onclick="showSection('pedidos', event)"><span class="icon">📦</span> Todos los Pedidos</a>
-    <a href="#" data-section="citas" onclick="showSection('citas', event)"><span class="icon">📅</span> Calendario de Citas</a>
-    <a href="#" data-section="cotizaciones" onclick="showSection('cotizaciones', event)"><span class="icon">💼</span> Cotizaciones</a>
+    <a href="#" data-section="pedidos" onclick="showSection('pedidos', event)"><span class="icon"><i class="fa-solid fa-box"></i></span> Todos los Pedidos</a>
+    <a href="#" data-section="citas" onclick="showSection('citas', event)"><span class="icon"><i class="fa-solid fa-calendar-days"></i></span> Calendario de Citas</a>
+    <a href="#" data-section="cotizaciones" onclick="showSection('cotizaciones', event)"><span class="icon"><i class="fa-solid fa-briefcase"></i></span> Cotizaciones</a>
 
-    <a href="#" data-section="catalogo" onclick="showSection('catalogo', event)"><span class="icon">⚙️</span> Gestionar Catálogo</a>
-    <a href="#" data-section="empleados" onclick="showSection('empleados', event)"><span class="icon">👨‍💼</span> Gestionar Empleados</a>
-    <a href="#" data-section="reportes" onclick="showSection('reportes', event)"><span class="icon">📊</span> Reportes Avanzados</a>
-    <a href="#" data-section="financiero" onclick="showSection('financiero', event)"><span class="icon">💰</span> Análisis Financiero</a>
+    <a href="#" data-section="catalogo" onclick="showSection('catalogo', event)"><span class="icon"><i class="fa-solid fa-gear"></i></span> Gestionar Catálogo</a>
+    <a href="#" data-section="empleados" onclick="showSection('empleados', event)"><span class="icon"><i class="fa-solid fa-briefcase"></i></span> Gestionar Empleados</a>
+    <a href="#" data-section="reportes" onclick="showSection('reportes', event)"><span class="icon"><i class="fa-solid fa-chart-bar"></i></span> Reportes Avanzados</a>
+    <a href="#" data-section="financiero" onclick="showSection('financiero', event)"><span class="icon"><i class="fa-solid fa-tag"></i></span> Análisis Financiero</a>
   </div>
 
   <div class="container">
     <aside class="sidebar">
       <div class="sidebar-item active" onclick="showSection('dashboard', event)">
-        <span class="icon">📊</span><span>Dashboard</span>
+        <span class="icon"><i class="fa-solid fa-chart-bar"></i></span><span>Dashboard</span>
       </div>
 
       <div class="sidebar-section">GESTIÓN</div>
-      <div class="sidebar-item" onclick="showSection('pedidos', event)"><span class="icon">📦</span><span>Todos los Pedidos</span></div>
-      <div class="sidebar-item" onclick="showSection('citas', event)"><span class="icon">📅</span><span>Calendario de Citas</span></div>
-      <div class="sidebar-item" onclick="showSection('cotizaciones', event)"><span class="icon">💼</span><span>Cotizaciones</span></div>
+      <div class="sidebar-item" onclick="showSection('pedidos', event)"><span class="icon"><i class="fa-solid fa-box"></i></span><span>Todos los Pedidos</span></div>
+      <div class="sidebar-item" onclick="showSection('citas', event)"><span class="icon"><i class="fa-solid fa-calendar-days"></i></span><span>Calendario de Citas</span></div>
+      <div class="sidebar-item" onclick="showSection('cotizaciones', event)"><span class="icon"><i class="fa-solid fa-briefcase"></i></span><span>Cotizaciones</span></div>
 
       <div class="sidebar-section">ADMIN</div>
-      <div class="sidebar-item" onclick="showSection('catalogo', event)"><span class="icon">⚙️</span><span>Gestionar Catálogo</span></div>
-      <div class="sidebar-item" onclick="showSection('empleados', event)"><span class="icon">👨‍💼</span><span>Gestionar Empleados</span></div>
-      <div class="sidebar-item" onclick="showSection('reportes', event)"><span class="icon">📊</span><span>Reportes Avanzados</span></div>
-      <div class="sidebar-item" onclick="showSection('financiero', event)"><span class="icon">💰</span><span>Análisis Financiero</span></div>
+      <div class="sidebar-item" onclick="showSection('catalogo', event)"><span class="icon"><i class="fa-solid fa-gear"></i></span><span>Gestionar Catálogo</span></div>
+      <div class="sidebar-item" onclick="showSection('empleados', event)"><span class="icon"><i class="fa-solid fa-briefcase"></i></span><span>Gestionar Empleados</span></div>
+      <div class="sidebar-item" onclick="showSection('reportes', event)"><span class="icon"><i class="fa-solid fa-chart-bar"></i></span><span>Reportes Avanzados</span></div>
+      <div class="sidebar-item" onclick="showSection('financiero', event)"><span class="icon"><i class="fa-solid fa-tag"></i></span><span>Análisis Financiero</span></div>
     </aside>
 
     <main class="main-content">
@@ -114,22 +133,22 @@
           <div class="section-header"><h2 class="section-title">Acciones Rápidas</h2></div>
           <div class="actions-grid">
             <div class="action-card" onclick="showSection('catalogo', event)">
-              <div class="action-icon">📦</div>
+              <div class="action-icon"><i class="fa-solid fa-box"></i></div>
               <div class="action-title">Gestionar Catálogo</div>
               <div class="action-subtitle">Productos y servicios</div>
             </div>
             <div class="action-card" onclick="showSection('pedidos', event)">
-              <div class="action-icon">🛒</div>
+              <div class="action-icon"><i class="fa-solid fa-cart-shopping"></i></div>
               <div class="action-title">Ver Pedidos</div>
               <div class="action-subtitle">Control total</div>
             </div>
             <div class="action-card" onclick="showSection('empleados', event)">
-              <div class="action-icon">👥</div>
+              <div class="action-icon"><i class="fa-solid fa-users"></i></div>
               <div class="action-title">Empleados</div>
               <div class="action-subtitle">Usuarios y permisos</div>
             </div>
             <div class="action-card" onclick="showSection('reportes', event)">
-              <div class="action-icon">📊</div>
+              <div class="action-icon"><i class="fa-solid fa-chart-bar"></i></div>
               <div class="action-title">Reportes</div>
               <div class="action-subtitle">Exportar datos</div>
             </div>
@@ -138,8 +157,8 @@
 
         <div class="section">
           <div class="section-header"><h2 class="section-title">Actividad Reciente</h2></div>
-          <p style="color:var(--muted); font-size:13px;">📋 Cambios en catálogo guardados - (simulado)</p>
-          <p style="color:var(--muted); font-size:13px; margin-top:8px;">💾 Respaldo automático completado - (simulado)</p>
+          <p style="color:var(--muted); font-size:13px;"><i class="fa-solid fa-clipboard-list"></i> Cambios en catálogo guardados - (simulado)</p>
+          <p style="color:var(--muted); font-size:13px; margin-top:8px;"><i class="fa-solid fa-floppy-disk"></i> Respaldo automático completado - (simulado)</p>
         </div>
       </div>
 
@@ -184,7 +203,7 @@
                     <td>
                       <button class="btn btn-secondary btn-small" onclick="showNotification('Ver pedido #001 (demo)', 'info')">Ver</button>
                       <button class="btn btn-secondary btn-small" onclick="showNotification('Actualizar pedido #001 (demo)', 'info')">Actualizar</button>
-                      <button class="btn btn-danger btn-small" onclick="confirmDelete('pedido-001')">🗑️</button>
+                      <button class="btn btn-danger btn-small" onclick="confirmDelete('pedido-001')"><i class="fa-solid fa-trash"></i></button>
                     </td>
                   </tr>
                   <tr data-status="progress">
@@ -197,7 +216,7 @@
                     <td>
                       <button class="btn btn-secondary btn-small" onclick="showNotification('Ver pedido #002 (demo)', 'info')">Ver</button>
                       <button class="btn btn-secondary btn-small" onclick="showNotification('Actualizar pedido #002 (demo)', 'info')">Actualizar</button>
-                      <button class="btn btn-danger btn-small" onclick="confirmDelete('pedido-002')">🗑️</button>
+                      <button class="btn btn-danger btn-small" onclick="confirmDelete('pedido-002')"><i class="fa-solid fa-trash"></i></button>
                     </td>
                   </tr>
                   <tr data-status="completed">
@@ -210,7 +229,7 @@
                     <td>
                       <button class="btn btn-secondary btn-small" onclick="showNotification('Ver pedido #003 (demo)', 'info')">Ver</button>
                       <button class="btn btn-secondary btn-small" onclick="showNotification('Actualizar pedido #003 (demo)', 'info')">Actualizar</button>
-                      <button class="btn btn-danger btn-small" onclick="confirmDelete('pedido-003')">🗑️</button>
+                      <button class="btn btn-danger btn-small" onclick="confirmDelete('pedido-003')"><i class="fa-solid fa-trash"></i></button>
                     </td>
                   </tr>
                 </tbody>
@@ -230,8 +249,8 @@
           <div class="section-header">
             <h2 class="section-title">Agenda</h2>
             <div style="display:flex; gap:8px; flex-wrap:wrap;">
-              <button class="btn btn-secondary" onclick="prevMonth()">◀</button>
-              <button class="btn btn-secondary" onclick="nextMonth()">▶</button>
+              <button class="btn btn-secondary" onclick="prevMonth()"><i class="fa-solid fa-chevron-left"></i></button>
+              <button class="btn btn-secondary" onclick="nextMonth()"><i class="fa-solid fa-chevron-right"></i></button>
             </div>
           </div>
 
@@ -278,16 +297,16 @@
                       <td>Ana Martínez</td><td>Juan Pérez</td><td>05/02/26</td><td>10:00 AM</td><td>Instalación</td>
                       <td><span class="status-badge status-completed">Confirmada</span></td>
                       <td>
-                        <button class="btn btn-secondary btn-small" onclick="showNotification('Editar cita (demo)', 'info')">✏️</button>
-                        <button class="btn btn-danger btn-small" onclick="confirmDelete('cita-001')">🗑️</button>
+                        <button class="btn btn-secondary btn-small" onclick="showNotification('Editar cita (demo)', 'info')"><i class="fa-solid fa-pen"></i></button>
+                        <button class="btn btn-danger btn-small" onclick="confirmDelete('cita-001')"><i class="fa-solid fa-trash"></i></button>
                       </td>
                     </tr>
                     <tr>
                       <td>Pedro Sánchez</td><td>María García</td><td>06/02/26</td><td>2:00 PM</td><td>Cotización</td>
                       <td><span class="status-badge status-pending">Pendiente</span></td>
                       <td>
-                        <button class="btn btn-secondary btn-small" onclick="showNotification('Editar cita (demo)', 'info')">✏️</button>
-                        <button class="btn btn-danger btn-small" onclick="confirmDelete('cita-002')">🗑️</button>
+                        <button class="btn btn-secondary btn-small" onclick="showNotification('Editar cita (demo)', 'info')"><i class="fa-solid fa-pen"></i></button>
+                        <button class="btn btn-danger btn-small" onclick="confirmDelete('cita-002')"><i class="fa-solid fa-trash"></i></button>
                       </td>
                     </tr>
                   </tbody>
@@ -327,7 +346,7 @@
                     <td>
                       <button class="btn btn-secondary btn-small" onclick="showNotification('Ver cotización (demo)', 'info')">Ver</button>
                       <button class="btn btn-secondary btn-small" onclick="showNotification('Actualizar cotización (demo)', 'info')">Actualizar</button>
-                      <button class="btn btn-danger btn-small" onclick="confirmDelete('cot-045')">🗑️</button>
+                      <button class="btn btn-danger btn-small" onclick="confirmDelete('cot-045')"><i class="fa-solid fa-trash"></i></button>
                     </td>
                   </tr>
                   <tr>
@@ -339,7 +358,7 @@
                     <td>
                       <button class="btn btn-secondary btn-small" onclick="showNotification('Ver cotización (demo)', 'info')">Ver</button>
                       <button class="btn btn-secondary btn-small" onclick="showNotification('Actualizar cotización (demo)', 'info')">Actualizar</button>
-                      <button class="btn btn-danger btn-small" onclick="confirmDelete('cot-046')">🗑️</button>
+                      <button class="btn btn-danger btn-small" onclick="confirmDelete('cot-046')"><i class="fa-solid fa-trash"></i></button>
                     </td>
                   </tr>
                 </tbody>
@@ -427,16 +446,16 @@
                     <td>#E001</td><td>Juan Pérez</td><td>Empleado</td><td>Ventas</td><td>juan.perez@woodenhouse.com</td>
                     <td><span class="status-badge status-completed">Activo</span></td>
                     <td>
-                      <button class="btn btn-secondary btn-small" onclick="showNotification('Editar empleado (demo)', 'info')">✏️</button>
-                      <button class="btn btn-danger btn-small" onclick="showNotification('Bloquear empleado (demo)', 'info')">🔒</button>
+                      <button class="btn btn-secondary btn-small" onclick="showNotification('Editar empleado (demo)', 'info')"><i class="fa-solid fa-pen"></i></button>
+                      <button class="btn btn-danger btn-small" onclick="showNotification('Bloquear empleado (demo)', 'info')"><i class="fa-solid fa-lock"></i></button>
                     </td>
                   </tr>
                   <tr>
                     <td>#E002</td><td>María García</td><td>Empleada</td><td>Logística</td><td>maria.garcia@woodenhouse.com</td>
                     <td><span class="status-badge status-completed">Activo</span></td>
                     <td>
-                      <button class="btn btn-secondary btn-small" onclick="showNotification('Editar empleado (demo)', 'info')">✏️</button>
-                      <button class="btn btn-danger btn-small" onclick="showNotification('Bloquear empleado (demo)', 'info')">🔒</button>
+                      <button class="btn btn-secondary btn-small" onclick="showNotification('Editar empleado (demo)', 'info')"><i class="fa-solid fa-pen"></i></button>
+                      <button class="btn btn-danger btn-small" onclick="showNotification('Bloquear empleado (demo)', 'info')"><i class="fa-solid fa-lock"></i></button>
                     </td>
                   </tr>
                 </tbody>
@@ -711,7 +730,7 @@
             <label class="form-label">Contraseña</label>
             <input type="password" class="form-input">
           </div>
-          <button class="btn btn-primary" style="width:100%;" onclick="closeModal('nuevoEmpleado'); showNotification('✓ Empleado registrado (demo)', 'success');">Crear</button>
+          <button class="btn btn-primary" style="width:100%;" onclick="closeModal('nuevoEmpleado'); showNotification('<i class=&quot;fa-solid fa-check&quot;></i> Empleado registrado (demo)', 'success');">Crear</button>
         </div>
       </div>
 
@@ -719,6 +738,11 @@
   </div>
 
   
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+  <script src="../assets/js/firebase-config.js"></script>
   <script src="../assets/js/panel_administrador.js"></script>
 </body>
 </html>

@@ -5,8 +5,9 @@ let carritoTotal = 0;
  * Inicializar página del carrito
  */
 document.addEventListener('DOMContentLoaded', () => {
-  console.log('🛒 Carrito de Compras Iniciado');
+  console.log('[CARRITO] Carrito de Compras Iniciado');
   
+  initMenuHamburguesa();
   cargarCarrito();
   renderizarCarrito();
   actualizarResumen();
@@ -22,7 +23,7 @@ document.addEventListener('DOMContentLoaded', () => {
   
   if (btnContinuar) {
     btnContinuar.addEventListener('click', () => {
-      window.location.href = 'catalogo.html';
+      window.location.href = '/catalogo';
     });
   }
   
@@ -76,10 +77,10 @@ function renderizarCarrito() {
   if (carritoItems.length === 0) {
     container.innerHTML = `
       <div class="carrito-vacio">
-        <div class="empty-cart-icon">🛒</div>
+        <div class="empty-cart-icon"><i class="fa-solid fa-cart-shopping"></i></div>
         <h3>Tu carrito está vacío</h3>
         <p>Agrega productos desde nuestro catálogo</p>
-        <a href="catalogo.html" class="btn-primary">Ver Catálogo</a>
+        <a href="/catalogo" class="btn-primary">Ver Catálogo</a>
       </div>
     `;
     
@@ -99,7 +100,7 @@ function renderizarCarrito() {
       <div class="item-imagen">
         ${item.imagen 
           ? `<img src="${item.imagen}" alt="${item.nombre}">`
-          : '<div class="placeholder-imagen">📦</div>'
+          : '<div class="placeholder-imagen"><i class="fa-solid fa-box"></i></div>'
         }
       </div>
       
@@ -126,7 +127,7 @@ function renderizarCarrito() {
       </div>
       
       <button class="btn-eliminar" onclick="eliminarItem(${item.id})" title="Eliminar">
-        🗑️
+        <i class="fa-solid fa-trash"></i>
       </button>
     </div>
   `).join('');
@@ -160,7 +161,7 @@ function actualizarResumen() {
     const mensajeEnvio = document.getElementById('mensaje-envio');
     if (mensajeEnvio) {
       mensajeEnvio.innerHTML = `
-        💡 Agrega ${formatCurrency(faltante)} más para obtener <strong>envío GRATIS</strong>
+        <i class="fa-solid fa-lightbulb"></i> Agrega ${formatCurrency(faltante)} más para obtener <strong>envío GRATIS</strong>
       `;
       mensajeEnvio.style.display = 'block';
     }
@@ -168,7 +169,7 @@ function actualizarResumen() {
     const mensajeEnvio = document.getElementById('mensaje-envio');
     if (mensajeEnvio) {
       mensajeEnvio.innerHTML = `
-        ✅ ¡Felicidades! Tienes <strong>envío GRATIS</strong>
+        <i class="fa-solid fa-circle-check"></i> ¡Felicidades! Tienes <strong>envío GRATIS</strong>
       `;
       mensajeEnvio.style.display = 'block';
     }
@@ -202,13 +203,13 @@ function actualizarCantidad(productoId, valor) {
   const cantidad = parseInt(valor);
   
   if (isNaN(cantidad) || cantidad < 1) {
-    showNotification('❌ Cantidad inválida', 'error');
+    showNotification('<i class="fa-solid fa-xmark"></i> Cantidad inválida', 'error');
     renderizarCarrito();
     return;
   }
   
   if (cantidad > 99) {
-    showNotification('❌ Cantidad máxima: 99', 'error');
+    showNotification('<i class="fa-solid fa-xmark"></i> Cantidad máxima: 99', 'error');
     renderizarCarrito();
     return;
   }
@@ -237,7 +238,7 @@ function eliminarItem(productoId) {
     renderizarCarrito();
     actualizarResumen();
     
-    showNotification('🗑️ Producto eliminado', 'info');
+    showNotification('<i class="fa-solid fa-trash"></i> Producto eliminado', 'info');
   }
 }
 
@@ -246,7 +247,7 @@ function eliminarItem(productoId) {
  */
 function confirmarVaciarCarrito() {
   if (carritoItems.length === 0) {
-    showNotification('ℹ️ El carrito ya está vacío', 'info');
+    showNotification('[INFO] El carrito ya está vacío', 'info');
     return;
   }
   
@@ -256,7 +257,7 @@ function confirmarVaciarCarrito() {
     renderizarCarrito();
     actualizarResumen();
     
-    showNotification('🗑️ Carrito vaciado', 'success');
+    showNotification('<i class="fa-solid fa-trash"></i> Carrito vaciado', 'success');
   }
 }
 
@@ -265,7 +266,7 @@ function confirmarVaciarCarrito() {
  */
 async function procederAlPago() {
   if (carritoItems.length === 0) {
-    showNotification('❌ El carrito está vacío', 'error');
+    showNotification('<i class="fa-solid fa-xmark"></i> El carrito está vacío', 'error');
     return;
   }
   
@@ -282,12 +283,12 @@ async function procederAlPago() {
     hideLoader();
     
     // Redirigir a checkout
-    window.location.href = 'pago.html';
+    window.location.href = '/pago';
     
   } catch (error) {
     hideLoader();
     console.error('Error:', error);
-    showNotification('❌ Error al procesar. Intenta nuevamente.', 'error');
+    showNotification('<i class="fa-solid fa-xmark"></i> Error al procesar. Intenta nuevamente.', 'error');
   }
 }
 
@@ -314,4 +315,28 @@ window.actualizarCantidad = actualizarCantidad;
 window.eliminarItem = eliminarItem;
 window.obtenerDatosCarrito = obtenerDatosCarrito;
 
-console.log('✅ Carrito.js cargado');
+console.log('[OK] Carrito.js cargado');
+
+// ── Menú hamburguesa ─────────────────────────────────────────────
+function initMenuHamburguesa() {
+  const menuToggle = document.getElementById("menuToggle");
+  const navLinks   = document.getElementById("navLinks");
+  if (!menuToggle || !navLinks) return;
+
+  menuToggle.addEventListener("click", function (e) {
+    e.preventDefault();
+    e.stopPropagation();
+    navLinks.classList.toggle("open");
+    const isOpen = navLinks.classList.contains("open");
+    menuToggle.setAttribute("aria-expanded", isOpen);
+  });
+
+  // Cerrar al hacer click fuera
+  document.addEventListener("click", function (e) {
+    if (!menuToggle.contains(e.target) && !navLinks.contains(e.target)) {
+      navLinks.classList.remove("open");
+      menuToggle.setAttribute("aria-expanded", "false");
+    }
+  });
+}
+

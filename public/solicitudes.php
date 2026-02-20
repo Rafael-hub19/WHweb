@@ -6,6 +6,7 @@
   <title>Solicitudes - Wooden House</title>
   
   <link rel="stylesheet" href="./assets/css/solicitudes.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 </head>
 <body>
 
@@ -13,19 +14,19 @@
   <div class="header-nav">
     <div class="logo">WOODEN HOUSE</div>
 
-    <button class="menu-toggle" id="menuToggle" aria-label="Abrir menú" aria-expanded="false">☰</button>
+    <button class="menu-toggle" id="menuToggle" aria-label="Abrir menú" aria-expanded="false"><i class="fa-solid fa-bars"></i></button>
 
     <div class="nav-links" id="navLinks">
-      <a href="index.html">Inicio</a>
-      <a href="catalogo.html">Catálogo</a>
-      <a href="carrito.html" class="cart-icon" aria-label="Ver carrito">
-        🛒 <span class="cart-badge" id="cartCount">0</span>
+      <a href="/inicio">Inicio</a>
+      <a href="/catalogo">Catálogo</a>
+      <a href="/carrito" class="cart-icon" aria-label="Ver carrito">
+        <i class="fa-solid fa-cart-shopping"></i> <span class="cart-badge" id="cartCount">0</span>
       </a>
     </div>
   </div>
 
   <div class="container">
-    <h1 class="page-title">📋 Centro de Solicitudes</h1>
+    <h1 class="page-title"><i class="fa-solid fa-clipboard-list"></i> Centro de Solicitudes</h1>
     <p class="page-subtitle">
       Solicita asesoría y cotización personalizada o agenda una visita técnica para medición de tu proyecto
     </p>
@@ -36,15 +37,15 @@
     <!-- Tab Navigation -->
     <div class="tab-navigation">
       <button class="tab-btn active" data-tab="cotizacion">
-        <span class="tab-icon">💰</span>
+        <span class="tab-icon"><i class="fa-solid fa-tag"></i></span>
         <span>Cotización</span>
       </button>
       <button class="tab-btn" data-tab="cita">
-        <span class="tab-icon">📅</span>
+        <span class="tab-icon"><i class="fa-solid fa-calendar-days"></i></span>
         <span>Agendar Cita</span>
       </button>
       <button class="tab-btn" data-tab="seguimiento">
-        <span class="tab-icon">🔍</span>
+        <span class="tab-icon"><i class="fa-solid fa-magnifying-glass"></i></span>
         <span>Seguimiento</span>
       </button>
     </div>
@@ -52,7 +53,7 @@
     <!-- TAB 1: COTIZACIÓN -->
     <div id="tab-cotizacion" class="tab-content active">
       <div class="info-box">
-        <h4>🎯 ¿Qué incluye nuestra asesoría de cotización?</h4>
+        <h4><i class="fa-solid fa-bullseye"></i> ¿Qué incluye nuestra asesoría de cotización?</h4>
         <p>Si ya tienes las medidas y una idea clara de lo que necesitas, podemos ayudarte con:</p>
         <ul>
           <li>Asesoría profesional sobre materiales y acabados ideales</li>
@@ -66,7 +67,7 @@
 
       <form id="formCotizacion">
         <div class="form-section">
-          <h3 class="section-title">📞 Información de Contacto</h3>
+          <h3 class="section-title"><i class="fa-solid fa-phone"></i> Información de Contacto</h3>
           <div class="form-grid">
             <div class="form-group full-width">
               <label>Nombre Completo <span class="required">*</span></label>
@@ -91,7 +92,7 @@
         </div>
 
         <div class="form-section">
-          <h3 class="section-title">📐 Especificaciones del Proyecto</h3>
+          <h3 class="section-title"><i class="fa-solid fa-ruler-combined"></i> Especificaciones del Proyecto</h3>
           <div class="form-grid">
             <div class="form-group">
               <label>Tipo de Mueble <span class="required">*</span></label>
@@ -178,18 +179,18 @@
         </div>
 
         <div class="info-box success">
-          <h4>✅ Asesoría personalizada en 24 horas</h4>
+          <h4><i class="fa-solid fa-circle-check"></i> Asesoría personalizada en 24 horas</h4>
           <p>Revisaremos tu solicitud y nos pondremos en contacto contigo dentro de las próximas 24 horas con una cotización personalizada.</p>
         </div>
 
-        <button type="submit" class="btn-submit">📋 Solicitar Asesoría y Cotización</button>
+        <button type="submit" class="btn-submit"><i class="fa-solid fa-clipboard-list"></i> Solicitar Asesoría y Cotización</button>
       </form>
     </div>
 
     <!-- TAB 2: AGENDAR CITA -->
     <div id="tab-cita" class="tab-content">
       <div class="info-box">
-        <h4>🏗️ Visita Técnica Profesional</h4>
+        <h4><i class="fa-solid fa-building-construction"></i> Visita Técnica Profesional</h4>
         <p>Agenda una visita de nuestros expertos a tu domicilio para:</p>
         <ul>
           <li>Toma de medidas exactas y profesionales en el lugar</li>
@@ -203,7 +204,7 @@
 
       <form id="formCita">
         <div class="form-section">
-          <h3 class="section-title">👤 Información de Contacto</h3>
+          <h3 class="section-title"><i class="fa-solid fa-user"></i> Información de Contacto</h3>
           <div class="form-grid">
             <div class="form-group">
               <label>Nombre Completo <span class="required">*</span></label>
@@ -227,7 +228,7 @@
         </div>
 
         <div class="form-section">
-          <h3 class="section-title">📅 Fecha y Hora</h3>
+          <h3 class="section-title"><i class="fa-solid fa-calendar-days"></i> Fecha y Hora</h3>
           <div class="form-grid">
             <div class="form-group">
               <label>Fecha Preferida <span class="required">*</span></label>
@@ -252,23 +253,23 @@
         </div>
 
         <div class="info-box success">
-          <h4>✅ Confirmación y Preparación</h4>
+          <h4><i class="fa-solid fa-circle-check"></i> Confirmación y Preparación</h4>
           <p>Recibirás confirmación inmediata por WhatsApp y correo.</p>
         </div>
 
         <div class="info-box warning">
-          <h4>📋 Después de la Visita</h4>
+          <h4><i class="fa-solid fa-clipboard-list"></i> Después de la Visita</h4>
           <p>En 2-3 días hábiles recibirás: cotización, renders 3D, especificaciones, y timeline.</p>
         </div>
 
-        <button type="submit" class="btn-submit">📅 Agendar Visita Técnica</button>
+        <button type="submit" class="btn-submit"><i class="fa-solid fa-calendar-days"></i> Agendar Visita Técnica</button>
       </form>
     </div>
 
     <!-- TAB 3: SEGUIMIENTO -->
     <div id="tab-seguimiento" class="tab-content">
       <div class="tracking-section">
-        <h2 style="color:#8b7355; font-size:28px; margin-bottom:15px;">🔍 Consultar Estado de Solicitud</h2>
+        <h2 style="color:#8b7355; font-size:28px; margin-bottom:15px;"><i class="fa-solid fa-magnifying-glass"></i> Consultar Estado de Solicitud</h2>
         <p style="color:#a0a0a0; margin-bottom:30px;">
           Ingresa tu número de pedido o referencia para ver el estado actual de tu solicitud
         </p>
@@ -279,13 +280,13 @@
         </div>
 
         <div class="info-box">
-          <h4>📌 ¿Dónde encuentro mi número de seguimiento?</h4>
+          <h4><i class="fa-solid fa-thumbtack"></i> ¿Dónde encuentro mi número de seguimiento?</h4>
           <p>Tu número fue enviado por correo y WhatsApp al realizar tu solicitud. Formato: WH-YYYY-NNNNNN</p>
         </div>
 
         <div id="trackingResult" class="tracking-result">
           <div class="form-section">
-            <h3 class="section-title">📦 Información de la Solicitud</h3>
+            <h3 class="section-title"><i class="fa-solid fa-box"></i> Información de la Solicitud</h3>
 
             <div class="form-grid">
               <div class="form-group">
@@ -311,10 +312,10 @@
             </div>
 
             <div class="status-timeline">
-              <h4 style="color:#8b7355; margin-bottom:20px; font-size:20px;">📊 Línea de Tiempo</h4>
+              <h4 style="color:#8b7355; margin-bottom:20px; font-size:20px;"><i class="fa-solid fa-chart-bar"></i> Línea de Tiempo</h4>
 
               <div class="status-item completed">
-                <div class="status-icon">✓</div>
+                <div class="status-icon"><i class="fa-solid fa-check"></i></div>
                 <div class="status-content">
                   <h4>Solicitud Recibida</h4>
                   <p>Tu solicitud ha sido registrada exitosamente</p>
@@ -323,7 +324,7 @@
               </div>
 
               <div class="status-item completed">
-                <div class="status-icon">✓</div>
+                <div class="status-icon"><i class="fa-solid fa-check"></i></div>
                 <div class="status-content">
                   <h4>Revisión Inicial</h4>
                   <p>Nuestro equipo ha revisado los detalles</p>
@@ -332,7 +333,7 @@
               </div>
 
               <div class="status-item current">
-                <div class="status-icon">⏳</div>
+                <div class="status-icon"><i class="fa-solid fa-hourglass-half"></i></div>
                 <div class="status-content">
                   <h4>Preparando Propuesta</h4>
                   <p>Elaborando cotización y renders</p>
@@ -341,7 +342,7 @@
               </div>
 
               <div class="status-item">
-                <div class="status-icon">📧</div>
+                <div class="status-icon"><i class="fa-solid fa-envelope"></i></div>
                 <div class="status-content">
                   <h4>Envío de Cotización</h4>
                   <p>Recibirás la propuesta por correo</p>
@@ -350,7 +351,7 @@
               </div>
 
               <div class="status-item">
-                <div class="status-icon">✨</div>
+                <div class="status-icon"><i class="fa-solid fa-sparkles"></i></div>
                 <div class="status-content">
                   <h4>Listo para Producción</h4>
                   <p>Una vez aprobado, comenzamos fabricación</p>
@@ -360,7 +361,7 @@
             </div>
 
             <div class="info-box success">
-              <h4>💬 ¿Necesitas ayuda?</h4>
+              <h4><i class="fa-solid fa-comments"></i> ¿Necesitas ayuda?</h4>
               <p>
                 Contáctanos por WhatsApp al <strong>33 1234 5678</strong> o por correo a
                 <strong>contacto@woodenhouse.com</strong>

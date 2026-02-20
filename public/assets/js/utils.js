@@ -142,7 +142,7 @@ function showLoader(message = 'Cargando...') {
     color: white;
   `;
   loader.innerHTML = `
-    <div style="font-size: 48px; margin-bottom: 20px;">⏳</div>
+    <div style="font-size: 48px; margin-bottom: 20px; color: #8b7355;"><i class="fa-solid fa-spinner fa-spin"></i></div>
     <div style="font-size: 18px;">${message}</div>
   `;
   document.body.appendChild(loader);
@@ -300,4 +300,4 @@ if (typeof module !== 'undefined' && module.exports) {
   };
 }
 
-console.log('✅ utils.js cargado correctamente');
+console.log('[OK] utils.js cargado correctamente');
