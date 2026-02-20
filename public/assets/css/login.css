@@ -204,9 +204,11 @@
     .divider {
       display: flex;
       align-items: center;
+      justify-content: center;   /* centra contenido */
       margin: 30px 0;
       color: #666;
       font-size: 14px;
+      width: 100%;
     }
 
     .divider::before,
@@ -227,8 +229,14 @@
 
     /* ========== BACK LINK ========== */
     .back-to-site {
+      display: flex;
+      justify-content: center;   /* misma alineación que divider */
+      align-items: center;
+      width: 100%;
+      margin-top: 10px;          /* espacio pequeño entre ambos */
       text-align: center;
-      margin-top: 30px;
+      color: #666;
+      font-size: 14px;
     }
 
     .back-to-site a {
