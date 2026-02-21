@@ -82,6 +82,9 @@ Options -Indexes -ExecCGI
             https://firebasestorage.googleapis.com \
             https://js.stripe.com \
             https://api.stripe.com \
+            https://merchant-ui-api.stripe.com \
+            https://m.stripe.com \
+            https://m.stripe.network \
             https://api-m.sandbox.paypal.com \
             https://api-m.paypal.com \
             https://www.sandbox.paypal.com \
@@ -91,7 +94,10 @@ Options -Indexes -ExecCGI
         frame-src \
             https://js.stripe.com \
             https://hooks.stripe.com \
+            https://m.stripe.com \
+            https://m.stripe.network \
             https://www.paypal.com \
+            https://www.sandbox.paypal.com \
             https://www.google.com \
             https://maps.google.com \
             https://www.google.com/maps; \
