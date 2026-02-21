@@ -84,19 +84,34 @@
             <!-- Instalación -->
             <div class="section-card">
                 <h3 class="section-title"><span class="section-icon"><i class="fa-solid fa-wrench"></i></span> Servicios adicionales</h3>
-                <div class="installation-toggle" id="installationToggle">
-                    <label class="toggle-label">
-                        <input type="checkbox" id="instalacionCheck" onchange="toggleInstalacion()">
+                <div class="delivery-options">
+
+                    <div class="option-card selected" id="optionSinInstalacion" onclick="seleccionarInstalacion(false)">
+                        <input type="radio" name="tipoInstalacion" value="sin_instalacion" checked>
+                        <div class="option-content">
+                            <div class="option-header">
+                                <span class="option-title">Sin instalación</span>
+                                <span class="option-price">GRATIS</span>
+                            </div>
+                            <div class="option-description">
+                                Solo entrega del mueble, tú te encargas de la instalación.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="option-card" id="optionConInstalacion" onclick="seleccionarInstalacion(true)">
+                        <input type="radio" name="tipoInstalacion" value="con_instalacion">
                         <div class="option-content">
                             <div class="option-header">
                                 <span class="option-title">Instalación profesional</span>
                                 <span class="option-price">+ $1,500</span>
                             </div>
                             <div class="option-description">
-                                Instalación por expertos incluye conexión de lavabo y ajustes finales.
+                                Instalación por expertos, incluye conexión de lavabo y ajustes finales.
                             </div>
                         </div>
-                    </label>
+                    </div>
+
                 </div>
             </div>
 
@@ -130,7 +145,7 @@
                 <div class="info-box">
                     <p>
                         <i class="fa-solid fa-lightbulb"></i> <strong>Nota:</strong> La semana seleccionada es el rango de entrega estimado.
-                        Te confirmaremos el día exacto por WhatsApp o correo.
+                        Te confirmaremos el día exacto por correo electrónico.
                     </p>
                 </div>
             </div>
@@ -145,7 +160,7 @@
                     </div>
                     <div class="form-row">
                         <div class="form-group">
-                            <label>Teléfono / WhatsApp <span class="required">*</span></label>
+                            <label>Teléfono de contacto <span class="required">*</span></label>
                             <input type="tel" id="clienteTelefono" placeholder="33 1234 5678" required>
                         </div>
                         <div class="form-group">

@@ -79,7 +79,7 @@
             <div class="form-group">
               <label>Teléfono <span class="required">*</span></label>
               <input type="tel" name="telefono" placeholder="33 1234 5678" required>
-              <div class="help-text">Preferiblemente WhatsApp para enviarte la cotización</div>
+              <div class="help-text">Usaremos este número para contactarte</div>
             </div>
             <div class="form-group">
               <label>Correo Electrónico <span class="required">*</span></label>
@@ -257,7 +257,7 @@
 
         <div class="info-box success">
           <h4><i class="fa-solid fa-circle-check"></i> Confirmación y Preparación</h4>
-          <p>Recibirás confirmación inmediata por WhatsApp y correo.</p>
+          <p>Recibirás confirmación inmediata por correo electrónico.</p>
         </div>
 
         <div class="info-box warning">
@@ -284,7 +284,7 @@
 
         <div class="info-box">
           <h4><i class="fa-solid fa-thumbtack"></i> ¿Dónde encuentro mi número de seguimiento?</h4>
-          <p>Tu número fue enviado por correo y WhatsApp al realizar tu solicitud. Formato: WH-YYYY-NNNNNN</p>
+          <p>Tu número fue enviado a tu correo electrónico al realizar tu solicitud. Formato: WH-YYYY-NNNNNN</p>
         </div>
 
         <div id="trackingResult" class="tracking-result">
@@ -366,7 +366,7 @@
             <div class="info-box success">
               <h4><i class="fa-solid fa-comments"></i> ¿Necesitas ayuda?</h4>
               <p>
-                Contáctanos por WhatsApp al <strong>33 1234 5678</strong> o por correo a
+                Contáctanos por correo a
                 <strong>contacto@woodenhouse.com</strong>
               </p>
             </div>

@@ -154,10 +154,24 @@ function seleccionarEntrega(tipo) {
     actualizarTotales();
 }
 
-function toggleInstalacion() {
-    estado.instalacion = document.getElementById('instalacionCheck')?.checked ?? false;
-    const linea = document.getElementById('lineaInstalacion');
-    if (linea) linea.style.display = estado.instalacion ? '' : 'none';
+function seleccionarInstalacion(conInstalacion) {
+    estado.instalacion = conInstalacion;
+
+    const optSin = document.getElementById('optionSinInstalacion');
+    const optCon = document.getElementById('optionConInstalacion');
+    const linea  = document.getElementById('lineaInstalacion');
+
+    if (conInstalacion) {
+        optSin?.classList.remove('selected');
+        optCon?.classList.add('selected');
+        if (optCon) optCon.querySelector('input').checked = true;
+        if (linea) linea.style.display = '';
+    } else {
+        optCon?.classList.remove('selected');
+        optSin?.classList.add('selected');
+        if (optSin) optSin.querySelector('input').checked = true;
+        if (linea) linea.style.display = 'none';
+    }
     actualizarTotales();
 }
 
@@ -434,7 +448,7 @@ function showToast(msg, tipo = 'info') {
 
 // Exponer para el HTML inline
 window.seleccionarEntrega  = seleccionarEntrega;
-window.toggleInstalacion   = toggleInstalacion;
+window.seleccionarInstalacion = seleccionarInstalacion;
 window.seleccionarSemana   = seleccionarSemana;
 window.procederAlPago      = procederAlPago;
 window.cambiarCantidadItem = cambiarCantidadItem;

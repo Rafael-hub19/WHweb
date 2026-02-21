@@ -1,7 +1,7 @@
 <?php
 /**
- * notifications.php - Notificaciones por email y Firestore
- * Wooden House - Muebles de madera finos
+ * notifications.php - Notificaciones por email (SMTP Brevo) y Firestore
+ * Wooden House
  */
 
 if (!defined('WH_LOADED')) {
@@ -10,45 +10,101 @@ if (!defined('WH_LOADED')) {
 }
 
 // ================================================================
-// EMAIL - Envío con PHP mail() + soporte SMTP básico
+// EMAIL — Envío via SMTP con sockets (sin dependencias externas)
+// Compatible con Brevo, Gmail, cualquier SMTP
 // ================================================================
 
-/**
- * Enviar email HTML
- */
 function enviarEmail(string $to, string $subject, string $bodyHtml, string $bodyText = ''): bool {
+    $host     = SMTP_HOST;
+    $port     = SMTP_PORT;
+    $user     = SMTP_USER;
+    $pass     = SMTP_PASS;
     $from     = EMAIL_FROM;
     $fromName = EMAIL_FROM_NAME;
 
-    $boundary = md5(uniqid());
-    $headers  = implode("\r\n", [
-        "MIME-Version: 1.0",
-        "Content-Type: multipart/alternative; boundary=\"{$boundary}\"",
-        "From: {$fromName} <{$from}>",
-        "Reply-To: {$from}",
-        "X-Mailer: WoodenHouse/1.0",
-    ]);
+    if (empty($host) || empty($user) || empty($pass)) {
+        appLog('error', 'SMTP no configurado', ['to' => $to]);
+        return false;
+    }
 
     if (empty($bodyText)) {
         $bodyText = strip_tags($bodyHtml);
     }
 
-    $message = "--{$boundary}\r\n"
-             . "Content-Type: text/plain; charset=UTF-8\r\n"
-             . "Content-Transfer-Encoding: quoted-printable\r\n\r\n"
-             . quoted_printable_encode($bodyText) . "\r\n\r\n"
-             . "--{$boundary}\r\n"
-             . "Content-Type: text/html; charset=UTF-8\r\n"
-             . "Content-Transfer-Encoding: quoted-printable\r\n\r\n"
-             . quoted_printable_encode($bodyHtml) . "\r\n\r\n"
-             . "--{$boundary}--";
+    $boundary = md5(uniqid('wh_', true));
+    $msgId    = '<' . uniqid('wh') . '@' . (gethostname() ?: 'woodenhouse') . '>';
+    $subjectEncoded = '=?UTF-8?B?' . base64_encode($subject) . '?=';
+    $fromEncoded    = '=?UTF-8?B?' . base64_encode($fromName) . '?= <' . $from . '>';
 
-    $ok = @mail($to, '=?UTF-8?B?' . base64_encode($subject) . '?=', $message, $headers);
+    // Construir el cuerpo MIME
+    $body  = "MIME-Version: 1.0\r\n";
+    $body .= "Content-Type: multipart/alternative; boundary=\"{$boundary}\"\r\n";
+    $body .= "\r\n";
+    $body .= "--{$boundary}\r\n";
+    $body .= "Content-Type: text/plain; charset=UTF-8\r\n";
+    $body .= "Content-Transfer-Encoding: quoted-printable\r\n\r\n";
+    $body .= quoted_printable_encode($bodyText) . "\r\n\r\n";
+    $body .= "--{$boundary}\r\n";
+    $body .= "Content-Type: text/html; charset=UTF-8\r\n";
+    $body .= "Content-Transfer-Encoding: quoted-printable\r\n\r\n";
+    $body .= quoted_printable_encode($bodyHtml) . "\r\n\r\n";
+    $body .= "--{$boundary}--\r\n";
 
-    if (!$ok) {
-        logError("Email failed to {$to}: " . error_get_last()['message'] ?? 'unknown');
+    try {
+        // Conectar al servidor SMTP
+        $socket = fsockopen('tls://' . $host, $port, $errno, $errstr, 10);
+        if (!$socket) {
+            throw new RuntimeException("No se pudo conectar a SMTP: $errstr ($errno)");
+        }
+        stream_set_timeout($socket, 10);
+
+        $read = fgets($socket, 512);
+        if (substr($read, 0, 3) !== '220') {
+            throw new RuntimeException("SMTP saludo inválido: $read");
+        }
+
+        $cmds = [
+            "EHLO " . (gethostname() ?: 'woodenhouse') . "\r\n"  => '250',
+            "AUTH LOGIN\r\n"                                       => '334',
+            base64_encode($user) . "\r\n"                         => '334',
+            base64_encode($pass) . "\r\n"                         => '235',
+            "MAIL FROM:<{$from}>\r\n"                             => '250',
+            "RCPT TO:<{$to}>\r\n"                                 => '250',
+            "DATA\r\n"                                            => '354',
+        ];
+
+        foreach ($cmds as $cmd => $expected) {
+            fwrite($socket, $cmd);
+            $resp = fgets($socket, 512);
+            if (substr($resp, 0, 3) !== $expected) {
+                throw new RuntimeException("SMTP cmd error (esperado {$expected}): " . trim($resp));
+            }
+        }
+
+        // Enviar cabeceras + cuerpo
+        $headers  = "From: {$fromEncoded}\r\n";
+        $headers .= "To: {$to}\r\n";
+        $headers .= "Subject: {$subjectEncoded}\r\n";
+        $headers .= "Message-ID: {$msgId}\r\n";
+        $headers .= "Date: " . date('r') . "\r\n";
+        $headers .= "X-Mailer: WoodenHouse/2.0\r\n";
+
+        fwrite($socket, $headers . "\r\n" . $body . "\r\n.\r\n");
+        $resp = fgets($socket, 512);
+        if (substr($resp, 0, 3) !== '250') {
+            throw new RuntimeException("SMTP DATA error: " . trim($resp));
+        }
+
+        fwrite($socket, "QUIT\r\n");
+        fclose($socket);
+
+        appLog('info', "Email enviado OK a {$to}", ['subject' => $subject]);
+        return true;
+
+    } catch (RuntimeException $e) {
+        appLog('error', 'Email SMTP error: ' . $e->getMessage(), ['to' => $to]);
+        return false;
     }
-    return (bool)$ok;
 }
 
 // ================================================================
@@ -70,16 +126,13 @@ function _emailWrapper(string $titulo, string $contenido): string {
 <table width="100%" cellpadding="0" cellspacing="0" style="background:#f5f0eb;padding:30px 0;">
   <tr><td align="center">
     <table width="600" cellpadding="0" cellspacing="0" style="background:#fff;border-radius:8px;overflow:hidden;box-shadow:0 2px 10px rgba(0,0,0,0.1);">
-      <!-- Header -->
       <tr><td style="background:{$color};padding:30px;text-align:center;">
-        <h1 style="margin:0;color:#fff;font-size:26px;letter-spacing:2px;">🌲 WOODEN HOUSE</h1>
-        <p style="margin:6px 0 0;color:rgba(255,255,255,0.85);font-size:13px;">Muebles de madera finos</p>
+        <h1 style="margin:0;color:#fff;font-size:26px;letter-spacing:2px;">WOODEN HOUSE</h1>
+        <p style="margin:6px 0 0;color:rgba(255,255,255,0.85);font-size:13px;">Muebles de baño de madera</p>
       </td></tr>
-      <!-- Body -->
       <tr><td style="padding:40px 50px;">
         {$contenido}
       </td></tr>
-      <!-- Footer -->
       <tr><td style="background:#f9f5f0;padding:20px;text-align:center;border-top:1px solid #e8dcc8;">
         <p style="margin:0;color:#888;font-size:12px;">
           © {$year} Wooden House — Guadalajara, Jalisco, México<br>
@@ -95,7 +148,7 @@ HTML;
 }
 
 /**
- * Email: Confirmación de pedido
+ * Email: Confirmación de pedido al cliente
  */
 function emailPedidoConfirmado(array $pedido): bool {
     $folio    = htmlspecialchars($pedido['numero_pedido']);
@@ -103,7 +156,7 @@ function emailPedidoConfirmado(array $pedido): bool {
     $total    = formatMoney($pedido['total']);
     $fecha    = $pedido['fecha_estimada'] ?? 'Por confirmar';
     $tracking = $pedido['token_seguimiento'] ?? '';
-    $trackUrl = APP_URL . "/public/seguimiento.php?token={$tracking}";
+    $trackUrl = APP_URL . "/seguimiento?token={$tracking}";
 
     $items = '';
     foreach (($pedido['items'] ?? []) as $item) {
@@ -111,19 +164,19 @@ function emailPedidoConfirmado(array $pedido): bool {
             '<tr><td style="padding:8px;border-bottom:1px solid #f0e8d8;">%s</td>'
             . '<td style="padding:8px;border-bottom:1px solid #f0e8d8;text-align:center;">%d</td>'
             . '<td style="padding:8px;border-bottom:1px solid #f0e8d8;text-align:right;">%s</td></tr>',
-            htmlspecialchars($item['nombre'] ?? ''),
+            htmlspecialchars($item['nombre'] ?? $item['nombre_producto'] ?? ''),
             (int)($item['cantidad'] ?? 1),
-            formatMoney($item['precio_unitario'] ?? 0)
+            formatMoney($item['precio_unitario'] ?? $item['precio'] ?? 0)
         );
     }
 
     $contenido = <<<HTML
 <h2 style="color:#8B6914;margin-top:0;">¡Pedido confirmado, {$nombre}! 🎉</h2>
-<p style="color:#555;line-height:1.7;">Hemos recibido tu pedido correctamente. Nos pondremos en contacto contigo para coordinar los detalles.</p>
+<p style="color:#555;line-height:1.7;">Hemos recibido tu pedido. Nos pondremos en contacto para coordinar los detalles de entrega.</p>
 
 <div style="background:#faf6f0;border-left:4px solid #8B6914;padding:20px;margin:25px 0;border-radius:4px;">
   <strong style="font-size:18px;color:#5C3D11;">{$folio}</strong><br>
-  <span style="color:#888;font-size:13px;">Número de pedido</span>
+  <span style="color:#888;font-size:13px;">Número de pedido — guárdalo para rastrear tu pedido</span>
 </div>
 
 <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;margin:20px 0;">
@@ -137,13 +190,16 @@ function emailPedidoConfirmado(array $pedido): bool {
       <td style="padding:12px;text-align:right;font-weight:bold;font-size:18px;color:#8B6914;">{$total}</td></tr>
 </table>
 
-<p style="color:#555;"><strong>Fecha estimada de entrega:</strong> {$fecha}</p>
+<p style="color:#555;"><strong>Semana estimada de entrega:</strong> {$fecha}</p>
 
 <div style="text-align:center;margin:30px 0;">
   <a href="{$trackUrl}" style="background:#8B6914;color:#fff;text-decoration:none;padding:14px 30px;border-radius:6px;font-size:15px;display:inline-block;">
     Rastrear mi pedido →
   </a>
 </div>
+<p style="color:#888;font-size:13px;text-align:center;">
+  También puedes ingresar tu número de pedido en <a href="{$trackUrl}" style="color:#8B6914;">muebleswh.com/seguimiento</a>
+</p>
 HTML;
 
     return enviarEmail(
@@ -161,7 +217,7 @@ function emailEstadoPedido(array $pedido, string $estadoAnterior): bool {
     $nombre = htmlspecialchars($pedido['nombre_cliente']);
 
     $estadoLabels = [
-        'pendiente'     => 'Pendiente',
+        'pendiente'     => 'Pendiente de pago',
         'pagado'        => 'Pago confirmado ✓',
         'en_produccion' => 'En producción 🔨',
         'listo'         => 'Listo para entrega 📦',
@@ -174,19 +230,19 @@ function emailEstadoPedido(array $pedido, string $estadoAnterior): bool {
 
     $mensajes = [
         'pagado'        => 'Hemos confirmado tu pago. Pronto comenzaremos a fabricar tus muebles.',
-        'en_produccion' => 'Tu pedido está siendo fabricado por nuestros artesanos. ¡Con mucho cariño!',
-        'listo'         => 'Tu pedido está listo y esperando ser entregado. Nos pondremos en contacto pronto.',
+        'en_produccion' => 'Tu pedido está siendo fabricado por nuestros artesanos.',
+        'listo'         => 'Tu pedido está listo. Nos pondremos en contacto para coordinar la entrega.',
         'entregado'     => '¡Tu pedido ha sido entregado! Esperamos que disfrutes tus nuevos muebles.',
         'cancelado'     => 'Tu pedido ha sido cancelado. Si tienes dudas, contáctanos.',
     ];
 
     $msg      = $mensajes[$estadoActual] ?? 'El estado de tu pedido ha sido actualizado.';
     $tracking = $pedido['token_seguimiento'] ?? '';
-    $trackUrl = APP_URL . "/public/seguimiento.php?token={$tracking}";
+    $trackUrl = APP_URL . "/seguimiento?token={$tracking}";
 
     $contenido = <<<HTML
 <h2 style="color:#8B6914;margin-top:0;">Actualización de tu pedido</h2>
-<p style="color:#555;">Hola <strong>{$nombre}</strong>, te informamos que el estado de tu pedido ha cambiado.</p>
+<p style="color:#555;">Hola <strong>{$nombre}</strong>, el estado de tu pedido ha cambiado.</p>
 
 <div style="background:#faf6f0;border-left:4px solid #8B6914;padding:20px;margin:25px 0;border-radius:4px;">
   <strong style="color:#5C3D11;">{$folio}</strong><br>
@@ -204,13 +260,13 @@ HTML;
 
     return enviarEmail(
         $pedido['correo_cliente'],
-        "Actualización de pedido {$folio} – {$label} | Wooden House",
+        "Pedido {$folio} — {$label} | Wooden House",
         _emailWrapper("Estado de Pedido", $contenido)
     );
 }
 
 /**
- * Email: Confirmación de solicitud de cotización
+ * Email: Confirmación de cotización
  */
 function emailCotizacionRecibida(array $cot): bool {
     $folio  = htmlspecialchars($cot['numero_cotizacion']);
@@ -219,16 +275,14 @@ function emailCotizacionRecibida(array $cot): bool {
 
     $contenido = <<<HTML
 <h2 style="color:#8B6914;margin-top:0;">Cotización recibida ✓</h2>
-<p style="color:#555;line-height:1.7;">Hola <strong>{$nombre}</strong>, hemos recibido tu solicitud de cotización para <strong>{$tipo}</strong>.</p>
+<p style="color:#555;line-height:1.7;">Hola <strong>{$nombre}</strong>, recibimos tu solicitud para <strong>{$tipo}</strong>.</p>
 
 <div style="background:#faf6f0;border-left:4px solid #8B6914;padding:20px;margin:25px 0;border-radius:4px;">
   <strong style="font-size:18px;color:#5C3D11;">{$folio}</strong><br>
   <span style="color:#888;font-size:13px;">Número de cotización</span>
 </div>
 
-<p style="color:#555;line-height:1.7;">Nuestro equipo revisará tu solicitud y te contactará en un plazo de <strong>2 a 3 días hábiles</strong> con una propuesta personalizada.</p>
-
-<p style="color:#555;">¿Tienes preguntas? Responde a este correo o llámanos.</p>
+<p style="color:#555;line-height:1.7;">Nuestro equipo revisará tu solicitud y te contactará en <strong>2 a 3 días hábiles</strong>.</p>
 HTML;
 
     return enviarEmail(
@@ -259,7 +313,7 @@ function emailCitaConfirmada(array $cita): bool {
   <p style="margin:8px 0 0;font-size:13px;color:#888;">Folio: {$folio}</p>
 </div>
 
-<p style="color:#555;line-height:1.7;">Por favor asegúrate de estar disponible en el horario indicado. Si necesitas reagendar, contáctanos con al menos 24 horas de anticipación.</p>
+<p style="color:#555;line-height:1.7;">Si necesitas reagendar, contáctanos con al menos 24 horas de anticipación.</p>
 HTML;
 
     return enviarEmail(
@@ -270,33 +324,24 @@ HTML;
 }
 
 // ================================================================
-// FIRESTORE REST API - Notificaciones en tiempo real para admin
+// FIRESTORE REST API
 // ================================================================
 
-/**
- * Crear notificación en Firestore (para el panel admin)
- */
 function crearNotificacionFirestore(string $tipo, string $titulo, string $mensaje, array $extra = []): bool {
     $projectId = FIREBASE_PROJECT_ID;
     $apiKey    = FIREBASE_API_KEY;
-
-    if (empty($projectId) || empty($apiKey)) {
-        return false;
-    }
+    if (empty($projectId) || empty($apiKey)) return false;
 
     $url = "https://firestore.googleapis.com/v1/projects/{$projectId}/databases/(default)/documents/notificaciones?key={$apiKey}";
 
-    $doc = [
-        'fields' => [
-            'tipo'       => ['stringValue' => $tipo],
-            'titulo'     => ['stringValue' => $titulo],
-            'mensaje'    => ['stringValue' => $mensaje],
-            'leida'      => ['booleanValue' => false],
-            'fecha'      => ['timestampValue' => date('c')],
-        ]
-    ];
+    $doc = ['fields' => [
+        'tipo'    => ['stringValue' => $tipo],
+        'titulo'  => ['stringValue' => $titulo],
+        'mensaje' => ['stringValue' => $mensaje],
+        'leida'   => ['booleanValue' => false],
+        'fecha'   => ['timestampValue' => date('c')],
+    ]];
 
-    // Agregar campos extra
     foreach ($extra as $k => $v) {
         if (is_string($v))  $doc['fields'][$k] = ['stringValue' => $v];
         if (is_int($v))     $doc['fields'][$k] = ['integerValue' => (string)$v];
@@ -312,32 +357,22 @@ function crearNotificacionFirestore(string $tipo, string $titulo, string $mensaj
         CURLOPT_HTTPHEADER     => ['Content-Type: application/json'],
         CURLOPT_TIMEOUT        => 5,
     ]);
-    $res  = curl_exec($ch);
     $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_exec($ch);
     curl_close($ch);
-
     return $code === 200;
 }
 
-/**
- * Obtener notificaciones no leídas desde Firestore
- */
 function obtenerNotificacionesFirestore(int $limit = 20): array {
     $projectId = FIREBASE_PROJECT_ID;
     $apiKey    = FIREBASE_API_KEY;
-
-    if (empty($projectId) || empty($apiKey)) {
-        return [];
-    }
+    if (empty($projectId) || empty($apiKey)) return [];
 
     $url = "https://firestore.googleapis.com/v1/projects/{$projectId}/databases/(default)/documents/notificaciones"
          . "?pageSize={$limit}&orderBy=fecha+desc&key={$apiKey}";
 
     $ch = curl_init($url);
-    curl_setopt_array($ch, [
-        CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_TIMEOUT        => 5,
-    ]);
+    curl_setopt_array($ch, [CURLOPT_RETURNTRANSFER => true, CURLOPT_TIMEOUT => 5]);
     $res  = curl_exec($ch);
     $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
     curl_close($ch);
@@ -345,30 +380,22 @@ function obtenerNotificacionesFirestore(int $limit = 20): array {
     if ($code !== 200 || empty($res)) return [];
 
     $data = json_decode($res, true);
-    $docs = $data['documents'] ?? [];
-
     return array_map(function ($d) {
-        $f    = $d['fields'] ?? [];
-        $name = $d['name'] ?? '';
-        $id   = basename($name);
+        $f = $d['fields'] ?? [];
         return [
-            'id'      => $id,
-            'tipo'    => $f['tipo']['stringValue']    ?? '',
-            'titulo'  => $f['titulo']['stringValue']  ?? '',
-            'mensaje' => $f['mensaje']['stringValue'] ?? '',
-            'leida'   => $f['leida']['booleanValue']  ?? false,
+            'id'      => basename($d['name'] ?? ''),
+            'tipo'    => $f['tipo']['stringValue']     ?? '',
+            'titulo'  => $f['titulo']['stringValue']   ?? '',
+            'mensaje' => $f['mensaje']['stringValue']  ?? '',
+            'leida'   => $f['leida']['booleanValue']   ?? false,
             'fecha'   => $f['fecha']['timestampValue'] ?? '',
         ];
-    }, $docs);
+    }, $data['documents'] ?? []);
 }
 
-/**
- * Marcar notificación como leída en Firestore
- */
 function marcarNotificacionLeida(string $docId): bool {
     $projectId = FIREBASE_PROJECT_ID;
     $apiKey    = FIREBASE_API_KEY;
-
     if (empty($projectId) || empty($apiKey)) return false;
 
     $url  = "https://firestore.googleapis.com/v1/projects/{$projectId}/databases/(default)/documents/notificaciones/{$docId}"
@@ -383,10 +410,9 @@ function marcarNotificacionLeida(string $docId): bool {
         CURLOPT_HTTPHEADER     => ['Content-Type: application/json'],
         CURLOPT_TIMEOUT        => 5,
     ]);
-    $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
     curl_exec($ch);
+    $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
     curl_close($ch);
-
     return $code === 200;
 }
 
@@ -394,74 +420,41 @@ function marcarNotificacionLeida(string $docId): bool {
 // NOTIFICACIONES COMPUESTAS (email + Firestore)
 // ================================================================
 
-/**
- * Notificar nuevo pedido (email al cliente + Firestore para admin)
- */
 function notificarNuevoPedido(array $pedido): void {
-    // Email al cliente
     emailPedidoConfirmado($pedido);
-
-    // Notificación Firestore para el panel admin
     crearNotificacionFirestore(
         'nuevo_pedido',
         '🛒 Nuevo pedido recibido',
         "Pedido {$pedido['numero_pedido']} de {$pedido['nombre_cliente']} por " . formatMoney($pedido['total']),
-        [
-            'pedido_id'     => (int)($pedido['id'] ?? 0),
-            'numero_pedido' => $pedido['numero_pedido'],
-            'total'         => (float)$pedido['total'],
-        ]
+        ['pedido_id' => (int)($pedido['id'] ?? 0), 'numero_pedido' => $pedido['numero_pedido'], 'total' => (float)$pedido['total']]
     );
 }
 
-/**
- * Notificar cambio de estado de pedido
- */
 function notificarCambioPedido(array $pedido, string $estadoAnterior): void {
     emailEstadoPedido($pedido, $estadoAnterior);
-
     crearNotificacionFirestore(
         'estado_pedido',
         '📦 Estado de pedido actualizado',
         "Pedido {$pedido['numero_pedido']}: {$estadoAnterior} → {$pedido['estado']}",
-        [
-            'pedido_id'      => (int)($pedido['id'] ?? 0),
-            'numero_pedido'  => $pedido['numero_pedido'],
-            'estado_nuevo'   => $pedido['estado'],
-            'estado_anterior'=> $estadoAnterior,
-        ]
+        ['pedido_id' => (int)($pedido['id'] ?? 0), 'numero_pedido' => $pedido['numero_pedido'], 'estado_nuevo' => $pedido['estado'], 'estado_anterior' => $estadoAnterior]
     );
 }
 
-/**
- * Notificar nueva cotización
- */
 function notificarNuevaCotizacion(array $cot): void {
     emailCotizacionRecibida($cot);
-
     crearNotificacionFirestore(
         'nueva_cotizacion',
         '📋 Nueva cotización recibida',
-        "Cotización {$cot['numero_cotizacion']} de {$cot['nombre_cliente']} para " . ($cot['tipo_mueble'] ?? 'mueble personalizado'),
-        [
-            'cotizacion_id'     => (int)($cot['id'] ?? 0),
-            'numero_cotizacion' => $cot['numero_cotizacion'],
-        ]
+        "Cotización {$cot['numero_cotizacion']} de {$cot['nombre_cliente']}",
+        ['cotizacion_id' => (int)($cot['id'] ?? 0), 'numero_cotizacion' => $cot['numero_cotizacion']]
     );
 }
 
-/**
- * Notificar nueva cita
- */
 function notificarNuevaCita(array $cita): void {
     crearNotificacionFirestore(
         'nueva_cita',
         '📅 Nueva cita agendada',
         "Cita {$cita['numero_cita']} de {$cita['nombre_cliente']} para el {$cita['fecha_cita']}",
-        [
-            'cita_id'     => (int)($cita['id'] ?? 0),
-            'numero_cita' => $cita['numero_cita'],
-            'fecha_cita'  => $cita['fecha_cita'],
-        ]
+        ['cita_id' => (int)($cita['id'] ?? 0), 'numero_cita' => $cita['numero_cita'], 'fecha_cita' => $cita['fecha_cita']]
     );
 }

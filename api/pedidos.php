@@ -171,13 +171,22 @@ switch ($method) {
 
         // Notificaciones (no críticas - no bloquean la respuesta)
         try {
+            // Armar items para el email
+            $itemsEmail = array_map(fn($it) => [
+                'nombre'        => $it['producto']['nombre'] ?? '',
+                'cantidad'      => $it['cantidad'],
+                'precio_unitario' => $it['precio'],
+            ], $itemsData);
+
             notificarNuevoPedido([
+                'id'                => $pedidoId,
                 'numero_pedido'     => $numeroPedido,
                 'nombre_cliente'    => $body['nombre_cliente'],
                 'correo_cliente'    => $body['correo_cliente'],
                 'token_seguimiento' => $tokenSeg,
                 'total'             => $total,
                 'fecha_estimada'    => $fechaEst,
+                'items'             => $itemsEmail,
             ]);
             crearNotificacionFirestore(
                 'pedido_nuevo', "Nuevo Pedido: $numeroPedido",
