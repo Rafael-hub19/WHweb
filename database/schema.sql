@@ -237,7 +237,7 @@ CREATE TABLE pagos (
   -- Referencia externa que tú generas/guardas (ej. PayPal orderID / Stripe payment_intent)
   referencia_externa VARCHAR(120) NULL,
 
-  estado ENUM('creado','aprobado','fallido','reembolsado') NOT NULL DEFAULT 'creado',
+  estado ENUM('creado','aprobado','fallido','reembolsado','CREATED','APPROVED','COMPLETED','CAPTURED','PENDING','CANCELLED') NOT NULL DEFAULT 'creado',
   monto DECIMAL(10,2) NOT NULL DEFAULT 0.00,
   moneda VARCHAR(10) NOT NULL DEFAULT 'MXN',
 
