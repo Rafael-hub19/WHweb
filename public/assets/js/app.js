@@ -1,7 +1,5 @@
 // Configuración de la API
-const API_BASE_URL = window.location.hostname === 'localhost' 
-  ? 'http://localhost/api'
-  : '/api';
+const API_BASE_URL = '/api';
 
 // Estado global de la aplicación
 const AppState = {
@@ -241,7 +239,7 @@ function inicializarMenuMovil() {
       if (navLinks.classList.contains('open')) {
         navLinks.classList.remove('open');
         menuToggle.setAttribute('aria-expanded', 'false');
-        menuToggle.textContent = '<i class="fa-solid fa-bars"></i>';
+        menuToggle.innerHTML = '<i class="fa-solid fa-bars"></i>';
       }
     });
   });

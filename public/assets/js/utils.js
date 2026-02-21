@@ -92,9 +92,7 @@ function removeFromStorage(key) {
 // ================================================
 
 async function apiRequest(endpoint, options = {}) {
-  const API_BASE = window.location.hostname === 'localhost' 
-    ? 'http://localhost/api'
-    : '/api';
+  const API_BASE = '/api';
 
   const defaultOptions = {
     method: 'GET',

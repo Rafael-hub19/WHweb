@@ -63,10 +63,12 @@ class PayPalClient {
         $url = $this->apiUrl . $endpoint;
         $method = strtoupper($method);
 
+        $requestId = uniqid('wh-', true);
         $headers = [
             'Content-Type: application/json',
             'Authorization: Bearer ' . $token,
             'Prefer: return=representation',
+            'PayPal-Request-Id: ' . $requestId,
         ];
 
         $ch = curl_init();

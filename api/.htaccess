@@ -1,5 +1,24 @@
-# La API solo acepta peticiones de tu propio frontend
-# Si el DocumentRoot está bien configurado, esto es defensa adicional
+# ================================================================
+# Wooden House - .htaccess /api/
+# ================================================================
+# Esta carpeta SOLO debe ser accesible a través del proxy del
+# .htaccess de /public/ (RewriteRule ^api/ → ../api/).
+# Acceso directo desde el navegador (ej. /proyecto/api/pagos.php)
+# está bloqueado aquí como segunda línea de defensa.
+
+# Si el DocumentRoot es /public/, esta carpeta NO es accesible
+# desde la web directamente — este .htaccess es refuerzo adicional.
+
 <IfModule mod_headers.c>
     Header always set X-Content-Type-Options "nosniff"
+    # No cachear respuestas de la API
+    Header always set Cache-Control "no-store, no-cache, must-revalidate"
+    Header always set Pragma "no-cache"
 </IfModule>
+
+# Bloquear todo acceso directo — solo se debe llegar via proxy de /public/.htaccess
+# Comenta estas líneas si tu servidor tiene el DocumentRoot en la raíz del proyecto
+# y necesitas que Apache sirva /api/ directamente.
+# Require all denied
+
+Options -Indexes -ExecCGI

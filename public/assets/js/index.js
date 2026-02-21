@@ -51,7 +51,7 @@ function initCartBadge() {
   const cartBadge = document.getElementById('cartCount');
   if (!cartBadge) return;
 
-  const carrito = JSON.parse(localStorage.getItem('carrito')) || [];
+  const carrito = JSON.parse(localStorage.getItem('wh_carrito')) || [];
   const totalItems = carrito.reduce((sum, item) => sum + (item.cantidad || 0), 0);
   
   cartBadge.textContent = totalItems;

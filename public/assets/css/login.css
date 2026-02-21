@@ -74,6 +74,18 @@
       color: #ffb3b3;
     }
 
+    .alert-success {
+      background: #1a3a25;
+      border-left: 4px solid #2e7d32;
+      color: #a5d6a7;
+    }
+
+    .alert-warning {
+      background: #3a2e10;
+      border-left: 4px solid #8b6914;
+      color: #ffe082;
+    }
+
     .alert-info {
       background: #20304a;
       border-left: 4px solid #4a7c8b;

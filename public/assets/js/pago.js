@@ -396,6 +396,7 @@ function showError(msg, type = 'error') {
   const errEl = document.getElementById('card-errors');
   if (errEl) {
     errEl.textContent = msg;
+    errEl.className = type === 'warning' ? 'card-error warning' : 'card-error';
     errEl.style.display = msg ? 'block' : 'none';
     return;
   }

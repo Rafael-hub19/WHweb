@@ -119,8 +119,8 @@ if ($action === 'paypal_orden') {
     $pedido   = dbRow("SELECT * FROM pedidos WHERE id = ?", [$pedidoId]);
     if (!$pedido) jsonError('Pedido no encontrado', 404);
 
-    $returnUrl = APP_URL . '/public/pago.html?status=success&pedido_id=' . $pedidoId;
-    $cancelUrl = APP_URL . '/public/pago.html?status=cancel';
+    $returnUrl = APP_URL . '/pago?status=success&pedido_id=' . $pedidoId;
+    $cancelUrl = APP_URL . '/pago?status=cancel';
 
     try {
         $order     = paypal()->crearOrden((float)$pedido['total'], $pedido['numero_pedido'], $returnUrl, $cancelUrl);

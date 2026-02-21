@@ -31,9 +31,12 @@ if (!$paypalId)  error_log('[pago.php] PAYPAL_CLIENT_ID vacío o no definido');
   <script src="https://js.stripe.com/v3/"></script>
 
   <!-- PayPal JS SDK — Client ID inyectado desde .env -->
-  <!-- IMPORTANTE: sin disableSetCookie=true -->
+  <?php $paypalSdkUrl = ($paypalEnv === 'sandbox')
+    ? 'https://www.sandbox.paypal.com/sdk/js'
+    : 'https://www.paypal.com/sdk/js'; ?>
   <script
-    src="https://www.paypal.com/sdk/js?client-id=<?= urlencode($paypalId) ?>&currency=MXN&locale=es_MX&components=buttons&intent=capture"
+    src="<?= $paypalSdkUrl ?>?client-id=<?= urlencode($paypalId) ?>&currency=MXN&locale=es_MX&components=buttons&intent=capture&disable-funding=credit,card"
+    data-sdk-integration-source="button-factory"
     id="paypalScript">
   </script>
 
@@ -43,7 +46,10 @@ if (!$paypalId)  error_log('[pago.php] PAYPAL_CLIENT_ID vacío o no definido');
 <body>
 
   <div class="header-nav">
-    <div class="logo">WOODEN HOUSE</div>
+    <a href="/inicio" class="logo" style="text-decoration:none;">WOODEN HOUSE</a>
+    <a href="/carrito" style="color:#a0a0a0;text-decoration:none;font-size:14px;display:flex;align-items:center;gap:6px;">
+      <i class="fa-solid fa-arrow-left"></i> Regresar al carrito
+    </a>
   </div>
 
   <!-- Progress Steps -->
@@ -136,6 +142,11 @@ if (!$paypalId)  error_log('[pago.php] PAYPAL_CLIENT_ID vacío o no definido');
     </div>
   </div>
 
+  <footer class="footer">
+    <p><i class="fa-solid fa-shield-halved" style="color:#4caf50;"></i> Pago 100% seguro &nbsp;|&nbsp; <i class="fa-solid fa-lock" style="color:#8b7355;"></i> SSL 256-bit &nbsp;|&nbsp; Wooden House &copy; 2025</p>
+  </footer>
+
+  <script src="./assets/js/utils.js"></script>
   <script src="./assets/js/pago.js"></script>
 </body>
 </html>

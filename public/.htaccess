@@ -20,20 +20,29 @@ Options -Indexes -ExecCGI
     RewriteRule ^solicitudes/?$             solicitudes.php             [L,QSA]
     RewriteRule ^detalle/([0-9]+)/?$        detalle_producto.php?id=$1  [L,QSA]
     RewriteRule ^inicio/?$                  index.php                   [L,QSA]
+    RewriteRule ^admin/?$                   admin/panel_administrador.php [L,QSA]
+    RewriteRule ^empleado/?$                empleado/panel_empleado.php   [L,QSA]
 
     # ── Proxy /api/ → carpeta api/ fuera de public/ ──────────────
-    # Esto resuelve el 404 en /api/productos.php, /api/auth.php, etc.
+    # FIX: Añadidas condiciones correctas para evitar bucles
+    #      y asegurar que el archivo no exista antes de reescribir
     RewriteCond %{REQUEST_URI} ^/api/
-    RewriteRule ^api/(.*)$ ../api/$1 [L,QSA]
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^api/(.+)$ ../api/$1 [L,QSA]
 </IfModule>
 
 # ── Seguridad de archivos ─────────────────────────────────────────
-<FilesMatch "\.(env|log|bak|sql|sh|md|lock|yaml|yml)$">
+# Bloquear archivos sensibles que no deben ser accesibles desde web
+<FilesMatch "\.(env|log|bak|sh|lock|yaml|yml|git|gitignore)$">
     Require all denied
 </FilesMatch>
 <Files ".env">
     Require all denied
 </Files>
+# NOTA: .sql y .md eliminados del bloqueo porque no hay ninguno en /public/
+# y su bloqueo podía interferir con depuración. Las carpetas /database/ y /logs/
+# están bloqueadas desde el .htaccess de la raíz.
 
 # ── Headers de seguridad HTTP ─────────────────────────────────────
 <IfModule mod_headers.c>
@@ -45,21 +54,24 @@ Options -Indexes -ExecCGI
     Header unset X-Powered-By
     Header unset Server
 
-    # Permissions-Policy — sintaxis moderna (sin URLs en payment)
     Header always set Permissions-Policy "geolocation=(), camera=(), microphone=(), payment=(self)"
 
     # ── Content Security Policy ───────────────────────────────────
+    # FIX: Añadidos dominios de sandbox de PayPal (necesarios en modo pruebas)
+    # FIX: Añadido firebaseapp.com para autenticación Firebase
     Header always set Content-Security-Policy "default-src 'self'; \
         script-src 'self' 'unsafe-inline' \
             https://js.stripe.com \
             https://www.paypal.com \
+            https://www.sandbox.paypal.com \
             https://www.paypalobjects.com \
             https://www.gstatic.com \
             https://apis.google.com \
             https://maps.googleapis.com \
             https://maps.google.com \
             https://www.googletagmanager.com \
-            https://static.cloudflareinsights.com; \
+            https://static.cloudflareinsights.com \
+            https://cdnjs.cloudflare.com; \
         style-src 'self' 'unsafe-inline' \
             https://fonts.googleapis.com \
             https://maps.googleapis.com \
@@ -71,6 +83,7 @@ Options -Indexes -ExecCGI
             https://maps.gstatic.com \
             https://maps.googleapis.com \
             https://www.paypalobjects.com \
+            https://www.sandbox.paypal.com \
             https://firebasestorage.googleapis.com; \
         connect-src 'self' \
             https://*.firebaseio.com \
@@ -80,6 +93,7 @@ Options -Indexes -ExecCGI
             https://securetoken.googleapis.com \
             https://oauth2.googleapis.com \
             https://firebasestorage.googleapis.com \
+            https://*.firebaseapp.com \
             https://js.stripe.com \
             https://api.stripe.com \
             https://merchant-ui-api.stripe.com \
@@ -109,6 +123,11 @@ Options -Indexes -ExecCGI
     <FilesMatch "^(panel_administrador|panel_empleado)\.php$">
         Header always set Cache-Control "no-store, no-cache, must-revalidate"
         Header always set Pragma "no-cache"
+    </FilesMatch>
+
+    # Sin caché en API
+    <FilesMatch "^.*\.php$">
+        Header always set Cache-Control "no-store, no-cache, must-revalidate"
     </FilesMatch>
 
 </IfModule>

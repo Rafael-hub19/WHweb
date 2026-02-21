@@ -1,24 +1,35 @@
 # ================================================================
-# Wooden House - .htaccess RAIZ DEL PROYECTO
+# Wooden House - .htaccess RAÍZ DEL PROYECTO
 # ================================================================
+# IMPORTANTE: Este archivo solo es necesario si el DocumentRoot
+# de Apache apunta a la RAÍZ del proyecto (no a /public/).
+# Si tu DocumentRoot ya apunta a /public/, este archivo no aplica.
 
 Options -Indexes
 
-RewriteEngine On
+<IfModule mod_rewrite.c>
+    RewriteEngine On
 
-# Redirigir raiz a /public
-RewriteRule ^$ /public/ [L,R=301]
+    # Evitar bucle: si ya estamos dentro de /public/, no redirigir
+    RewriteCond %{REQUEST_URI} !^/public/
+    # Solo redirigir la raíz exacta (/)
+    RewriteRule ^$ /public/ [L,R=302]
 
-# Bloquear acceso directo a carpetas sensibles
-RewriteRule ^includes/ - [F,L]
-RewriteRule ^database/ - [F,L]
-RewriteRule ^logs/     - [F,L]
-RewriteRule ^firebase/ - [F,L]
+    # Bloquear acceso directo a carpetas sensibles
+    RewriteRule ^includes(/|$)  - [F,L]
+    RewriteRule ^database(/|$)  - [F,L]
+    RewriteRule ^logs(/|$)      - [F,L]
+    RewriteRule ^firebase(/|$)  - [F,L]
+    RewriteRule ^\.git(/|$)     - [F,L]
+</IfModule>
 
 # Bloquear archivos sensibles
 <FilesMatch "\.(env|log|bak|sql|sh|lock|yaml|yml)$">
     Require all denied
 </FilesMatch>
 <Files ".env">
+    Require all denied
+</Files>
+<Files "*.json">
     Require all denied
 </Files>

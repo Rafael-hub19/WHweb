@@ -182,7 +182,7 @@ switch ($method) {
             crearNotificacionFirestore(
                 'pedido_nuevo', "Nuevo Pedido: $numeroPedido",
                 "Cliente: {$body['nombre_cliente']} | Total: $" . number_format($total, 2),
-                ['numero_pedido' => $numeroPedido], ['admin']
+                ['numero_pedido' => $numeroPedido, 'destinatarios' => ['admin']]
             );
         } catch (Exception $e) {
             appLog('warning', 'Notificación falló', ['error' => $e->getMessage()]);
