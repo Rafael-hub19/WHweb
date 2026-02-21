@@ -125,9 +125,9 @@ INSERT INTO detalle_pedido (pedido_id, producto_id, nombre_producto, precio_unit
 (3, 6, 'Mueble Tokyo', 6200.00, 1, 6200.00),
 (3, 7, 'Espejo con Marco de Madera', 1200.00, 1, 1200.00);
 
-INSERT INTO pagos (pedido_id, metodo, proveedor, id_transaccion_proveedor, estado, monto, moneda) VALUES
-(1, 'tarjeta', 'stripe', 'pi_3ABC123XYZ456', 'aprobado', 9600.00, 'MXN'),
-(2, 'paypal', 'paypal', NULL, 'creado', 12800.00, 'MXN');
+INSERT INTO pagos (pedido_id, metodo, id_transaccion_proveedor, estado, monto, moneda) VALUES
+(1, 'tarjeta', 'pi_3ABC123XYZ456', 'aprobado', 9600.00, 'MXN'),
+(2, 'paypal', NULL, 'pendiente', 12800.00, 'MXN');
 
 SELECT 'Base de datos cargada exitosamente' AS Mensaje;
 SELECT COUNT(*) AS total_productos FROM productos;

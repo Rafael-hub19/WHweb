@@ -29,8 +29,8 @@
 
     <div class="catalog-header">
       <div class="search-bar">
-        <input type="text" id="buscar-producto" placeholder="<i class="fa-solid fa-magnifying-glass"></i> Buscar por nombre, características...">
-        <button id="btn-buscar" class="btn-buscar">Buscar</button>
+        <input type="text" id="buscar-producto" placeholder="Buscar por nombre, características...">
+        <button id="btn-buscar" class="btn-buscar"><i class="fa-solid fa-magnifying-glass"></i> Buscar</button>
       </div>
 
       <div class="filters-row">

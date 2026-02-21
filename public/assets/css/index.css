@@ -101,7 +101,7 @@ img, video { max-width: 100%; height: auto; }
 
 /* Hero Section */
 .hero {
-  background: linear-gradient(160deg, #2d2410 0%, #1e1a0f 35%, #1a1a1a 70%, #1d1d20 100%);
+  background: linear-gradient(160deg, #3d3010 0%, #2e2415 35%, #242424 70%, #262628 100%);
   padding: 100px 40px 90px;
   text-align: center;
   border-bottom: 3px solid #8b7355;
@@ -115,9 +115,9 @@ img, video { max-width: 100%; height: auto; }
   top: -50%;
   left: 50%;
   transform: translateX(-50%);
-  width: 600px;
-  height: 600px;
-  background: radial-gradient(ellipse, rgba(139, 115, 85, 0.12) 0%, transparent 70%);
+  width: 700px;
+  height: 700px;
+  background: radial-gradient(ellipse, rgba(139, 115, 85, 0.22) 0%, transparent 70%);
   pointer-events: none;
 }
 

@@ -35,7 +35,7 @@ if (!$paypalId)  error_log('[pago.php] PAYPAL_CLIENT_ID vacío o no definido');
     ? 'https://www.sandbox.paypal.com/sdk/js'
     : 'https://www.paypal.com/sdk/js'; ?>
   <script
-    src="<?= $paypalSdkUrl ?>?client-id=<?= urlencode($paypalId) ?>&currency=MXN&locale=es_MX&components=buttons&intent=capture&disable-funding=credit,card"
+    src="<?= $paypalSdkUrl ?>?client-id=<?= urlencode($paypalId) ?>&currency=MXN&locale=es_MX&components=buttons&intent=capture"
     data-sdk-integration-source="button-factory"
     id="paypalScript">
   </script>

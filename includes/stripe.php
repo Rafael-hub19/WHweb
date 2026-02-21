@@ -23,7 +23,7 @@ class StripeClient {
         $headers = [
             'Authorization: Bearer ' . $this->secretKey,
             'Content-Type: application/x-www-form-urlencoded',
-            'Stripe-Version: 2024-11-20',
+            'Stripe-Version: 2025-01-27.acacia',
         ];
 
         $options = [
