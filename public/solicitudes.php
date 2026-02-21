@@ -14,7 +14,7 @@
   <!-- ========== HEADER (UNIFICADO) ========== -->
   <div class="header-nav">
     <div class="logo">
-    <img src="/assets/img/logo-header.png" alt="Wooden House" style="height: 48px;">
+      <img src="/assets/img/logo-header.png" alt="Wooden House" style="height:60px;">
     </div>
 
     <button class="menu-toggle" id="menuToggle" aria-label="Abrir menú" aria-expanded="false"><i class="fa-solid fa-bars"></i></button>

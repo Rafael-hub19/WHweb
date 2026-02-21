@@ -15,9 +15,8 @@
 </head>
 
 <body>
-  <div class="login-container">
   <div class="logo">
-    <img src="/assets/img/logo.png" alt="Wooden House" style="height:120px; margin-bottom:10px;">
+    <img src="/assets/img/logo-login.png" alt="Wooden House" style="height:160px;">
     <p>Panel Administrativo</p>
   </div>
 

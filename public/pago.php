@@ -47,13 +47,13 @@ if (!$paypalId)  error_log('[pago.php] PAYPAL_CLIENT_ID vacío o no definido');
 <body>
 
   <div class="header-nav">
-  <a href="/inicio" class="logo" style="text-decoration:none;">
-    <img src="/assets/img/logo-header.png" alt="Wooden House" style="height:48px;">
-  </a>
-  <a href="/carrito" style="color:#a0a0a0;text-decoration:none;font-size:14px;display:flex;align-items:center;gap:6px;">
-    <i class="fa-solid fa-arrow-left"></i> Regresar al carrito
-  </a>
-</div>
+    <a href="/inicio" class="logo" style="text-decoration:none;">
+      <img src="/assets/img/logo-header.png" alt="Wooden House" style="height:60px;">
+    </a>
+    <a href="/carrito" style="color:#a0a0a0;text-decoration:none;font-size:14px;display:flex;align-items:center;gap:6px;">
+      <i class="fa-solid fa-arrow-left"></i> Regresar al carrito
+    </a>
+  </div>
 
   <!-- Progress Steps -->
   <div class="steps-indicator">

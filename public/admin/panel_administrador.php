@@ -20,6 +20,7 @@ unset($_usuario);
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
+  <link rel="icon" type="image/x-icon" href="/favicon.ico">
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Panel Administrador - Wooden House</title>
 
@@ -31,9 +32,13 @@ unset($_usuario);
 <body>
   <div class="header">
     <div class="header-left">
-      <button class="menu-toggle" id="menuToggle" aria-label="Abrir menú" aria-expanded="false"><i class="fa-solid fa-bars"></i></button>
-      <div class="logo">WOODEN HOUSE</div>
+    <button class="menu-toggle" id="menuToggle" aria-label="Abrir menú" aria-expanded="false">
+      <i class="fa-solid fa-bars"></i>
+    </button>
+    <div class="logo">
+      <img src="/assets/img/logo-header.png" alt="Wooden House" style="height:55px;">
     </div>
+  </div>
 
     <div class="user-info">
       <div class="user-avatar">AD</div>

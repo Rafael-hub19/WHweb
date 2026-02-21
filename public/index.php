@@ -16,7 +16,7 @@
   <!-- Header Navigation -->
   <div class="header-nav">
     <div class="logo">
-    <img src="/assets/img/logo-header.png" alt="Wooden House" style="height: 48px;">
+      <img src="/assets/img/logo-header.png" alt="Wooden House" style="height:60px;">
     </div>
 
     <!-- Botón hamburguesa (solo móvil/tablet) -->
