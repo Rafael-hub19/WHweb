@@ -48,11 +48,11 @@
     </form>
 
     <div class="divider">Solo para personal autorizado</div>
-  </div>
 
-  <div class="back-to-site">
+    <div class="back-to-site">
       <a href="index.php">← Volver al sitio web</a>
     </div>
+  </div>
 
   <!-- Firebase config -->
   <script src="./assets/js/firebase-config.js"></script>
