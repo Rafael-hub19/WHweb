@@ -15,10 +15,11 @@
 </head>
 
 <body>
-  <div class="logo">
-    <img src="/assets/img/logo-login.png" alt="Wooden House" style="height:160px;">
-    <p>Panel Administrativo</p>
-  </div>
+  <div class="login-container">
+    <div class="logo">
+      <img src="/assets/img/logo-login.png" alt="Wooden House" style="height:140px;">
+      <p>Panel Administrativo</p>
+    </div>
 
     <div id="alertBox" class="alert" style="display:none;"></div>
 
