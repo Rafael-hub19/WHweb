@@ -62,7 +62,7 @@ define('FIREBASE_API_KEY',    env('FIREBASE_API_KEY',    ''));
 
 // ── Stripe ────────────────────────────────────────────────────────
 define('STRIPE_SECRET_KEY',     env('STRIPE_SECRET_KEY',     ''));
-define('STRIPE_PUBLISHABLE_KEY',env('STRIPE_PUBLISHABLE_KEY',''));
+define('STRIPE_PUBLIC_KEY',     env('STRIPE_PUBLIC_KEY',''));
 define('STRIPE_WEBHOOK_SECRET', env('STRIPE_WEBHOOK_SECRET', ''));
 
 // ── PayPal ────────────────────────────────────────────────────────

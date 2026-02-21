@@ -20,8 +20,8 @@ switch ($method) {
             if (!$pedido) jsonError('Pedido no encontrado', 404);
 
             $pedido['items'] = dbRows(
-                "SELECT dp.id, dp.producto_id, dp.cantidad, dp.precio_unitario, dp.subtotal, p.nombre AS producto_nombre
-                 FROM detalle_pedido dp LEFT JOIN productos p ON p.id = dp.producto_id
+                "SELECT dp.id, dp.producto_id, dp.cantidad, dp.precio_unitario, dp.total_linea AS subtotal, dp.nombre_producto AS producto_nombre
+                 FROM detalle_pedido dp
                  WHERE dp.pedido_id = ?",
                 [$pedido['id']]
             );
@@ -37,8 +37,7 @@ switch ($method) {
             );
             if (!$pedido) jsonError('Pedido no encontrado', 404);
             $pedido['items'] = dbRows(
-                "SELECT dp.*, pr.nombre AS producto_nombre FROM detalle_pedido dp
-                 LEFT JOIN productos pr ON pr.id = dp.producto_id
+                "SELECT dp.*, dp.nombre_producto AS producto_nombre FROM detalle_pedido dp
                  WHERE dp.pedido_id = ?",
                 [$id]
             );
@@ -86,8 +85,13 @@ switch ($method) {
         if (!isValidEmail($body['correo_cliente'])) jsonError('correo_cliente inválido', 422);
         if (empty($body['items']) || !is_array($body['items'])) jsonError('items requerido', 422);
 
-        $tipoEntrega = $body['tipo_entrega'] ?? 'sucursal';
-        if ($tipoEntrega === 'domicilio' && empty($body['direccion_envio'])) {
+        // FIX: la BD usa ENUM('recoger','envio') — aceptar ambos valores del frontend
+        $tipoEntrega = $body['tipo_entrega'] ?? 'envio';
+        if (!in_array($tipoEntrega, ['recoger', 'envio'])) {
+            $tipoEntrega = 'envio'; // valor por defecto seguro
+        }
+
+        if ($tipoEntrega === 'envio' && empty($body['direccion_envio'])) {
             jsonError('direccion_envio requerida para entrega a domicilio', 422);
         }
 
@@ -107,7 +111,8 @@ switch ($method) {
             $itemsData[] = ['producto' => $prod, 'cantidad' => $cant, 'precio' => $precioUnit, 'subtotal' => $subProd];
         }
 
-        $costoEnvio        = $tipoEntrega === 'domicilio' ? COSTO_ENVIO : 0;
+        // FIX: usar 'envio' (valor correcto del ENUM) para calcular costo de envío
+        $costoEnvio        = $tipoEntrega === 'envio' ? COSTO_ENVIO : 0;
         $costoInstalacion  = !empty($body['incluye_instalacion']) ? COSTO_INSTALACION : 0;
         $descuento         = sanitizeFloat($body['descuento'] ?? 0);
         $total             = $subtotal + $costoEnvio + $costoInstalacion - $descuento;
@@ -139,12 +144,16 @@ switch ($method) {
             ]);
 
             foreach ($itemsData as $item) {
+                // FIX: usar columnas correctas de detalle_pedido:
+                //   nombre_producto (NOT NULL, requerido)
+                //   total_linea     (en lugar de 'subtotal' que no existe)
                 dbInsert('detalle_pedido', [
-                    'pedido_id'      => $pedidoId,
-                    'producto_id'    => $item['producto']['id'],
-                    'cantidad'       => $item['cantidad'],
-                    'precio_unitario'=> $item['precio'],
-                    'subtotal'       => $item['subtotal'],
+                    'pedido_id'       => $pedidoId,
+                    'producto_id'     => $item['producto']['id'],
+                    'nombre_producto' => $item['producto']['nombre'],
+                    'cantidad'        => $item['cantidad'],
+                    'precio_unitario' => $item['precio'],
+                    'total_linea'     => $item['subtotal'],
                 ]);
                 // Reducir stock
                 dbQuery(
@@ -160,7 +169,7 @@ switch ($method) {
             jsonError('Error interno al crear el pedido', 500);
         }
 
-        // Notificaciones
+        // Notificaciones (no críticas - no bloquean la respuesta)
         try {
             notificarNuevoPedido([
                 'numero_pedido'     => $numeroPedido,

@@ -9,7 +9,7 @@ require_once dirname(__DIR__) . '/includes/config.php';
 
   <!-- Credenciales inyectadas desde .env (nunca hardcodeadas) -->
   <script>
-    window.STRIPE_PK  = "<?= htmlspecialchars(STRIPE_PUBLISHABLE_KEY, ENT_QUOTES, 'UTF-8') ?>";
+    window.STRIPE_PK = "<?= htmlspecialchars(STRIPE_PUBLIC_KEY, ENT_QUOTES, 'UTF-8') ?>";
     window.PAYPAL_ENV = "<?= htmlspecialchars(PAYPAL_MODE, ENT_QUOTES, 'UTF-8') ?>";
   </script>
 
