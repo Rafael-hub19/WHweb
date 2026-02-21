@@ -1,5 +1,4 @@
-
-    /* =========================
+/* =========================
        UTIL
     ========================= */
     const $ = (sel, root=document) => root.querySelector(sel);
@@ -77,9 +76,12 @@
 
       closeNav();
 
-      if(section === 'citas') renderCalendar();
-      if(section === 'catalogo') renderCatalogo();
-      if(section === 'reportes') renderReportes();
+      if(section === 'citas')     renderCalendar();
+      if(section === 'catalogo')  cargarProductosAPI().then(() => renderCatalogo());
+      if(section === 'reportes')  { cargarReportesAPI(); renderReportes(); }
+      if(section === 'dashboard') setTimeout(refreshKPIsFromAPI, 100);
+      if(section === 'pedidos')   cargarPedidosAPI();
+      if(section === 'empleados') cargarEmpleadosAPI();
       refreshKPIs();
     }
 
@@ -1207,26 +1209,7 @@ function getProductos() {
   return apiProductos.length > 0 ? apiProductos : _originalGetProductos();
 }
 
-// Al entrar a catálogo: cargar de API
-const _originalShowSection = typeof showSection === 'function' ? showSection : () => {};
-function showSection(section, ev) {
-  if (section === 'catalogo') {
-    cargarProductosAPI().then(() => renderCatalogo());
-  }
-  if (section === 'dashboard') {
-    setTimeout(refreshKPIsFromAPI, 100);
-  }
-  if (section === 'pedidos') {
-    cargarPedidosAPI();
-  }
-  if (section === 'reportes') {
-    cargarReportesAPI();
-  }
-  if (section === 'empleados') {
-    cargarEmpleadosAPI();
-  }
-  _originalShowSection(section, ev);
-}
+// showSection integrado en función principal (ver línea 59)
 
 // ============================================================
 // GUARDAR PRODUCTO - Enviar a API real

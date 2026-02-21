@@ -1,5 +1,4 @@
-
-    // ================== UTILIDADES ==================
+// ================== UTILIDADES ==================
     function openModal(id){ document.getElementById(id)?.classList.add('active'); }
     function closeModal(id){ document.getElementById(id)?.classList.remove('active'); }
 
@@ -78,7 +77,7 @@
       const target = document.getElementById(section + '-section');
       if (target) target.classList.remove('hidden');
 
-      // activa item sidebar (sin querySelector raro)
+      // activa item sidebar
       document.querySelectorAll('.sidebar-item').forEach(item => item.classList.remove('active'));
       document.querySelectorAll('.sidebar-item').forEach(item => {
         const onclick = item.getAttribute('onclick') || '';
@@ -86,18 +85,12 @@
       });
 
       // secciones especiales
-      if(section === 'inventario'){
-        bootstrapInventoryFromTableIfEmpty();
-        renderInventory();
-      }
-      if(section === 'calendario'){
-        buildCalendar();
-        renderNext7();
-      }
-      if(section === 'dashboard'){
-        refreshKpisFromPedidosTable();
-        renderActivity();
-      }
+      if(section === 'inventario'){  bootstrapInventoryFromTableIfEmpty(); renderInventory(); }
+      if(section === 'calendario'){  buildCalendar(); renderNext7(); }
+      if(section === 'dashboard'){   refreshKpisFromPedidosTable(); renderActivity(); refreshKpisAPI(); }
+      if(section === 'pedidos')      cargarPedidosEmpleadoAPI();
+      if(section === 'citas')        cargarCitasAPI();
+      if(section === 'cotizaciones') cargarCotizacionesAPI();
     }
 
     // ================== MODALES: click fuera ==================
@@ -997,15 +990,7 @@ document.addEventListener('DOMContentLoaded', () => {
   setTimeout(refreshKpisAPI, 400);
 });
 
-// Extender showSection del empleado para cargar datos de API
-const _empOrigShowSection = typeof showSection === 'function' ? showSection : () => {};
-function showSection(section) {
-  _empOrigShowSection(section);
-  if (section === 'pedidos')       cargarPedidosEmpleadoAPI();
-  if (section === 'citas')         cargarCitasAPI();
-  if (section === 'cotizaciones')  cargarCotizacionesAPI();
-  if (section === 'dashboard')     refreshKpisAPI();
-}
+// showSection integrado en función principal
 
 window.actualizarEstadoPedidoEmp = actualizarEstadoPedidoEmp;
 window.confirmarCita  = confirmarCita;
