@@ -13,7 +13,7 @@
 <!-- ── Header ───────────────────────────────────────────────────── -->
 <div class="header-nav">
     <div class="logo">
-      <img src="/assets/img/logo-header.png" alt="Wooden House" style="height:60px;">
+      <img src="/assets/img/logo-header.png" alt="Wooden House" style="height:80px;">
     </div>
     <button class="menu-toggle" id="menuToggle" aria-label="Menú" aria-expanded="false"><i class="fa-solid fa-bars"></i></button>
     <div class="nav-links" id="navLinks">

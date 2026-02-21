@@ -34,7 +34,7 @@ unset($_usuario);
       <i class="fa-solid fa-bars"></i>
     </button>
     <div class="logo">
-      <img src="/assets/img/logo-header.png" alt="Wooden House" style="height:55px;">
+      <img src="/assets/img/logo-header.png" alt="Wooden House" style="height:80px;">
     </div>
   </div>
 
