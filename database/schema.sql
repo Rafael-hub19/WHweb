@@ -269,8 +269,9 @@ CREATE TABLE pagos (
 -- Constraints únicas
 -- =========================
 
--- Solo 1 imagen principal por producto
-CREATE UNIQUE INDEX uq_imagen_principal
+-- Índice para búsquedas rápidas de imagen principal por producto
+-- (La unicidad de es_principal=1 se controla desde la aplicación)
+CREATE INDEX idx_imagen_principal
 ON imagenes_producto (producto_id, es_principal);
 
 -- No repetir la misma clave de especificación en el mismo producto

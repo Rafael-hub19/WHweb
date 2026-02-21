@@ -47,7 +47,7 @@ INSERT INTO productos (categoria_id, nombre, descripcion, precio_base, stock_dis
 (3, 'Servicio de Instalación Básica', 'Incluye: instalación del mueble, conexión de lavabo, ajustes finales. No incluye trabajo de plomería ni electricidad.', 800.00, 999, NULL, 1),
 (3, 'Servicio de Instalación Completa', 'Incluye: instalación del mueble, plomería completa, conexiones eléctricas, acabados finales, limpieza del área.', 1500.00, 999, NULL, 1);
 
-INSERT INTO imagenes_producto (producto_id, url_imagen, es_principal, orden) VALUES
+INSERT IGNORE INTO imagenes_producto (producto_id, url_imagen, es_principal, orden) VALUES
 (1, 'https://firebasestorage.googleapis.com/v0/b/wooden-house/milano-principal.jpg', 1, 0),
 (1, 'https://firebasestorage.googleapis.com/v0/b/wooden-house/milano-lateral.jpg', 0, 1),
 (1, 'https://firebasestorage.googleapis.com/v0/b/wooden-house/milano-detalle.jpg', 0, 2),
