@@ -22,34 +22,62 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // ============================================================
 // RESUMEN DEL PEDIDO
+// FIX: Lee de sessionStorage('wh_checkout') que es donde
+//      checkout.js guarda todos los datos al presionar
+//      "Proceder al pago". También mantiene compatibilidad
+//      con el formato anterior de localStorage por si acaso.
 // ============================================================
 function cargarResumen() {
-  const carrito      = JSON.parse(localStorage.getItem('wh_carrito') || '[]');
-  const deliveryData = JSON.parse(localStorage.getItem('wh_delivery') || '{}');
+  // CORRECCIÓN PRINCIPAL: leer del sessionStorage que llena checkout.js
+  let checkout = null;
+  try {
+    const raw = sessionStorage.getItem('wh_checkout');
+    if (raw) checkout = JSON.parse(raw);
+  } catch (e) {
+    console.warn('Error leyendo wh_checkout de sessionStorage:', e);
+  }
 
-  if (!carrito.length) {
+  // Fallback: compatibilidad con formato anterior de localStorage
+  if (!checkout) {
+    const carrito      = JSON.parse(localStorage.getItem('wh_carrito') || '[]');
+    const deliveryData = JSON.parse(localStorage.getItem('wh_delivery') || '{}');
+    if (!carrito.length) {
+      document.getElementById('noticeBox').style.display = 'block';
+      document.getElementById('btnStripe')?.setAttribute('disabled', true);
+      return;
+    }
+    const subtotal    = carrito.reduce((s, i) => s + (i.precio * i.cantidad), 0);
+    const envio       = deliveryData.tipo === 'domicilio' ? 500 : 0;
+    const instalacion = deliveryData.instalacion ? 1000 : 0;
+    const descuento   = parseFloat(localStorage.getItem('wh_descuento') || '0');
+    const total       = subtotal + envio + instalacion - descuento;
+    checkout = {
+      items:             carrito,
+      nombre_cliente:    '',
+      correo_cliente:    '',
+      telefono_cliente:  '',
+      tipo_entrega:      deliveryData.tipo || 'sucursal',
+      direccion_envio:   deliveryData.direccion || '',
+      incluye_instalacion: deliveryData.instalacion ? 1 : 0,
+      subtotal, costo_envio: envio, costo_instalacion: instalacion, total,
+    };
+  }
+
+  const { items: carrito, subtotal, costo_envio: envio, costo_instalacion: instalacion, total } = checkout;
+
+  if (!carrito || carrito.length === 0) {
     document.getElementById('noticeBox').style.display = 'block';
     document.getElementById('btnStripe')?.setAttribute('disabled', true);
     return;
   }
 
-  const subtotal    = carrito.reduce((s, i) => s + (i.precio * i.cantidad), 0);
-  const envio       = deliveryData.tipo === 'domicilio' ? 500 : 0;
-  const instalacion = deliveryData.instalacion ? 1000 : 0;
-  const descuento   = parseFloat(localStorage.getItem('wh_descuento') || '0');
-  const total       = subtotal + envio + instalacion - descuento;
-
-  setText('subtotalDisplay',  formatCurrency(subtotal));
-  setText('shippingDisplay',  formatCurrency(envio));
-  setText('totalDisplay',     `<strong>${formatCurrency(total)}</strong>`);
+  setText('subtotalDisplay', formatCurrency(subtotal));
+  setText('shippingDisplay', formatCurrency(envio));
+  setText('totalDisplay',    `<strong>${formatCurrency(total)}</strong>`);
 
   if (instalacion > 0) {
     document.getElementById('installationLine').style.display = 'flex';
     setText('installationDisplay', formatCurrency(instalacion));
-  }
-  if (descuento > 0) {
-    document.getElementById('discountLine').style.display = 'flex';
-    setText('discountDisplay', '-' + formatCurrency(descuento));
   }
 
   const itemsEl = document.getElementById('cart-items-summary');
@@ -62,7 +90,25 @@ function cargarResumen() {
     `).join('');
   }
 
-  orderData = { carrito, deliveryData, subtotal, envio, instalacion, descuento, total };
+  // orderData ahora incluye los datos del cliente desde wh_checkout
+  orderData = {
+    carrito,
+    cliente: {
+      nombre:   checkout.nombre_cliente   || '',
+      correo:   checkout.correo_cliente   || '',
+      telefono: checkout.telefono_cliente || '',
+    },
+    deliveryData: {
+      tipo:        checkout.tipo_entrega        || 'sucursal',
+      direccion:   checkout.direccion_envio     || '',
+      instalacion: !!checkout.incluye_instalacion,
+    },
+    subtotal,
+    envio,
+    instalacion,
+    descuento: 0,
+    total,
+  };
 
   initStripe();
   initPayPal();
@@ -245,14 +291,15 @@ function initPayPal() {
 
 // ============================================================
 // CREAR PEDIDO EN BD
-// CORRECCIÓN 3: en lugar de retornar null silenciosamente,
-//   lanza un Error con mensaje claro para que createOrder y
-//   pagarConStripe puedan capturarlo y mostrarlo al usuario.
+// FIX: Los datos del cliente ahora vienen de orderData.cliente
+//      (cargado desde sessionStorage 'wh_checkout' por cargarResumen),
+//      ya no se leen de localStorage 'wh_cliente' que nunca se llenaba.
 // ============================================================
 async function crearPedidoEnBD() {
   if (!orderData) return null;
 
-  const clienteData = JSON.parse(localStorage.getItem('wh_cliente') || '{}');
+  // CORRECCIÓN: leer cliente desde orderData (viene de wh_checkout)
+  const clienteData = orderData.cliente || {};
 
   // Validar campos requeridos con mensajes específicos
   if (!clienteData.nombre) {
@@ -318,10 +365,13 @@ function initMetodosPago() {
 // ============================================================
 function irAConfirmacion() {
   const pedido = JSON.parse(localStorage.getItem('wh_pedido_creado') || 'null') || pedidoCreado;
+  // Limpiar todos los datos del flujo de compra
+  sessionStorage.removeItem('wh_checkout');
   localStorage.removeItem('wh_carrito');
   localStorage.removeItem('wh_delivery');
   localStorage.removeItem('wh_cliente');
   localStorage.removeItem('wh_descuento');
+  localStorage.removeItem('wh_pedido_creado');
 
   if (pedido?.token_seguimiento) {
     window.location.href = `solicitudes.php?token=${pedido.token_seguimiento}&pedido=${pedido.numero_pedido}`;
