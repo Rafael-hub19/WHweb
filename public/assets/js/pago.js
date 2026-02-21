@@ -111,7 +111,6 @@ function initStripe() {
 
 async function pagarConStripe() {
   if (!orderData || !pedidoCreado) {
-    // Crear el pedido primero si no existe
     pedidoCreado = await crearPedidoEnBD();
     if (!pedidoCreado) return;
   }
@@ -174,13 +173,12 @@ function initPayPal() {
   paypal.Buttons({
     style: { layout: 'vertical', color: 'gold', shape: 'rect', label: 'paypal' },
 
-    createOrder: async (data, actions) => {
-      // Crear pedido en BD si no existe
+    // FIX: parámetro renombrado a _pp para evitar conflicto con const data adentro
+    createOrder: async (_pp, actions) => {
       if (!pedidoCreado) {
         pedidoCreado = await crearPedidoEnBD();
         if (!pedidoCreado) throw new Error('No se pudo crear el pedido');
       }
-      // Crear orden PayPal en backend
       const res  = await fetch(`${API_BASE}/pagos.php?action=paypal_orden`, {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -235,14 +233,14 @@ async function crearPedidoEnBD() {
 
   try {
     const body = {
-      nombre_cliente:     clienteData.nombre,
-      correo_cliente:     clienteData.correo,
-      telefono_cliente:   clienteData.telefono || '',
-      tipo_entrega:       orderData.deliveryData.tipo || 'sucursal',
-      direccion_envio:    orderData.deliveryData.direccion || '',
+      nombre_cliente:      clienteData.nombre,
+      correo_cliente:      clienteData.correo,
+      telefono_cliente:    clienteData.telefono || '',
+      tipo_entrega:        orderData.deliveryData.tipo || 'sucursal',
+      direccion_envio:     orderData.deliveryData.direccion || '',
       incluye_instalacion: !!orderData.deliveryData.instalacion,
-      items:              orderData.carrito.map(i => ({ producto_id: i.id, cantidad: i.cantidad })),
-      descuento:          orderData.descuento || 0,
+      items:               orderData.carrito.map(i => ({ producto_id: i.id, cantidad: i.cantidad })),
+      descuento:           orderData.descuento || 0,
     };
 
     const res  = await fetch(`${API_BASE}/pedidos.php`, {
@@ -254,7 +252,6 @@ async function crearPedidoEnBD() {
 
     if (!data.success) throw new Error(data.error || 'Error creando pedido');
 
-    // Guardar datos del pedido creado
     localStorage.setItem('wh_pedido_creado', JSON.stringify(data));
     return data;
 
@@ -286,13 +283,11 @@ function initMetodosPago() {
 // ============================================================
 function irAConfirmacion() {
   const pedido = JSON.parse(localStorage.getItem('wh_pedido_creado') || 'null') || pedidoCreado;
-  // Limpiar carrito
   localStorage.removeItem('wh_carrito');
   localStorage.removeItem('wh_delivery');
   localStorage.removeItem('wh_cliente');
   localStorage.removeItem('wh_descuento');
 
-  // Redirigir a solicitudes con token de seguimiento
   if (pedido?.token_seguimiento) {
     window.location.href = `solicitudes.php?token=${pedido.token_seguimiento}&pedido=${pedido.numero_pedido}`;
   } else {
@@ -332,7 +327,6 @@ function initMenuHamburguesa() {
     menuToggle.setAttribute("aria-expanded", isOpen);
   });
 
-  // Cerrar al hacer click fuera
   document.addEventListener("click", function (e) {
     if (!menuToggle.contains(e.target) && !navLinks.contains(e.target)) {
       navLinks.classList.remove("open");
@@ -340,4 +334,3 @@ function initMenuHamburguesa() {
     }
   });
 }
-

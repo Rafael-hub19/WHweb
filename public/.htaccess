@@ -8,16 +8,23 @@ Options -Indexes -ExecCGI
     RewriteEngine On
     RewriteBase /
 
+    # No reescribir si el archivo o directorio existe físicamente
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteCond %{REQUEST_FILENAME} !-d
 
-    RewriteRule ^catalogo/?$             catalogo.php               [L,QSA]
-    RewriteRule ^login/?$                login.php                  [L,QSA]
-    RewriteRule ^carrito/?$              carrito-checkout.php       [L,QSA]
-    RewriteRule ^pago/?$                 pago.php                   [L,QSA]
-    RewriteRule ^solicitudes/?$          solicitudes.php            [L,QSA]
-    RewriteRule ^detalle/([0-9]+)/?$     detalle_producto.php?id=$1 [L,QSA]
-    RewriteRule ^inicio/?$               index.php                  [L,QSA]
+    # Rutas limpias → archivo PHP real
+    RewriteRule ^catalogo/?$                catalogo.php                [L,QSA]
+    RewriteRule ^login/?$                   login.php                   [L,QSA]
+    RewriteRule ^carrito/?$                 carrito-checkout.php        [L,QSA]
+    RewriteRule ^pago/?$                    pago.php                    [L,QSA]
+    RewriteRule ^solicitudes/?$             solicitudes.php             [L,QSA]
+    RewriteRule ^detalle/([0-9]+)/?$        detalle_producto.php?id=$1  [L,QSA]
+    RewriteRule ^inicio/?$                  index.php                   [L,QSA]
+
+    # ── Proxy /api/ → carpeta api/ fuera de public/ ──────────────
+    # Esto resuelve el 404 en /api/productos.php, /api/auth.php, etc.
+    RewriteCond %{REQUEST_URI} ^/api/
+    RewriteRule ^api/(.*)$ ../api/$1 [L,QSA]
 </IfModule>
 
 # ── Seguridad de archivos ─────────────────────────────────────────
@@ -38,7 +45,7 @@ Options -Indexes -ExecCGI
     Header unset X-Powered-By
     Header unset Server
 
-    # Permissions-Policy — sintaxis válida (sin URLs en payment)
+    # Permissions-Policy — sintaxis moderna (sin URLs en payment)
     Header always set Permissions-Policy "geolocation=(), camera=(), microphone=(), payment=(self)"
 
     # ── Content Security Policy ───────────────────────────────────
@@ -60,7 +67,11 @@ Options -Indexes -ExecCGI
         font-src 'self' \
             https://fonts.gstatic.com \
             https://cdnjs.cloudflare.com; \
-        img-src 'self' data: blob: https:; \
+        img-src 'self' data: blob: https: \
+            https://maps.gstatic.com \
+            https://maps.googleapis.com \
+            https://www.paypalobjects.com \
+            https://firebasestorage.googleapis.com; \
         connect-src 'self' \
             https://*.firebaseio.com \
             https://firestore.googleapis.com \
@@ -73,6 +84,8 @@ Options -Indexes -ExecCGI
             https://api.stripe.com \
             https://api-m.sandbox.paypal.com \
             https://api-m.paypal.com \
+            https://www.sandbox.paypal.com \
+            https://www.paypal.com \
             https://maps.googleapis.com \
             https://www.gstatic.com; \
         frame-src \
@@ -80,11 +93,13 @@ Options -Indexes -ExecCGI
             https://hooks.stripe.com \
             https://www.paypal.com \
             https://www.google.com \
-            https://maps.google.com; \
+            https://maps.google.com \
+            https://www.google.com/maps; \
         worker-src blob:; \
         object-src 'none'; \
         base-uri 'self';"
 
+    # Sin caché en paneles de administración
     <FilesMatch "^(panel_administrador|panel_empleado)\.php$">
         Header always set Cache-Control "no-store, no-cache, must-revalidate"
         Header always set Pragma "no-cache"
@@ -95,15 +110,16 @@ Options -Indexes -ExecCGI
 # ── Caché para assets estáticos ───────────────────────────────────
 <IfModule mod_expires.c>
     ExpiresActive On
-    ExpiresByType text/css               "access plus 1 month"
-    ExpiresByType application/javascript "access plus 1 month"
-    ExpiresByType image/jpeg             "access plus 6 months"
-    ExpiresByType image/png              "access plus 6 months"
-    ExpiresByType image/webp             "access plus 6 months"
-    ExpiresByType image/svg+xml          "access plus 1 month"
-    ExpiresByType font/woff2             "access plus 1 year"
+    ExpiresByType text/css                  "access plus 1 month"
+    ExpiresByType application/javascript    "access plus 1 month"
+    ExpiresByType image/jpeg                "access plus 6 months"
+    ExpiresByType image/png                 "access plus 6 months"
+    ExpiresByType image/webp                "access plus 6 months"
+    ExpiresByType image/svg+xml             "access plus 1 month"
+    ExpiresByType font/woff2                "access plus 1 year"
 </IfModule>
 
+# ── Comprimir respuestas ──────────────────────────────────────────
 <IfModule mod_deflate.c>
     AddOutputFilterByType DEFLATE text/html text/css application/javascript application/json
 </IfModule>

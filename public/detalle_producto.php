@@ -7,7 +7,6 @@
   <link rel="stylesheet" href="/assets/css/variables.css">
   <link rel="stylesheet" href="/assets/css/styles.css">
   <link rel="stylesheet" href="/assets/css/detalle_producto.css">
-  <script src="/assets/js/detalle_producto.js"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 </head>
 <body>
@@ -126,6 +125,6 @@
     </div>
   </div>
 
-  <script src="./assets/js/detalle_producto.js"></script>
+  <script src="/assets/js/detalle_producto.js"></script>
 </body>
 </html>
