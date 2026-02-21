@@ -1,6 +1,10 @@
 // =============================================================
 // Wooden House - Pago.js (Stripe SDK + PayPal SDK)
 // Conectado a API PHP real
+// CORRECCIONES:
+//   1. Stripe PK leída desde window.STRIPE_PK (inyectada por PHP)
+//   2. PayPal createOrder con try/catch y re-throw correcto
+//   3. crearPedidoEnBD lanza Error en lugar de retornar null silenciosamente
 // =============================================================
 
 const API_BASE = '/api';
@@ -14,7 +18,6 @@ initMenuHamburguesa();
 document.addEventListener('DOMContentLoaded', () => {
   cargarResumen();
   initMetodosPago();
-  // Stripe se inicia después de cargar el resumen (necesita saber si hay pedido)
 });
 
 // ============================================================
@@ -30,15 +33,15 @@ function cargarResumen() {
     return;
   }
 
-  const subtotal     = carrito.reduce((s, i) => s + (i.precio * i.cantidad), 0);
-  const envio        = deliveryData.tipo === 'domicilio' ? 500 : 0;
-  const instalacion  = deliveryData.instalacion ? 1000 : 0;
-  const descuento    = parseFloat(localStorage.getItem('wh_descuento') || '0');
-  const total        = subtotal + envio + instalacion - descuento;
+  const subtotal    = carrito.reduce((s, i) => s + (i.precio * i.cantidad), 0);
+  const envio       = deliveryData.tipo === 'domicilio' ? 500 : 0;
+  const instalacion = deliveryData.instalacion ? 1000 : 0;
+  const descuento   = parseFloat(localStorage.getItem('wh_descuento') || '0');
+  const total       = subtotal + envio + instalacion - descuento;
 
-  setText('subtotalDisplay',    formatCurrency(subtotal));
-  setText('shippingDisplay',    formatCurrency(envio));
-  setText('totalDisplay',       `<strong>${formatCurrency(total)}</strong>`);
+  setText('subtotalDisplay',  formatCurrency(subtotal));
+  setText('shippingDisplay',  formatCurrency(envio));
+  setText('totalDisplay',     `<strong>${formatCurrency(total)}</strong>`);
 
   if (instalacion > 0) {
     document.getElementById('installationLine').style.display = 'flex';
@@ -49,7 +52,6 @@ function cargarResumen() {
     setText('discountDisplay', '-' + formatCurrency(descuento));
   }
 
-  // Resumen de items
   const itemsEl = document.getElementById('cart-items-summary');
   if (itemsEl) {
     itemsEl.innerHTML = carrito.map(i => `
@@ -62,16 +64,24 @@ function cargarResumen() {
 
   orderData = { carrito, deliveryData, subtotal, envio, instalacion, descuento, total };
 
-  // Inicializar SDKs con los datos del pedido
   initStripe();
   initPayPal();
 }
 
 // ============================================================
 // STRIPE
+// FIX: Clave pública leída desde window.STRIPE_PK (inyectada por
+//      pago.php desde .env). Ya no está hardcodeada en este archivo.
 // ============================================================
 function initStripe() {
-  const STRIPE_PK = 'pk_test_REEMPLAZAR_CON_TU_CLAVE_PUBLICA'; // ← Reemplazar en .env
+  // CORRECCIÓN 1: usar la clave inyectada por PHP, nunca hardcodear aquí
+  const STRIPE_PK = window.STRIPE_PK || '';
+
+  if (!STRIPE_PK) {
+    console.error('Stripe: clave pública no encontrada (window.STRIPE_PK vacío).');
+    showError('Error de configuración del pago. Contacta al administrador.');
+    return;
+  }
 
   if (!window.Stripe) { console.warn('Stripe SDK no cargado'); return; }
 
@@ -115,7 +125,7 @@ async function pagarConStripe() {
     if (!pedidoCreado) return;
   }
 
-  const btn = document.getElementById('btnStripe');
+  const btn     = document.getElementById('btnStripe');
   const spinner = document.getElementById('stripeSpinner');
   btn.disabled  = true;
   if (spinner) spinner.style.display = 'inline-block';
@@ -166,6 +176,9 @@ async function pagarConStripe() {
 
 // ============================================================
 // PAYPAL
+// FIX: createOrder con try/catch explícito y re-throw para que
+//      el SDK de PayPal cierre su ventana correctamente en caso
+//      de error, en lugar de quedar congelado.
 // ============================================================
 function initPayPal() {
   if (!window.paypal) { console.warn('PayPal SDK no cargado'); return; }
@@ -173,30 +186,41 @@ function initPayPal() {
   paypal.Buttons({
     style: { layout: 'vertical', color: 'gold', shape: 'rect', label: 'paypal' },
 
-    // FIX: parámetro renombrado a _pp para evitar conflicto con const data adentro
+    // CORRECCIÓN 2: try/catch con re-throw para manejo correcto de errores
     createOrder: async (_pp, actions) => {
-      if (!pedidoCreado) {
-        pedidoCreado = await crearPedidoEnBD();
-        if (!pedidoCreado) throw new Error('No se pudo crear el pedido');
+      try {
+        if (!pedidoCreado) {
+          pedidoCreado = await crearPedidoEnBD();
+          // crearPedidoEnBD ya lanza Error si falla (ver CORRECCIÓN 3)
+        }
+
+        const res  = await fetch(`${API_BASE}/pagos.php?action=paypal_orden`, {
+          method:  'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body:    JSON.stringify({ pedido_id: pedidoCreado.pedido_id }),
+        });
+        const data = await res.json();
+
+        if (!data.success) throw new Error(data.error || 'Error al crear orden PayPal');
+        return data.order_id;
+
+      } catch (err) {
+        // Mostrar mensaje al usuario Y re-lanzar para que PayPal
+        // cierre su popup correctamente
+        showError(err.message || 'No se pudo iniciar el pago con PayPal.');
+        throw err;
       }
-      const res  = await fetch(`${API_BASE}/pagos.php?action=paypal_orden`, {
-        method:  'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify({ pedido_id: pedidoCreado.pedido_id }),
-      });
-      const data = await res.json();
-      if (!data.success) throw new Error(data.error || 'Error PayPal');
-      return data.order_id;
     },
 
     onApprove: async (data, actions) => {
       try {
-        const res  = await fetch(`${API_BASE}/pagos.php?action=paypal_capturar`, {
+        const res    = await fetch(`${API_BASE}/pagos.php?action=paypal_capturar`, {
           method:  'POST',
           headers: { 'Content-Type': 'application/json' },
           body:    JSON.stringify({ order_id: data.orderID, pedido_id: pedidoCreado?.pedido_id }),
         });
         const result = await res.json();
+
         if (result.success) {
           irAConfirmacion();
         } else {
@@ -208,8 +232,8 @@ function initPayPal() {
     },
 
     onError: (err) => {
-      console.error('PayPal error:', err);
-      showError('Error en PayPal. Por favor intenta nuevamente.');
+      console.error('PayPal SDK error:', err);
+      showError('Ocurrió un error con PayPal. Por favor intenta nuevamente.');
     },
 
     onCancel: () => {
@@ -221,14 +245,25 @@ function initPayPal() {
 
 // ============================================================
 // CREAR PEDIDO EN BD
+// CORRECCIÓN 3: en lugar de retornar null silenciosamente,
+//   lanza un Error con mensaje claro para que createOrder y
+//   pagarConStripe puedan capturarlo y mostrarlo al usuario.
 // ============================================================
 async function crearPedidoEnBD() {
   if (!orderData) return null;
 
   const clienteData = JSON.parse(localStorage.getItem('wh_cliente') || '{}');
-  if (!clienteData.nombre || !clienteData.correo) {
-    showError('Faltan datos del cliente. Regresa al carrito.');
-    return null;
+
+  // Validar campos requeridos con mensajes específicos
+  if (!clienteData.nombre) {
+    const msg = 'Falta el nombre del cliente. Regresa al carrito y completa tus datos.';
+    showError(msg);
+    throw new Error(msg);
+  }
+  if (!clienteData.correo) {
+    const msg = 'Falta el correo del cliente. Regresa al carrito y completa tus datos.';
+    showError(msg);
+    throw new Error(msg);
   }
 
   try {
@@ -250,7 +285,7 @@ async function crearPedidoEnBD() {
     });
     const data = await res.json();
 
-    if (!data.success) throw new Error(data.error || 'Error creando pedido');
+    if (!data.success) throw new Error(data.error || 'Error al registrar pedido en el servidor');
 
     localStorage.setItem('wh_pedido_creado', JSON.stringify(data));
     return data;
@@ -258,7 +293,7 @@ async function crearPedidoEnBD() {
   } catch (err) {
     console.error('Error creando pedido:', err);
     showError('Error al registrar pedido: ' + err.message);
-    return null;
+    throw err; // re-lanzar para que el llamador lo capture
   }
 }
 
@@ -272,8 +307,8 @@ function initMetodosPago() {
       opt.classList.add('selected');
       metodoPago = opt.dataset.method;
 
-      document.getElementById('stripe-section').style.display = metodoPago === 'card' ? 'block' : 'none';
-      document.getElementById('paypal-section').style.display = metodoPago === 'paypal' ? 'block' : 'none';
+      document.getElementById('stripe-section').style.display  = metodoPago === 'card'   ? 'block' : 'none';
+      document.getElementById('paypal-section').style.display  = metodoPago === 'paypal' ? 'block' : 'none';
     });
   });
 }
@@ -309,28 +344,32 @@ function formatCurrency(n) {
 
 function showError(msg, type = 'error') {
   const errEl = document.getElementById('card-errors');
-  if (errEl) { errEl.textContent = msg; return; }
+  if (errEl) {
+    errEl.textContent = msg;
+    errEl.style.display = msg ? 'block' : 'none';
+    return;
+  }
   alert(msg);
 }
 
 // ── Menú hamburguesa ─────────────────────────────────────────────
 function initMenuHamburguesa() {
-  const menuToggle = document.getElementById("menuToggle");
-  const navLinks   = document.getElementById("navLinks");
+  const menuToggle = document.getElementById('menuToggle');
+  const navLinks   = document.getElementById('navLinks');
   if (!menuToggle || !navLinks) return;
 
-  menuToggle.addEventListener("click", function (e) {
+  menuToggle.addEventListener('click', function (e) {
     e.preventDefault();
     e.stopPropagation();
-    navLinks.classList.toggle("open");
-    const isOpen = navLinks.classList.contains("open");
-    menuToggle.setAttribute("aria-expanded", isOpen);
+    navLinks.classList.toggle('open');
+    const isOpen = navLinks.classList.contains('open');
+    menuToggle.setAttribute('aria-expanded', isOpen);
   });
 
-  document.addEventListener("click", function (e) {
+  document.addEventListener('click', function (e) {
     if (!menuToggle.contains(e.target) && !navLinks.contains(e.target)) {
-      navLinks.classList.remove("open");
-      menuToggle.setAttribute("aria-expanded", "false");
+      navLinks.classList.remove('open');
+      menuToggle.setAttribute('aria-expanded', 'false');
     }
   });
 }

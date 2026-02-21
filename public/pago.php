@@ -1,19 +1,29 @@
-<!DOCTYPE html>
+<?php
+require_once dirname(__DIR__) . '/includes/config.php';
+?><!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Proceso de Pago - Wooden House</title>
 
+  <!-- Credenciales inyectadas desde .env (nunca hardcodeadas) -->
+  <script>
+    window.STRIPE_PK  = "<?= htmlspecialchars(STRIPE_PUBLISHABLE_KEY, ENT_QUOTES, 'UTF-8') ?>";
+    window.PAYPAL_ENV = "<?= htmlspecialchars(PAYPAL_MODE, ENT_QUOTES, 'UTF-8') ?>";
+  </script>
+
   <!-- Stripe JS SDK v3 (oficial) -->
   <script src="https://js.stripe.com/v3/"></script>
 
-  <!-- PayPal JS SDK v5 (sandbox/live seleccionado por .env desde backend) -->
-  <!-- En producción, cambiar sandbox por live client-id -->
-  <script src="https://www.paypal.com/sdk/js?client-id=Abt2jRzb--w61_cGEg8kDb5_5Sj7NLZGuhVv9fj9s2AhjQlSfSYhMlRLWk9bh4dVIQ3YkvTEe_xVyHUY&currency=MXN&locale=es_MX&components=buttons&intent=capture" id="paypalScript"></script>
+  <!-- PayPal JS SDK — Client ID inyectado desde .env -->
+  <script
+    src="https://www.paypal.com/sdk/js?client-id=<?= urlencode(PAYPAL_CLIENT_ID) ?>&currency=MXN&locale=es_MX&components=buttons&intent=capture"
+    id="paypalScript">
+  </script>
 
   <link rel="stylesheet" href="./assets/css/pago.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 </head>
 <body>
 
