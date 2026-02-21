@@ -27,6 +27,9 @@ DROP TABLE IF EXISTS categorias;
 
 DROP TABLE IF EXISTS usuarios_personal;
 
+DROP TABLE IF EXISTS capacidad_produccion;
+DROP TABLE IF EXISTS dias_bloqueados;
+
 -- =========================
 -- 1) Personal interno (roles)
 -- Auth real en Firebase Auth, aquí solo vínculo (firebase_uid) y rol
@@ -40,7 +43,7 @@ CREATE TABLE usuarios_personal (
   activo TINYINT(1) NOT NULL DEFAULT 1,
   fecha_creacion TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   fecha_actualizacion TIMESTAMP NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
-  
+
   INDEX idx_rol (rol),
   INDEX idx_activo (activo)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -53,7 +56,7 @@ CREATE TABLE categorias (
   nombre VARCHAR(80) NOT NULL UNIQUE,
   descripcion TEXT NULL,
   activo TINYINT(1) NOT NULL DEFAULT 1,
-  
+
   INDEX idx_activo (activo)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -63,7 +66,7 @@ CREATE TABLE productos (
   nombre VARCHAR(180) NOT NULL,
   descripcion TEXT NULL,
   precio_base DECIMAL(10,2) NOT NULL DEFAULT 0.00,
-  stock_disponible INT NOT NULL DEFAULT 0,  -- Stock simple
+  stock_disponible INT NOT NULL DEFAULT 0,
   etiqueta VARCHAR(40) NULL,  -- 'Nuevo', 'Más vendido', 'Oferta'
   activo TINYINT(1) NOT NULL DEFAULT 1,
   fecha_creacion TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -73,7 +76,7 @@ CREATE TABLE productos (
     FOREIGN KEY (categoria_id) REFERENCES categorias(id)
     ON DELETE RESTRICT
     ON UPDATE CASCADE,
-    
+
   INDEX idx_categoria (categoria_id),
   INDEX idx_activo (activo),
   INDEX idx_etiqueta (etiqueta)
@@ -82,30 +85,30 @@ CREATE TABLE productos (
 CREATE TABLE imagenes_producto (
   id INT AUTO_INCREMENT PRIMARY KEY,
   producto_id INT NOT NULL,
-  url_imagen VARCHAR(350) NOT NULL,  -- URL Firebase Storage
+  url_imagen VARCHAR(350) NOT NULL,
   es_principal TINYINT(1) NOT NULL DEFAULT 0,
   orden INT NOT NULL DEFAULT 0,
   fecha_creacion TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
   CONSTRAINT fk_imagenes_producto
     FOREIGN KEY (producto_id) REFERENCES productos(id)
-    ON DELETE CASCADE 
+    ON DELETE CASCADE
     ON UPDATE CASCADE,
-    
+
   INDEX idx_producto (producto_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE especificaciones_producto (
   id INT AUTO_INCREMENT PRIMARY KEY,
   producto_id INT NOT NULL,
-  clave VARCHAR(80) NOT NULL,     -- 'dimensiones', 'material', 'acabado'
+  clave VARCHAR(80) NOT NULL,
   valor VARCHAR(255) NOT NULL,
 
   CONSTRAINT fk_especificaciones_producto
     FOREIGN KEY (producto_id) REFERENCES productos(id)
-    ON DELETE CASCADE 
+    ON DELETE CASCADE
     ON UPDATE CASCADE,
-    
+
   INDEX idx_producto (producto_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -128,10 +131,10 @@ CREATE TABLE cotizaciones (
   requiere_instalacion TINYINT(1) NOT NULL DEFAULT 0,
 
   estado ENUM('nueva','en_revision','respondida','cerrada') NOT NULL DEFAULT 'nueva',
-  
+
   fecha_creacion TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   fecha_actualizacion TIMESTAMP NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
-  
+
   INDEX idx_estado (estado),
   INDEX idx_correo (correo_cliente),
   INDEX idx_fecha (fecha_creacion)
@@ -153,7 +156,7 @@ CREATE TABLE citas (
 
   fecha_creacion TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   fecha_actualizacion TIMESTAMP NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
-  
+
   INDEX idx_estado (estado),
   INDEX idx_fecha_cita (fecha_cita),
   INDEX idx_tipo (tipo)
@@ -165,7 +168,7 @@ CREATE TABLE citas (
 CREATE TABLE pedidos (
   id INT AUTO_INCREMENT PRIMARY KEY,
   numero_pedido VARCHAR(30) NOT NULL UNIQUE,
-  token_seguimiento VARCHAR(32) NOT NULL UNIQUE,  -- Para tracking sin login
+  token_seguimiento VARCHAR(32) NOT NULL UNIQUE,
 
   nombre_cliente VARCHAR(120) NOT NULL,
   correo_cliente VARCHAR(150) NOT NULL,
@@ -190,7 +193,7 @@ CREATE TABLE pedidos (
 
   fecha_creacion TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   fecha_actualizacion TIMESTAMP NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
-  
+
   INDEX idx_estado (estado),
   INDEX idx_correo (correo_cliente),
   INDEX idx_fecha_estimada (fecha_estimada),
@@ -200,7 +203,7 @@ CREATE TABLE pedidos (
 CREATE TABLE detalle_pedido (
   id INT AUTO_INCREMENT PRIMARY KEY,
   pedido_id INT NOT NULL,
-  producto_id INT NULL,  -- NULL si es personalizado
+  producto_id INT NULL,
   nombre_producto VARCHAR(180) NOT NULL,
   precio_unitario DECIMAL(10,2) NOT NULL DEFAULT 0.00,
   cantidad INT NOT NULL DEFAULT 1,
@@ -209,39 +212,51 @@ CREATE TABLE detalle_pedido (
 
   CONSTRAINT fk_detalle_pedido_pedido
     FOREIGN KEY (pedido_id) REFERENCES pedidos(id)
-    ON DELETE CASCADE 
+    ON DELETE CASCADE
     ON UPDATE CASCADE,
 
   CONSTRAINT fk_detalle_pedido_producto
     FOREIGN KEY (producto_id) REFERENCES productos(id)
-    ON DELETE SET NULL 
+    ON DELETE SET NULL
     ON UPDATE CASCADE,
-    
+
   INDEX idx_pedido (pedido_id),
   INDEX idx_producto (producto_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- =========================
 -- 5) Pagos (sin datos de tarjeta)
+-- CORRECCIONES:
+--   - metodo: añadido 'stripe' (el PHP inserta 'stripe', no 'tarjeta')
+--   - proveedor: columna generada automáticamente según metodo (el PHP nunca la insertaba)
+--   - estado: añadido 'pendiente' y 'cancelado' (el PHP los usa), eliminados estados
+--             en mayúsculas redundantes (PayPal devuelve esos pero el PHP los normaliza)
 -- =========================
 CREATE TABLE pagos (
   id INT AUTO_INCREMENT PRIMARY KEY,
   pedido_id INT NOT NULL,
 
-  metodo ENUM('tarjeta','paypal') NOT NULL,
-  proveedor ENUM('stripe','paypal') NOT NULL,
+  -- 'stripe' = pago con tarjeta vía Stripe, 'paypal' = pago vía PayPal
+  metodo ENUM('stripe','paypal','tarjeta') NOT NULL DEFAULT 'stripe',
 
-  -- ID directo del proveedor (ej. PayPal capture id / Stripe charge id)
+  -- Generado automáticamente: no hay que insertarlo desde PHP
+  proveedor VARCHAR(20) GENERATED ALWAYS AS (
+    CASE metodo WHEN 'paypal' THEN 'paypal' ELSE 'stripe' END
+  ) STORED,
+
+  -- ID de la transacción del proveedor (PayPal capture id / Stripe charge id)
   id_transaccion_proveedor VARCHAR(120) NULL,
 
-  -- Referencia externa que tú generas/guardas (ej. PayPal orderID / Stripe payment_intent)
+  -- Referencia que guarda el PHP (PayPal orderID / Stripe payment_intent id)
   referencia_externa VARCHAR(120) NULL,
 
-  estado ENUM('creado','aprobado','fallido','reembolsado','CREATED','APPROVED','COMPLETED','CAPTURED','PENDING','CANCELLED') NOT NULL DEFAULT 'creado',
+  estado ENUM('pendiente','aprobado','fallido','reembolsado','cancelado')
+    NOT NULL DEFAULT 'pendiente',
+
   monto DECIMAL(10,2) NOT NULL DEFAULT 0.00,
   moneda VARCHAR(10) NOT NULL DEFAULT 'MXN',
 
-  -- Opcional: guardar respuesta del proveedor para debug/auditoría
+  -- Respuesta completa del proveedor para debug/auditoría
   payload_proveedor JSON NULL,
 
   fecha_creacion TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -249,7 +264,7 @@ CREATE TABLE pagos (
 
   CONSTRAINT fk_pagos_pedido
     FOREIGN KEY (pedido_id) REFERENCES pedidos(id)
-    ON DELETE CASCADE 
+    ON DELETE CASCADE
     ON UPDATE CASCADE,
 
   INDEX idx_pedido (pedido_id),
@@ -264,27 +279,23 @@ CREATE TABLE pagos (
 
 -- Solo 1 imagen principal por producto
 CREATE UNIQUE INDEX uq_imagen_principal
-ON imagenes_producto (producto_id, es_principal);
+  ON imagenes_producto (producto_id, es_principal);
 
 -- No repetir la misma clave de especificación en el mismo producto
 CREATE UNIQUE INDEX uq_especificacion_clave
-ON especificaciones_producto (producto_id, clave);
--- ================================================================
--- CAPACIDAD DE PRODUCCIÓN Y ENTREGAS
--- Controla cuántos pedidos/entregas pueden agendarse por semana
--- El admin configura esto desde el panel
--- ================================================================
+  ON especificaciones_producto (producto_id, clave);
 
-CREATE TABLE IF NOT EXISTS capacidad_produccion (
+-- ================================================================
+-- 6) Capacidad de producción y entregas
+-- Controla cuántos pedidos/entregas pueden agendarse por semana
+-- ================================================================
+CREATE TABLE capacidad_produccion (
   id INT AUTO_INCREMENT PRIMARY KEY,
 
   -- Semana representada como el lunes de esa semana
   semana_inicio DATE NOT NULL UNIQUE,
 
-  -- Cuántos pedidos NUEVOS puede entrar a producción esa semana
   slots_produccion INT NOT NULL DEFAULT 3,
-
-  -- Cuántas entregas/instalaciones pueden hacerse esa semana
   slots_entrega INT NOT NULL DEFAULT 5,
 
   -- Bloqueo total (vacaciones, cierre, etc.)
@@ -299,10 +310,10 @@ CREATE TABLE IF NOT EXISTS capacidad_produccion (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ================================================================
--- DÍAS BLOQUEADOS ESPECÍFICOS
+-- 7) Días bloqueados específicos
 -- Para días festivos, mantenimiento, etc.
 -- ================================================================
-CREATE TABLE IF NOT EXISTS dias_bloqueados (
+CREATE TABLE dias_bloqueados (
   id INT AUTO_INCREMENT PRIMARY KEY,
   fecha DATE NOT NULL UNIQUE,
   motivo VARCHAR(150) NOT NULL DEFAULT 'Día no hábil',
