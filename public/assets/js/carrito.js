@@ -85,15 +85,19 @@ function renderizarCarrito() {
     `;
     
     // Ocultar botones de acción
-    document.getElementById('carrito-acciones')?.style.display = 'none';
-    document.getElementById('carrito-resumen')?.style.display = 'none';
+    const accionesEl = document.getElementById('carrito-acciones');
+    const resumenEl  = document.getElementById('carrito-resumen');
+    if (accionesEl) accionesEl.style.display = 'none';
+    if (resumenEl)  resumenEl.style.display  = 'none';
     
     return;
   }
   
   // Mostrar botones de acción
-  document.getElementById('carrito-acciones')?.style.display = 'flex';
-  document.getElementById('carrito-resumen')?.style.display = 'block';
+  const accionesEl = document.getElementById('carrito-acciones');
+  const resumenEl  = document.getElementById('carrito-resumen');
+  if (accionesEl) accionesEl.style.display = 'flex';
+  if (resumenEl)  resumenEl.style.display  = 'block';
   
   container.innerHTML = carritoItems.map((item, index) => `
     <div class="carrito-item" data-producto-id="${item.id}">
@@ -339,4 +343,3 @@ function initMenuHamburguesa() {
     }
   });
 }
-
