@@ -1,11 +1,38 @@
 # ================================================================
 # Wooden House - .htaccess RAÍZ DEL PROYECTO
-# Bloquea acceso web directo a includes/, api/, logs/, database/, .env
+# Bloquea acceso web directo a includes/, logs/, database/, .env
+# Permite acceso a /api/ y redirige raíz a /public/
 # ================================================================
 
-# Denegar acceso a todo por defecto en la raíz
-Require all denied
-
-# Redirigir todo tráfico a /public
 RewriteEngine On
+
+# Redirigir raíz a /public
 RewriteRule ^$ /public/ [L,R=301]
+
+# ── Bloquear archivos sensibles en cualquier ubicación ────────────
+<FilesMatch "\.(env|log|bak|sql|sh|md|lock|yaml|yml)$">
+    Require all denied
+</FilesMatch>
+<Files ".env">
+    Require all denied
+</Files>
+
+# ── Permitir acceso a /api/ (PHP API endpoints) ───────────────────
+# Sin esto el servidor retorna un 403 HTML y el JS falla al parsear JSON
+<IfModule mod_authz_core.c>
+    <DirectoryMatch "^.*/api/">
+        Require all granted
+    </DirectoryMatch>
+    <DirectoryMatch "^.*/public/">
+        Require all granted
+    </DirectoryMatch>
+    <DirectoryMatch "^.*/includes/">
+        Require all denied
+    </DirectoryMatch>
+    <DirectoryMatch "^.*/database/">
+        Require all denied
+    </DirectoryMatch>
+    <DirectoryMatch "^.*/logs/">
+        Require all denied
+    </DirectoryMatch>
+</IfModule>
