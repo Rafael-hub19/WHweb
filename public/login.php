@@ -2,6 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
+  <link rel="icon" type="image/x-icon" href="/favicon.ico">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Login - Wooden House</title>
   <link rel="stylesheet" href="./assets/css/variables.css">
@@ -15,10 +16,10 @@
 
 <body>
   <div class="login-container">
-    <div class="logo">
-      <h1>WOODEN HOUSE</h1>
-      <p>Panel Administrativo</p>
-    </div>
+  <div class="logo">
+    <img src="/assets/img/logo.png" alt="Wooden House" style="height:120px; margin-bottom:10px;">
+    <p>Panel Administrativo</p>
+  </div>
 
     <div id="alertBox" class="alert" style="display:none;"></div>
 

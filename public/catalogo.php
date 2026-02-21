@@ -2,6 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
+  <link rel="icon" type="image/x-icon" href="/favicon.ico">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Catálogo - Wooden House</title>
   <link rel="stylesheet" href="./assets/css/variables.css">
@@ -13,7 +14,9 @@
 
   <!-- Header Navigation -->
   <div class="header-nav">
-    <div class="logo">WOODEN HOUSE</div>
+    <div class="logo">
+    <img src="/assets/img/logo-header.png" alt="Wooden House" style="height: 48px;">
+    </div>
     <button class="menu-toggle" id="menuToggle" aria-label="Abrir menú" aria-expanded="false"><i class="fa-solid fa-bars"></i></button>
     <div class="nav-links" id="navLinks">
       <a href="/inicio">Inicio</a>
