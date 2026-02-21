@@ -230,11 +230,19 @@ CREATE TABLE pagos (
 
   metodo ENUM('tarjeta','paypal') NOT NULL,
   proveedor ENUM('stripe','paypal') NOT NULL,
+
+  -- ID directo del proveedor (ej. PayPal capture id / Stripe charge id)
   id_transaccion_proveedor VARCHAR(120) NULL,
+
+  -- Referencia externa que tú generas/guardas (ej. PayPal orderID / Stripe payment_intent)
+  referencia_externa VARCHAR(120) NULL,
 
   estado ENUM('creado','aprobado','fallido','reembolsado') NOT NULL DEFAULT 'creado',
   monto DECIMAL(10,2) NOT NULL DEFAULT 0.00,
   moneda VARCHAR(10) NOT NULL DEFAULT 'MXN',
+
+  -- Opcional: guardar respuesta del proveedor para debug/auditoría
+  payload_proveedor JSON NULL,
 
   fecha_creacion TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   fecha_actualizacion TIMESTAMP NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
@@ -243,10 +251,11 @@ CREATE TABLE pagos (
     FOREIGN KEY (pedido_id) REFERENCES pedidos(id)
     ON DELETE CASCADE 
     ON UPDATE CASCADE,
-    
+
   INDEX idx_pedido (pedido_id),
   INDEX idx_estado (estado),
-  INDEX idx_proveedor (proveedor)
+  INDEX idx_proveedor (proveedor),
+  INDEX idx_ref_ext (referencia_externa)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- =========================

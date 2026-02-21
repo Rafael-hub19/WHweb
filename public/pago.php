@@ -1,24 +1,39 @@
 <?php
 require_once dirname(__DIR__) . '/includes/config.php';
-?><!DOCTYPE html>
+
+/**
+ * Helpers para no reventar si falta alguna constante/variable en config.php
+ */
+$stripePk  = defined('STRIPE_PUBLIC_KEY') ? STRIPE_PUBLIC_KEY : '';
+$paypalId  = defined('PAYPAL_CLIENT_ID')  ? PAYPAL_CLIENT_ID  : '';
+$paypalEnv = defined('PAYPAL_MODE')       ? PAYPAL_MODE       : 'sandbox';
+
+if (!$stripePk)  error_log('[pago.php] STRIPE_PUBLIC_KEY vacío o no definido');
+if (!$paypalId)  error_log('[pago.php] PAYPAL_CLIENT_ID vacío o no definido');
+?>
+<!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Proceso de Pago - Wooden House</title>
 
+  <!-- (Opcional) favicon para evitar 404 -->
+  <link rel="icon" href="/assets/img/favicon.ico">
+
   <!-- Credenciales inyectadas desde .env (nunca hardcodeadas) -->
   <script>
-    window.STRIPE_PK = "<?= htmlspecialchars(STRIPE_PUBLIC_KEY, ENT_QUOTES, 'UTF-8') ?>";
-    window.PAYPAL_ENV = "<?= htmlspecialchars(PAYPAL_MODE, ENT_QUOTES, 'UTF-8') ?>";
+    window.STRIPE_PK  = "<?= htmlspecialchars($stripePk, ENT_QUOTES, 'UTF-8') ?>";
+    window.PAYPAL_ENV = "<?= htmlspecialchars($paypalEnv, ENT_QUOTES, 'UTF-8') ?>";
   </script>
 
   <!-- Stripe JS SDK v3 (oficial) -->
   <script src="https://js.stripe.com/v3/"></script>
 
   <!-- PayPal JS SDK — Client ID inyectado desde .env -->
+  <!-- IMPORTANTE: sin disableSetCookie=true -->
   <script
-    src="https://www.paypal.com/sdk/js?client-id=<?= urlencode(PAYPAL_CLIENT_ID) ?>&currency=MXN&locale=es_MX&components=buttons&intent=capture"
+    src="https://www.paypal.com/sdk/js?client-id=<?= urlencode($paypalId) ?>&currency=MXN&locale=es_MX&components=buttons&intent=capture"
     id="paypalScript">
   </script>
 
