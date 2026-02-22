@@ -63,7 +63,7 @@ CREATE TABLE productos (
   nombre VARCHAR(180) NOT NULL,
   descripcion TEXT NULL,
   precio_base DECIMAL(10,2) NOT NULL DEFAULT 0.00,
-  stock_disponible INT NOT NULL DEFAULT 0,  -- Stock simple
+  stock_disponible INT NOT NULL DEFAULT 999, -- Fabricación bajo pedido (no aplica stock real)
   etiqueta VARCHAR(40) NULL,  -- 'Nuevo', 'Más vendido', 'Oferta'
   activo TINYINT(1) NOT NULL DEFAULT 1,
   fecha_creacion TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -173,6 +173,8 @@ CREATE TABLE pedidos (
 
   tipo_entrega ENUM('recoger','envio') NOT NULL DEFAULT 'envio',
   direccion_envio VARCHAR(255) NULL,
+  cp_envio        VARCHAR(10)  NULL,   -- Código postal para agrupación logística
+  ciudad_envio    VARCHAR(100) NULL,   -- Ciudad para agrupación logística
 
   incluye_instalacion TINYINT(1) NOT NULL DEFAULT 0,
   fecha_estimada DATE NULL,

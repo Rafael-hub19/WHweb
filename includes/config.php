@@ -84,7 +84,7 @@ define('SMTP_PASS',       env('SMTP_PASS',       ''));
 // ── Negocio ────────────────────────────────────────────────────────
 define('COSTO_INSTALACION', (float) env('COSTO_INSTALACION', 1500));
 define('COSTO_ENVIO',       (float) env('COSTO_ENVIO',       500));
-define('DIAS_FABRICACION',  (int)   env('DIAS_FABRICACION',  15));
+define('DIAS_FABRICACION',  (int)   env('DIAS_FABRICACION',  2));
 define('SITE_NAME',         'Wooden House');
 define('SITE_PHONE',        env('SITE_PHONE', '33 1705 4017'));
 define('SITE_EMAIL',        env('SITE_EMAIL', 'contacto@woodenhouse.com'));

@@ -112,15 +112,13 @@ function mostrarProducto() {
   setText('pPrecio', formatCurrency(p.precio_base || p.precio));
 
   // Stock
-  const stock = parseInt(p.stock_disponible || 0);
+  // Fabricación bajo pedido — siempre disponible
   const iconEl = document.getElementById('pStockIcon');
   const textEl = document.getElementById('pStockText');
-  if (stock <= 0) {
-    if (iconEl) iconEl.textContent = '<i class="fa-solid fa-xmark"></i>';
-    if (textEl) textEl.innerHTML = '<strong>Sin stock</strong> - No disponible actualmente';
-    const btn = document.getElementById('btnAddCart');
-    if (btn) { btn.disabled = true; btn.textContent = 'Sin stock'; btn.style.opacity = '0.5'; }
-  } else if (stock <= 3) {
+  if (iconEl) iconEl.className = 'fa-solid fa-circle-check';
+  if (iconEl) iconEl.style.color = '#4caf50';
+  if (textEl) textEl.innerHTML = '<strong>Disponible</strong> · Fabricación bajo pedido';
+  if (btn) btn.disabled = false; else if (stock <= 3) {
     if (iconEl) iconEl.textContent = '<i class="fa-solid fa-triangle-exclamation"></i>';
     if (textEl) textEl.innerHTML = `<strong>¡Últimas ${stock} unidades!</strong>`;
     const qtyInput = document.getElementById('cantidad');
@@ -209,7 +207,7 @@ function cambiarCantidad(delta) {
   const input = document.getElementById('cantidad');
   if (!input) return;
   let val = parseInt(input.value || 1) + delta;
-  const max = productoActual?.stock_disponible || 99;
+  const max = 99; // Fabricación bajo pedido, sin límite de stock
   val = Math.max(1, Math.min(val, max));
   input.value = val;
 }

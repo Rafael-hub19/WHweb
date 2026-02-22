@@ -823,7 +823,8 @@
       // bienvenida + actividad
       setTimeout(() => showNotification('Bienvenido, Juan Pérez', 'success'), 400);
       if(!getActivity().length){
-        addActivity('<i class="fa-solid fa-circle-check"></i> Panel empleado inicializado', 'Acceso limitado: ver/actualizar pedidos y citas.');
+        cargarNombreEmpleado();
+    addActivity('<i class="fa-solid fa-circle-check"></i> Panel empleado inicializado', 'Acceso limitado: ver/actualizar pedidos y citas.');
       }
       renderActivity();
     });
@@ -971,6 +972,16 @@ async function actualizarCotizacion(id, estado) {
 }
 
 // --- KPIs dashboard ---
+async function cargarNombreEmpleado() {
+  try {
+    const data = await apiFetch(`${API_BASE}/auth.php?action=perfil`);
+    if (data.success && data.usuario) {
+      const el = document.getElementById('empNombreHeader');
+      if (el) el.textContent = data.usuario.nombre_completo || data.usuario.correo || 'Empleado';
+    }
+  } catch(e) { /* silencioso */ }
+}
+
 async function refreshKpisAPI() {
   try {
     const data = await apiFetch(`${API_BASE}/reportes.php?tipo=resumen`);

@@ -437,32 +437,17 @@ unset($_usuario);
         <div class="section">
           <div class="section-header">
             <h2 class="section-title">Personal</h2>
-            <button class="btn btn-primary" onclick="openModal('nuevoEmpleado')">+ Nuevo Empleado</button>
+            <button class="btn btn-primary" onclick="abrirNuevoEmpleado()">+ Nuevo Empleado</button>
           </div>
 
           <div class="table-container">
             <div style="overflow:auto;">
               <table>
                 <thead>
-                  <tr><th>ID</th><th>Nombre</th><th>Rol</th><th>Departamento</th><th>Email</th><th>Estado</th><th>Acciones</th></tr>
+                  <tr><th>ID</th><th>Nombre</th><th>Correo</th><th>Rol</th><th>Estado</th><th>Acciones</th></tr>
                 </thead>
-                <tbody>
-                  <tr>
-                    <td>#E001</td><td>Juan Pérez</td><td>Empleado</td><td>Ventas</td><td>juan.perez@woodenhouse.com</td>
-                    <td><span class="status-badge status-completed">Activo</span></td>
-                    <td>
-                      <button class="btn btn-secondary btn-small" onclick="showNotification('Editar empleado (demo)', 'info')"><i class="fa-solid fa-pen"></i></button>
-                      <button class="btn btn-danger btn-small" onclick="showNotification('Bloquear empleado (demo)', 'info')"><i class="fa-solid fa-lock"></i></button>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td>#E002</td><td>María García</td><td>Empleada</td><td>Logística</td><td>maria.garcia@woodenhouse.com</td>
-                    <td><span class="status-badge status-completed">Activo</span></td>
-                    <td>
-                      <button class="btn btn-secondary btn-small" onclick="showNotification('Editar empleado (demo)', 'info')"><i class="fa-solid fa-pen"></i></button>
-                      <button class="btn btn-danger btn-small" onclick="showNotification('Bloquear empleado (demo)', 'info')"><i class="fa-solid fa-lock"></i></button>
-                    </td>
-                  </tr>
+                <tbody id="empleadosTable">
+                  <tr><td colspan="6" style="text-align:center;color:#888;padding:20px;">Cargando empleados...</td></tr>
                 </tbody>
               </table>
             </div>
@@ -679,9 +664,35 @@ unset($_usuario);
             </div>
 
             <div class="form-group">
-              <label class="form-label">Imágenes (una por línea: URL/ruta)</label>
-              <textarea class="form-textarea" id="p_imgs" placeholder="/img/milano1.jpg&#10;/img/milano2.jpg"></textarea>
-              <div class="help">Ahorita NO se renderizan imágenes, solo se guardan como datos.</div>
+              <label class="form-label">Imágenes del producto</label>
+
+              <!-- Upload area -->
+              <div id="imgDropZone" style="border:2px dashed #8b7355;border-radius:10px;padding:24px;text-align:center;cursor:pointer;margin-bottom:12px;color:#8b7355;background:#1a1a1a;transition:background .2s;"
+                   onclick="document.getElementById('p_imgs_file').click()"
+                   ondragover="event.preventDefault();this.style.background='#2a2018'"
+                   ondragleave="this.style.background='#1a1a1a'"
+                   ondrop="handleImgDrop(event)">
+                <i class="fa-solid fa-cloud-arrow-up" style="font-size:28px;margin-bottom:8px;display:block;"></i>
+                <strong>Haz clic o arrastra imágenes aquí</strong><br>
+                <small style="color:#888;">JPG, PNG, WebP — máx. 2 MB por imagen</small>
+              </div>
+              <input type="file" id="p_imgs_file" accept="image/jpeg,image/png,image/webp" multiple
+                     style="display:none" onchange="handleImgSelect(this.files)">
+
+              <!-- Upload progress -->
+              <div id="imgUploadProgress" style="display:none;margin-bottom:10px;">
+                <div style="background:#333;border-radius:6px;overflow:hidden;height:8px;">
+                  <div id="imgProgressBar" style="background:#8b7355;height:100%;width:0;transition:width .3s;"></div>
+                </div>
+                <small id="imgProgressLabel" style="color:#888;">Subiendo...</small>
+              </div>
+
+              <!-- Preview de imágenes ya cargadas -->
+              <div id="imgPreviewList" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px;"></div>
+
+              <!-- URLs guardadas (oculto, lo maneja el JS) -->
+              <input type="hidden" id="p_imgs_urls" value="">
+              <div class="help">La primera imagen será la principal que aparece en el catálogo.</div>
             </div>
           </div>
 
@@ -713,29 +724,41 @@ unset($_usuario);
       <div class="modal" id="nuevoEmpleado">
         <div class="modal-content">
           <div class="modal-header">
-            <h3 class="modal-title">Nuevo Empleado</h3>
+            <h3 class="modal-title" id="empModalTitle">Nuevo Empleado</h3>
             <button class="modal-close" onclick="closeModal('nuevoEmpleado')">×</button>
           </div>
+
+          <input type="hidden" id="emp_mode" value="create">
+          <input type="hidden" id="emp_id" value="">
+
           <div class="form-group">
-            <label class="form-label">Nombre</label>
-            <input type="text" class="form-input">
+            <label class="form-label">Nombre completo *</label>
+            <input type="text" class="form-input" id="emp_nombre" placeholder="Juan Pérez López">
           </div>
           <div class="form-group">
-            <label class="form-label">Email</label>
-            <input type="email" class="form-input">
+            <label class="form-label">Correo electrónico *</label>
+            <input type="email" class="form-input" id="emp_correo" placeholder="juan@woodenhouse.com">
+            <div class="help">Se usará para iniciar sesión en el panel.</div>
           </div>
           <div class="form-group">
-            <label class="form-label">Rol</label>
-            <select class="form-select">
-              <option>Empleado</option>
-              <option>Administrador</option>
+            <label class="form-label">Contraseña *</label>
+            <input type="password" class="form-input" id="emp_password" placeholder="Mínimo 6 caracteres"
+                   autocomplete="new-password">
+            <div class="help" id="emp_password_help">Mínimo 6 caracteres. Déjala en blanco al editar para no cambiarla.</div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Rol *</label>
+            <select class="form-select" id="emp_rol">
+              <option value="empleado">Empleado</option>
+              <option value="administrador">Administrador</option>
             </select>
           </div>
-          <div class="form-group">
-            <label class="form-label">Contraseña</label>
-            <input type="password" class="form-input">
-          </div>
-          <button class="btn btn-primary" style="width:100%;" onclick="closeModal('nuevoEmpleado'); showNotification('<i class=&quot;fa-solid fa-check&quot;></i> Empleado registrado (demo)', 'success');">Crear</button>
+
+          <div id="emp_error" style="display:none;color:#e05;font-size:13px;margin-bottom:12px;padding:10px;background:#2a0a0a;border-radius:6px;"></div>
+
+          <button class="btn btn-primary" style="width:100%;" id="emp_btn_guardar" onclick="guardarEmpleado()">
+            Crear Empleado
+          </button>
         </div>
       </div>
 
@@ -747,6 +770,7 @@ unset($_usuario);
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
   <script src="../assets/js/firebase-config.js"></script>
   <script src="../assets/js/panel_administrador.js"></script>
 </body>

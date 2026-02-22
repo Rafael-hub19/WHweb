@@ -34,7 +34,7 @@
 <div class="container">
     <div class="page-header">
         <h1 class="page-title"><i class="fa-solid fa-cart-shopping"></i> Tu Carrito de Compras</h1>
-        <p class="page-subtitle">Revisa tu pedido, elige opciones de entrega y selecciona tu semana</p>
+        <p class="page-subtitle">Revisa tu pedido, elige opciones de entrega y selecciona tu fecha</p>
     </div>
 
     <div class="cart-container">
@@ -117,24 +117,24 @@
 
             <!-- ── SELECTOR DE FECHA ──────────────────────────── -->
             <div class="section-card">
-                <h3 class="section-title"><span class="section-icon"><i class="fa-solid fa-calendar-days"></i></span> Semana de entrega</h3>
+                <h3 class="section-title"><span class="section-icon"><i class="fa-solid fa-calendar-days"></i></span> Fecha de entrega</h3>
 
                 <div class="date-info">
-                    <strong id="fabricacionLabel"><i class="fa-solid fa-clock"></i> Tiempo de fabricación: <span id="diasFabLabel">15</span> días hábiles</strong>
+                    <strong><i class="fa-solid fa-clock"></i> Fabricación bajo pedido — entrega estimada en 2 días hábiles</strong>
                     <p>
-                        Cada mueble se fabrica a medida. Las semanas disponibles reflejan
-                        la <strong>capacidad real de nuestro taller</strong> — cuando una semana
-                        se llena, desaparece del selector.
+                        Selecciona el día que prefieres recibir tu mueble.
+                        La disponibilidad se actualiza en tiempo real según la carga del taller.
                     </p>
                 </div>
 
                 <!-- Leyenda -->
                 <div class="disponibilidad-indicator">
-                    <span class="dot dot-ok"></span><span>Semana disponible</span>
-                    <span class="dot dot-lleno" style="margin-left:12px"></span><span>Capacidad llena</span>
+                    <span class="dot dot-ok"></span><span>Lugares disponibles</span>
+                    <span class="dot dot-medio" style="margin-left:12px"></span><span>Casi lleno</span>
+                    <span class="dot dot-lleno" style="margin-left:12px"></span><span>Sin lugares</span>
                 </div>
 
-                <!-- Grid de semanas (se llena desde la API) -->
+                <!-- Grid de días (se llena desde la API) -->
                 <div id="semanasGrid" class="semanas-grid">
                     <div class="fecha-loading">Consultando disponibilidad en tiempo real</div>
                 </div>
@@ -144,8 +144,8 @@
 
                 <div class="info-box">
                     <p>
-                        <i class="fa-solid fa-lightbulb"></i> <strong>Nota:</strong> La semana seleccionada es el rango de entrega estimado.
-                        Te confirmaremos el día exacto por correo electrónico.
+                        <i class="fa-solid fa-lightbulb"></i> <strong>Nota:</strong> La fecha seleccionada es tu día de entrega estimado.
+                        Recibirás confirmación por correo electrónico.
                     </p>
                 </div>
             </div>

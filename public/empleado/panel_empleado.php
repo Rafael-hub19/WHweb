@@ -46,7 +46,7 @@ unset($_usuario);
 
       <div class="user-info">
         <div class="user-avatar">JP</div>
-        <span>Juan Pérez</span>
+        <span id="empNombreHeader">Cargando...</span>
         <button class="logout-btn" onclick="logout()">Salir</button>
       </div>
     </div>
@@ -179,44 +179,7 @@ unset($_usuario);
                   </tr>
                 </thead>
                 <tbody id="pedidosTable">
-                  <tr data-status="pending" data-id="001" data-cliente="Juan Pérez Flores Ochoa" data-producto="Milano" data-entrega="2026-01-02" data-total="8500">
-                    <td>#001</td>
-                    <td>Juan Pérez Flores Ochoa</td>
-                    <td>Milano</td>
-                    <td>02/01/26</td>
-                    <td><span class="status-badge status-pending">Pendiente</span></td>
-                    <td style="color: var(--accent); font-weight:800;">$8,500</td>
-                    <td>
-                      <button class="btn btn-secondary btn-small" onclick="viewPedidoFromRow(this)">Ver</button>
-                      <button class="btn btn-secondary btn-small" onclick="openUpdateFromRow(this)">Actualizar</button>
-                    </td>
-                  </tr>
-
-                  <tr data-status="progress" data-id="002" data-cliente="Luz María Herrera García" data-producto="Venecia" data-entrega="2026-01-03" data-total="12800">
-                    <td>#002</td>
-                    <td>Luz María Herrera García</td>
-                    <td>Venecia</td>
-                    <td>03/01/26</td>
-                    <td><span class="status-badge status-progress">En Proceso</span></td>
-                    <td style="color: var(--accent); font-weight:800;">$12,800</td>
-                    <td>
-                      <button class="btn btn-secondary btn-small" onclick="viewPedidoFromRow(this)">Ver</button>
-                      <button class="btn btn-secondary btn-small" onclick="openUpdateFromRow(this)">Actualizar</button>
-                    </td>
-                  </tr>
-
-                  <tr data-status="completed" data-id="003" data-cliente="Juan Carlos Lomeli López" data-producto="Toscana" data-entrega="2025-12-28" data-total="15200">
-                    <td>#003</td>
-                    <td>Juan Carlos Lomeli López</td>
-                    <td>Toscana</td>
-                    <td>28/12/25</td>
-                    <td><span class="status-badge status-completed">Completado</span></td>
-                    <td style="color: var(--accent); font-weight:800;">$15,200</td>
-                    <td>
-                      <button class="btn btn-secondary btn-small" onclick="viewPedidoFromRow(this)">Ver</button>
-                      <button class="btn btn-secondary btn-small" onclick="openUpdateFromRow(this)">Actualizar</button>
-                    </td>
-                  </tr>
+                  <tr><td colspan="7" style="text-align:center;color:#888;padding:20px;">Cargando pedidos...</td></tr>
                 </tbody>
               </table>
             </div>

@@ -139,9 +139,7 @@ function renderProductos() {
       : '';
     const imgPlaceholder = `<div class="placeholder-imagen" ${p.imagen_principal ? 'style="display:none"' : ''}><i class="fa-solid fa-tree"></i></div>`;
     const badge = p.etiqueta ? `<div class="product-badge">${escHtml(p.etiqueta)}</div>` : '';
-    const stockBadge = p.stock_disponible <= 0
-      ? `<div class="badge-agotado">Agotado</div>`
-      : (p.stock_disponible <= 3 ? `<div class="badge-pocas">¡Últimas unidades!</div>` : '');
+    const stockBadge = '';
     const precio = formatCurrency(p.precio);
 
     return `
@@ -158,11 +156,11 @@ function renderProductos() {
             <span class="price">${precio}</span>
           </div>
           <div class="product-actions">
-            ${p.stock_disponible > 0
+            ${true
               ? `<button class="btn-add-cart" onclick="agregarAlCarrito(${p.id}, '${escHtml(p.nombre).replace(/'/g,"\\'")}', ${p.precio}, '${escHtml(p.imagen_principal || '')}')">
                    <i class="fa-solid fa-cart-shopping"></i> Agregar
                  </button>`
-              : `<button class="btn-agotado" disabled>Agotado</button>`
+              : `<button class="btn-agregar" onclick="agregarAlCarrito(${p.id})"><i class="fa-solid fa-cart-plus"></i> Agregar al carrito</button>`
             }
             <a href="detalle/${p.id}" class="btn-details">Ver detalles</a>
           </div>

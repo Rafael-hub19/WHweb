@@ -174,3 +174,133 @@ function firestoreEscribir(string $coleccion, string $docId, array $datos): bool
     }
     return false;
 }
+// ---- Fechas inteligentes por tipo de entrega ----
+
+/**
+ * Calcula la fecha de entrega óptima según tipo y zona.
+ *
+ * Lógica:
+ *  - tienda:   busca el día más próximo con espacio en el lote diario (≤5 productos)
+ *  - domicilio: primero intenta agrupar con pedidos del mismo CP ese día;
+ *               si no hay espacio en ningún día con ese CP, usa el primer día libre general.
+ *
+ * @param string $tipoEntrega  'recoger' | 'envio'
+ * @param string $cp           Código postal del cliente (solo para domicilio)
+ * @param int    $numProductos Cantidad de productos en este pedido
+ * @return string  Fecha en formato Y-m-d
+ */
+function calcularFechaInteligente(string $tipoEntrega, string $cp, int $numProductos): string {
+    $LIMITE     = 5;    // máx productos por día
+    $MARGEN     = 2;    // días hábiles mínimos desde hoy
+    $MAX_BUSCAR = 60;   // límite de días a revisar
+
+    // Fecha mínima = hoy + MARGEN días hábiles
+    $hoy    = new DateTime();
+    $minima = calcularFechaMinHabil($hoy, $MARGEN);
+
+    // Cargar carga actual por día (suma de cantidades de pedidos activos)
+    $hasta = (clone $hoy)->modify("+{$MAX_BUSCAR} days")->format('Y-m-d');
+    $rows  = dbRows(
+        "SELECT p.fecha_estimada,
+                p.tipo_entrega,
+                COALESCE(p.cp_envio, '') AS cp_envio,
+                SUM(dp.cantidad)         AS total_productos
+         FROM pedidos p
+         INNER JOIN detalle_pedido dp ON dp.pedido_id = p.id
+         WHERE p.fecha_estimada BETWEEN ? AND ?
+           AND p.estado NOT IN ('cancelado','entregado')
+         GROUP BY p.fecha_estimada, p.tipo_entrega, p.cp_envio",
+        [$minima->format('Y-m-d'), $hasta]
+    );
+
+    // Indexar: $carga[fecha][tipo][cp] = total_productos
+    $carga = [];
+    foreach ($rows as $r) {
+        $f  = $r['fecha_estimada'];
+        $t  = $r['tipo_entrega'];
+        $c  = $r['cp_envio'];
+        $carga[$f][$t][$c] = ($carga[$f][$t][$c] ?? 0) + (int)$r['total_productos'];
+    }
+
+    // Cargar días bloqueados
+    $bloqueados = dbRows(
+        "SELECT fecha FROM dias_bloqueados WHERE fecha BETWEEN ? AND ?",
+        [$minima->format('Y-m-d'), $hasta]
+    );
+    $bloqueadosSet = array_flip(array_column($bloqueados, 'fecha'));
+
+    // ── Recorrer días buscando el óptimo ──────────────────────────
+    $fechaGeneral = null;   // primer día con espacio general
+    $fechaZona    = null;   // primer día con pedidos del mismo CP
+
+    $fecha = clone $minima;
+    $dias  = 0;
+
+    while ($dias < $MAX_BUSCAR) {
+        $ymd = $fecha->format('Y-m-d');
+        $dow = (int)$fecha->format('N');
+
+        // Solo días hábiles (lun-vie) no bloqueados
+        if ($dow <= 5 && !isset($bloqueadosSet[$ymd])) {
+
+            // Carga total del día sin importar tipo o zona
+            $totalDia = 0;
+            foreach ($carga[$ymd] ?? [] as $tipos) {
+                foreach ($tipos as $prod) { $totalDia += $prod; }
+            }
+
+            $espacioGeneral = ($LIMITE - $totalDia) >= $numProductos;
+
+            if ($espacioGeneral) {
+                // Guardar el primer día disponible en general
+                if ($fechaGeneral === null) $fechaGeneral = $ymd;
+
+                // Para domicilio: ¿hay pedidos del mismo CP en este día?
+                if ($tipoEntrega === 'envio' && !empty($cp)) {
+                    $yaHayMismoCP = isset($carga[$ymd]['envio'][$cp]);
+                    if ($yaHayMismoCP && $fechaZona === null) {
+                        $fechaZona = $ymd;  // ideal: mismo día y misma zona
+                    }
+                }
+            }
+
+            // Si ya tenemos ambas opciones, parar búsqueda
+            if ($fechaGeneral !== null && ($tipoEntrega !== 'envio' || !empty($cp) === false || $fechaZona !== null)) {
+                break;
+            }
+            // Para tienda basta con el primer día libre
+            if ($tipoEntrega === 'recoger' && $fechaGeneral !== null) {
+                break;
+            }
+        }
+
+        $fecha->modify('+1 day');
+        $dias++;
+    }
+
+    // Decidir qué fecha usar
+    if ($tipoEntrega === 'envio' && $fechaZona !== null) {
+        return $fechaZona;   // agrupa con pedidos de la misma zona
+    }
+    return $fechaGeneral ?? fechaEstimadaPedido(); // fallback al cálculo simple
+}
+
+/**
+ * Suma N días hábiles a una fecha (sin festivos de BD)
+ */
+function calcularFechaMinHabil(DateTime $desde, int $dias): DateTime {
+    $fecha    = clone $desde;
+    $contados = 0;
+    $limite   = (clone $desde)->modify('+30 days')->format('Y-m-d');
+    $bloq     = dbRows("SELECT fecha FROM dias_bloqueados WHERE fecha BETWEEN ? AND ?",
+                       [$desde->format('Y-m-d'), $limite]);
+    $bloqSet  = array_flip(array_column($bloq, 'fecha'));
+
+    while ($contados < $dias) {
+        $fecha->modify('+1 day');
+        $dow = (int)$fecha->format('N');
+        $ymd = $fecha->format('Y-m-d');
+        if ($dow <= 5 && !isset($bloqSet[$ymd])) $contados++;
+    }
+    return $fecha;
+}

@@ -528,17 +528,27 @@
       refreshKPIs();
     }
 
-    function openProductoModal(mode, id=''){
+    async function openProductoModal(mode, id=''){
       $('#p_mode').value = mode;
       $('#p_key').value = id || '';
       const isEdit = mode === 'edit';
 
       $('#productoModalTitle').textContent = isEdit ? 'Editar Producto' : 'Nuevo Producto';
 
+      // Resetear estado de imágenes
+      window._imgFilesPending = [];
+      window._imgUrlsCurrent  = [];
+      const urlsInput = document.getElementById('p_imgs_urls');
+      if (urlsInput) urlsInput.value = '';
+      const previewList = document.getElementById('imgPreviewList');
+      if (previewList) previewList.innerHTML = '';
+      const fileInput = document.getElementById('p_imgs_file');
+      if (fileInput) fileInput.value = '';
+
       const clear = (x) => { const el = $('#'+x); if(el) el.value = ''; };
       [
         'p_id','p_sku','p_nombre','p_categoria','p_badge','p_estado','p_precio','p_stock',
-        'p_dim','p_mat','p_acab','p_lav','p_descCorta','p_descLarga','p_rating','p_reviews','p_features','p_specs','p_imgs'
+        'p_dim','p_mat','p_acab','p_lav','p_descCorta','p_descLarga','p_rating','p_reviews','p_features','p_specs'
       ].forEach(clear);
 
       if(isEdit){
@@ -567,7 +577,11 @@
         $('#p_reviews').value = p.reviews ?? '';
         $('#p_features').value = (p.features || []).join('\n');
         $('#p_specs').value = (p.specs || []).map(s => `${s.label}: ${s.value}`).join('\n');
-        $('#p_imgs').value = (p.imgs || []).join('\n');
+        // Cargar imágenes existentes del producto desde API
+        const imgUrls = p.imgs || [];
+        const urlsInput = document.getElementById('p_imgs_urls');
+        if (urlsInput) urlsInput.value = imgUrls.join('\n');
+        renderImgPreviews();
 
         $('#p_id').disabled = true;
         $('#p_id').style.opacity = .7;
@@ -600,83 +614,168 @@
       return '';
     }
 
-    function saveProductoFull(){
-      const mode = $('#p_mode').value;
+    async function saveProductoFull(){
+      const mode   = $('#p_mode').value;
       const isEdit = mode === 'edit';
-      const oldId = $('#p_key').value;
+      const oldId  = $('#p_key').value;
 
+      // Armar payload base
       const payload = {
-        id: String($('#p_id').value || '').trim(),
-        sku: String($('#p_sku').value || '').trim(),
-        nombre: String($('#p_nombre').value || '').trim(),
-        categoria: String($('#p_categoria').value || '').trim(),
-        badge: String($('#p_badge').value || '').trim(),
-        estado: String($('#p_estado').value || 'activo').trim(),
-        precio: Number($('#p_precio').value || 0),
-        stock: Number($('#p_stock').value || 0),
-
+        mode,
+        id:       isEdit ? oldId : String($('#p_id').value || '').trim(),
+        nombre:   String($('#p_nombre').value || '').trim(),
+        categoria_id: parseInt($('#p_categoria').value || 0),
+        badge:    String($('#p_badge').value || '').trim(),
+        estado:   String($('#p_estado').value || 'activo').trim(),
+        precio:   Number($('#p_precio').value || 0),
+        stock:    Number($('#p_stock').value || 0),
         descCorta: String($('#p_descCorta').value || '').trim(),
-        specsResumen:{
+        specsResumen: {
           dimensiones: String($('#p_dim').value || '').trim(),
-          material: String($('#p_mat').value || '').trim(),
-          acabado: String($('#p_acab').value || '').trim(),
-          lavabo: String($('#p_lav').value || '').trim(),
+          material:    String($('#p_mat').value || '').trim(),
+          acabado:     String($('#p_acab').value || '').trim(),
+          lavabo:      String($('#p_lav').value || '').trim(),
         },
-
-        rating: clamp(Number($('#p_rating').value || 0) || 0, 0, 5),
-        reviews: Number($('#p_reviews').value || 0) || 0,
         descLarga: String($('#p_descLarga').value || '').trim(),
-
-        features: parseLines($('#p_features').value),
+        features:  parseLines($('#p_features').value),
         specs: parseLines($('#p_specs').value).map(line => {
           const idx = line.indexOf(':');
-          if(idx === -1) return { label: line, value: '' };
+          if (idx === -1) return { label: line, value: '' };
           return { label: line.slice(0, idx).trim(), value: line.slice(idx+1).trim() };
         }),
-        imgs: parseLines($('#p_imgs').value),
       };
 
-      const err = validateProductoPayload(payload, isEdit);
-      if(err){
-        showNotification('<i class="fa-solid fa-xmark"></i> ' + err, 'error');
-        return;
-      }
+      // Validaciones básicas
+      if (!payload.nombre)        { showNotification('<i class="fa-solid fa-xmark"></i> Falta el nombre', 'error'); return; }
+      if (!payload.categoria_id)  { showNotification('<i class="fa-solid fa-xmark"></i> Falta la categoría', 'error'); return; }
+      if (payload.precio <= 0)    { showNotification('<i class="fa-solid fa-xmark"></i> Precio inválido', 'error'); return; }
+      if (!payload.descLarga)     { showNotification('<i class="fa-solid fa-xmark"></i> Falta descripción larga', 'error'); return; }
 
-      const list = getProductos();
+      // ── Subir imágenes pendientes a Firebase Storage ──────────
+      const btnGuardar = document.querySelector('#productoModal .btn-primary');
+      if (btnGuardar) { btnGuardar.disabled = true; btnGuardar.textContent = 'Guardando...'; }
 
-      if(!isEdit){
-        const exists = list.some(p => p.id === payload.id || p.sku === payload.sku);
-        if(exists){
-          showNotification('<i class="fa-solid fa-xmark"></i> Ya existe un producto con ese ID o SKU', 'error');
-          return;
+      try {
+        // Subir archivos nuevos pendientes
+        if (window._imgFilesPending && window._imgFilesPending.length > 0) {
+          showNotification('<i class="fa-solid fa-cloud-arrow-up"></i> Subiendo imágenes...', 'info');
+          const urls = await subirImagenesFirebase(window._imgFilesPending, payload.nombre);
+          // Agregar a las URLs ya guardadas
+          const existentes = (document.getElementById('p_imgs_urls')?.value || '')
+            .split('').map(u => u.trim()).filter(Boolean);
+          window._imgUrlsCurrent = [...existentes, ...urls];
+          document.getElementById('p_imgs_urls').value = window._imgUrlsCurrent.join('');
+          window._imgFilesPending = [];
         }
-        list.unshift(payload);
-        setProductos(list);
+
+        payload.imgs = (document.getElementById('p_imgs_urls')?.value || '')
+          .split('').map(u => u.trim()).filter(Boolean);
+
+        await saveProductoAPI(payload);
         closeModal('productoModal');
-        renderCatalogo();
-        showNotification('<i class="fa-solid fa-check"></i> Producto creado', 'success');
-        return;
+        window._imgUrlsCurrent = [];
+        window._imgFilesPending = [];
+
+      } catch(e) {
+        showNotification('<i class="fa-solid fa-xmark"></i> Error: ' + e.message, 'error');
+      } finally {
+        if (btnGuardar) { btnGuardar.disabled = false; btnGuardar.textContent = 'Guardar'; }
+      }
+    }
+
+    // ── Subir imágenes a Firebase Storage ─────────────────────────
+    async function subirImagenesFirebase(files, nombreProducto) {
+      if (!firebaseStorage) throw new Error('Firebase Storage no disponible');
+
+      const progress  = document.getElementById('imgUploadProgress');
+      const bar       = document.getElementById('imgProgressBar');
+      const label     = document.getElementById('imgProgressLabel');
+      if (progress) progress.style.display = 'block';
+
+      const urls   = [];
+      const slug   = nombreProducto.toLowerCase().replace(/[^a-z0-9]/g, '-').substring(0, 30);
+      const ts     = Date.now();
+
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        if (file.size > 2 * 1024 * 1024) {
+          showNotification(`<i class="fa-solid fa-xmark"></i> "${file.name}" supera 2 MB, se omite`, 'error');
+          continue;
+        }
+        const ext  = file.name.split('.').pop().toLowerCase();
+        const path = `productos/${slug}-${ts}-${i}.${ext}`;
+        const ref  = firebaseStorage.ref(path);
+
+        if (bar) bar.style.width = Math.round(((i) / files.length) * 100) + '%';
+        if (label) label.textContent = `Subiendo ${i+1} de ${files.length}...`;
+
+        const snap = await ref.put(file);
+        const url  = await snap.ref.getDownloadURL();
+        urls.push(url);
       }
 
-      const idx = list.findIndex(p => p.id === oldId);
-      if(idx === -1){
-        showNotification('<i class="fa-solid fa-xmark"></i> No se encontró el producto para actualizar', 'error');
-        return;
-      }
+      if (bar) bar.style.width = '100%';
+      if (label) label.textContent = 'Listo';
+      setTimeout(() => { if (progress) progress.style.display = 'none'; }, 1500);
 
-      payload.id = oldId;
+      return urls;
+    }
 
-      const dupSku = list.some(p => p.id !== oldId && p.sku === payload.sku);
-      if(dupSku){
-        showNotification('<i class="fa-solid fa-xmark"></i> Ya existe otro producto con ese SKU', 'error');
-        return;
-      }
+    // ── Manejar selección de archivos ──────────────────────────────
+    function handleImgSelect(files) {
+      if (!window._imgFilesPending) window._imgFilesPending = [];
+      window._imgFilesPending = [...window._imgFilesPending, ...Array.from(files)];
+      renderImgPreviews();
+    }
 
-      list[idx] = payload;
-      setProductos(list);
-      closeModal('productoModal');
-      renderCatalogo();
-      showNotification('<i class="fa-solid fa-check"></i> Producto actualizado', 'success');
+    function handleImgDrop(event) {
+      event.preventDefault();
+      document.getElementById('imgDropZone').style.background = '#1a1a1a';
+      handleImgSelect(event.dataTransfer.files);
+    }
+
+    function renderImgPreviews() {
+      const list = document.getElementById('imgPreviewList');
+      if (!list) return;
+
+      const existentes = (document.getElementById('p_imgs_urls')?.value || '')
+        .split('').map(u => u.trim()).filter(Boolean);
+
+      const pendientes = (window._imgFilesPending || []).map(f => ({
+        src: URL.createObjectURL(f),
+        label: f.name,
+        tipo: 'nuevo'
+      }));
+
+      const todas = [
+        ...existentes.map((url, i) => ({ src: url, label: `Imagen ${i+1}`, tipo: 'guardada', url })),
+        ...pendientes
+      ];
+
+      if (todas.length === 0) { list.innerHTML = ''; return; }
+
+      list.innerHTML = todas.map((img, i) => `
+        <div style="position:relative;width:80px;height:80px;">
+          <img src="${img.src}" style="width:80px;height:80px;object-fit:cover;border-radius:8px;border:2px solid ${i===0?'#8b7355':'#444'};"
+               title="${i===0?'Principal':img.label}">
+          ${i===0?'<span style="position:absolute;bottom:2px;left:2px;background:#8b7355;color:#fff;font-size:9px;padding:1px 4px;border-radius:3px;">Principal</span>':''}
+          ${img.tipo==='guardada'?`<button onclick="eliminarImgGuardada(${i})" style="position:absolute;top:2px;right:2px;background:#cc3333;border:none;color:#fff;border-radius:50%;width:18px;height:18px;font-size:11px;cursor:pointer;padding:0;">×</button>`:''}
+          ${img.tipo==='nuevo'?`<button onclick="eliminarImgPendiente(${i-existentes.length})" style="position:absolute;top:2px;right:2px;background:#cc3333;border:none;color:#fff;border-radius:50%;width:18px;height:18px;font-size:11px;cursor:pointer;padding:0;">×</button>`:''}
+        </div>
+      `).join('');
+    }
+
+    function eliminarImgGuardada(idx) {
+      const urls = (document.getElementById('p_imgs_urls')?.value || '')
+        .split('').map(u => u.trim()).filter(Boolean);
+      urls.splice(idx, 1);
+      document.getElementById('p_imgs_urls').value = urls.join('');
+      renderImgPreviews();
+    }
+
+    function eliminarImgPendiente(idx) {
+      if (window._imgFilesPending) window._imgFilesPending.splice(idx, 1);
+      renderImgPreviews();
     }
 
     function deleteProducto(id){
@@ -698,7 +797,7 @@
 
       $('#detalleModalTitle').textContent = `Detalle: ${p.nombre} (${p.id})`;
 
-      const stockText = (p.stock <= 0) ? 'Sin stock' : (p.stock <= 5 ? 'Bajo stock' : 'En stock');
+      const stockText = 'Fabricación bajo pedido';
       const ratingTxt = (p.rating ? `${p.rating.toFixed(1)} <i class="fa-solid fa-star"></i>` : '—');
       const reviewsTxt = (p.reviews ? `(${p.reviews} reseñas)` : '');
 
@@ -1183,7 +1282,7 @@ async function cargarProductosAPI() {
         descCorta:   (p.descripcion || '').substring(0, 100),
         descLarga:   p.descripcion || '',
         badge:       p.etiqueta || '',
-        imgs:        [],
+        imgs:        p.imagen_principal ? [p.imagen_principal] : [],
       }));
     }
 
@@ -1322,25 +1421,43 @@ async function actualizarEstadoPedido(id, estado) {
 // EMPLEADOS - API real
 // ============================================================
 async function cargarEmpleadosAPI() {
-  const tbody = document.querySelector('#empleados-section table tbody');
+  const tbody = document.getElementById('empleadosTable');
   if (!tbody) return;
+
+  tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#888;padding:20px;">Cargando...</td></tr>';
+
   try {
     const data = await apiFetch(`${API_BASE}/empleados.php`);
     if (!data.success) return;
 
-    tbody.innerHTML = (data.empleados || []).map(e => `
+    const empleados = data.empleados || [];
+    if (empleados.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#888;padding:20px;">No hay empleados registrados</td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = empleados.map(e => `
       <tr>
-        <td>#${e.id}</td>
+        <td>${e.id}</td>
         <td>${escapeHtml(e.nombre_completo)}</td>
-        <td>${e.rol === 'administrador' ? 'Administrador' : 'Empleado'}</td>
         <td>${escapeHtml(e.correo)}</td>
+        <td>${e.rol === 'administrador' ? 'Administrador' : 'Empleado'}</td>
         <td><span class="status-badge ${e.activo ? 'status-completed' : 'status-disabled'}">${e.activo ? 'Activo' : 'Inactivo'}</span></td>
         <td>
-          <button class="btn btn-danger btn-small" onclick="desactivarEmpleado(${e.id})">${e.activo ? '<i class="fa-solid fa-lock"></i> Desactivar' : '<i class="fa-solid fa-lock-open"></i> Activar'}</button>
+          <button class="btn btn-secondary btn-small"
+            onclick="abrirEditarEmpleado(${e.id}, '${escapeHtml(e.nombre_completo)}', '${escapeHtml(e.correo)}', '${e.rol}')">
+            <i class="fa-solid fa-pen"></i>
+          </button>
+          <button class="btn btn-danger btn-small" onclick="desactivarEmpleado(${e.id})">
+            ${e.activo ? '<i class="fa-solid fa-lock"></i>' : '<i class="fa-solid fa-lock-open"></i>'}
+          </button>
         </td>
       </tr>
     `).join('');
-  } catch(e) { console.error('Empleados API error:', e); }
+  } catch(e) {
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#e05;padding:20px;">Error al cargar empleados</td></tr>';
+    console.error('Empleados API error:', e);
+  }
 }
 
 async function desactivarEmpleado(id) {
@@ -1408,4 +1525,138 @@ document.addEventListener('DOMContentLoaded', () => {
 
 window.logoutAdmin              = logoutAdmin;
 window.actualizarEstadoPedido   = actualizarEstadoPedido;
+
+// ============================================================
+// EMPLEADOS - Crear/editar (Firebase Auth + MySQL)
+// ============================================================
+
+async function guardarEmpleado() {
+  const mode    = document.getElementById('emp_mode')?.value || 'create';
+  const isEdit  = mode === 'edit';
+  const empId   = document.getElementById('emp_id')?.value || '';
+  const nombre  = document.getElementById('emp_nombre')?.value.trim() || '';
+  const correo  = document.getElementById('emp_correo')?.value.trim().toLowerCase() || '';
+  const pass    = document.getElementById('emp_password')?.value || '';
+  const rol     = document.getElementById('emp_rol')?.value || 'empleado';
+  const errBox  = document.getElementById('emp_error');
+  const btn     = document.getElementById('emp_btn_guardar');
+
+  const showErr = (msg) => {
+    if (errBox) { errBox.textContent = msg; errBox.style.display = 'block'; }
+  };
+  if (errBox) errBox.style.display = 'none';
+
+  // Validaciones
+  if (!nombre) { showErr('Ingresa el nombre completo'); return; }
+  if (!correo || !correo.includes('@')) { showErr('Ingresa un correo válido'); return; }
+  if (!isEdit && pass.length < 6) { showErr('La contraseña debe tener mínimo 6 caracteres'); return; }
+
+  if (btn) { btn.disabled = true; btn.textContent = isEdit ? 'Guardando...' : 'Creando...'; }
+
+  try {
+    if (isEdit) {
+      // Solo actualizar datos en MySQL (nombre, correo, rol)
+      const data = await apiFetch(`${API_BASE}/empleados.php?id=${empId}`, {
+        method: 'PUT',
+        body: JSON.stringify({ nombre_completo: nombre, correo, rol }),
+      });
+      if (!data.success) throw new Error(data.error || 'Error al actualizar');
+      showNotification('<i class="fa-solid fa-circle-check"></i> Empleado actualizado', 'success');
+
+    } else {
+      // Crear usuario en Firebase Auth desde el navegador
+      if (!firebaseAuth) throw new Error('Firebase Auth no disponible');
+
+      // Guardar sesión actual del admin
+      const adminUser = firebaseAuth.currentUser;
+      if (!adminUser) throw new Error('Sesión expirada, recarga la página');
+
+      // Crear cuenta en Firebase
+      const cred = await firebaseAuth.createUserWithEmailAndPassword(correo, pass);
+      const nuevoUid = cred.user.uid;
+
+      // Volver a iniciar sesión como admin (Firebase cambia el usuario activo al crear)
+      // Usamos el token guardado en session
+      const adminToken = sessionStorage.getItem('wh_firebase_token') || '';
+
+      // Guardar en MySQL
+      try {
+        const data = await apiFetch(`${API_BASE}/empleados.php`, {
+          method: 'POST',
+          body: JSON.stringify({
+            firebase_uid:    nuevoUid,
+            nombre_completo: nombre,
+            correo,
+            rol,
+          }),
+        });
+        if (!data.success) {
+          // Si MySQL falla, eliminar el usuario de Firebase para no dejar inconsistencia
+          await cred.user.delete();
+          throw new Error(data.error || 'Error al guardar en base de datos');
+        }
+      } catch(mysqlErr) {
+        try { await cred.user.delete(); } catch(e2) {}
+        throw mysqlErr;
+      }
+
+      // Reautenticar al admin (sign out del nuevo usuario, volver al admin)
+      await firebaseAuth.signOut();
+      // El panel detectará la desconexión y pedirá login nuevamente si no se maneja
+      // Para evitar esto, recargamos con el token guardado
+      showNotification('<i class="fa-solid fa-circle-check"></i> Empleado creado. Recargando sesión...', 'success');
+      setTimeout(() => window.location.reload(), 1500);
+      return;
+    }
+
+    closeModal('nuevoEmpleado');
+    cargarEmpleadosAPI();
+
+  } catch(e) {
+    let msg = e.message || 'Error desconocido';
+    if (msg.includes('email-already-in-use')) msg = 'Ese correo ya tiene cuenta en el sistema';
+    if (msg.includes('weak-password'))        msg = 'Contraseña muy débil (mínimo 6 caracteres)';
+    showErr(msg);
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = isEdit ? 'Guardar' : 'Crear Empleado'; }
+  }
+}
+
+function abrirEditarEmpleado(id, nombre, correo, rol) {
+  document.getElementById('emp_mode').value    = 'edit';
+  document.getElementById('emp_id').value      = id;
+  document.getElementById('emp_nombre').value  = nombre;
+  document.getElementById('emp_correo').value  = correo;
+  document.getElementById('emp_rol').value     = rol;
+  document.getElementById('emp_password').value = '';
+  document.getElementById('empModalTitle').textContent = 'Editar Empleado';
+  const help = document.getElementById('emp_password_help');
+  if (help) help.textContent = 'Déjala en blanco para no cambiar la contraseña.';
+  const btn = document.getElementById('emp_btn_guardar');
+  if (btn) btn.textContent = 'Guardar Cambios';
+  const err = document.getElementById('emp_error');
+  if (err) err.style.display = 'none';
+  openModal('nuevoEmpleado');
+}
+
+function abrirNuevoEmpleado() {
+  document.getElementById('emp_mode').value    = 'create';
+  document.getElementById('emp_id').value      = '';
+  document.getElementById('emp_nombre').value  = '';
+  document.getElementById('emp_correo').value  = '';
+  document.getElementById('emp_password').value = '';
+  document.getElementById('emp_rol').value     = 'empleado';
+  document.getElementById('empModalTitle').textContent = 'Nuevo Empleado';
+  const help = document.getElementById('emp_password_help');
+  if (help) help.textContent = 'Mínimo 6 caracteres.';
+  const btn = document.getElementById('emp_btn_guardar');
+  if (btn) btn.textContent = 'Crear Empleado';
+  const err = document.getElementById('emp_error');
+  if (err) err.style.display = 'none';
+  openModal('nuevoEmpleado');
+}
+
 window.desactivarEmpleado       = desactivarEmpleado;
+window.guardarEmpleado          = guardarEmpleado;
+window.abrirEditarEmpleado      = abrirEditarEmpleado;
+window.abrirNuevoEmpleado       = abrirNuevoEmpleado;

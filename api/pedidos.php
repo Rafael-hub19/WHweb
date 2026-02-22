@@ -94,6 +94,8 @@ switch ($method) {
         if ($tipoEntrega === 'envio' && empty($body['direccion_envio'])) {
             jsonError('direccion_envio requerida para entrega a domicilio', 422);
         }
+        $cpEnvio     = sanitize($body['cp_envio']     ?? '');
+        $ciudadEnvio = sanitize($body['ciudad_envio'] ?? '');
 
         // Calcular totales
         $subtotal = 0;
@@ -103,7 +105,7 @@ switch ($method) {
             $cant    = max(1, sanitizeInt($item['cantidad'] ?? 1));
             $prod    = dbRow("SELECT id, nombre, precio_base, stock_disponible FROM productos WHERE id = ? AND activo = 1", [$prodId]);
             if (!$prod) jsonError("Producto ID $prodId no encontrado o inactivo", 422);
-            if ($prod['stock_disponible'] < $cant) jsonError("Stock insuficiente para '{$prod['nombre']}'", 422);
+            // Sin validación de stock — fabricación bajo pedido
 
             $precioUnit = (float)$prod['precio_base'];
             $subProd    = $precioUnit * $cant;
@@ -119,7 +121,9 @@ switch ($method) {
 
         $numeroPedido = generarNumeroPedido();
         $tokenSeg     = generarTokenSeguimiento();
-        $fechaEst     = fechaEstimadaPedido();
+        // Calcular fecha inteligente según tipo de entrega y zona
+        $totalProductos = array_sum(array_column(array_map(fn($i) => ['c' => $i['cantidad']], $itemsData), 'c'));
+        $fechaEst = calcularFechaInteligente($tipoEntrega, $cpEnvio, $totalProductos);
 
         try {
             db()->beginTransaction();
@@ -132,6 +136,8 @@ switch ($method) {
                 'telefono_cliente'   => sanitize($body['telefono_cliente']),
                 'tipo_entrega'       => $tipoEntrega,
                 'direccion_envio'    => sanitize($body['direccion_envio'] ?? ''),
+                'cp_envio'           => $cpEnvio,
+                'ciudad_envio'       => $ciudadEnvio,
                 'incluye_instalacion'=> !empty($body['incluye_instalacion']) ? 1 : 0,
                 'estado'             => 'pendiente',
                 'subtotal'           => $subtotal,
@@ -155,11 +161,7 @@ switch ($method) {
                     'precio_unitario' => $item['precio'],
                     'total_linea'     => $item['subtotal'],
                 ]);
-                // Reducir stock
-                dbQuery(
-                    "UPDATE productos SET stock_disponible = stock_disponible - ? WHERE id = ?",
-                    [$item['cantidad'], $item['producto']['id']]
-                );
+                // Sin reducción de stock — fabricación bajo pedido
             }
 
             db()->commit();

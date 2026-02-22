@@ -26,7 +26,19 @@ document.addEventListener('DOMContentLoaded', () => {
     cargarItemsCarrito();
     renderizarItems();
     actualizarTotales();
-    cargarSemanasDisponibles();
+    cargarFechasDisponibles();
+
+    // Recargar fechas cuando cambia el CP (con debounce)
+    const cpInput = document.getElementById('clienteCP');
+    if (cpInput) {
+        let debounceTimer;
+        cpInput.addEventListener('input', () => {
+            clearTimeout(debounceTimer);
+            if (cpInput.value.length === 5) {
+                debounceTimer = setTimeout(() => cargarFechasDisponibles(), 600);
+            }
+        });
+    }
 });
 
 // ================================================================
@@ -141,6 +153,8 @@ function eliminarItemCarrito(idx) {
 
 function seleccionarEntrega(tipo) {
     estado.tipoEntrega = tipo;
+    // Recargar fechas al cambiar tipo de entrega
+    setTimeout(() => cargarFechasDisponibles(), 100);
 
     document.getElementById('optionEnvio')?.classList.toggle('selected', tipo === 'envio');
     document.getElementById('optionRecoger')?.classList.toggle('selected', tipo === 'recoger');
@@ -189,141 +203,138 @@ function actualizarTotales() {
 }
 
 // ================================================================
-// FECHAS — Carga de semanas disponibles desde la API
+// FECHAS — Carga de días disponibles desde la API
 // ================================================================
 
-async function cargarSemanasDisponibles() {
+async function cargarFechasDisponibles() {
     const grid = document.getElementById('semanasGrid');
     if (!grid) return;
 
-    grid.innerHTML = '<div class="fecha-loading">Consultando disponibilidad en tiempo real</div>';
+    grid.innerHTML = '<div class="fecha-loading"><i class="fa-solid fa-spinner fa-spin"></i> Consultando disponibilidad en tiempo real...</div>';
 
     try {
-        const res  = await fetch('/api/disponibilidad.php');
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const cp   = document.getElementById('clienteCP')?.value.trim() || '';
+        const tipo = estado.tipoEntrega || 'envio';
+        const params = new URLSearchParams({ tipo_entrega: tipo, cp });
+        const res  = await fetch('/api/disponibilidad.php?' + params.toString());
         const data = await res.json();
 
-        if (!data.success) throw new Error(data.error || 'Error de API');
+        if (!data.success || !data.dias || data.dias.length === 0) {
+            grid.innerHTML = renderFallback();
+            return;
+        }
 
-        // Actualizar label de días de fabricación
-        const diasEl = document.getElementById('diasFabLabel');
-        if (diasEl) diasEl.textContent = data.dias_fabricacion;
+        renderizarDias(data.dias, data.fecha_sugerida);
 
-        renderizarSemanas(data.semanas);
+        // Auto-seleccionar el primer día disponible
+        if (data.fecha_sugerida) {
+            const card = grid.querySelector(`.dia-card[data-fecha="${data.fecha_sugerida}"]`);
+            if (card) seleccionarDia(card);
+        }
 
     } catch (err) {
-        console.error('Disponibilidad API:', err);
-        grid.innerHTML = `
-            <div class="fecha-error">
-                <i class="fa-solid fa-triangle-exclamation"></i> No se pudo cargar la disponibilidad. 
-                <a href="#" onclick="cargarSemanasDisponibles();return false;"
-                   style="color:#e74c3c;font-weight:bold;">Reintentar</a>
-                <br><small style="opacity:.7;margin-top:4px;display:block;">
-                    Podrás seleccionar una fecha estimada manualmente.
-                </small>
-            </div>
-            ${renderFallback()}`;
+        console.error('Error cargando disponibilidad:', err);
+        grid.innerHTML = renderFallback();
     }
 }
 
-function renderizarSemanas(semanas) {
+function renderizarDias(dias, fechaSugerida) {
     const grid = document.getElementById('semanasGrid');
-    if (!grid) return;
 
-    if (!semanas || semanas.length === 0) {
-        grid.innerHTML = `
-            <div class="fecha-error">
-                <i class="fa-solid fa-clipboard-list"></i> No hay semanas disponibles en este momento.<br>
-                <small>Contáctanos al <strong>33 1705 4017</strong> para coordinar tu entrega.</small>
-            </div>`;
-        return;
-    }
-
-    grid.innerHTML = semanas.map(s => {
-        if (s.disponible) {
-            const pct   = Math.round((s.slots_ocupados / s.slots_total) * 100);
-            const nivel = pct >= 75 ? 'Últimos lugares' : pct >= 50 ? 'Disponible' : 'Amplia disponibilidad';
-            const color = pct >= 75 ? '#e67e22' : '#8b7355';
-
+    grid.innerHTML = dias.map(d => {
+        if (!d.disponible) {
             return `
-            <div class="semana-card"
-                 data-inicio="${s.semana_inicio}"
-                 data-fin="${s.semana_fin}"
-                 data-etiqueta="${s.etiqueta}"
-                 data-sugerida="${s.fecha_sugerida}"
-                 onclick="seleccionarSemana(this)">
-                <div class="semana-etiqueta">${s.etiqueta}</div>
-                <span class="semana-badge" style="background:rgba(${hexToRgb(color)},0.15);color:${color};">
-                    ${nivel}
-                </span>
-                <div class="semana-slots">
-                    ${s.slots_disponibles} de ${s.slots_total} lugares
-                </div>
-            </div>`;
-        } else {
-            return `
-            <div class="semana-card agotada" title="${s.motivo || 'No disponible'}">
-                <div class="semana-etiqueta">${s.etiqueta}</div>
-                <span class="semana-badge" style="background:rgba(192,57,43,0.12);color:#c0392b;">
-                    ${s.motivo === 'Taller cerrado' ? 'Taller cerrado' : 'Sin lugares'}
-                </span>
-                <div class="semana-slots" style="color:#666;">0 lugares</div>
+            <div class="semana-card agotada" title="Taller lleno este día">
+                <div class="semana-etiqueta">${d.etiqueta}</div>
+                <span class="semana-badge" style="background:rgba(192,57,43,0.12);color:#c0392b;">Sin lugares</span>
+                <div class="semana-slots" style="color:#666;">0 de ${d.lugares_total} lugares</div>
             </div>`;
         }
+
+        const color  = d.nivel === 'lleno' ? '#c0392b'
+                     : d.nivel === 'medio' ? '#e67e22'
+                     : '#27ae60';
+        const nivel  = d.nivel === 'lleno' ? 'Últimos lugares'
+                     : d.nivel === 'medio' ? 'Disponible'
+                     : 'Amplia disponibilidad';
+        const esSugerida = d.fecha === fechaSugerida;
+        const esZona     = d.misma_zona && !esSugerida;
+
+        return `
+        <div class="semana-card${esSugerida ? ' recomendada' : esZona ? ' misma-zona' : ''}"
+             data-fecha="${d.fecha}"
+             data-etiqueta="${d.etiqueta}"
+             onclick="seleccionarDia(this)">
+            ${esSugerida ? '<div class="badge-recomendada">Fecha sugerida</div>' : ''}
+            ${esZona     ? '<div class="badge-recomendada" style="background:#2980b9;">Tu zona</div>' : ''}
+            <div class="semana-etiqueta">${d.etiqueta}</div>
+            <span class="semana-badge" style="background:rgba(${hexToRgb(color)},0.15);color:${color};">${nivel}</span>
+            <div class="semana-slots">${d.lugares_libres} de ${d.lugares_total} lugares</div>
+        </div>`;
     }).join('');
 }
 
-function seleccionarSemana(el) {
+function seleccionarDia(el) {
     // Quitar selección previa
-    document.querySelectorAll('.semana-card.seleccionada').forEach(c => c.classList.remove('seleccionada'));
+    document.querySelectorAll('.dia-card.seleccionada, .semana-card.seleccionada')
+        .forEach(c => c.classList.remove('seleccionada'));
     el.classList.add('seleccionada');
 
-    // Guardar en estado
+    const fecha   = el.dataset.fecha;
+    const etiqueta = el.dataset.etiqueta;
+
+    // Guardar en estado (compatible con campo fechaSugerida existente)
     estado.semana = {
-        semana_inicio: el.dataset.inicio,
-        semana_fin:    el.dataset.fin,
-        etiqueta:      el.dataset.etiqueta,
-        fecha_sugerida:el.dataset.sugerida,
+        semana_inicio:  fecha,
+        semana_fin:     fecha,
+        etiqueta:       etiqueta,
+        fecha_sugerida: fecha,
     };
 
-    // Actualizar campos ocultos
-    document.getElementById('semanaSeleccionada').value = estado.semana.semana_inicio;
-    document.getElementById('fechaSugerida').value      = estado.semana.fecha_sugerida;
+    document.getElementById('semanaSeleccionada').value = fecha;
+    document.getElementById('fechaSugerida').value      = fecha;
 
     // Mostrar en resumen
     const box   = document.getElementById('fechaResumenBox');
     const texto = document.getElementById('fechaResumenTexto');
     if (box && texto) {
-        texto.textContent = estado.semana.etiqueta;
+        texto.textContent = etiqueta;
         box.style.display = 'block';
     }
 }
 
-/** Fallback manual si la API falla */
-function renderFallback() {
-    const hoy     = new Date();
-    const opciones = [];
-    for (let w = 3; w <= 10; w++) {
-        const lunes = new Date(hoy);
-        // Avanzar al próximo lunes + w semanas
-        lunes.setDate(hoy.getDate() + (7 - hoy.getDay() + 1) % 7 + w * 7);
-        const viernes = new Date(lunes);
-        viernes.setDate(lunes.getDate() + 4);
+/** Alias por compatibilidad con código existente */
+function seleccionarSemana(el) { seleccionarDia(el); }
 
-        const etq  = formatFecha(lunes) + ' – ' + formatFecha(viernes);
-        const ini  = lunes.toISOString().slice(0, 10);
-        const fin  = viernes.toISOString().slice(0, 10);
-        const sug  = new Date(lunes); sug.setDate(lunes.getDate() + 2);
-        opciones.push({ ini, fin, sug: sug.toISOString().slice(0, 10), etq });
+/** Fallback si la API no responde */
+function renderFallback() {
+    const hoy    = new Date();
+    const dias   = [];
+    const meses  = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+    const dNames = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+
+    let fecha = new Date(hoy);
+    fecha.setDate(fecha.getDate() + 2); // mínimo 2 días
+    let encontrados = 0;
+
+    while (encontrados < 10) {
+        const dow = fecha.getDay();
+        if (dow > 0 && dow < 6) { // lun-vie
+            const ymd = fecha.toISOString().slice(0, 10);
+            const etq = `${dNames[dow]} ${fecha.getDate()} ${meses[fecha.getMonth()]}`;
+            dias.push({ ymd, etq });
+            encontrados++;
+        }
+        fecha.setDate(fecha.getDate() + 1);
     }
 
-    return `<div class="semanas-grid" style="margin-top:12px;">
-        ${opciones.map(o => `
-        <div class="semana-card"
-             data-inicio="${o.ini}" data-fin="${o.fin}"
-             data-etiqueta="${o.etq}" data-sugerida="${o.sug}"
-             onclick="seleccionarSemana(this)">
-            <div class="semana-etiqueta">${o.etq}</div>
+    return `<div class="semanas-grid">
+        ${dias.map((d, i) => `
+        <div class="semana-card${i === 0 ? ' recomendada' : ''}"
+             data-fecha="${d.ymd}" data-etiqueta="${d.etq}"
+             onclick="seleccionarDia(this)">
+            ${i === 0 ? '<div class="badge-recomendada">Fecha sugerida</div>' : ''}
+            <div class="semana-etiqueta">${d.etq}</div>
             <span class="semana-badge">Estimado</span>
         </div>`).join('')}
     </div>`;
@@ -393,6 +404,8 @@ function procederAlPago() {
         direccion_envio:  estado.tipoEntrega === 'envio'
             ? `${document.getElementById('clienteDireccion')?.value.trim()}, ${document.getElementById('clienteCiudad')?.value.trim()}, Jal. CP ${document.getElementById('clienteCP')?.value.trim()}`
             : null,
+        cp_envio:         estado.tipoEntrega === 'envio' ? (document.getElementById('clienteCP')?.value.trim() || '') : '',
+        ciudad_envio:     estado.tipoEntrega === 'envio' ? (document.getElementById('clienteCiudad')?.value.trim() || '') : '',
         notas:            document.getElementById('clienteNotas')?.value.trim() || null,
         subtotal,
         costo_envio:      costoEnvio,
