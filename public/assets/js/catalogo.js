@@ -156,12 +156,9 @@ function renderProductos() {
             <span class="price">${precio}</span>
           </div>
           <div class="product-actions">
-            ${true
-              ? `<button class="btn-add-cart" onclick="agregarAlCarrito(${p.id}, '${escHtml(p.nombre).replace(/'/g,"\\'")}', ${p.precio}, '${escHtml(p.imagen_principal || '')}')">
-                   <i class="fa-solid fa-cart-shopping"></i> Agregar
-                 </button>`
-              : `<button class="btn-agregar" onclick="agregarAlCarrito(${p.id})"><i class="fa-solid fa-cart-plus"></i> Agregar al carrito</button>`
-            }
+<button class="btn-add-cart" onclick="agregarAlCarrito(${p.id}, '${escHtml(p.nombre).replace(/'/g,"\\'")}', ${p.precio}, '${escHtml(p.imagen_principal || '')}')">
+                   <i class="fa-solid fa-cart-shopping"></i> Agregar al carrito
+                 </button>
             <a href="detalle/${p.id}" class="btn-details">Ver detalles</a>
           </div>
         </div>
@@ -269,11 +266,14 @@ function debounce(fn, delay) {
 
 function showToast(msg, type = 'success') {
   const toast = document.createElement('div');
-  toast.className = `toast toast-${type}`;
-  toast.style.cssText = 'position:fixed;top:20px;right:20px;padding:14px 20px;background:' + (type==='success'?'#22c55e':'#ef4444') + ';color:#fff;border-radius:8px;z-index:10000;font-weight:600;box-shadow:0 4px 12px rgba(0,0,0,.25);';
-  toast.textContent = msg;
+  toast.className = `wh-toast ${type}`;
+  toast.innerHTML = msg;  // innerHTML para que rendericen los íconos de Font Awesome
   document.body.appendChild(toast);
-  setTimeout(() => toast.remove(), 3000);
+  setTimeout(() => {
+    toast.style.opacity = '0';
+    toast.style.transition = 'opacity 0.3s';
+    setTimeout(() => toast.remove(), 300);
+  }, 3000);
 }
 
 // Exponer globales
