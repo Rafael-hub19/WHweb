@@ -94,13 +94,21 @@ if (session_status() === PHP_SESSION_NONE) {
     $isHttps = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
              || (int)($_SERVER['SERVER_PORT'] ?? 80) === 443;
 
+    // Dominio de cookie con punto inicial = válido para www y sin www
+    // Ej: .muebleswh.com cubre muebleswh.com Y www.muebleswh.com
+    $appHost    = parse_url(APP_URL, PHP_URL_HOST) ?: '';
+    // Quitar www si existe para obtener el dominio raíz
+    $cookieDomain = preg_replace('/^www\./', '', $appHost);
+    // Prefijo punto = aplica a todos los subdominios
+    if ($cookieDomain) $cookieDomain = '.' . $cookieDomain;
+
     session_set_cookie_params([
         'lifetime' => 7200,
         'path'     => '/',
-        'domain'   => '',
-        'secure'   => $isHttps,     // Solo HTTPS en producción
-        'httponly'  => true,         // JS no puede leer la cookie
-        'samesite' => 'Lax',        // Protección CSRF básica
+        'domain'   => $cookieDomain,  // .muebleswh.com — funciona en www y sin www
+        'secure'   => $isHttps,
+        'httponly'  => true,
+        'samesite' => 'Lax',
     ]);
     session_start();
 
