@@ -1,4 +1,14 @@
 <?php
+// Capturar cualquier error fatal y devolverlo como JSON en vez de HTML
+set_exception_handler(function(Throwable $e) {
+    if (!headers_sent()) {
+        header('Content-Type: application/json; charset=utf-8');
+        http_response_code(500);
+    }
+    echo json_encode(['success' => false, 'error' => 'Error interno: ' . $e->getMessage()]);
+    exit;
+});
+
 require_once __DIR__ . '/_helpers.php';
 
 $method = requestMethod();
@@ -128,7 +138,17 @@ switch ($method) {
         try {
             db()->beginTransaction();
 
-            $pedidoId = dbInsert('pedidos', [
+            // Verificar si las columnas cp_envio/ciudad_envio existen en la BD
+            // Si no, omitirlas (migración pendiente en servidor)
+            $tieneColumnasZona = false;
+            try {
+                dbRows("SELECT cp_envio FROM pedidos LIMIT 0");
+                $tieneColumnasZona = true;
+            } catch (Exception $e) {
+                // Columnas no existen aún — ignorar silenciosamente
+            }
+
+            $datosPedido = [
                 'numero_pedido'      => $numeroPedido,
                 'token_seguimiento'  => $tokenSeg,
                 'nombre_cliente'     => sanitize($body['nombre_cliente']),
@@ -136,8 +156,6 @@ switch ($method) {
                 'telefono_cliente'   => sanitize($body['telefono_cliente']),
                 'tipo_entrega'       => $tipoEntrega,
                 'direccion_envio'    => sanitize($body['direccion_envio'] ?? ''),
-                'cp_envio'           => $cpEnvio,
-                'ciudad_envio'       => $ciudadEnvio,
                 'incluye_instalacion'=> !empty($body['incluye_instalacion']) ? 1 : 0,
                 'estado'             => 'pendiente',
                 'subtotal'           => $subtotal,
@@ -147,7 +165,14 @@ switch ($method) {
                 'total'              => $total,
                 'fecha_estimada'     => $fechaEst,
                 'notas'              => sanitize($body['notas'] ?? ''),
-            ]);
+            ];
+
+            if ($tieneColumnasZona) {
+                $datosPedido['cp_envio']     = $cpEnvio;
+                $datosPedido['ciudad_envio'] = $ciudadEnvio;
+            }
+
+            $pedidoId = dbInsert('pedidos', $datosPedido);
 
             foreach ($itemsData as $item) {
                 // FIX: usar columnas correctas de detalle_pedido:
