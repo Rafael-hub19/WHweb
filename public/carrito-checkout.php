@@ -53,19 +53,6 @@
             <div class="section-card">
                 <h3 class="section-title"><span class="section-icon"><i class="fa-solid fa-truck"></i></span> Tipo de entrega</h3>
                 <div class="delivery-options">
-                    <div class="option-card selected" id="optionEnvio" onclick="seleccionarEntrega('envio')">
-                        <input type="radio" name="tipoEntrega" value="envio" checked>
-                        <div class="option-content">
-                            <div class="option-header">
-                                <span class="option-title">Envío a domicilio</span>
-                                <span class="option-price" id="precioEnvioLabel">$500</span>
-                            </div>
-                            <div class="option-description">
-                                Entregamos en tu domicilio en Guadalajara y área metropolitana.
-                            </div>
-                        </div>
-                    </div>
-
                     <div class="option-card" id="optionRecoger" onclick="seleccionarEntrega('recoger')">
                         <input type="radio" name="tipoEntrega" value="recoger">
                         <div class="option-content">
@@ -75,6 +62,19 @@
                             </div>
                             <div class="option-description">
                                 <i class="fa-solid fa-location-dot"></i> Av. Chapultepec #1234, Col. Americana, Guadalajara
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="option-card selected" id="optionEnvio" onclick="seleccionarEntrega('envio')">
+                        <input type="radio" name="tipoEntrega" value="envio" checked>
+                        <div class="option-content">
+                            <div class="option-header">
+                                <span class="option-title">Envío a domicilio</span>
+                                <span class="option-price" id="precioEnvioLabel">$500</span>
+                            </div>
+                            <div class="option-description">
+                                Entregamos en tu domicilio en Guadalajara y área metropolitana.
                             </div>
                         </div>
                     </div>
