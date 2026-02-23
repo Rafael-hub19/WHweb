@@ -7,6 +7,7 @@
  *  3. Cargar semanas disponibles DESDE LA API (BD real)
  *  4. Validar el formulario antes de pasar a pago
  *  5. Guardar datos del pedido en sessionStorage para pago.html
+ *  6. Persistir datos del formulario en localStorage (para conservarlos al regresar)
  */
 
 // ── Estado del checkout ───────────────────────────────────────────
@@ -25,8 +26,21 @@ const estado = {
 document.addEventListener('DOMContentLoaded', () => {
     cargarItemsCarrito();
     renderizarItems();
+    restaurarFormulario();       // <-- restaura campos guardados
     actualizarTotales();
     cargarFechasDisponibles();
+
+    // Persistir formulario en localStorage al escribir
+    const camposForm = [
+        'clienteNombre', 'clienteTelefono', 'clienteCorreo',
+        'clienteDireccion', 'clienteCiudad', 'clienteCP', 'clienteNotas'
+    ];
+    camposForm.forEach(id => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.addEventListener('input', guardarFormulario);
+        el.addEventListener('change', guardarFormulario);
+    });
 
     // Recargar fechas cuando cambia el CP (con debounce)
     const cpInput = document.getElementById('clienteCP');
@@ -40,6 +54,57 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 });
+
+// ================================================================
+// PERSISTENCIA DEL FORMULARIO
+// ================================================================
+
+const FORM_KEY = 'wh_checkout_form';
+
+function guardarFormulario() {
+    const datos = {
+        nombre:    document.getElementById('clienteNombre')?.value    || '',
+        telefono:  document.getElementById('clienteTelefono')?.value  || '',
+        correo:    document.getElementById('clienteCorreo')?.value    || '',
+        direccion: document.getElementById('clienteDireccion')?.value || '',
+        ciudad:    document.getElementById('clienteCiudad')?.value    || '',
+        cp:        document.getElementById('clienteCP')?.value        || '',
+        notas:     document.getElementById('clienteNotas')?.value     || '',
+        tipoEntrega:  estado.tipoEntrega,
+        instalacion:  estado.instalacion,
+    };
+    localStorage.setItem(FORM_KEY, JSON.stringify(datos));
+}
+
+function restaurarFormulario() {
+    try {
+        const raw = localStorage.getItem(FORM_KEY);
+        if (!raw) return;
+        const datos = JSON.parse(raw);
+
+        const set = (id, val) => { const el = document.getElementById(id); if (el && val) el.value = val; };
+        set('clienteNombre',    datos.nombre);
+        set('clienteTelefono',  datos.telefono);
+        set('clienteCorreo',    datos.correo);
+        set('clienteDireccion', datos.direccion);
+        set('clienteCiudad',    datos.ciudad);
+        set('clienteCP',        datos.cp);
+        set('clienteNotas',     datos.notas);
+
+        // Restaurar tipo de entrega
+        if (datos.tipoEntrega) {
+            seleccionarEntrega(datos.tipoEntrega, false); // false = no recargar fechas aún
+        }
+
+        // Restaurar instalación
+        if (typeof datos.instalacion === 'boolean') {
+            seleccionarInstalacion(datos.instalacion);
+        }
+
+    } catch (e) {
+        console.warn('No se pudo restaurar formulario:', e);
+    }
+}
 
 // ================================================================
 // CARRITO — Items desde localStorage
@@ -151,42 +216,62 @@ function eliminarItemCarrito(idx) {
 // OPCIONES — Entrega e Instalación
 // ================================================================
 
-function seleccionarEntrega(tipo) {
+/**
+ * @param {string} tipo          'envio' | 'recoger'
+ * @param {boolean} recargarFechas  si se deben recargar las fechas (default true)
+ */
+function seleccionarEntrega(tipo, recargarFechas = true) {
     estado.tipoEntrega = tipo;
-    // Recargar fechas al cambiar tipo de entrega
-    setTimeout(() => cargarFechasDisponibles(), 100);
 
-    document.getElementById('optionEnvio')?.classList.toggle('selected', tipo === 'envio');
-    document.getElementById('optionRecoger')?.classList.toggle('selected', tipo === 'recoger');
+    // ── Actualizar clases visuales ────────────────────────────
+    const cardEnvio   = document.getElementById('optionEnvio');
+    const cardRecoger = document.getElementById('optionRecoger');
 
-    // Mostrar/ocultar sección de dirección y línea de envío
+    cardEnvio?.classList.toggle('selected', tipo === 'envio');
+    cardRecoger?.classList.toggle('selected', tipo === 'recoger');
+
+    // ── Actualizar radio buttons ──────────────────────────────
+    const radioEnvio   = cardEnvio?.querySelector('input[type="radio"]');
+    const radioRecoger = cardRecoger?.querySelector('input[type="radio"]');
+    if (radioEnvio)   radioEnvio.checked   = (tipo === 'envio');
+    if (radioRecoger) radioRecoger.checked = (tipo === 'recoger');
+
+    // ── Mostrar/ocultar sección de dirección y línea de envío ─
     const secDir   = document.getElementById('seccionDireccion');
     const lineaEnv = document.getElementById('lineaEnvio');
-    if (secDir)   secDir.style.display  = tipo === 'envio' ? '' : 'none';
+    if (secDir)   secDir.style.display   = tipo === 'envio' ? '' : 'none';
     if (lineaEnv) lineaEnv.style.display = tipo === 'envio' ? '' : 'none';
 
     actualizarTotales();
+    guardarFormulario();
+
+    if (recargarFechas) {
+        setTimeout(() => cargarFechasDisponibles(), 100);
+    }
 }
 
 function seleccionarInstalacion(conInstalacion) {
     estado.instalacion = conInstalacion;
 
-    const optSin = document.getElementById('optionSinInstalacion');
-    const optCon = document.getElementById('optionConInstalacion');
-    const linea  = document.getElementById('lineaInstalacion');
+    const cardSin = document.getElementById('optionSinInstalacion');
+    const cardCon = document.getElementById('optionConInstalacion');
+    const linea   = document.getElementById('lineaInstalacion');
 
-    if (conInstalacion) {
-        optSin?.classList.remove('selected');
-        optCon?.classList.add('selected');
-        if (optCon) optCon.querySelector('input').checked = true;
-        if (linea) linea.style.display = '';
-    } else {
-        optCon?.classList.remove('selected');
-        optSin?.classList.add('selected');
-        if (optSin) optSin.querySelector('input').checked = true;
-        if (linea) linea.style.display = 'none';
-    }
+    // ── Actualizar clases visuales ────────────────────────────
+    cardSin?.classList.toggle('selected', !conInstalacion);
+    cardCon?.classList.toggle('selected',  conInstalacion);
+
+    // ── Actualizar radio buttons ──────────────────────────────
+    const radioSin = cardSin?.querySelector('input[type="radio"]');
+    const radioCon = cardCon?.querySelector('input[type="radio"]');
+    if (radioSin) radioSin.checked = !conInstalacion;
+    if (radioCon) radioCon.checked =  conInstalacion;
+
+    // ── Mostrar/ocultar línea de costo en resumen ─────────────
+    if (linea) linea.style.display = conInstalacion ? '' : 'none';
+
     actualizarTotales();
+    guardarFormulario();
 }
 
 function actualizarTotales() {
@@ -228,7 +313,7 @@ async function cargarFechasDisponibles() {
 
         // Auto-seleccionar el primer día disponible
         if (data.fecha_sugerida) {
-            const card = grid.querySelector(`.dia-card[data-fecha="${data.fecha_sugerida}"]`);
+            const card = grid.querySelector(`.dia-card[data-fecha="${data.fecha_sugerida}"], .semana-card[data-fecha="${data.fecha_sugerida}"]`);
             if (card) seleccionarDia(card);
         }
 
@@ -280,10 +365,9 @@ function seleccionarDia(el) {
         .forEach(c => c.classList.remove('seleccionada'));
     el.classList.add('seleccionada');
 
-    const fecha   = el.dataset.fecha;
+    const fecha    = el.dataset.fecha;
     const etiqueta = el.dataset.etiqueta;
 
-    // Guardar en estado (compatible con campo fechaSugerida existente)
     estado.semana = {
         semana_inicio:  fecha,
         semana_fin:     fecha,
@@ -303,7 +387,7 @@ function seleccionarDia(el) {
     }
 }
 
-/** Alias por compatibilidad con código existente */
+/** Alias por compatibilidad */
 function seleccionarSemana(el) { seleccionarDia(el); }
 
 /** Fallback si la API no responde */
@@ -314,12 +398,12 @@ function renderFallback() {
     const dNames = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
 
     let fecha = new Date(hoy);
-    fecha.setDate(fecha.getDate() + 2); // mínimo 2 días
+    fecha.setDate(fecha.getDate() + 2);
     let encontrados = 0;
 
     while (encontrados < 10) {
         const dow = fecha.getDay();
-        if (dow > 0 && dow < 6) { // lun-vie
+        if (dow > 0 && dow < 6) {
             const ymd = fecha.toISOString().slice(0, 10);
             const etq = `${dNames[dow]} ${fecha.getDate()} ${meses[fecha.getMonth()]}`;
             dias.push({ ymd, etq });
@@ -351,12 +435,11 @@ function procederAlPago() {
     }
 
     if (!estado.semana) {
-        showToast('Por favor selecciona una semana de entrega', 'error');
+        showToast('Por favor selecciona una fecha de entrega', 'error');
         document.getElementById('semanasGrid')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
         return;
     }
 
-    // Validar campos del formulario
     const nombre   = document.getElementById('clienteNombre')?.value.trim();
     const telefono = document.getElementById('clienteTelefono')?.value.trim();
     const correo   = document.getElementById('clienteCorreo')?.value.trim();
@@ -377,43 +460,47 @@ function procederAlPago() {
         return;
     }
 
-    // Dirección solo si es envío
     if (estado.tipoEntrega === 'envio') {
-        const dir  = document.getElementById('clienteDireccion')?.value.trim();
-        const ciu  = document.getElementById('clienteCiudad')?.value.trim();
-        const cp   = document.getElementById('clienteCP')?.value.trim();
+        const dir = document.getElementById('clienteDireccion')?.value.trim();
+        const ciu = document.getElementById('clienteCiudad')?.value.trim();
+        const cp  = document.getElementById('clienteCP')?.value.trim();
         if (!dir) { showToast('Ingresa la dirección de entrega', 'error'); document.getElementById('clienteDireccion')?.focus(); return; }
         if (!ciu) { showToast('Ingresa la ciudad', 'error'); document.getElementById('clienteCiudad')?.focus(); return; }
         if (!cp || cp.length < 4) { showToast('Ingresa el código postal', 'error'); document.getElementById('clienteCP')?.focus(); return; }
     }
 
-    // ── Todo válido: armar payload para pago.html ─────────────────
+    // ── Todo válido: armar payload ────────────────────────────
     const subtotal   = estado.items.reduce((s, i) => s + i.precio * i.cantidad, 0);
     const costoEnvio = estado.tipoEntrega === 'envio' ? estado.costos.envio : 0;
     const costoInst  = estado.instalacion ? estado.costos.instalacion : 0;
 
     const payload = {
-        items:            estado.items,
-        nombre_cliente:   nombre,
-        correo_cliente:   correo,
-        telefono_cliente: telefono,
-        tipo_entrega:     estado.tipoEntrega,
+        items:               estado.items,
+        nombre_cliente:      nombre,
+        correo_cliente:      correo,
+        telefono_cliente:    telefono,
+        tipo_entrega:        estado.tipoEntrega,
         incluye_instalacion: estado.instalacion ? 1 : 0,
-        fecha_estimada:   estado.semana.fecha_sugerida,
-        semana_etiqueta:  estado.semana.etiqueta,
-        direccion_envio:  estado.tipoEntrega === 'envio'
+        fecha_estimada:      estado.semana.fecha_sugerida,
+        semana_etiqueta:     estado.semana.etiqueta,
+        direccion_envio:     estado.tipoEntrega === 'envio'
             ? `${document.getElementById('clienteDireccion')?.value.trim()}, ${document.getElementById('clienteCiudad')?.value.trim()}, Jal. CP ${document.getElementById('clienteCP')?.value.trim()}`
             : null,
-        cp_envio:         estado.tipoEntrega === 'envio' ? (document.getElementById('clienteCP')?.value.trim() || '') : '',
-        ciudad_envio:     estado.tipoEntrega === 'envio' ? (document.getElementById('clienteCiudad')?.value.trim() || '') : '',
-        notas:            document.getElementById('clienteNotas')?.value.trim() || null,
+        cp_envio:            estado.tipoEntrega === 'envio' ? (document.getElementById('clienteCP')?.value.trim() || '') : '',
+        ciudad_envio:        estado.tipoEntrega === 'envio' ? (document.getElementById('clienteCiudad')?.value.trim() || '') : '',
+        notas:               document.getElementById('clienteNotas')?.value.trim() || null,
         subtotal,
-        costo_envio:      costoEnvio,
-        costo_instalacion:costoInst,
-        total:            subtotal + costoEnvio + costoInst,
+        costo_envio:         costoEnvio,
+        costo_instalacion:   costoInst,
+        total:               subtotal + costoEnvio + costoInst,
     };
 
     sessionStorage.setItem('wh_checkout', JSON.stringify(payload));
+
+    // Limpiar form guardado SOLO al avanzar exitosamente
+    // (no al regresar, por eso lo limpiamos aquí y no antes)
+    // localStorage.removeItem(FORM_KEY); // <-- opcional: descomenta si quieres limpiar tras pago
+    
     window.location.href = '/pago';
 }
 
@@ -429,11 +516,6 @@ function esc(str) {
     return String(str ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
-function formatFecha(d) {
-    const meses = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
-    return `${d.getDate()} ${meses[d.getMonth()]}`;
-}
-
 function hexToRgb(hex) {
     const r = parseInt(hex.slice(1,3),16);
     const g = parseInt(hex.slice(3,5),16);
@@ -442,7 +524,6 @@ function hexToRgb(hex) {
 }
 
 function showToast(msg, tipo = 'info') {
-    // Usar la función global si existe, si no crear una simple
     if (typeof showNotification === 'function') {
         showNotification(msg, tipo);
         return;
@@ -452,17 +533,17 @@ function showToast(msg, tipo = 'info') {
         style: `position:fixed;bottom:30px;right:30px;z-index:9999;
                 padding:14px 22px;border-radius:10px;font-size:14px;font-weight:600;
                 background:${tipo === 'error' ? '#c0392b' : '#8b7355'};
-                color:#fff;box-shadow:0 4px 16px rgba(0,0,0,0.4);
-                animation:slideIn .3s ease;`,
+                color:#fff;box-shadow:0 4px 16px rgba(0,0,0,0.4);`,
     });
     document.body.appendChild(div);
     setTimeout(() => div.remove(), 3500);
 }
 
 // Exponer para el HTML inline
-window.seleccionarEntrega  = seleccionarEntrega;
+window.seleccionarEntrega     = seleccionarEntrega;
 window.seleccionarInstalacion = seleccionarInstalacion;
-window.seleccionarSemana   = seleccionarSemana;
-window.procederAlPago      = procederAlPago;
-window.cambiarCantidadItem = cambiarCantidadItem;
-window.eliminarItemCarrito = eliminarItemCarrito;
+window.seleccionarSemana      = seleccionarSemana;
+window.seleccionarDia         = seleccionarDia;
+window.procederAlPago         = procederAlPago;
+window.cambiarCantidadItem    = cambiarCantidadItem;
+window.eliminarItemCarrito    = eliminarItemCarrito;
