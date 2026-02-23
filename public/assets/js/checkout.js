@@ -13,7 +13,7 @@
 // ── Estado del checkout ───────────────────────────────────────────
 const estado = {
     items:          [],
-    tipoEntrega:    'envio',      // 'envio' | 'recoger'
+    tipoEntrega:    'recoger',      // 'envio' | 'recoger'
     instalacion:    false,
     semana:         null,         // { semana_inicio, semana_fin, etiqueta, fecha_sugerida }
     costos: {
@@ -27,6 +27,9 @@ document.addEventListener('DOMContentLoaded', () => {
     cargarItemsCarrito();
     renderizarItems();
     restaurarFormulario();       // <-- restaura campos guardados
+
+    if (!localStorage.getItem(FORM_KEY)) seleccionarEntrega('recoger', false);
+
     actualizarTotales();
     cargarFechasDisponibles();
 

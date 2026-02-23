@@ -54,10 +54,10 @@
                 <h3 class="section-title"><span class="section-icon"><i class="fa-solid fa-truck"></i></span> Tipo de entrega</h3>
                 <div class="delivery-options">
                     <div class="option-card" id="optionRecoger" onclick="seleccionarEntrega('recoger')">
-                        <input type="radio" name="tipoEntrega" value="recoger">
+                        <input type="radio" name="tipoEntrega" value="recoger" checked>
                         <div class="option-content">
                             <div class="option-header">
-                                <span class="option-title">Recoger en showroom</span>
+                                <span class="option-title">Recoger en sucursal</span>
                                 <span class="option-price">GRATIS</span>
                             </div>
                             <div class="option-description">
@@ -67,7 +67,7 @@
                     </div>
 
                     <div class="option-card selected" id="optionEnvio" onclick="seleccionarEntrega('envio')">
-                        <input type="radio" name="tipoEntrega" value="envio" checked>
+                        <input type="radio" name="tipoEntrega" value="envio">
                         <div class="option-content">
                             <div class="option-header">
                                 <span class="option-title">Envío a domicilio</span>
