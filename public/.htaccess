@@ -1,18 +1,18 @@
 # ================================================================
 # Wooden House - .htaccess /public/
+# DocumentRoot apunta a esta carpeta (/public/)
 # ================================================================
 Options -Indexes -ExecCGI
 
-# ── URLs limpias sin extensión ────────────────────────────────────
 <IfModule mod_rewrite.c>
     RewriteEngine On
-    RewriteBase /public/
+    RewriteBase /
 
     # No reescribir si el archivo o directorio existe físicamente
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteCond %{REQUEST_FILENAME} !-d
 
-    # Rutas limpias → archivo PHP real
+    # ── Rutas limpias → archivo PHP real ─────────────────────────
     RewriteRule ^catalogo/?$                catalogo.php                [L,QSA]
     RewriteRule ^login/?$                   login.php                   [L,QSA]
     RewriteRule ^carrito/?$                 carrito-checkout.php        [L,QSA]
@@ -24,16 +24,16 @@ Options -Indexes -ExecCGI
     RewriteRule ^empleado/?$                empleado/panel_empleado.php   [L,QSA]
 
     # ── Proxy /api/ → carpeta api/ fuera de public/ ──────────────
-    # Se usa PT (passthrough) para que el .htaccess de /api/
-    # reciba la petición como reescritura interna (no como
-    # acceso directo), evitando el bloqueo de THE_REQUEST.
-    RewriteRule ^api/(.*)$ /api/$1 [L,QSA,PT]
+    # DocumentRoot = /public/, entonces ../api/ = la carpeta /api/
+    # real del proyecto. Se usa [L,QSA] sin PT para reescritura
+    # interna directa de Apache.
+    RewriteRule ^api/(.*)$ ../api/$1 [L,QSA]
 
-    # ── Bloquear User-Agents vacíos (bots simples) ────────────
+    # ── Bloquear User-Agents vacíos (bots simples) ────────────────
     RewriteCond %{HTTP_USER_AGENT} ^$
     RewriteRule ^ - [F,L]
 
-    # ── Bloquear hotlinking de imágenes ──────────────────────────
+    # ── Bloquear hotlinking de imágenes ───────────────────────────
     RewriteCond %{HTTP_REFERER} !^$
     RewriteCond %{HTTP_REFERER} !^https://(www\.)?muebleswh\.com [NC]
     RewriteRule \.(jpg|jpeg|png|webp|gif|svg)$ - [F,L]
@@ -60,7 +60,6 @@ Options -Indexes -ExecCGI
     Header always set Permissions-Policy "geolocation=(), camera=(), microphone=(), payment=(self)"
     Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains"
 
-    # ── Content Security Policy ───────────────────────────────────
     Header always set Content-Security-Policy "default-src 'self'; \
         script-src 'self' 'unsafe-inline' \
             https://js.stripe.com \
@@ -121,13 +120,11 @@ Options -Indexes -ExecCGI
         object-src 'none'; \
         base-uri 'self';"
 
-    # Sin caché en paneles de administración
     <FilesMatch "^(panel_administrador|panel_empleado)\.php$">
         Header always set Cache-Control "no-store, no-cache, must-revalidate"
         Header always set Pragma "no-cache"
     </FilesMatch>
 
-    # Sin caché en PHP en general
     <FilesMatch "^.*\.php$">
         Header always set Cache-Control "no-store, no-cache, must-revalidate"
     </FilesMatch>

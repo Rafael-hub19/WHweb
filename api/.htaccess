@@ -1,25 +1,14 @@
 # ================================================================
 # Wooden House - .htaccess /api/
 # ================================================================
-# Las peticiones llegan aquí a través del proxy interno de
-# /public/.htaccess. Bloqueamos solo el acceso HTTP directo
-# usando mod_rewrite (no Require all denied, que en Apache 2.4
-# también bloquea las reescrituras internas).
+# El DocumentRoot apunta a /public/, por lo que /api/ está FUERA
+# del DocumentRoot. Apache puede llegar aquí solo por la
+# reescritura interna (../api/$1) del .htaccess de /public/.
+# No es necesario bloquear acceso directo porque Apache no sirve
+# esta carpeta directamente al estar fuera del DocumentRoot.
 # ================================================================
 
 Options -Indexes -ExecCGI
-
-<IfModule mod_rewrite.c>
-    RewriteEngine On
-
-    # Bloquear acceso HTTP directo a /api/ desde el navegador.
-    # THE_REQUEST contiene la línea cruda (ej: GET /api/foo.php HTTP/1.1)
-    # Si alguien accede directamente, devuelve 403.
-    # Las reescrituras internas de mod_rewrite NO usan THE_REQUEST,
-    # por lo que el proxy de /public/.htaccess sí funciona.
-    RewriteCond %{THE_REQUEST} \s/api/ [NC]
-    RewriteRule ^ - [F,L]
-</IfModule>
 
 # ── Headers de seguridad para respuestas de la API ────────────────
 <IfModule mod_headers.c>
