@@ -396,9 +396,8 @@ unset($_usuario);
               <input class="form-input" id="catSearch" placeholder="Buscar por nombre, id, SKU, categoría..." oninput="renderCatalogo()"/>
               <select class="form-select" id="catCategory" onchange="renderCatalogo()" style="max-width:220px;">
                 <option value="">Todas las categorías</option>
-                <option value="Modernos">Modernos</option>
-                <option value="Clásicos">Clásicos</option>
-                <option value="Rústicos">Rústicos</option>
+                <option value="A Piso">A Piso</option>
+                <option value="Flotados">Flotados</option>
               </select>
               <select class="form-select" id="catStatus" onchange="renderCatalogo()" style="max-width:200px;">
                 <option value="">Todos</option>
@@ -566,9 +565,8 @@ unset($_usuario);
             <div class="form-group">
               <label class="form-label">Categoría/Estilo *</label>
               <select class="form-select" id="p_categoria">
-                <option value="Modernos">Modernos</option>
-                <option value="Clásicos">Clásicos</option>
-                <option value="Rústicos">Rústicos</option>
+                <option value="A Piso">A Piso</option>
+                <option value="Flotados">Flotados</option>
               </select>
             </div>
 

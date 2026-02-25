@@ -31,11 +31,10 @@ INSERT INTO usuarios_personal (firebase_uid, nombre_completo, correo, rol, activ
 ('3BH54ZXy4dRsehurZX8eSgg5jbV2', 'Juan Pérez', 'empleado@woodenhouse.com', 'empleado', 1);
 
 INSERT INTO categorias (nombre, descripcion, activo) VALUES
-('Muebles de Baño', 'Muebles completos para baño con diversas opciones de acabados', 1),
-('Accesorios de Baño', 'Accesorios complementarios para baño', 1),
-('Servicios', 'Servicios de medición e instalación profesional', 1);
+('A Piso', 'Muebles de baño con instalación a piso, diseño clásico y moderno', 1),
+('Flotados', 'Muebles de baño suspendidos o flotantes, línea contemporánea', 1);
 
--- categoria_id 1=Muebles de Baño, 2=Accesorios, 3=Servicios
+-- categoria_id 1=A Piso, 2=Flotados
 -- producto_id asignado en orden: Milano=1, Venecia=2, Toscana=3, Oslo=4, Paris=5, Tokyo=6,
 --             Espejo=7, Organizador=8, Inst.Básica=9, Inst.Completa=10
 INSERT INTO productos (categoria_id, nombre, descripcion, precio_base, stock_disponible, etiqueta, activo) VALUES

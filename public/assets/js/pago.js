@@ -37,9 +37,9 @@ function cargarResumen() {
     console.warn('Error leyendo wh_checkout de sessionStorage:', e);
   }
 
-  // Fallback: compatibilidad con formato anterior de localStorage
+  // Fallback: compatibilidad con formato anterior de sessionStorage
   if (!checkout) {
-    const carrito      = JSON.parse(localStorage.getItem('wh_carrito') || '[]');
+    const carrito      = JSON.parse(sessionStorage.getItem('wh_carrito') || '[]');
     const deliveryData = JSON.parse(localStorage.getItem('wh_delivery') || '{}');
     if (!carrito.length) {
       document.getElementById('noticeBox').style.display = 'block';
@@ -168,9 +168,9 @@ function initStripe() {
 }
 
 async function pagarConStripe() {
-  if (!orderData || !pedidoCreado) {
-    pedidoCreado = await crearPedidoEnBD();
-    if (!pedidoCreado) return;
+  if (!orderData) {
+    showError('No hay datos del pedido. Regresa al carrito e intenta nuevamente.');
+    return;
   }
 
   const btn     = document.getElementById('btnStripe');
@@ -179,6 +179,11 @@ async function pagarConStripe() {
   if (spinner) spinner.style.display = 'inline-block';
 
   try {
+    // Crear pedido en BD si no existe aún
+    if (!pedidoCreado) {
+      pedidoCreado = await crearPedidoEnBD();
+    }
+
     // 1. Crear Payment Intent en backend
     const intentRes  = await fetch(`${API_BASE}/pagos.php?action=stripe_intent`, {
       method:  'POST',
@@ -371,7 +376,7 @@ function irAConfirmacion() {
   const pedido = JSON.parse(localStorage.getItem('wh_pedido_creado') || 'null') || pedidoCreado;
   // Limpiar todos los datos del flujo de compra
   sessionStorage.removeItem('wh_checkout');
-  localStorage.removeItem('wh_carrito');
+  sessionStorage.removeItem('wh_carrito');
   localStorage.removeItem('wh_delivery');
   localStorage.removeItem('wh_cliente');
   localStorage.removeItem('wh_descuento');

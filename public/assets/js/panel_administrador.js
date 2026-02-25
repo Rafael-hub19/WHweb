@@ -326,7 +326,7 @@
           id:'milano',
           sku:'MLN-001',
           nombre:'Milano',
-          categoria:'Modernos',
+          categoria:'A Piso',
           badge:'Nuevo',
           estado:'activo',
           precio:8500,
@@ -362,7 +362,7 @@
           id:'venecia',
           sku:'VNC-002',
           nombre:'Venecia',
-          categoria:'Clásicos',
+          categoria:'Flotados',
           badge:'Popular',
           estado:'activo',
           precio:12800,
@@ -560,7 +560,7 @@
         $('#p_id').value = p.id || '';
         $('#p_sku').value = p.sku || '';
         $('#p_nombre').value = p.nombre || '';
-        $('#p_categoria').value = normalizeCategory(p.categoria) || 'Modernos';
+        $('#p_categoria').value = normalizeCategory(p.categoria) || '1';
         $('#p_badge').value = p.badge || '';
         $('#p_estado').value = p.estado || 'activo';
         $('#p_precio').value = Number(p.precio || 0);
@@ -588,7 +588,7 @@
       }else{
         $('#p_id').disabled = false;
         $('#p_id').style.opacity = 1;
-        $('#p_categoria').value = 'Modernos';
+        $('#p_categoria').value = apiCategorias.length ? String(apiCategorias[0].id) : '1';
         $('#p_estado').value = 'activo';
       }
 

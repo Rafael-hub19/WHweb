@@ -33,11 +33,11 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 /**
- * Cargar carrito desde localStorage
+ * Cargar carrito desde sessionStorage
  */
 function cargarCarrito() {
   try {
-    const carritoGuardado = localStorage.getItem('wh_carrito');
+    const carritoGuardado = sessionStorage.getItem('wh_carrito');
     if (carritoGuardado) {
       carritoItems = JSON.parse(carritoGuardado);
     } else {
@@ -50,11 +50,11 @@ function cargarCarrito() {
 }
 
 /**
- * Guardar carrito en localStorage
+ * Guardar carrito en sessionStorage
  */
 function guardarCarrito() {
   try {
-    localStorage.setItem('wh_carrito', JSON.stringify(carritoItems));
+    sessionStorage.setItem('wh_carrito', JSON.stringify(carritoItems));
     
     // Actualizar badge del header
     if (typeof updateCartBadge === 'function') {
@@ -143,7 +143,7 @@ function renderizarCarrito() {
 function actualizarResumen() {
   // Calcular totales
   const subtotal = carritoItems.reduce((total, item) => total + (item.precio * item.cantidad), 0);
-  const envio = subtotal > 5000 ? 0 : 200; // Envío gratis en compras mayores a $5000
+  const envio = subtotal > 5000 ? 0 : 200; 
   const total = subtotal + envio;
   
   carritoTotal = total;
@@ -258,6 +258,7 @@ function confirmarVaciarCarrito() {
   if (confirm('¿Estás seguro de vaciar el carrito? Esta acción no se puede deshacer.')) {
     carritoItems = [];
     guardarCarrito();
+    sessionStorage.removeItem('wh_checkout');
     renderizarCarrito();
     actualizarResumen();
     
@@ -278,10 +279,6 @@ async function procederAlPago() {
   const loader = showLoader('Verificando disponibilidad...');
   
   try {
-    // Aquí podrías hacer una validación del stock con la API
-    // const response = await fetch('/api/carrito/validar.php', {...});
-    
-    // Simular delay
     await new Promise(resolve => setTimeout(resolve, 500));
     
     hideLoader();

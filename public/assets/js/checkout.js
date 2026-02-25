@@ -115,7 +115,8 @@ function restaurarFormulario() {
 
 function cargarItemsCarrito() {
     try {
-        const raw = localStorage.getItem('wh_carrito');
+        // wh_carrito vive en sessionStorage (se borra al cerrar el navegador)
+        const raw = sessionStorage.getItem('wh_carrito');
         estado.items = raw ? JSON.parse(raw) : [];
     } catch {
         estado.items = [];
@@ -200,7 +201,7 @@ function cambiarCantidadItem(idx, delta) {
     }
     if (nueva > 99) return;
     item.cantidad = nueva;
-    localStorage.setItem('wh_carrito', JSON.stringify(estado.items));
+    sessionStorage.setItem('wh_carrito', JSON.stringify(estado.items));
     renderizarItems();
     actualizarTotales();
 }
@@ -210,7 +211,7 @@ function eliminarItemCarrito(idx) {
     if (!item) return;
     if (!confirm(`¿Eliminar "${item.nombre}" del carrito?`)) return;
     estado.items.splice(idx, 1);
-    localStorage.setItem('wh_carrito', JSON.stringify(estado.items));
+    sessionStorage.setItem('wh_carrito', JSON.stringify(estado.items));
     renderizarItems();
     actualizarTotales();
 }
