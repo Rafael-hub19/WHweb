@@ -1,10 +1,6 @@
 # ================================================================
 # Wooden House - .htaccess RAÍZ DEL PROYECTO
 # ================================================================
-# IMPORTANTE: Este archivo solo es necesario si el DocumentRoot
-# de Apache apunta a la RAÍZ del proyecto (no a /public/).
-# Si tu DocumentRoot ya apunta a /public/, este archivo no aplica.
-
 Options -Indexes
 
 <IfModule mod_rewrite.c>
@@ -21,19 +17,17 @@ Options -Indexes
     RewriteRule ^logs(/|$)      - [F,L]
     RewriteRule ^firebase(/|$)  - [F,L]
     RewriteRule ^\.git(/|$)     - [F,L]
-
-    # ── NUEVO: Carpetas adicionales bloqueadas ───────────────────
     RewriteRule ^vendor(/|$)    - [F,L]
     RewriteRule ^backup(/|$)    - [F,L]
     RewriteRule ^old(/|$)       - [F,L]
     RewriteRule ^tmp(/|$)       - [F,L]
     RewriteRule ^test(/|$)      - [F,L]
 
-    # ── NUEVO: Bloquear acceso directo a /api/ desde raíz ────────
-    # Solo se debe acceder via proxy de /public/.htaccess
-    RewriteRule ^api(/|$)       - [F,L]
+    # ── NOTA: /api/ NO se bloquea aquí ──────────────────────────
+    # El proxy de /public/.htaccess redirige internamente a /api/
+    # El .htaccess dentro de /api/ controla el acceso directo
 
-    # ── NUEVO: Bloquear User-Agents vacíos (bots simples) ────────
+    # ── Bloquear User-Agents vacíos (bots simples) ────────────
     RewriteCond %{HTTP_USER_AGENT} ^$
     RewriteRule ^ - [F,L]
 </IfModule>
@@ -49,7 +43,7 @@ Options -Indexes
     Require all denied
 </Files>
 
-# ── NUEVO: Headers de seguridad mínimos en raíz ───────────────────
+# ── Headers de seguridad mínimos en raíz ─────────────────────────
 <IfModule mod_headers.c>
     Header always set X-Content-Type-Options "nosniff"
     Header unset X-Powered-By

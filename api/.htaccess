@@ -1,36 +1,32 @@
 # ================================================================
 # Wooden House - .htaccess /api/
 # ================================================================
-# Esta carpeta SOLO debe ser accesible a través del proxy del
-# .htaccess de /public/ (RewriteRule ^api/ → ../api/).
-# Acceso directo desde el navegador está bloqueado aquí como
-# segunda línea de defensa.
+# Las peticiones llegan aquí a través del proxy interno de
+# /public/.htaccess. Bloqueamos solo el acceso HTTP directo
+# usando mod_rewrite (no Require all denied, que en Apache 2.4
+# también bloquea las reescrituras internas).
+# ================================================================
 
 Options -Indexes -ExecCGI
 
-# ── NUEVO: Bloquear acceso directo — segunda línea de defensa ─────
-# Si el proxy de /public/.htaccess funciona bien, nadie debería
-# llegar aquí directamente. Esto lo confirma a nivel de Apache.
-Require all denied
+<IfModule mod_rewrite.c>
+    RewriteEngine On
 
-# ── Excepción: permitir solo peticiones que vienen del proxy ──────
-# Apache internamente sí puede servir los archivos cuando el
-# RewriteRule de /public/.htaccess hace la reescritura interna.
-# El "Require all denied" de arriba bloquea acceso HTTP directo
-# pero NO bloquea las reescrituras internas de mod_rewrite.
+    # Bloquear acceso HTTP directo a /api/ desde el navegador.
+    # THE_REQUEST contiene la línea cruda (ej: GET /api/foo.php HTTP/1.1)
+    # Si alguien accede directamente, devuelve 403.
+    # Las reescrituras internas de mod_rewrite NO usan THE_REQUEST,
+    # por lo que el proxy de /public/.htaccess sí funciona.
+    RewriteCond %{THE_REQUEST} \s/api/ [NC]
+    RewriteRule ^ - [F,L]
+</IfModule>
 
 # ── Headers de seguridad para respuestas de la API ────────────────
 <IfModule mod_headers.c>
     Header always set X-Content-Type-Options "nosniff"
     Header always set Cache-Control "no-store, no-cache, must-revalidate"
     Header always set Pragma "no-cache"
-
-    # NUEVO: Evitar que la API sea embebida en iframes
     Header always set X-Frame-Options "DENY"
-
-    # NUEVO: Indicar que las respuestas son JSON (refuerzo)
-    # Apache lo aplica a todos los .php de esta carpeta
-    # Tu PHP debe seguir enviando Content-Type: application/json
 </IfModule>
 
 # ── Bloquear archivos sensibles ───────────────────────────────────
@@ -38,8 +34,7 @@ Require all denied
     Require all denied
 </FilesMatch>
 
-# ── NUEVO: Solo permitir métodos HTTP válidos para una API ─────────
-# Bloquea métodos raros usados en ataques (TRACE, TRACK, etc.)
+# ── Solo permitir métodos HTTP válidos para una API ───────────────
 <LimitExcept GET POST PUT DELETE OPTIONS>
     Require all denied
 </LimitExcept>

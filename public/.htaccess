@@ -6,7 +6,7 @@ Options -Indexes -ExecCGI
 # ── URLs limpias sin extensión ────────────────────────────────────
 <IfModule mod_rewrite.c>
     RewriteEngine On
-    RewriteBase /
+    RewriteBase /public/
 
     # No reescribir si el archivo o directorio existe físicamente
     RewriteCond %{REQUEST_FILENAME} !-f
@@ -24,19 +24,18 @@ Options -Indexes -ExecCGI
     RewriteRule ^empleado/?$                empleado/panel_empleado.php   [L,QSA]
 
     # ── Proxy /api/ → carpeta api/ fuera de public/ ──────────────
-    RewriteCond %{REQUEST_URI} ^/api/
-    RewriteCond %{REQUEST_FILENAME} !-f
-    RewriteCond %{REQUEST_FILENAME} !-d
-    RewriteRule ^api/(.+)$ ../api/$1 [L,QSA]
+    # Se usa PT (passthrough) para que el .htaccess de /api/
+    # reciba la petición como reescritura interna (no como
+    # acceso directo), evitando el bloqueo de THE_REQUEST.
+    RewriteRule ^api/(.*)$ /api/$1 [L,QSA,PT]
 
-    # ── NUEVO: Bloquear User-Agents vacíos (bots simples) ────────
+    # ── Bloquear User-Agents vacíos (bots simples) ────────────
     RewriteCond %{HTTP_USER_AGENT} ^$
     RewriteRule ^ - [F,L]
 
-    # ── NUEVO: Bloquear hotlinking de imágenes ───────────────────
-    # Cambia tudominio.com por tu dominio real de Cloudflare
+    # ── Bloquear hotlinking de imágenes ──────────────────────────
     RewriteCond %{HTTP_REFERER} !^$
-    RewriteCond %{HTTP_REFERER} !^https://(www\.)?tudominio\.com [NC]
+    RewriteCond %{HTTP_REFERER} !^https://(www\.)?muebleswh\.com [NC]
     RewriteRule \.(jpg|jpeg|png|webp|gif|svg)$ - [F,L]
 </IfModule>
 
@@ -59,9 +58,6 @@ Options -Indexes -ExecCGI
     Header unset Server
 
     Header always set Permissions-Policy "geolocation=(), camera=(), microphone=(), payment=(self)"
-
-    # ── NUEVO: HSTS - fuerza HTTPS (solo si tienes SSL activo) ───
-    # Cloudflare Tunnel ya maneja HTTPS, así que esto es seguro activarlo
     Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains"
 
     # ── Content Security Policy ───────────────────────────────────
@@ -131,7 +127,7 @@ Options -Indexes -ExecCGI
         Header always set Pragma "no-cache"
     </FilesMatch>
 
-    # Sin caché en API y PHP en general
+    # Sin caché en PHP en general
     <FilesMatch "^.*\.php$">
         Header always set Cache-Control "no-store, no-cache, must-revalidate"
     </FilesMatch>
@@ -155,7 +151,5 @@ Options -Indexes -ExecCGI
     AddOutputFilterByType DEFLATE text/html text/css application/javascript application/json
 </IfModule>
 
-# ── NUEVO: Página de error personalizada (opcional) ───────────────
-# Descomenta si creas estas páginas en /public/
 # ErrorDocument 403 /error403.php
 # ErrorDocument 404 /error404.php
