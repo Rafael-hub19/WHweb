@@ -36,7 +36,9 @@ INSERT INTO categorias (nombre, descripcion, activo) VALUES
 
 -- categoria_id 1=A Piso, 2=Flotados
 -- producto_id asignado en orden: Milano=1, Venecia=2, Toscana=3, Oslo=4, Paris=5, Tokyo=6,
---             Espejo=7, Organizador=8, Inst.Básica=9, Inst.Completa=10
+--             Espejo=7, Organizador=8
+-- NOTA: Los servicios de instalación (Básica/Completa) se eliminaron del catálogo de productos.
+--       La instalación se gestiona como opción en el checkout (costo_instalacion en pedidos).
 INSERT INTO productos (categoria_id, nombre, descripcion, precio_base, stock_disponible, etiqueta, activo) VALUES
 (1, 'Mueble Milano',   'Mueble de baño moderno con diseño minimalista. Acabado nogal de alta calidad. Incluye lavabo de cerámica. Dimensiones: 120x60x45 cm. Fabricación bajo pedido.',                                                                     8500.00,  999, 'Más vendido', 1),
 (1, 'Mueble Venecia',  'Mueble clásico con acabado en madera natural barnizada. Lavabo de mármol incluido. Diseño elegante con 2 cajones de cierre suave y espacio inferior de almacenamiento. Dimensiones: 90x50x65 cm.',                               12800.00, 999, 'Popular',     1),
@@ -45,9 +47,7 @@ INSERT INTO productos (categoria_id, nombre, descripcion, precio_base, stock_dis
 (1, 'Mueble París',    'Mueble elegante de madera de cedro con barniz premium. Lavabo sobre cubierta de mármol sintético. 3 cajones con herrajes de lujo. Dimensiones: 85x48x62 cm.',                                                                   11500.00, 999, NULL,          1),
 (1, 'Mueble Tokyo',    'Diseño compacto y funcional. MDF gris mate con toques cromados. Lavabo cerámico pequeño. Ideal para baños de visitas. Dimensiones: 60x35x50 cm.',                                                                                6200.00,  999, 'Oferta',      1),
 (2, 'Espejo con Marco de Madera',   'Espejo de 80x60cm con marco de madera nogal a juego con muebles Milano y París.',                                                                                                                                   1200.00,  15,  NULL,          1),
-(2, 'Organizador de Pared',         'Estante flotante de madera para accesorios de baño. 60x20x15 cm.',                                                                                                                                                   850.00,  20,  NULL,          1),
-(3, 'Servicio de Instalación Básica',    'Incluye: instalación del mueble, conexión de lavabo, ajustes finales. No incluye trabajo de plomería ni electricidad.',                                                                                         800.00,  999, NULL,          1),
-(3, 'Servicio de Instalación Completa',  'Incluye: instalación del mueble, plomería completa, conexiones eléctricas, acabados finales, limpieza del área.',                                                                                             1500.00,  999, NULL,          1);
+(2, 'Organizador de Pared',         'Estante flotante de madera para accesorios de baño. 60x20x15 cm.',                                                                                                                                                    850.00,  20,  NULL,          1);
 
 INSERT IGNORE INTO imagenes_producto (producto_id, url_imagen, es_principal, orden) VALUES
 (1, 'https://firebasestorage.googleapis.com/v0/b/wooden-house/milano-principal.jpg',    1, 0),
