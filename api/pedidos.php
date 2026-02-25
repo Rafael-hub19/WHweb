@@ -95,7 +95,6 @@ switch ($method) {
         if (!isValidEmail($body['correo_cliente'])) jsonError('correo_cliente inválido', 422);
         if (empty($body['items']) || !is_array($body['items'])) jsonError('items requerido', 422);
 
-        // FIX: la BD usa ENUM('recoger','envio') — aceptar ambos valores del frontend
         $tipoEntrega = $body['tipo_entrega'] ?? 'envio';
         if (!in_array($tipoEntrega, ['recoger', 'envio'])) {
             $tipoEntrega = 'envio'; // valor por defecto seguro
@@ -123,7 +122,6 @@ switch ($method) {
             $itemsData[] = ['producto' => $prod, 'cantidad' => $cant, 'precio' => $precioUnit, 'subtotal' => $subProd];
         }
 
-        // FIX: usar 'envio' (valor correcto del ENUM) para calcular costo de envío
         $costoEnvio        = $tipoEntrega === 'envio' ? COSTO_ENVIO : 0;
         $costoInstalacion  = !empty($body['incluye_instalacion']) ? COSTO_INSTALACION : 0;
         $descuento         = sanitizeFloat($body['descuento'] ?? 0);
@@ -175,7 +173,6 @@ switch ($method) {
             $pedidoId = dbInsert('pedidos', $datosPedido);
 
             foreach ($itemsData as $item) {
-                // FIX: usar columnas correctas de detalle_pedido:
                 //   nombre_producto (NOT NULL, requerido)
                 //   total_linea     (en lugar de 'subtotal' que no existe)
                 dbInsert('detalle_pedido', [

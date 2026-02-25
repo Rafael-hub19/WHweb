@@ -393,11 +393,9 @@ unset($_usuario);
 
           <div class="table-filters" style="border:1px solid var(--border); border-radius:10px; margin-bottom:10px;">
             <div class="cat-search">
-              <input class="form-input" id="catSearch" placeholder="Buscar por nombre, id, SKU, categoría..." oninput="renderCatalogo()"/>
+              <input class="form-input" id="catSearch" placeholder="Buscar por nombre, categoría..." oninput="renderCatalogo()"/>
               <select class="form-select" id="catCategory" onchange="renderCatalogo()" style="max-width:220px;">
                 <option value="">Todas las categorías</option>
-                <option value="A Piso">A Piso</option>
-                <option value="Flotados">Flotados</option>
               </select>
               <select class="form-select" id="catStatus" onchange="renderCatalogo()" style="max-width:200px;">
                 <option value="">Todos</option>
@@ -414,7 +412,7 @@ unset($_usuario);
               <table>
                 <thead>
                   <tr>
-                    <th>ID</th><th>SKU</th><th>Producto</th><th>Categoría</th><th>Precio</th><th>Stock</th><th>Estado</th><th>Acciones</th>
+                    <th>ID</th><th>Producto</th><th>Categoría</th><th>Precio</th><th>Estado</th><th>Acciones</th>
                   </tr>
                 </thead>
                 <tbody id="catalogTableBody"></tbody>
@@ -547,37 +545,27 @@ unset($_usuario);
 
           <div class="form-grid">
             <div class="form-group">
-              <label class="form-label">ID (slug) *</label>
-              <input type="text" class="form-input" id="p_id" placeholder="ej: milano"/>
-              <div class="help">Se usa para abrir detalle: detalle_producto.html?id=milano (en tu sitio).</div>
-            </div>
-
-            <div class="form-group">
-              <label class="form-label">SKU *</label>
-              <input type="text" class="form-input" id="p_sku" placeholder="ej: MLN-001"/>
-            </div>
-
-            <div class="form-group">
               <label class="form-label">Nombre *</label>
-              <input type="text" class="form-input" id="p_nombre" placeholder="ej: Milano"/>
+              <input type="text" class="form-input" id="p_nombre" placeholder="ej: Mueble Milano"/>
             </div>
 
             <div class="form-group">
-              <label class="form-label">Categoría/Estilo *</label>
+              <label class="form-label">Categoría *</label>
               <select class="form-select" id="p_categoria">
-                <option value="A Piso">A Piso</option>
-                <option value="Flotados">Flotados</option>
+                <option value="">Cargando categorías...</option>
               </select>
             </div>
 
             <div class="form-group">
-              <label class="form-label">Badge</label>
+              <label class="form-label">Etiqueta / Badge</label>
               <select class="form-select" id="p_badge">
-                <option value="">Ninguno</option>
+                <option value="">Ninguna</option>
                 <option value="Nuevo">Nuevo</option>
                 <option value="Popular">Popular</option>
                 <option value="Oferta">Oferta</option>
+                <option value="Más vendido">Más vendido</option>
               </select>
+              <div class="help">Chip decorativo sobre la imagen en catálogo y detalle.</div>
             </div>
 
             <div class="form-group">
@@ -590,117 +578,50 @@ unset($_usuario);
 
             <div class="form-group">
               <label class="form-label">Precio (MXN) *</label>
-              <input type="number" class="form-input" id="p_precio" step="0.01" placeholder="8500"/>
-            </div>
-
-            <div class="form-group">
-              <label class="form-label">Stock (cantidad) *</label>
-              <input type="number" class="form-input" id="p_stock" placeholder="15"/>
-              <div class="help">En tu detalle aparece “En stock / Bajo stock / Sin stock”.</div>
+              <input type="number" class="form-input" id="p_precio" step="0.01" min="1" placeholder="8500"/>
             </div>
           </div>
 
-          <div class="section" style="margin-top:12px;">
+          <div class="form-group" style="margin-top:14px;">
+            <label class="form-label">Descripción del producto *</label>
+            <textarea class="form-textarea" id="p_descLarga" rows="4"
+              placeholder="Descripción completa que se muestra en catálogo y en detalle del producto."></textarea>
+          </div>
+
+          <div class="section" style="margin-top:14px;">
             <div class="section-header">
-              <h2 class="section-title">Resumen (catálogo.html)</h2>
+              <h2 class="section-title">Especificaciones técnicas</h2>
             </div>
-
-            <div class="form-grid">
-              <div class="form-group">
-                <label class="form-label">Dimensiones (resumen) *</label>
-                <input type="text" class="form-input" id="p_dim" placeholder='ej: 120cm x 50cm x 85cm'/>
-              </div>
-              <div class="form-group">
-                <label class="form-label">Material *</label>
-                <input type="text" class="form-input" id="p_mat" placeholder='ej: MDF / Madera de encino'/>
-              </div>
-              <div class="form-group">
-                <label class="form-label">Acabado *</label>
-                <input type="text" class="form-input" id="p_acab" placeholder='ej: Nogal / Mate / Barniz satinado'/>
-              </div>
-              <div class="form-group">
-                <label class="form-label">Lavabo (resumen) *</label>
-                <input type="text" class="form-input" id="p_lav" placeholder='ej: Cerámica blanca incluida'/>
-              </div>
-              <div class="form-group">
-                <label class="form-label">Descripción corta *</label>
-                <input type="text" class="form-input" id="p_descCorta" placeholder="1 línea (catálogo)"/>
-              </div>
+            <div class="help" style="margin-bottom:8px;">
+              Una especificación por línea en formato <strong>Clave: Valor</strong><br>
+              Ej: <code>Dimensiones: 120 x 60 x 45 cm</code>
+            </div>
+            <div class="form-group">
+              <textarea class="form-textarea" id="p_specs" rows="6"
+                placeholder="Dimensiones: 120 x 60 x 45 cm&#10;Material: MDF de alta densidad&#10;Acabado: Laminado nogal mate&#10;Lavabo: Cerámica blanca incluida&#10;Cajones: 2 cajones con cierre suave"></textarea>
             </div>
           </div>
 
-          <div class="section" style="margin-top:12px;">
+          <div class="section" style="margin-top:14px;">
             <div class="section-header">
-              <h2 class="section-title">Detalle (detalle_producto.html)</h2>
+              <h2 class="section-title">Imágenes del producto</h2>
             </div>
-
             <div class="form-group">
-              <label class="form-label">Descripción larga *</label>
-              <textarea class="form-textarea" id="p_descLarga" placeholder="Descripción completa del producto..."></textarea>
-            </div>
-
-            <div class="form-grid">
-              <div class="form-group">
-                <label class="form-label">Rating (0 a 5)</label>
-                <input type="number" class="form-input" id="p_rating" step="0.1" placeholder="4.8"/>
-              </div>
-              <div class="form-group">
-                <label class="form-label">Reseñas (número)</label>
-                <input type="number" class="form-input" id="p_reviews" placeholder="124"/>
-              </div>
-            </div>
-
-            <div class="form-group">
-              <label class="form-label">Features (una por línea)</label>
-              <textarea class="form-textarea" id="p_features" placeholder="• Cajones de cierre suave&#10;• Herrajes premium..."></textarea>
-              <div class="help">En tu detalle se muestran como lista de beneficios.</div>
-            </div>
-
-            <div class="form-group">
-              <label class="form-label">Especificaciones (una por línea: Label: Valor)</label>
-              <textarea class="form-textarea" id="p_specs" placeholder="Material: Madera de encino&#10;Acabado: Mate..."></textarea>
-            </div>
-
-            <div class="form-group">
-              <label class="form-label">Imágenes del producto</label>
-
-              <!-- Upload area -->
-              <div id="imgDropZone" style="border:2px dashed #8b7355;border-radius:10px;padding:24px;text-align:center;cursor:pointer;margin-bottom:12px;color:#8b7355;background:#1a1a1a;transition:background .2s;"
-                   onclick="document.getElementById('p_imgs_file').click()"
-                   ondragover="event.preventDefault();this.style.background='#2a2018'"
-                   ondragleave="this.style.background='#1a1a1a'"
-                   ondrop="handleImgDrop(event)">
-                <i class="fa-solid fa-cloud-arrow-up" style="font-size:28px;margin-bottom:8px;display:block;"></i>
-                <strong>Haz clic o arrastra imágenes aquí</strong><br>
-                <small style="color:#888;">JPG, PNG, WebP — máx. 2 MB por imagen</small>
-              </div>
-              <input type="file" id="p_imgs_file" accept="image/jpeg,image/png,image/webp" multiple
-                     style="display:none" onchange="handleImgSelect(this.files)">
-
-              <!-- Upload progress -->
-              <div id="imgUploadProgress" style="display:none;margin-bottom:10px;">
-                <div style="background:#333;border-radius:6px;overflow:hidden;height:8px;">
-                  <div id="imgProgressBar" style="background:#8b7355;height:100%;width:0;transition:width .3s;"></div>
-                </div>
-                <small id="imgProgressLabel" style="color:#888;">Subiendo...</small>
-              </div>
-
-              <!-- Preview de imágenes ya cargadas -->
-              <div id="imgPreviewList" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px;"></div>
-
-              <!-- URLs guardadas (oculto, lo maneja el JS) -->
-              <input type="hidden" id="p_imgs_urls" value="">
-              <div class="help">La primera imagen será la principal que aparece en el catálogo.</div>
+              <label class="form-label">URLs de imágenes (una por línea)</label>
+              <textarea class="form-textarea" id="p_imgs_urls" rows="3"
+                placeholder="https://ejemplo.com/imagen1.jpg&#10;https://ejemplo.com/imagen2.jpg"></textarea>
+              <div class="help">La primera URL será la imagen principal en el catálogo.</div>
             </div>
           </div>
 
-          <div style="display:flex; gap:10px; flex-wrap:wrap; justify-content:flex-end;">
+          <div style="display:flex; gap:10px; flex-wrap:wrap; justify-content:flex-end; margin-top:16px;">
             <button class="btn btn-secondary" onclick="closeModal('productoModal')">Cancelar</button>
-            <button class="btn btn-primary" onclick="saveProductoFull()">Guardar</button>
+            <button class="btn btn-primary" id="btnGuardarProducto" onclick="saveProductoFull()">Guardar</button>
           </div>
         </div>
       </div>
 
+      <!-- MODAL: DETALLE -->
       <!-- MODAL: DETALLE -->
       <div class="modal" id="productoDetalleModal">
         <div class="modal-content">

@@ -1,3 +1,4 @@
+<?php header('Content-Type: text/html; charset=utf-8'); ?>
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -244,6 +245,7 @@
     </p>
 </div>
 
+<script src="./assets/js/utils.js"></script>
 <script src="./assets/js/carrito.js"></script>
 <script src="./assets/js/checkout.js"></script>
 </body>

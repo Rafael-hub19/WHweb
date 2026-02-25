@@ -6,9 +6,7 @@ require_once dirname(__DIR__) . '/includes/paypal.php';
 $method = requestMethod();
 $action = $_GET['action'] ?? '';
 
-// ================================================================
-// STRIPE
-// ================================================================
+// ── STRIPE ────────────────────────────────────────────
 if ($action === 'stripe_intent') {
     if ($method !== 'POST') jsonError('Método no permitido', 405);
     $body    = getJsonBody();
@@ -108,9 +106,7 @@ if ($action === 'stripe_webhook') {
     }
 }
 
-// ================================================================
-// PAYPAL
-// ================================================================
+// ── PAYPAL ────────────────────────────────────────────
 if ($action === 'paypal_orden') {
     if ($method !== 'POST') jsonError('Método no permitido', 405);
     $body     = getJsonBody();
@@ -168,9 +164,7 @@ if ($action === 'paypal_capturar') {
     }
 }
 
-// ================================================================
-// GET: Listar pagos (admin/empleado)
-// ================================================================
+// ── GET: Listar pagos (admin/empleado) ────────────────
 if ($method === 'GET') {
     requerirEmpleado();
     $pedidoId = sanitizeInt($_GET['pedido_id'] ?? 0);

@@ -1002,7 +1002,6 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // showSection integrado en función principal
-
 window.actualizarEstadoPedidoEmp = actualizarEstadoPedidoEmp;
 window.confirmarCita  = confirmarCita;
 window.completarCita  = completarCita;

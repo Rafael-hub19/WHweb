@@ -396,14 +396,11 @@
     }
 
     function getProductos(){
-      try{
-        return JSON.parse(localStorage.getItem(PROD_KEY) || '[]');
-      }catch{
-        return [];
-      }
+      // Siempre usar los datos de la API (array en memoria)
+      return window._apiProductos || [];
     }
     function setProductos(list){
-      localStorage.setItem(PROD_KEY, JSON.stringify(list));
+      window._apiProductos = list;
     }
 
     function getViewMode(){
@@ -428,97 +425,93 @@
 
     function renderCatalogo(){
       const mode = getViewMode();
-      $('#viewModeLabel').textContent = mode === 'cards' ? 'Tarjetas' : 'Tabla';
+      const viewLabel = document.getElementById('viewModeLabel');
+      if (viewLabel) viewLabel.textContent = mode === 'cards' ? 'Tarjetas' : 'Tabla';
 
-      $('#catalogCards').classList.toggle('hidden', mode !== 'cards');
-      $('#catalogTableWrap').classList.toggle('hidden', mode !== 'table');
+      const catalogCards    = document.getElementById('catalogCards');
+      const catalogTableWrap = document.getElementById('catalogTableWrap');
+      if (catalogCards)     catalogCards.classList.toggle('hidden', mode !== 'cards');
+      if (catalogTableWrap) catalogTableWrap.classList.toggle('hidden', mode !== 'table');
 
-      const q = ($('#catSearch')?.value || '').trim().toLowerCase();
-      const cat = ($('#catCategory')?.value || '').trim();
-      const st = ($('#catStatus')?.value || '').trim();
+      const q  = (document.getElementById('catSearch')?.value   || '').trim().toLowerCase();
+      const cat= (document.getElementById('catCategory')?.value || '').trim();
+      const st = (document.getElementById('catStatus')?.value   || '').trim();
 
       let list = getProductos();
 
+      if (list.length === 0) {
+        // Aún no hay datos — mostrar loading
+        if (catalogCards) catalogCards.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:#888;"><i class="fa-solid fa-spinner fa-spin"></i> Cargando productos...</div>';
+        return;
+      }
+
       list = list.filter(p => {
-        const hay = [p.id, p.sku, p.nombre, p.categoria].join(' ').toLowerCase();
-        const okQ = !q || hay.includes(q);
-        const okCat = !cat || p.categoria === cat;
-        const okSt = !st || p.estado === st;
+        const hay  = [p.id, p.nombre, p.categoria].join(' ').toLowerCase();
+        const okQ  = !q   || hay.includes(q);
+        const okCat= !cat || p.categoria === cat;
+        const okSt = !st  || p.estado === st;
         return okQ && okCat && okSt;
       });
 
-      if(mode === 'cards'){
-        const wrap = $('#catalogCards');
-        wrap.innerHTML = '';
-        if(!list.length){
-          wrap.innerHTML = `<div class="section" style="grid-column:1/-1;">
-            <div style="color:var(--muted2); font-size:13px;">No hay productos con esos filtros.</div>
-          </div>`;
+      if (mode === 'cards') {
+        if (!catalogCards) return;
+        catalogCards.innerHTML = '';
+        if (!list.length) {
+          catalogCards.innerHTML = '<div style="grid-column:1/-1;color:#888;padding:20px;">No hay productos con esos filtros.</div>';
           return;
         }
-
         list.forEach(p => {
-          const badge = p.badge ? `<div class="cat-badge ${escapeHtml(p.badge)}">${escapeHtml(p.badge)}</div>` : '';
-          const dim = p?.specsResumen?.dimensiones || '—';
-          const mat = p?.specsResumen?.material || '—';
-          const acab = p?.specsResumen?.acabado || '—';
-          const lav = p?.specsResumen?.lavabo || '—';
-
+          const imgHTML = p.imagen_principal
+            ? `<img src="${escapeHtml(p.imagen_principal)}" alt="${escapeHtml(p.nombre)}" style="width:100%;height:140px;object-fit:cover;border-radius:8px 8px 0 0;">`
+            : `<div style="width:100%;height:140px;background:#2a2a2a;border-radius:8px 8px 0 0;display:flex;align-items:center;justify-content:center;color:#555;font-size:40px;"><i class="fa-solid fa-tree"></i></div>`;
+          const badgeHTML = (p.etiqueta || p.badge)
+            ? `<span style="background:#8b7355;color:#fff;padding:2px 8px;border-radius:4px;font-size:11px;position:absolute;top:10px;right:10px;">${escapeHtml(p.etiqueta || p.badge)}</span>`
+            : '';
           const card = document.createElement('div');
           card.className = 'cat-card';
           card.innerHTML = `
-            <div class="cat-image">${badge}</div>
+            <div style="position:relative;">${imgHTML}${badgeHTML}</div>
             <div class="cat-content">
-              <div class="cat-title">${escapeHtml(p.nombre)} <span style="color:#bbb; font-size:12px; font-weight:800;">(${escapeHtml(p.categoria)})</span></div>
-              <div class="cat-desc">${escapeHtml(p.descCorta || '')}</div>
-
-              <div class="cat-specs">
-                <div class="cat-spec"><span>Dimensiones</span><span>${escapeHtml(dim)}</span></div>
-                <div class="cat-spec"><span>Material</span><span>${escapeHtml(mat)}</span></div>
-                <div class="cat-spec"><span>Acabado</span><span>${escapeHtml(acab)}</span></div>
-                <div class="cat-spec"><span>Lavabo</span><span>${escapeHtml(lav)}</span></div>
-              </div>
-
+              <div class="cat-title">${escapeHtml(p.nombre)} <span style="color:#888;font-size:12px;">(${escapeHtml(p.categoria || '')})</span></div>
+              <div class="cat-desc" style="color:#aaa;font-size:13px;margin:6px 0;">${escapeHtml((p.descripcion || p.descLarga || '').substring(0, 80))}${(p.descripcion||'').length > 80 ? '...' : ''}</div>
               <div class="cat-footer">
-                <div class="cat-price">${money(p.precio)}</div>
+                <div class="cat-price">${money(p.precio || p.precio_base || 0)}</div>
                 <div class="cat-actions">
-                  <button class="btn btn-secondary btn-small" onclick="openProductoDetalle('${escapeHtml(p.id)}')">Ver detalle</button>
-                  <button class="btn btn-secondary btn-small" onclick="openProductoModal('edit','${escapeHtml(p.id)}')"><i class="fa-solid fa-pen"></i></button>
-                  <button class="btn btn-danger btn-small" onclick="deleteProducto('${escapeHtml(p.id)}')"><i class="fa-solid fa-trash"></i></button>
+                  <button class="btn btn-secondary btn-small" onclick="openProductoDetalle('${escapeHtml(String(p.id))}')">Ver</button>
+                  <button class="btn btn-secondary btn-small" onclick="openProductoModal('edit','${escapeHtml(String(p.id))}')" title="Editar"><i class="fa-solid fa-pen"></i></button>
+                  <button class="btn btn-danger btn-small" onclick="deleteProducto('${escapeHtml(String(p.id))}')" title="Eliminar"><i class="fa-solid fa-trash"></i></button>
                 </div>
               </div>
-
-              <div style="margin-top:10px; font-size:11px; color:#aaa;">
-                ID: <b style="color:#fff;">${escapeHtml(p.id)}</b> • SKU: <b style="color:#fff;">${escapeHtml(p.sku)}</b> • Stock: <b style="color:#fff;">${escapeHtml(p.stock)}</b> •
-                <span class="status-badge ${p.estado==='activo'?'status-completed':'status-disabled'}">${p.estado==='activo'?'Activo':'Inactivo'}</span>
+              <div style="margin-top:8px;font-size:11px;color:#666;">
+                ID: <b style="color:#aaa;">${escapeHtml(String(p.id))}</b> •
+                <span class="status-badge ${p.estado === 'activo' ? 'status-completed' : 'status-disabled'}">${p.estado === 'activo' ? 'Activo' : 'Inactivo'}</span>
               </div>
             </div>
           `;
-          wrap.appendChild(card);
+          catalogCards.appendChild(card);
         });
       }
 
-      if(mode === 'table'){
-        const body = $('#catalogTableBody');
+      if (mode === 'table') {
+        const body = document.getElementById('catalogTableBody');
+        if (!body) return;
         body.innerHTML = '';
-        if(!list.length){
-          body.innerHTML = `<tr><td colspan="8" style="color:var(--muted);">No hay productos con esos filtros.</td></tr>`;
+        if (!list.length) {
+          body.innerHTML = '<tr><td colspan="6" style="color:#888;text-align:center;">No hay productos con esos filtros.</td></tr>';
           return;
         }
         list.forEach(p => {
           const tr = document.createElement('tr');
           tr.innerHTML = `
-            <td>${escapeHtml(p.id)}</td>
-            <td>${escapeHtml(p.sku)}</td>
+            <td>${escapeHtml(String(p.id))}</td>
             <td>${escapeHtml(p.nombre)}</td>
-            <td>${escapeHtml(p.categoria)}</td>
-            <td style="color:var(--accent); font-weight:900;">${money(p.precio)}</td>
-            <td>${escapeHtml(p.stock)}</td>
-            <td><span class="status-badge ${p.estado==='activo'?'status-completed':'status-disabled'}">${p.estado==='activo'?'Activo':'Inactivo'}</span></td>
+            <td>${escapeHtml(p.categoria || '—')}</td>
+            <td style="color:var(--accent);font-weight:900;">${money(p.precio || p.precio_base || 0)}</td>
+            <td><span class="status-badge ${p.estado === 'activo' ? 'status-completed' : 'status-disabled'}">${p.estado === 'activo' ? 'Activo' : 'Inactivo'}</span></td>
             <td>
-              <button class="btn btn-secondary btn-small" onclick="openProductoDetalle('${escapeHtml(p.id)}')">Ver</button>
-              <button class="btn btn-secondary btn-small" onclick="openProductoModal('edit','${escapeHtml(p.id)}')"><i class="fa-solid fa-pen"></i></button>
-              <button class="btn btn-danger btn-small" onclick="deleteProducto('${escapeHtml(p.id)}')"><i class="fa-solid fa-trash"></i></button>
+              <button class="btn btn-secondary btn-small" onclick="openProductoDetalle('${escapeHtml(String(p.id))}')">Ver</button>
+              <button class="btn btn-secondary btn-small" onclick="openProductoModal('edit','${escapeHtml(String(p.id))}')" title="Editar"><i class="fa-solid fa-pen"></i></button>
+              <button class="btn btn-danger btn-small" onclick="deleteProducto('${escapeHtml(String(p.id))}')" title="Eliminar"><i class="fa-solid fa-trash"></i></button>
             </td>
           `;
           body.appendChild(tr);
@@ -535,61 +528,45 @@
 
       $('#productoModalTitle').textContent = isEdit ? 'Editar Producto' : 'Nuevo Producto';
 
-      // Resetear estado de imágenes
-      window._imgFilesPending = [];
-      window._imgUrlsCurrent  = [];
-      const urlsInput = document.getElementById('p_imgs_urls');
-      if (urlsInput) urlsInput.value = '';
-      const previewList = document.getElementById('imgPreviewList');
-      if (previewList) previewList.innerHTML = '';
-      const fileInput = document.getElementById('p_imgs_file');
-      if (fileInput) fileInput.value = '';
-
+      // Limpiar campos
       const clear = (x) => { const el = $('#'+x); if(el) el.value = ''; };
-      [
-        'p_id','p_sku','p_nombre','p_categoria','p_badge','p_estado','p_precio','p_stock',
-        'p_dim','p_mat','p_acab','p_lav','p_descCorta','p_descLarga','p_rating','p_reviews','p_features','p_specs'
-      ].forEach(clear);
+      ['p_nombre','p_categoria','p_badge','p_estado','p_precio','p_descLarga','p_specs','p_imgs_urls'].forEach(clear);
+
+      // Poblar select de categorías
+      const catSelect = document.getElementById('p_categoria');
+      if (catSelect && window._apiCategorias && window._apiCategorias.length) {
+        catSelect.innerHTML = window._apiCategorias.map(c => `<option value="${c.id}">${escapeHtml(c.nombre)}</option>`).join('');
+      }
 
       if(isEdit){
-        const p = getProductos().find(x => x.id === id);
-        if(!p){
-          showNotification('No se encontró el producto para editar', 'error');
-          return;
+        const p = getProductos().find(x => String(x.id) === String(id));
+        if(!p){ showNotification('No se encontró el producto', 'error'); return; }
+
+        const setVal = (elId, val) => { const el = document.getElementById(elId); if(el && val !== undefined && val !== null) el.value = val; };
+        setVal('p_nombre',    p.nombre);
+        setVal('p_categoria', p.categoria_id);
+        setVal('p_badge',     p.etiqueta || p.badge || '');
+        setVal('p_estado',    p.estado || 'activo');
+        setVal('p_precio',    p.precio || p.precio_base || 0);
+        setVal('p_descLarga', p.descripcion || p.descLarga || '');
+
+        // Especificaciones: formato "Clave: Valor" una por línea
+        const specs = p.especificaciones || p.specs || [];
+        const specsText = specs.map(s => `${s.clave || s.label || ''}: ${s.valor || s.value || ''}`).join('\n');
+        setVal('p_specs', specsText);
+
+        // Imágenes: URLs una por línea
+        const imgUrls = p.imgs || (p.imagen_principal ? [p.imagen_principal] : []);
+        setVal('p_imgs_urls', imgUrls.join('\n'));
+
+      } else {
+        // Nuevo producto: defaults
+        const catSelect2 = document.getElementById('p_categoria');
+        if (catSelect2 && window._apiCategorias && window._apiCategorias.length) {
+          catSelect2.value = String(window._apiCategorias[0].id);
         }
-        $('#p_id').value = p.id || '';
-        $('#p_sku').value = p.sku || '';
-        $('#p_nombre').value = p.nombre || '';
-        $('#p_categoria').value = normalizeCategory(p.categoria) || '1';
-        $('#p_badge').value = p.badge || '';
-        $('#p_estado').value = p.estado || 'activo';
-        $('#p_precio').value = Number(p.precio || 0);
-        $('#p_stock').value = Number(p.stock || 0);
-
-        $('#p_dim').value = p?.specsResumen?.dimensiones || '';
-        $('#p_mat').value = p?.specsResumen?.material || '';
-        $('#p_acab').value = p?.specsResumen?.acabado || '';
-        $('#p_lav').value = p?.specsResumen?.lavabo || '';
-        $('#p_descCorta').value = p.descCorta || '';
-
-        $('#p_descLarga').value = p.descLarga || '';
-        $('#p_rating').value = p.rating ?? '';
-        $('#p_reviews').value = p.reviews ?? '';
-        $('#p_features').value = (p.features || []).join('\n');
-        $('#p_specs').value = (p.specs || []).map(s => `${s.label}: ${s.value}`).join('\n');
-        // Cargar imágenes existentes del producto desde API
-        const imgUrls = p.imgs || [];
-        const urlsInput = document.getElementById('p_imgs_urls');
-        if (urlsInput) urlsInput.value = imgUrls.join('\n');
-        renderImgPreviews();
-
-        $('#p_id').disabled = true;
-        $('#p_id').style.opacity = .7;
-      }else{
-        $('#p_id').disabled = false;
-        $('#p_id').style.opacity = 1;
-        $('#p_categoria').value = apiCategorias.length ? String(apiCategorias[0].id) : '1';
-        $('#p_estado').value = 'activo';
+        const estadoEl = document.getElementById('p_estado');
+        if (estadoEl) estadoEl.value = 'activo';
       }
 
       openModal('productoModal');
@@ -615,69 +592,69 @@
     }
 
     async function saveProductoFull(){
-      const mode   = $('#p_mode').value;
+      const mode   = ($('#p_mode')?.value || 'create');
       const isEdit = mode === 'edit';
-      const oldId  = $('#p_key').value;
+      const oldId  = ($('#p_key')?.value || '');
 
-      // Armar payload base
-      const payload = {
-        mode,
-        id:       isEdit ? oldId : String($('#p_id').value || '').trim(),
-        nombre:   String($('#p_nombre').value || '').trim(),
-        categoria_id: parseInt($('#p_categoria').value || 0),
-        badge:    String($('#p_badge').value || '').trim(),
-        estado:   String($('#p_estado').value || 'activo').trim(),
-        precio:   Number($('#p_precio').value || 0),
-        stock:    Number($('#p_stock').value || 0),
-        descCorta: String($('#p_descCorta').value || '').trim(),
-        specsResumen: {
-          dimensiones: String($('#p_dim').value || '').trim(),
-          material:    String($('#p_mat').value || '').trim(),
-          acabado:     String($('#p_acab').value || '').trim(),
-          lavabo:      String($('#p_lav').value || '').trim(),
-        },
-        descLarga: String($('#p_descLarga').value || '').trim(),
-        features:  parseLines($('#p_features').value),
-        specs: parseLines($('#p_specs').value).map(line => {
+      const nombre      = (document.getElementById('p_nombre')?.value   || '').trim();
+      const categoriaId = parseInt(document.getElementById('p_categoria')?.value || 0);
+      const badge       = (document.getElementById('p_badge')?.value    || '').trim();
+      const estado      = (document.getElementById('p_estado')?.value   || 'activo').trim();
+      const precio      = parseFloat(document.getElementById('p_precio')?.value || 0);
+      const descLarga   = (document.getElementById('p_descLarga')?.value || '').trim();
+
+      if (!nombre)      { showNotification('Falta el nombre del producto', 'error'); return; }
+      if (!categoriaId) { showNotification('Selecciona una categoría', 'error'); return; }
+      if (precio <= 0)  { showNotification('El precio debe ser mayor a 0', 'error'); return; }
+      if (!descLarga)   { showNotification('Falta la descripción del producto', 'error'); return; }
+
+      // Especificaciones: parsear "Clave: Valor" por línea
+      const specsRaw = document.getElementById('p_specs')?.value || '';
+      const especificaciones = specsRaw.split('\n')
+        .map(l => l.trim()).filter(Boolean)
+        .map(line => {
           const idx = line.indexOf(':');
-          if (idx === -1) return { label: line, value: '' };
-          return { label: line.slice(0, idx).trim(), value: line.slice(idx+1).trim() };
-        }),
+          if (idx === -1) return null;
+          return { clave: line.slice(0, idx).trim(), valor: line.slice(idx + 1).trim() };
+        }).filter(s => s && s.clave && s.valor);
+
+      // Imágenes: una URL por línea
+      const imgsRaw = document.getElementById('p_imgs_urls')?.value || '';
+      const imagenes = imgsRaw.split('\n').map(u => u.trim()).filter(Boolean).map(url => ({ url }));
+
+      const apiPayload = {
+        nombre,
+        descripcion:  descLarga,
+        precio_base:  precio,
+        etiqueta:     badge || null,
+        categoria_id: categoriaId,
+        activo:       estado === 'activo' ? 1 : 0,
+        imagenes,
+        especificaciones,
       };
 
-      // Validaciones básicas
-      if (!payload.nombre)        { showNotification('<i class="fa-solid fa-xmark"></i> Falta el nombre', 'error'); return; }
-      if (!payload.categoria_id)  { showNotification('<i class="fa-solid fa-xmark"></i> Falta la categoría', 'error'); return; }
-      if (payload.precio <= 0)    { showNotification('<i class="fa-solid fa-xmark"></i> Precio inválido', 'error'); return; }
-      if (!payload.descLarga)     { showNotification('<i class="fa-solid fa-xmark"></i> Falta descripción larga', 'error'); return; }
-
-      // ── Subir imágenes pendientes a Firebase Storage ──────────
-      const btnGuardar = document.querySelector('#productoModal .btn-primary');
+      const btnGuardar = document.getElementById('btnGuardarProducto');
       if (btnGuardar) { btnGuardar.disabled = true; btnGuardar.textContent = 'Guardando...'; }
 
       try {
-        // Subir archivos nuevos pendientes
-        if (window._imgFilesPending && window._imgFilesPending.length > 0) {
-          showNotification('<i class="fa-solid fa-cloud-arrow-up"></i> Subiendo imágenes...', 'info');
-          const urls = await subirImagenesFirebase(window._imgFilesPending, payload.nombre);
-          // Agregar a las URLs ya guardadas
-          const existentes = (document.getElementById('p_imgs_urls')?.value || '')
-            .split('').map(u => u.trim()).filter(Boolean);
-          window._imgUrlsCurrent = [...existentes, ...urls];
-          document.getElementById('p_imgs_urls').value = window._imgUrlsCurrent.join('');
-          window._imgFilesPending = [];
+        const isEditMode = isEdit && oldId;
+        const method = isEditMode ? 'PUT' : 'POST';
+        const url    = isEditMode
+          ? `${API_BASE}/productos.php?id=${oldId}`
+          : `${API_BASE}/productos.php`;
+
+        const data = await apiFetch(url, { method, body: JSON.stringify(apiPayload) });
+
+        if (data.success) {
+          showNotification(`Producto ${isEditMode ? 'actualizado' : 'creado'} correctamente`, 'success');
+          closeModal('productoModal');
+          await cargarProductosAPI();
+          renderCatalogo();
+        } else {
+          showNotification((data.error || 'Error al guardar'), 'error');
         }
-
-        payload.imgs = (document.getElementById('p_imgs_urls')?.value || '')
-          .split('').map(u => u.trim()).filter(Boolean);
-
-        await saveProductoAPI(payload);
-        closeModal('productoModal');
-        window._imgUrlsCurrent = [];
-        window._imgFilesPending = [];
-
       } catch(e) {
-        showNotification('<i class="fa-solid fa-xmark"></i> Error: ' + e.message, 'error');
+        showNotification('Error: ' + e.message, 'error');
       } finally {
         if (btnGuardar) { btnGuardar.disabled = false; btnGuardar.textContent = 'Guardar'; }
       }
@@ -778,78 +755,66 @@
       renderImgPreviews();
     }
 
-    function deleteProducto(id){
-      if(!confirm('¿Eliminar este producto?')) return;
-      const list = getProductos().filter(p => p.id !== id);
-      setProductos(list);
-      renderCatalogo();
-      showNotification('<i class="fa-solid fa-check"></i> Producto eliminado', 'success');
+    async function deleteProducto(id){
+      if(!confirm('¿Eliminar este producto? Esta acción no se puede deshacer.')) return;
+      try {
+        const data = await apiFetch(`${API_BASE}/productos.php?id=${id}`, { method: 'DELETE' });
+        if (data.success) {
+          showNotification('Producto eliminado', 'success');
+          await cargarProductosAPI();
+          renderCatalogo();
+        } else {
+          showNotification((data.error || 'Error al eliminar'), 'error');
+        }
+      } catch(e) {
+        showNotification('Error de conexión: ' + e.message, 'error');
+      }
     }
 
     let _detailCurrentId = '';
     function openProductoDetalle(id){
-      const p = getProductos().find(x => x.id === id);
-      if(!p){
-        showNotification('No se encontró el producto', 'error');
-        return;
-      }
+      const p = getProductos().find(x => String(x.id) === String(id));
+      if(!p){ showNotification('No se encontró el producto', 'error'); return; }
       _detailCurrentId = id;
 
-      $('#detalleModalTitle').textContent = `Detalle: ${p.nombre} (${p.id})`;
+      $('#detalleModalTitle').textContent = `Detalle: ${p.nombre}`;
 
-      const stockText = 'Fabricación bajo pedido';
-      const ratingTxt = (p.rating ? `${p.rating.toFixed(1)} <i class="fa-solid fa-star"></i>` : '—');
-      const reviewsTxt = (p.reviews ? `(${p.reviews} reseñas)` : '');
+      const specs      = p.especificaciones || p.specs || [];
+      const specsHTML  = specs.length
+        ? specs.map(s => `<div class="kv"><span>${escapeHtml(s.clave || s.label || '')}</span><b>${escapeHtml(s.valor || s.value || '')}</b></div>`).join('')
+        : `<div class="kv"><span>Sin especificaciones</span><b>—</b></div>`;
 
-      const featuresHTML = (p.features || []).length
-        ? (p.features || []).map(f => `<div class="detail-pill"><span>${escapeHtml(f)}</span><span><i class="fa-solid fa-check"></i></span></div>`).join('')
-        : `<div class="detail-pill"><span>Sin features registradas</span><span>—</span></div>`;
-
-      const specsHTML = (p.specs || []).length
-        ? (p.specs || []).map(s => `<div class="kv"><span>${escapeHtml(s.label)}</span><b>${escapeHtml(s.value)}</b></div>`).join('')
-        : `<div class="kv"><span>Especificaciones</span><b>—</b></div>`;
-
-      const imgsCount = (p.imgs || []).length;
+      const imgUrl     = p.imagen_principal || (p.imgs && p.imgs[0]) || '';
+      const imgHTML    = imgUrl
+        ? `<img src="${escapeHtml(imgUrl)}" alt="${escapeHtml(p.nombre)}" style="width:100%;max-height:220px;object-fit:cover;border-radius:10px;margin-bottom:12px;">`
+        : `<div style="width:100%;height:120px;background:#2a2a2a;border-radius:10px;display:flex;align-items:center;justify-content:center;color:#666;font-size:36px;margin-bottom:12px;"><i class="fa-solid fa-tree"></i></div>`;
 
       $('#detalleBody').innerHTML = `
         <div class="detail-wrap">
           <div class="detail-card">
-            <div class="detail-media">Galería (placeholder) • ${imgsCount} imagen(es) guardada(s)</div>
+            <div class="detail-media">${imgHTML}</div>
             <div class="detail-body">
               <div class="detail-title">${escapeHtml(p.nombre)}</div>
-              <div class="detail-meta">${escapeHtml(p.categoria)} • ${escapeHtml(p.badge || 'Sin badge')} • ${escapeHtml(stockText)}</div>
-              <div class="detail-price">${money(p.precio)}</div>
-              <div class="detail-meta">${escapeHtml(ratingTxt)} ${escapeHtml(reviewsTxt)}</div>
-
-              <div class="detail-desc">${escapeHtml(p.descLarga || '')}</div>
-
-              <div class="detail-list">
-                ${featuresHTML}
+              <div class="detail-meta" style="color:#8b7355;margin:4px 0;">
+                ${escapeHtml(p.categoria || '')}
+                ${p.etiqueta || p.badge ? ` • <span style="background:#8b7355;color:#fff;padding:2px 8px;border-radius:4px;font-size:12px;">${escapeHtml(p.etiqueta || p.badge)}</span>` : ''}
               </div>
+              <div class="detail-price">${money(p.precio || p.precio_base || 0)}</div>
+              <div class="detail-desc" style="margin-top:10px;color:#ccc;font-size:14px;line-height:1.6;">${escapeHtml(p.descripcion || p.descLarga || 'Sin descripción')}</div>
             </div>
           </div>
-
           <div class="detail-side">
             <h4>Ficha técnica</h4>
-            <div class="kv"><span>ID</span><b>${escapeHtml(p.id)}</b></div>
-            <div class="kv"><span>SKU</span><b>${escapeHtml(p.sku)}</b></div>
-            <div class="kv"><span>Estado</span><b>${escapeHtml(p.estado)}</b></div>
-            <div class="kv"><span>Stock</span><b>${escapeHtml(p.stock)}</b></div>
-
-            <div style="margin-top:10px;"></div>
+            <div class="kv"><span>ID en BD</span><b>${escapeHtml(String(p.id))}</b></div>
+            <div class="kv"><span>Categoría</span><b>${escapeHtml(p.categoria || '—')}</b></div>
+            <div class="kv"><span>Estado</span><b><span class="status-badge ${p.estado === 'activo' ? 'status-completed' : 'status-disabled'}">${p.estado || 'inactivo'}</span></b></div>
+            <div class="kv"><span>Precio</span><b style="color:#8b7355;">${money(p.precio || p.precio_base || 0)}</b></div>
+            <div style="margin-top:14px;"></div>
             <h4>Especificaciones</h4>
             ${specsHTML}
-
-            <div style="margin-top:10px;"></div>
-            <h4>Resumen para Catálogo</h4>
-            <div class="kv"><span>Dimensiones</span><b>${escapeHtml(p?.specsResumen?.dimensiones || '—')}</b></div>
-            <div class="kv"><span>Material</span><b>${escapeHtml(p?.specsResumen?.material || '—')}</b></div>
-            <div class="kv"><span>Lavabo</span><b>${escapeHtml(p?.specsResumen?.lavabo || '—')}</b></div>
-            <small>Nota: por ahora sin imágenes reales.</small>
           </div>
         </div>
       `;
-
       openModal('productoDetalleModal');
     }
 
@@ -1046,9 +1011,7 @@
       $('#kpiClientes').textContent = String(21);
     }
 
-    // =========================
-    // Charts (Canvas) - DEMO
-    // =========================
+    // ── Charts (Canvas) - DEMO ────────────────────────────
     function drawBars(canvasId, values, labels){
       const c = document.getElementById(canvasId);
       if(!c) return;
@@ -1161,25 +1124,21 @@
     });
 
     document.addEventListener('DOMContentLoaded', () => {
-      seedProductosIfEmpty();
       renderCalendar();
-      renderCatalogo();
       renderReportes();
       refreshKPIs();
       drawDashboardCharts();
+      // Cargar productos y categorías desde la API al iniciar
+      cargarProductosAPI().then(() => {
+        renderCatalogo();
+      }).catch(e => console.warn('No se pudieron cargar productos:', e));
       setTimeout(() => showNotification('Bienvenido, Administrador', 'success'), 450);
     });
   
-// =============================================================
-// API LAYER - Conexión real al backend PHP
-// Reemplaza las funciones simuladas de localStorage
-// =============================================================
+// ── API LAYER - Conexión real al backend PHP ──────────
 
 const API_BASE = '/api';
 
-/**
- * Obtener Firebase token para llamadas a API autenticadas
- */
 async function getAuthToken() {
   try {
     if (typeof firebaseAuth !== 'undefined' && firebaseAuth?.currentUser) {
@@ -1190,9 +1149,6 @@ async function getAuthToken() {
   } catch (e) { return ''; }
 }
 
-/**
- * Fetch autenticado
- */
 async function apiFetch(url, options = {}) {
   const token = await getAuthToken();
   options.headers = options.headers || {};
@@ -1202,9 +1158,6 @@ async function apiFetch(url, options = {}) {
   return res.json();
 }
 
-/**
- * Logout con Firebase
- */
 async function logoutAdmin() {
   if (!confirm('¿Cerrar sesión?')) return;
   try {
@@ -1215,9 +1168,7 @@ async function logoutAdmin() {
   window.location.href = '/login';
 }
 
-// ============================================================
-// KPIs - Cargar desde API real
-// ============================================================
+// ── KPIs - Cargar desde API real ──────────────────────
 async function refreshKPIsFromAPI() {
   try {
     const data = await apiFetch(`${API_BASE}/reportes.php?tipo=resumen`);
@@ -1254,44 +1205,50 @@ document.addEventListener('DOMContentLoaded', () => {
   setTimeout(refreshKPIsFromAPI, 500);
 });
 
-// ============================================================
-// CATÁLOGO - Conectar a API real
-// ============================================================
+// ── CATÁLOGO - Conectar a API real ────────────────────
 let apiProductos = [];
 let apiCategorias = [];
 
 async function cargarProductosAPI() {
   try {
     const [prodData, catData] = await Promise.all([
-      apiFetch(`${API_BASE}/productos.php?limit=100&activo=`),
-      apiFetch(`${API_BASE}/categorias.php?todas=1`),
+      apiFetch(`${API_BASE}/productos.php?limit=200&activo=todos`),
+      apiFetch(`${API_BASE}/categorias.php`),
     ]);
 
     if (prodData.success) {
       apiProductos = (prodData.productos || []).map(p => ({
-        id:          String(p.id),
-        nombre:      p.nombre,
-        descripcion: p.descripcion || '',
-        precio:      parseFloat(p.precio || 0),
-        stock:       parseInt(p.stock_disponible || 0),
-        categoria:   p.categoria_nombre || '',
-        categoria_id:p.categoria_id,
-        etiqueta:    p.etiqueta || '',
-        estado:      p.activo ? 'activo' : 'inactivo',
-        specsResumen:{ dimensiones: '', material: '', acabado: '', lavabo: '' },
-        descCorta:   (p.descripcion || '').substring(0, 100),
-        descLarga:   p.descripcion || '',
-        badge:       p.etiqueta || '',
-        imgs:        p.imagen_principal ? [p.imagen_principal] : [],
+        id:               String(p.id),
+        nombre:           p.nombre,
+        descripcion:      p.descripcion || '',
+        precio:           parseFloat(p.precio || 0),
+        precio_base:      parseFloat(p.precio || 0),
+        categoria:        p.categoria_nombre || '',
+        categoria_id:     p.categoria_id,
+        etiqueta:         p.etiqueta || '',
+        badge:            p.etiqueta || '',
+        estado:           p.activo ? 'activo' : 'inactivo',
+        imagen_principal: p.imagen_principal || '',
+        imgs:             p.imagen_principal ? [p.imagen_principal] : [],
+        especificaciones: [],  // se cargan en detalle si se necesitan
+        descLarga:        p.descripcion || '',
       }));
+      window._apiProductos = apiProductos;
     }
 
     if (catData.success) {
       apiCategorias = catData.categorias || [];
-      // Actualizar select de categorías en el modal
+      window._apiCategorias = apiCategorias;
       const catSelect = document.getElementById('p_categoria');
       if (catSelect) {
-        catSelect.innerHTML = apiCategorias.map(c => `<option value="${c.id}">${c.nombre}</option>`).join('');
+        catSelect.innerHTML = apiCategorias.map(c => `<option value="${c.id}">${escapeHtml(c.nombre)}</option>`).join('');
+      }
+      const catFilter = document.getElementById('catCategory');
+      if (catFilter) {
+        const currentVal = catFilter.value;
+        catFilter.innerHTML = `<option value="">Todas</option>` +
+          apiCategorias.map(c => `<option value="${escapeHtml(c.nombre)}">${escapeHtml(c.nombre)}</option>`).join('');
+        catFilter.value = currentVal;
       }
     }
 
@@ -1302,63 +1259,7 @@ async function cargarProductosAPI() {
   }
 }
 
-// Wrapper: getProductos() ahora usa datos de API si disponibles
-const _originalGetProductos = typeof getProductos === 'function' ? getProductos : () => [];
-function getProductos() {
-  return apiProductos.length > 0 ? apiProductos : _originalGetProductos();
-}
-
-// showSection integrado en función principal (ver línea 59)
-
-// ============================================================
-// GUARDAR PRODUCTO - Enviar a API real
-// ============================================================
-async function saveProductoAPI(payload) {
-  const isEdit = payload.mode === 'edit';
-  const method = isEdit ? 'PUT' : 'POST';
-  const url    = isEdit
-    ? `${API_BASE}/productos.php?id=${payload.id}`
-    : `${API_BASE}/productos.php`;
-
-  // Mapear payload al formato de la API
-  const body = {
-    nombre:           payload.nombre,
-    descripcion:      payload.descLarga || payload.descCorta || '',
-    precio_base:      parseFloat(payload.precio || 0),
-    stock_disponible: parseInt(payload.stock || 0),
-    etiqueta:         payload.badge || payload.etiqueta || null,
-    categoria_id:     parseInt(payload.categoria_id || payload.categoria || 1),
-    activo:           payload.estado === 'activo' ? 1 : 0,
-    imagenes:         (payload.imgs || []).map(url => ({ url })),
-    especificaciones: Object.entries(payload.specsResumen || {}).filter(([,v]) => v).map(([k,v]) => ({ clave: k, valor: v })),
-  };
-
-  // Agregar specs adicionales si vienen de textarea
-  if (payload.specs && payload.specs.length) {
-    body.especificaciones = payload.specs.map(s => ({ clave: s.label || s.clave, valor: s.value || s.valor }));
-  }
-
-  try {
-    const data = await apiFetch(`${url}`, {
-      method,
-      body: JSON.stringify(body),
-    });
-
-    if (data.success) {
-      showNotification(`<i class="fa-solid fa-circle-check"></i> Producto ${isEdit ? 'actualizado' : 'creado'} correctamente`, 'success');
-      await cargarProductosAPI();
-      renderCatalogo();
-    } else {
-      showNotification('<i class="fa-solid fa-xmark"></i> ' + (data.error || 'Error al guardar'), 'error');
-    }
-  } catch (e) {
-    showNotification('<i class="fa-solid fa-xmark"></i> Error de conexión: ' + e.message, 'error');
-  }
-}
-
-// ============================================================
-// PEDIDOS - Cargar y gestionar desde API
-// ============================================================
+// ── PEDIDOS - Cargar y gestionar desde API ────────────
 async function cargarPedidosAPI() {
   const tbody = document.getElementById('pedidosTable');
   if (!tbody) return;
@@ -1417,9 +1318,7 @@ async function actualizarEstadoPedido(id, estado) {
   }
 }
 
-// ============================================================
-// EMPLEADOS - API real
-// ============================================================
+// ── EMPLEADOS - API real ──────────────────────────────
 async function cargarEmpleadosAPI() {
   const tbody = document.getElementById('empleadosTable');
   if (!tbody) return;
@@ -1471,9 +1370,7 @@ async function desactivarEmpleado(id) {
   }
 }
 
-// ============================================================
-// REPORTES - API real
-// ============================================================
+// ── REPORTES - API real ───────────────────────────────
 async function cargarReportesAPI() {
   try {
     const [resumen, productos] = await Promise.all([
@@ -1526,9 +1423,7 @@ document.addEventListener('DOMContentLoaded', () => {
 window.logoutAdmin              = logoutAdmin;
 window.actualizarEstadoPedido   = actualizarEstadoPedido;
 
-// ============================================================
-// EMPLEADOS - Crear/editar (Firebase Auth + MySQL)
-// ============================================================
+// ── EMPLEADOS - Crear/editar (Firebase Auth + MySQL) ──
 
 async function guardarEmpleado() {
   const mode    = document.getElementById('emp_mode')?.value || 'create';

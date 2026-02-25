@@ -1,6 +1,4 @@
-// ================================================
-// VALIDACIONES
-// ================================================
+// ── VALIDACIONES ──────────────────────────────────────
 
 function isValidEmail(email) {
   const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -16,9 +14,7 @@ function isValidCurrency(value) {
   return !isNaN(parseFloat(value)) && parseFloat(value) > 0;
 }
 
-// ================================================
-// FORMATEO
-// ================================================
+// ── FORMATEO ──────────────────────────────────────────
 
 function formatCurrency(amount) {
   return new Intl.NumberFormat('es-MX', {
@@ -53,10 +49,6 @@ function formatNumber(number) {
   return new Intl.NumberFormat('es-MX').format(number);
 }
 
-// ================================================
-// LOCALSTORAGE HELPERS
-// ================================================
-
 function getFromStorage(key) {
   try {
     const item = localStorage.getItem(key);
@@ -87,9 +79,7 @@ function removeFromStorage(key) {
   }
 }
 
-// ================================================
-// API HELPERS
-// ================================================
+// ── API HELPERS ───────────────────────────────────────
 
 async function apiRequest(endpoint, options = {}) {
   const API_BASE = '/api';
@@ -118,9 +108,7 @@ async function apiRequest(endpoint, options = {}) {
   }
 }
 
-// ================================================
-// DOM HELPERS
-// ================================================
+// ── DOM HELPERS ───────────────────────────────────────
 
 function showLoader(message = 'Cargando...') {
   const loader = document.createElement('div');
@@ -193,9 +181,7 @@ function createElement(tag, className, content = '') {
   return element;
 }
 
-// ================================================
-// DEBOUNCE
-// ================================================
+// ── DEBOUNCE ──────────────────────────────────────────
 
 function debounce(func, wait = 300) {
   let timeout;
@@ -209,9 +195,7 @@ function debounce(func, wait = 300) {
   };
 }
 
-// ================================================
-// URL HELPERS
-// ================================================
+// ── URL HELPERS ───────────────────────────────────────
 
 function getUrlParam(param) {
   const urlParams = new URLSearchParams(window.location.search);
@@ -224,9 +208,7 @@ function setUrlParam(param, value) {
   window.history.pushState({}, '', url);
 }
 
-// ================================================
-// STRING HELPERS
-// ================================================
+// ── STRING HELPERS ────────────────────────────────────
 
 function truncate(str, maxLength = 100) {
   if (str.length <= maxLength) return str;
@@ -247,9 +229,7 @@ function capitalize(str) {
   return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
 }
 
-// ================================================
-// ARRAY HELPERS
-// ================================================
+// ── ARRAY HELPERS ─────────────────────────────────────
 
 function groupBy(array, key) {
   return array.reduce((result, item) => {
@@ -271,9 +251,7 @@ function shuffle(array) {
   return shuffled;
 }
 
-// ================================================
-// EXPORT (para ES6 modules si es necesario)
-// ================================================
+// ── EXPORT (para ES6 modules si es necesario) ─────────
 
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = {

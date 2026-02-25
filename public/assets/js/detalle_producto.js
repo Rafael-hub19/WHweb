@@ -33,7 +33,7 @@ function initNavHamburger() {
 function initCartBadge() {
   const badge = document.getElementById('cartCount');
   if (!badge) return;
-  const carrito = JSON.parse(localStorage.getItem('wh_carrito') || '[]');
+  const carrito = JSON.parse(sessionStorage.getItem('wh_carrito') || '[]');
   const total = carrito.reduce((s, i) => s + (i.cantidad || 0), 0);
   badge.textContent = total;
   badge.style.display = total > 0 ? 'inline-block' : 'none';
@@ -111,19 +111,13 @@ function mostrarProducto() {
   // Precio
   setText('pPrecio', formatCurrency(p.precio_base || p.precio));
 
-  // Stock
-  // Fabricación bajo pedido — siempre disponible
+  // Stock — fabricación bajo pedido, siempre disponible
   const iconEl = document.getElementById('pStockIcon');
   const textEl = document.getElementById('pStockText');
-  if (iconEl) iconEl.className = 'fa-solid fa-circle-check';
-  if (iconEl) iconEl.style.color = '#4caf50';
+  const btnAdd = document.getElementById('btnAddCart');
+  if (iconEl) { iconEl.innerHTML = '<i class="fa-solid fa-circle-check"></i>'; iconEl.style.color = '#4caf50'; }
   if (textEl) textEl.innerHTML = '<strong>Disponible</strong> · Fabricación bajo pedido';
-  if (btn) btn.disabled = false; else if (stock <= 3) {
-    if (iconEl) iconEl.textContent = '<i class="fa-solid fa-triangle-exclamation"></i>';
-    if (textEl) textEl.innerHTML = `<strong>¡Últimas ${stock} unidades!</strong>`;
-    const qtyInput = document.getElementById('cantidad');
-    if (qtyInput) qtyInput.max = stock;
-  }
+  if (btnAdd) { btnAdd.disabled = false; btnAdd.addEventListener('click', agregarAlCarrito); }
 
   // Descripción
   const descEl = document.getElementById('pDesc');
@@ -182,11 +176,7 @@ function mostrarProducto() {
     }
   }
 
-  // Botón agregar al carrito
-  const btnAdd = document.getElementById('btnAddCart');
-  if (btnAdd && stock > 0) {
-    btnAdd.addEventListener('click', agregarAlCarrito);
-  }
+  // (btnAddCart ya se enlazó arriba en la sección de stock)
 }
 
 // ---- Cambiar imagen ----
@@ -216,7 +206,7 @@ function cambiarCantidad(delta) {
 function agregarAlCarrito() {
   if (!productoActual) return;
   const cantidad = parseInt(document.getElementById('cantidad')?.value || 1);
-  let carrito = JSON.parse(localStorage.getItem('wh_carrito') || '[]');
+  let carrito = JSON.parse(sessionStorage.getItem('wh_carrito') || '[]');
 
   const exist = carrito.find(i => i.id == productoActual.id);
   if (exist) {
@@ -230,14 +220,14 @@ function agregarAlCarrito() {
       cantidad: cantidad,
     });
   }
-  localStorage.setItem('wh_carrito', JSON.stringify(carrito));
+  sessionStorage.setItem('wh_carrito', JSON.stringify(carrito));
   initCartBadge();
 
   // Mostrar botón ver carrito
   const btn = document.getElementById('btnVerCarrito');
   if (btn) btn.style.display = 'inline-block';
 
-  showToast(`<i class="fa-solid fa-circle-check"></i> ${cantidad}x ${productoActual.nombre} agregado al carrito`);
+  showToast(`✓ ${cantidad}x ${productoActual.nombre} agregado al carrito`);
 }
 
 // ---- Cargar productos relacionados ----

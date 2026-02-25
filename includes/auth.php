@@ -247,7 +247,7 @@ function sesionActiva(): ?array {
 // ── Helpers de sesión ─────────────────────────────────────────────
 
 function _crearSesion(array $usuario): void {
-    session_regenerate_id(true);   // Previene session fixation
+    session_regenerate_id(true);  
     $_SESSION['usuario_id']  = $usuario['id'];
     $_SESSION['usuario_rol'] = $usuario['rol'];
     $_SESSION['_csrf']       = bin2hex(random_bytes(32));

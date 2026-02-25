@@ -18,7 +18,7 @@ document.addEventListener('DOMContentLoaded', function() {
   
   initMenuHamburguesa();
   initCartBadge();
-  initTabs(); // CRITICAL - Esta función estaba mal
+  initTabs(); 
   initFormCotizacion();
   initFormCita();
   initSeguimiento();

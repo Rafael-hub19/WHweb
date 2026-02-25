@@ -1,19 +1,26 @@
 <?php
 /**
  * config.php - Configuración de Wooden House
+ * 
  * TODOS los valores sensibles vienen del .env
+ * NUNCA pongas credenciales reales aquí
  */
 
 define('WH_LOADED', true);
 
 // ── Encoding UTF-8 global ─────────────────────────────────────────
+// Fuerza UTF-8 en todas las funciones de string de PHP y en la cabecera HTTP
+// para que ñ, acentos y caracteres especiales se muestren correctamente.
 mb_internal_encoding('UTF-8');
 mb_http_output('UTF-8');
+// Solo enviar el header Content-Type HTML para páginas web (no para API JSON)
+// Las APIs lo envían ellas mismas en jsonSuccess()/jsonError()
 if (!defined('WH_API_REQUEST')) {
     header('Content-Type: text/html; charset=utf-8');
 }
 
 // ── Cargar .env ───────────────────────────────────────────────────
+// El .env vive FUERA de /public, nunca es accesible por navegador
 $envFile = dirname(__DIR__) . '/.env';
 if (file_exists($envFile)) {
     foreach (file($envFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) as $line) {
@@ -59,6 +66,8 @@ define('DB_PASS',    env('DB_PASS',    ''));
 define('DB_CHARSET', 'utf8mb4');
 
 // ── Firebase ──────────────────────────────────────────────────────
+// Solo project ID y API Key PUBLIC van aquí (son seguros para el frontend)
+// La verificación real usa las JWKS públicas de Google, no secretos
 define('FIREBASE_PROJECT_ID', env('FIREBASE_PROJECT_ID', ''));
 define('FIREBASE_API_KEY',    env('FIREBASE_API_KEY',    ''));
 
@@ -96,14 +105,18 @@ if (session_status() === PHP_SESSION_NONE) {
     $isHttps = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
              || (int)($_SERVER['SERVER_PORT'] ?? 80) === 443;
 
+    // Dominio de cookie con punto inicial = válido para www y sin www
+    // Ej: .muebleswh.com cubre muebleswh.com Y www.muebleswh.com
     $appHost    = parse_url(APP_URL, PHP_URL_HOST) ?: '';
+    // Quitar www si existe para obtener el dominio raíz
     $cookieDomain = preg_replace('/^www\./', '', $appHost);
+    // Prefijo punto = aplica a todos los subdominios
     if ($cookieDomain) $cookieDomain = '.' . $cookieDomain;
 
     session_set_cookie_params([
         'lifetime' => 7200,
         'path'     => '/',
-        'domain'   => $cookieDomain, 
+        'domain'   => $cookieDomain,  // .muebleswh.com — funciona en www y sin www
         'secure'   => $isHttps,
         'httponly'  => true,
         'samesite' => 'Lax',

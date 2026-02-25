@@ -159,9 +159,6 @@ function formatMoney(float $amount): string {
     return '$' . number_format($amount, 2);
 }
 
-/**
- * firestoreEscribir — alias de crearNotificacionFirestore para compatibilidad
- */
 function firestoreEscribir(string $coleccion, string $docId, array $datos): bool {
     // Delegamos a la función real si existe
     if (function_exists('crearNotificacionFirestore')) {
@@ -176,19 +173,6 @@ function firestoreEscribir(string $coleccion, string $docId, array $datos): bool
 }
 // ---- Fechas inteligentes por tipo de entrega ----
 
-/**
- * Calcula la fecha de entrega óptima según tipo y zona.
- *
- * Lógica:
- *  - tienda:   busca el día más próximo con espacio en el lote diario (≤5 productos)
- *  - domicilio: primero intenta agrupar con pedidos del mismo CP ese día;
- *               si no hay espacio en ningún día con ese CP, usa el primer día libre general.
- *
- * @param string $tipoEntrega  'recoger' | 'envio'
- * @param string $cp           Código postal del cliente (solo para domicilio)
- * @param int    $numProductos Cantidad de productos en este pedido
- * @return string  Fecha en formato Y-m-d
- */
 function calcularFechaInteligente(string $tipoEntrega, string $cp, int $numProductos): string {
     $LIMITE     = 5;    // máx productos por día
     $MARGEN     = 2;    // días hábiles mínimos desde hoy
@@ -285,9 +269,6 @@ function calcularFechaInteligente(string $tipoEntrega, string $cp, int $numProdu
     return $fechaGeneral ?? fechaEstimadaPedido(); // fallback al cálculo simple
 }
 
-/**
- * Suma N días hábiles a una fecha (sin festivos de BD)
- */
 function calcularFechaMinHabil(DateTime $desde, int $dias): DateTime {
     $fecha    = clone $desde;
     $contados = 0;

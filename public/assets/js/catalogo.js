@@ -1,6 +1,3 @@
-// =============================================================
-// Wooden House - Catálogo Dinámico (conectado a API)
-// =============================================================
 const API_BASE = '/api';
 
 let state = {
@@ -49,7 +46,7 @@ function initNavHamburger() {
 function initCartBadge() {
   const badge = document.getElementById('cartCount');
   if (!badge) return;
-  const carrito = JSON.parse(localStorage.getItem('wh_carrito') || '[]');
+  const carrito = JSON.parse(sessionStorage.getItem('wh_carrito') || '[]');
   const total = carrito.reduce((s, i) => s + (i.cantidad || 0), 0);
   badge.textContent = total;
   badge.style.display = total > 0 ? 'inline-block' : 'none';
@@ -233,14 +230,14 @@ function limpiarFiltros() {
 
 // ---- Carrito ----
 function agregarAlCarrito(id, nombre, precio, imagen) {
-  let carrito = JSON.parse(localStorage.getItem('wh_carrito') || '[]');
+  let carrito = JSON.parse(sessionStorage.getItem('wh_carrito') || '[]');
   const exist = carrito.find(i => i.id === id);
   if (exist) {
     exist.cantidad += 1;
   } else {
     carrito.push({ id, nombre, precio, imagen, cantidad: 1 });
   }
-  localStorage.setItem('wh_carrito', JSON.stringify(carrito));
+  sessionStorage.setItem('wh_carrito', JSON.stringify(carrito));
   const badge = document.getElementById('cartCount');
   if (badge) {
     const total = carrito.reduce((s, i) => s + i.cantidad, 0);
