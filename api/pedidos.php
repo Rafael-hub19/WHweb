@@ -90,7 +90,7 @@ switch ($method) {
     case 'POST':
         // Crear pedido (público - sin auth)
         $body = getJsonBody();
-        requireFields($body, ['nombre_cliente', 'correo_cliente', 'telefono_cliente', 'items']);
+        requireFields($body, ['nombre_cliente', 'correo_cliente', 'items']);
 
         if (!isValidEmail($body['correo_cliente'])) jsonError('correo_cliente inválido', 422);
         if (empty($body['items']) || !is_array($body['items'])) jsonError('items requerido', 422);
@@ -151,7 +151,7 @@ switch ($method) {
                 'token_seguimiento'  => $tokenSeg,
                 'nombre_cliente'     => sanitize($body['nombre_cliente']),
                 'correo_cliente'     => strtolower(trim($body['correo_cliente'])),
-                'telefono_cliente'   => sanitize($body['telefono_cliente']),
+                'telefono_cliente'   => sanitize($body['telefono_cliente'] ?? ''),
                 'tipo_entrega'       => $tipoEntrega,
                 'direccion_envio'    => sanitize($body['direccion_envio'] ?? ''),
                 'incluye_instalacion'=> !empty($body['incluye_instalacion']) ? 1 : 0,
