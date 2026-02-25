@@ -15,15 +15,30 @@ Options -Indexes
     # Solo redirigir la raíz exacta (/)
     RewriteRule ^$ /public/ [L,R=302]
 
-    # Bloquear acceso directo a carpetas sensibles
+    # ── Bloquear carpetas sensibles ──────────────────────────────
     RewriteRule ^includes(/|$)  - [F,L]
     RewriteRule ^database(/|$)  - [F,L]
     RewriteRule ^logs(/|$)      - [F,L]
     RewriteRule ^firebase(/|$)  - [F,L]
     RewriteRule ^\.git(/|$)     - [F,L]
+
+    # ── NUEVO: Carpetas adicionales bloqueadas ───────────────────
+    RewriteRule ^vendor(/|$)    - [F,L]
+    RewriteRule ^backup(/|$)    - [F,L]
+    RewriteRule ^old(/|$)       - [F,L]
+    RewriteRule ^tmp(/|$)       - [F,L]
+    RewriteRule ^test(/|$)      - [F,L]
+
+    # ── NUEVO: Bloquear acceso directo a /api/ desde raíz ────────
+    # Solo se debe acceder via proxy de /public/.htaccess
+    RewriteRule ^api(/|$)       - [F,L]
+
+    # ── NUEVO: Bloquear User-Agents vacíos (bots simples) ────────
+    RewriteCond %{HTTP_USER_AGENT} ^$
+    RewriteRule ^ - [F,L]
 </IfModule>
 
-# Bloquear archivos sensibles
+# ── Bloquear archivos sensibles ───────────────────────────────────
 <FilesMatch "\.(env|log|bak|sql|sh|lock|yaml|yml)$">
     Require all denied
 </FilesMatch>
@@ -33,3 +48,10 @@ Options -Indexes
 <Files "*.json">
     Require all denied
 </Files>
+
+# ── NUEVO: Headers de seguridad mínimos en raíz ───────────────────
+<IfModule mod_headers.c>
+    Header always set X-Content-Type-Options "nosniff"
+    Header unset X-Powered-By
+    Header unset Server
+</IfModule>

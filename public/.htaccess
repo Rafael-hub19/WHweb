@@ -24,25 +24,29 @@ Options -Indexes -ExecCGI
     RewriteRule ^empleado/?$                empleado/panel_empleado.php   [L,QSA]
 
     # ── Proxy /api/ → carpeta api/ fuera de public/ ──────────────
-    # FIX: Añadidas condiciones correctas para evitar bucles
-    #      y asegurar que el archivo no exista antes de reescribir
     RewriteCond %{REQUEST_URI} ^/api/
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteCond %{REQUEST_FILENAME} !-d
     RewriteRule ^api/(.+)$ ../api/$1 [L,QSA]
+
+    # ── NUEVO: Bloquear User-Agents vacíos (bots simples) ────────
+    RewriteCond %{HTTP_USER_AGENT} ^$
+    RewriteRule ^ - [F,L]
+
+    # ── NUEVO: Bloquear hotlinking de imágenes ───────────────────
+    # Cambia tudominio.com por tu dominio real de Cloudflare
+    RewriteCond %{HTTP_REFERER} !^$
+    RewriteCond %{HTTP_REFERER} !^https://(www\.)?tudominio\.com [NC]
+    RewriteRule \.(jpg|jpeg|png|webp|gif|svg)$ - [F,L]
 </IfModule>
 
 # ── Seguridad de archivos ─────────────────────────────────────────
-# Bloquear archivos sensibles que no deben ser accesibles desde web
 <FilesMatch "\.(env|log|bak|sh|lock|yaml|yml|git|gitignore)$">
     Require all denied
 </FilesMatch>
 <Files ".env">
     Require all denied
 </Files>
-# NOTA: .sql y .md eliminados del bloqueo porque no hay ninguno en /public/
-# y su bloqueo podía interferir con depuración. Las carpetas /database/ y /logs/
-# están bloqueadas desde el .htaccess de la raíz.
 
 # ── Headers de seguridad HTTP ─────────────────────────────────────
 <IfModule mod_headers.c>
@@ -56,9 +60,11 @@ Options -Indexes -ExecCGI
 
     Header always set Permissions-Policy "geolocation=(), camera=(), microphone=(), payment=(self)"
 
+    # ── NUEVO: HSTS - fuerza HTTPS (solo si tienes SSL activo) ───
+    # Cloudflare Tunnel ya maneja HTTPS, así que esto es seguro activarlo
+    Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains"
+
     # ── Content Security Policy ───────────────────────────────────
-    # FIX: Añadidos dominios de sandbox de PayPal (necesarios en modo pruebas)
-    # FIX: Añadido firebaseapp.com para autenticación Firebase
     Header always set Content-Security-Policy "default-src 'self'; \
         script-src 'self' 'unsafe-inline' \
             https://js.stripe.com \
@@ -125,7 +131,7 @@ Options -Indexes -ExecCGI
         Header always set Pragma "no-cache"
     </FilesMatch>
 
-    # Sin caché en API
+    # Sin caché en API y PHP en general
     <FilesMatch "^.*\.php$">
         Header always set Cache-Control "no-store, no-cache, must-revalidate"
     </FilesMatch>
@@ -148,3 +154,8 @@ Options -Indexes -ExecCGI
 <IfModule mod_deflate.c>
     AddOutputFilterByType DEFLATE text/html text/css application/javascript application/json
 </IfModule>
+
+# ── NUEVO: Página de error personalizada (opcional) ───────────────
+# Descomenta si creas estas páginas en /public/
+# ErrorDocument 403 /error403.php
+# ErrorDocument 404 /error404.php

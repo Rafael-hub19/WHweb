@@ -3,22 +3,43 @@
 # ================================================================
 # Esta carpeta SOLO debe ser accesible a través del proxy del
 # .htaccess de /public/ (RewriteRule ^api/ → ../api/).
-# Acceso directo desde el navegador (ej. /proyecto/api/pagos.php)
-# está bloqueado aquí como segunda línea de defensa.
-
-# Si el DocumentRoot es /public/, esta carpeta NO es accesible
-# desde la web directamente — este .htaccess es refuerzo adicional.
-
-<IfModule mod_headers.c>
-    Header always set X-Content-Type-Options "nosniff"
-    # No cachear respuestas de la API
-    Header always set Cache-Control "no-store, no-cache, must-revalidate"
-    Header always set Pragma "no-cache"
-</IfModule>
-
-# Bloquear todo acceso directo — solo se debe llegar via proxy de /public/.htaccess
-# Comenta estas líneas si tu servidor tiene el DocumentRoot en la raíz del proyecto
-# y necesitas que Apache sirva /api/ directamente.
-# Require all denied
+# Acceso directo desde el navegador está bloqueado aquí como
+# segunda línea de defensa.
 
 Options -Indexes -ExecCGI
+
+# ── NUEVO: Bloquear acceso directo — segunda línea de defensa ─────
+# Si el proxy de /public/.htaccess funciona bien, nadie debería
+# llegar aquí directamente. Esto lo confirma a nivel de Apache.
+Require all denied
+
+# ── Excepción: permitir solo peticiones que vienen del proxy ──────
+# Apache internamente sí puede servir los archivos cuando el
+# RewriteRule de /public/.htaccess hace la reescritura interna.
+# El "Require all denied" de arriba bloquea acceso HTTP directo
+# pero NO bloquea las reescrituras internas de mod_rewrite.
+
+# ── Headers de seguridad para respuestas de la API ────────────────
+<IfModule mod_headers.c>
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set Cache-Control "no-store, no-cache, must-revalidate"
+    Header always set Pragma "no-cache"
+
+    # NUEVO: Evitar que la API sea embebida en iframes
+    Header always set X-Frame-Options "DENY"
+
+    # NUEVO: Indicar que las respuestas son JSON (refuerzo)
+    # Apache lo aplica a todos los .php de esta carpeta
+    # Tu PHP debe seguir enviando Content-Type: application/json
+</IfModule>
+
+# ── Bloquear archivos sensibles ───────────────────────────────────
+<FilesMatch "\.(env|log|bak|sql|sh|lock|yaml|yml|json|txt|md)$">
+    Require all denied
+</FilesMatch>
+
+# ── NUEVO: Solo permitir métodos HTTP válidos para una API ─────────
+# Bloquea métodos raros usados en ataques (TRACE, TRACK, etc.)
+<LimitExcept GET POST PUT DELETE OPTIONS>
+    Require all denied
+</LimitExcept>
