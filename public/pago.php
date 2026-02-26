@@ -83,6 +83,28 @@ if (!$paypalId)  error_log('[pago.php] PAYPAL_CLIENT_ID vacío o no definido');
           <a href="/catalogo">Regresa al catálogo</a> para seleccionar productos.
         </div>
 
+        <!-- Datos del cliente (se rellena desde sessionStorage o usuario los ingresa aquí) -->
+        <div id="seccion-cliente" style="margin-bottom:28px; padding:20px; background:#2d2d2d; border-radius:14px; border:2px solid #3d3d3d; display:none;">
+          <h3 style="color:#8b7355; margin-bottom:16px; font-size:16px;"><i class="fa-solid fa-user"></i> Confirma tus datos</h3>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+            <div style="grid-column:1/-1;">
+              <label style="color:#a0a0a0; font-size:13px; display:block; margin-bottom:4px;">Nombre completo *</label>
+              <input type="text" id="pagoNombre" placeholder="Juan Pérez López" required
+                style="width:100%; padding:10px 14px; background:#3d3d3d; border:2px solid #4a4a4a; border-radius:8px; color:#e0e0e0; font-size:14px; box-sizing:border-box;">
+            </div>
+            <div>
+              <label style="color:#a0a0a0; font-size:13px; display:block; margin-bottom:4px;">Correo electrónico *</label>
+              <input type="email" id="pagoCorreo" placeholder="correo@ejemplo.com" required
+                style="width:100%; padding:10px 14px; background:#3d3d3d; border:2px solid #4a4a4a; border-radius:8px; color:#e0e0e0; font-size:14px; box-sizing:border-box;">
+            </div>
+            <div>
+              <label style="color:#a0a0a0; font-size:13px; display:block; margin-bottom:4px;">Teléfono *</label>
+              <input type="tel" id="pagoTelefono" placeholder="33 1234 5678" required
+                style="width:100%; padding:10px 14px; background:#3d3d3d; border:2px solid #4a4a4a; border-radius:8px; color:#e0e0e0; font-size:14px; box-sizing:border-box;">
+            </div>
+          </div>
+        </div>
+
         <h2 class="section-title"><span><i class="fa-solid fa-credit-card"></i></span> Método de Pago</h2>
 
         <div class="payment-methods">

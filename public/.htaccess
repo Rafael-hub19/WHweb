@@ -29,10 +29,13 @@ Options -Indexes -ExecCGI
     RewriteCond %{HTTP_USER_AGENT} ^$
     RewriteRule ^ - [F,L]
 
-    # ── Bloquear hotlinking de imágenes ──────────────────────────
-    RewriteCond %{HTTP_REFERER} !^$
-    RewriteCond %{HTTP_REFERER} !^https://(www\.)?muebleswh\.com [NC]
-    RewriteRule \.(jpg|jpeg|png|webp|gif|svg)$ - [F,L]
+    # ── Hotlink protection: permite imágenes propias + Firebase ──
+    # Nota: Deshabilitado para evitar bloquear imágenes en páginas de pago o desde localhost
+    # RewriteCond %{HTTP_REFERER} !^$
+    # RewriteCond %{HTTP_REFERER} !^https?://(www\.)?muebleswh\.com [NC]
+    # RewriteCond %{HTTP_REFERER} !^https://firebasestorage\.googleapis\.com [NC]
+    # RewriteCond %{REQUEST_FILENAME} -f
+    # RewriteRule \.(jpg|jpeg|png|webp|gif|svg)$ - [F,L]
 </IfModule>
 
 # ── Bloquear archivos sensibles ───────────────────────────────────

@@ -157,10 +157,13 @@ function eliminarItemCarrito(idx) {
     if (estado.items.length === 0) {
         sessionStorage.removeItem('wh_carrito');
         sessionStorage.removeItem('wh_checkout');
+        localStorage.removeItem(FORM_KEY);
         localStorage.removeItem('wh_checkout_form');
         localStorage.removeItem('wh_delivery');
         localStorage.removeItem('wh_cliente');
         localStorage.removeItem('wh_descuento');
+        ['clienteNombre','clienteTelefono','clienteCorreo','clienteDireccion','clienteCiudad','clienteCP','clienteNotas']
+            .forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
     }
     renderizarItems();
     actualizarTotales();
@@ -169,17 +172,22 @@ function eliminarItemCarrito(idx) {
 // Vaciar todo el carrito
 function confirmarVaciarCarrito() {
     if (!estado.items.length) return;
-    if (!confirm('¿Vaciar el carrito? Se eliminarán todos los productos y tus datos de entrega.')) return;
+    if (!confirm('¿Vaciar el carrito? Se eliminarán todos los productos y tus datos del formulario.')) return;
     estado.items = [];
+    // Limpiar todo el storage
     sessionStorage.removeItem('wh_carrito');
     sessionStorage.removeItem('wh_checkout');
+    localStorage.removeItem(FORM_KEY);
     localStorage.removeItem('wh_checkout_form');
     localStorage.removeItem('wh_delivery');
     localStorage.removeItem('wh_cliente');
     localStorage.removeItem('wh_descuento');
+    // Limpiar campos del formulario visibles en el DOM
+    ['clienteNombre','clienteTelefono','clienteCorreo','clienteDireccion','clienteCiudad','clienteCP','clienteNotas']
+        .forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
     renderizarItems();
     actualizarTotales();
-    showToast('Carrito vaciado', 'success');
+    showToast('Carrito y datos del formulario vaciados', 'success');
 }
 
 // ── Opciones de entrega e instalación ────────────────────────────

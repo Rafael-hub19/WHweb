@@ -28,12 +28,6 @@
     </div>
   </div>
 
-  <!-- Breadcrumb -->
-  <div class="breadcrumb-bar">
-    <div class="container">
-      <a href="/inicio">Inicio</a> › <a href="/catalogo">Catálogo</a> › <span id="breadcrumbNombre">Cargando...</span>
-    </div>
-  </div>
 
   <!-- Estado de carga -->
   <div id="loadingState" class="container" style="text-align:center; padding:60px 20px;">

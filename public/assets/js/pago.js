@@ -70,12 +70,34 @@ function cargarResumen() {
       </div>`).join('');
   }
 
+  // Intentar también datos del formulario del carrito guardado
+  let formData = {};
+  try { formData = JSON.parse(localStorage.getItem('wh_checkout_form') || '{}'); } catch {}
+
+  const clienteNombre   = checkout.nombre_cliente   || formData.nombre   || '';
+  const clienteCorreo   = checkout.correo_cliente   || formData.correo   || '';
+  const clienteTelefono = checkout.telefono_cliente || formData.telefono || '';
+
+  // Si faltan datos del cliente, mostrar formulario de confirmación
+  if (!clienteNombre || !clienteCorreo) {
+    const seccion = document.getElementById('seccion-cliente');
+    if (seccion) seccion.style.display = 'block';
+  } else {
+    // Pre-rellenar campos si existen
+    const pn = document.getElementById('pagoNombre');
+    const pc = document.getElementById('pagoCorreo');
+    const pt = document.getElementById('pagoTelefono');
+    if (pn) pn.value = clienteNombre;
+    if (pc) pc.value = clienteCorreo;
+    if (pt) pt.value = clienteTelefono;
+  }
+
   orderData = {
     carrito,
     cliente: {
-      nombre:   checkout.nombre_cliente   || '',
-      correo:   checkout.correo_cliente   || '',
-      telefono: checkout.telefono_cliente || '',
+      nombre:   clienteNombre,
+      correo:   clienteCorreo,
+      telefono: clienteTelefono,
     },
     deliveryData: {
       tipo:        checkout.tipo_entrega       || 'envio',
@@ -219,15 +241,30 @@ async function crearPedidoEnBD() {
     showError(msg); throw new Error(msg);
   }
 
-  const clienteData = orderData.cliente || {};
+  // Si los datos del cliente no están en orderData, leerlos del formulario de la página
+  const pagoNombre   = document.getElementById('pagoNombre')?.value.trim()   || '';
+  const pagoCorreo   = document.getElementById('pagoCorreo')?.value.trim()   || '';
+  const pagoTelefono = document.getElementById('pagoTelefono')?.value.trim() || '';
 
-  if (!clienteData.nombre) {
-    const msg = 'Falta el nombre del cliente. Regresa al carrito y completa tus datos.';
-    showError(msg); throw new Error(msg);
+  const clienteData = {
+    nombre:   orderData.cliente?.nombre   || pagoNombre,
+    correo:   orderData.cliente?.correo   || pagoCorreo,
+    telefono: orderData.cliente?.telefono || pagoTelefono,
+  };
+
+  if (!clienteData.nombre || clienteData.nombre.length < 3) {
+    const msg = 'Por favor ingresa tu nombre completo.';
+    showError(msg);
+    document.getElementById('pagoNombre')?.focus();
+    document.getElementById('seccion-cliente')?.scrollIntoView({behavior:'smooth'});
+    throw new Error(msg);
   }
-  if (!clienteData.correo) {
-    const msg = 'Falta el correo del cliente. Regresa al carrito y completa tus datos.';
-    showError(msg); throw new Error(msg);
+  if (!clienteData.correo || !clienteData.correo.includes('@')) {
+    const msg = 'Por favor ingresa un correo electrónico válido.';
+    showError(msg);
+    document.getElementById('pagoCorreo')?.focus();
+    document.getElementById('seccion-cliente')?.scrollIntoView({behavior:'smooth'});
+    throw new Error(msg);
   }
 
   try {

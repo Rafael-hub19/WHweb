@@ -325,8 +325,8 @@
 
     .product-image {
       width: 100%;
-      aspect-ratio: 3/4;          /* ratio estándar para fotos verticales de muebles */
-      background: linear-gradient(135deg, #4a4a4a, #2d2d2d);
+      aspect-ratio: 3/4;           /* ratio estándar para fotos verticales de muebles de baño */
+      background: linear-gradient(135deg, #3a3a3a, #252525);
       position: relative;
       overflow: hidden;
     }
@@ -334,14 +334,14 @@
     .product-image img {
       width: 100%;
       height: 100%;
-      object-fit: cover;
-      object-position: center top;  /* mostrar la parte superior (el mueble) */
+      object-fit: cover;            /* llena el contenedor con la imagen */
+      object-position: center top;  /* prioriza la parte superior (la más importante) */
       display: block;
       transition: transform 0.4s ease;
     }
 
     .product-card:hover .product-image img {
-      transform: scale(1.04);
+      transform: scale(1.06);
     }
 
     .placeholder-imagen {
