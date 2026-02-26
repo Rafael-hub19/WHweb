@@ -100,18 +100,18 @@ function initVideos() {
     if (!video) return;
 
     if (isTouchDevice) {
-      // Móvil / tablet: tap para reproducir/pausar
-      card.addEventListener('click', function () {
-        const isPlaying = !video.paused;
+      // Móvil / tablet: reproducir al tocar, pausar al soltar el dedo
+      card.addEventListener('touchstart', function (e) {
+        e.preventDefault();
         pauseAll(video);
-        if (!isPlaying) {
-          video.play().catch(() => {});
-          card.classList.add('playing');
-        } else {
-          video.pause();
-          video.currentTime = 0;
-          card.classList.remove('playing');
-        }
+        video.play().catch(() => {});
+        card.classList.add('playing');
+      }, { passive: false });
+
+      card.addEventListener('touchend', function () {
+        video.pause();
+        video.currentTime = 0;
+        card.classList.remove('playing');
       });
     } else {
       // Desktop: hover para reproducir/pausar
