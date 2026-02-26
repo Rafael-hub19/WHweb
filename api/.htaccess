@@ -1,16 +1,16 @@
 # ================================================================
 # Wooden House - .htaccess /api/
+# /api/ está FUERA del DocumentRoot (/public/).
+# Apache llega aquí por el Alias definido en el VirtualHost.
 # ================================================================
-# El DocumentRoot apunta a /public/, por lo que /api/ está FUERA
-# del DocumentRoot. Apache puede llegar aquí solo por la
-# reescritura interna (../api/$1) del .htaccess de /public/.
-# No es necesario bloquear acceso directo porque Apache no sirve
-# esta carpeta directamente al estar fuera del DocumentRoot.
-# ================================================================
-
 Options -Indexes -ExecCGI
 
-# ── Headers de seguridad para respuestas de la API ────────────────
+# ── Suprimir errores PHP en respuestas API ────────────────────────
+# Evita que warnings contaminen el JSON de respuesta
+php_flag display_errors Off
+php_flag display_startup_errors Off
+
+# ── Headers para respuestas API ───────────────────────────────────
 <IfModule mod_headers.c>
     Header always set X-Content-Type-Options "nosniff"
     Header always set Cache-Control "no-store, no-cache, must-revalidate"
@@ -19,11 +19,11 @@ Options -Indexes -ExecCGI
 </IfModule>
 
 # ── Bloquear archivos sensibles ───────────────────────────────────
-<FilesMatch "\.(env|log|bak|sql|sh|lock|yaml|yml|json|txt|md)$">
+<FilesMatch "\.(env|log|bak|sql|sh|lock|yaml|yml|txt|md)$">
     Require all denied
 </FilesMatch>
 
-# ── Solo permitir métodos HTTP válidos para una API ───────────────
+# ── Solo métodos HTTP válidos para API ────────────────────────────
 <LimitExcept GET POST PUT DELETE OPTIONS>
     Require all denied
 </LimitExcept>

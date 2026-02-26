@@ -1,17 +1,17 @@
 # ================================================================
 # Wooden House - .htaccess RAÍZ DEL PROYECTO
+# Redirige tráfico a /public/ y bloquea carpetas internas
 # ================================================================
 Options -Indexes
 
 <IfModule mod_rewrite.c>
     RewriteEngine On
 
-    # Evitar bucle: si ya estamos dentro de /public/, no redirigir
+    # Redirigir raíz al frontend público
     RewriteCond %{REQUEST_URI} !^/public/
-    # Solo redirigir la raíz exacta (/)
     RewriteRule ^$ /public/ [L,R=302]
 
-    # ── Bloquear carpetas sensibles ──────────────────────────────
+    # ── Bloquear carpetas internas ────────────────────────────────
     RewriteRule ^includes(/|$)  - [F,L]
     RewriteRule ^database(/|$)  - [F,L]
     RewriteRule ^logs(/|$)      - [F,L]
@@ -19,15 +19,11 @@ Options -Indexes
     RewriteRule ^\.git(/|$)     - [F,L]
     RewriteRule ^vendor(/|$)    - [F,L]
     RewriteRule ^backup(/|$)    - [F,L]
-    RewriteRule ^old(/|$)       - [F,L]
     RewriteRule ^tmp(/|$)       - [F,L]
-    RewriteRule ^test(/|$)      - [F,L]
 
-    # ── NOTA: /api/ NO se bloquea aquí ──────────────────────────
-    # El proxy de /public/.htaccess redirige internamente a /api/
-    # El .htaccess dentro de /api/ controla el acceso directo
+    # /api/ NO se bloquea — el VirtualHost lo sirve con Alias
 
-    # ── Bloquear User-Agents vacíos (bots simples) ────────────
+    # ── Bloquear User-Agents vacíos ───────────────────────────────
     RewriteCond %{HTTP_USER_AGENT} ^$
     RewriteRule ^ - [F,L]
 </IfModule>
@@ -39,11 +35,8 @@ Options -Indexes
 <Files ".env">
     Require all denied
 </Files>
-<Files "*.json">
-    Require all denied
-</Files>
 
-# ── Headers de seguridad mínimos en raíz ─────────────────────────
+# ── Headers mínimos en raíz ───────────────────────────────────────
 <IfModule mod_headers.c>
     Header always set X-Content-Type-Options "nosniff"
     Header unset X-Powered-By

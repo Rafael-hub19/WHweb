@@ -1,6 +1,6 @@
 # ================================================================
 # Wooden House - .htaccess /public/
-# DocumentRoot apunta a esta carpeta (/public/)
+# DocumentRoot apunta a esta carpeta
 # ================================================================
 Options -Indexes -ExecCGI
 
@@ -12,32 +12,31 @@ Options -Indexes -ExecCGI
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteCond %{REQUEST_FILENAME} !-d
 
-    # ── Rutas limpias → archivo PHP real ─────────────────────────
-    RewriteRule ^catalogo/?$                catalogo.php                [L,QSA]
-    RewriteRule ^login/?$                   login.php                   [L,QSA]
-    RewriteRule ^carrito/?$                 carrito-checkout.php        [L,QSA]
-    RewriteRule ^pago/?$                    pago.php                    [L,QSA]
-    RewriteRule ^solicitudes/?$             solicitudes.php             [L,QSA]
-    RewriteRule ^detalle/([0-9]+)/?$        detalle_producto.php?id=$1  [L,QSA]
-    RewriteRule ^inicio/?$                  index.php                   [L,QSA]
-    RewriteRule ^admin/?$                   admin/panel_administrador.php [L,QSA]
-    RewriteRule ^empleado/?$                empleado/panel_empleado.php   [L,QSA]
+    # ── Rutas limpias → archivo PHP ──────────────────────────────
+    RewriteRule ^catalogo/?$             catalogo.php                    [L,QSA]
+    RewriteRule ^login/?$                login.php                       [L,QSA]
+    RewriteRule ^carrito/?$              carrito-checkout.php            [L,QSA]
+    RewriteRule ^pago/?$                 pago.php                        [L,QSA]
+    RewriteRule ^solicitudes/?$          solicitudes.php                 [L,QSA]
+    RewriteRule ^detalle/([0-9]+)/?$     detalle_producto.php?id=$1      [L,QSA]
+    RewriteRule ^inicio/?$               index.php                       [L,QSA]
+    RewriteRule ^admin/?$                admin/panel_administrador.php   [L,QSA]
+    RewriteRule ^empleado/?$             empleado/panel_empleado.php     [L,QSA]
 
-    # ── Proxy /api/ → carpeta api/ fuera de public/ ──────────────
-    RewriteRule ^api/(.*)$ ../api/$1 [L,QSA]
+    # /api/ es servido por el Alias en VirtualHost — no se toca aquí
 
-    # ── Bloquear User-Agents vacíos (bots simples) ────────────────
+    # ── Bloquear User-Agents vacíos ───────────────────────────────
     RewriteCond %{HTTP_USER_AGENT} ^$
     RewriteRule ^ - [F,L]
 
-    # ── Bloquear hotlinking de imágenes ───────────────────────────
+    # ── Bloquear hotlinking de imágenes ──────────────────────────
     RewriteCond %{HTTP_REFERER} !^$
     RewriteCond %{HTTP_REFERER} !^https://(www\.)?muebleswh\.com [NC]
     RewriteRule \.(jpg|jpeg|png|webp|gif|svg)$ - [F,L]
 </IfModule>
 
-# ── Seguridad de archivos ─────────────────────────────────────────
-<FilesMatch "\.(env|log|bak|sh|lock|yaml|yml|git|gitignore)$">
+# ── Bloquear archivos sensibles ───────────────────────────────────
+<FilesMatch "\.(env|log|bak|sh|lock|yaml|yml|gitignore)$">
     Require all denied
 </FilesMatch>
 <Files ".env">
@@ -46,16 +45,14 @@ Options -Indexes -ExecCGI
 
 # ── Headers de seguridad HTTP ─────────────────────────────────────
 <IfModule mod_headers.c>
-
     Header always set X-Content-Type-Options "nosniff"
     Header always set X-Frame-Options "SAMEORIGIN"
     Header always set X-XSS-Protection "1; mode=block"
     Header always set Referrer-Policy "strict-origin-when-cross-origin"
-    Header unset X-Powered-By
-    Header unset Server
-
     Header always set Permissions-Policy "geolocation=(), camera=(), microphone=(), payment=(self)"
     Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains"
+    Header unset X-Powered-By
+    Header unset Server
 
     Header always set Content-Security-Policy "default-src 'self'; \
         script-src 'self' 'unsafe-inline' \
@@ -69,9 +66,7 @@ Options -Indexes -ExecCGI
             https://maps.google.com \
             https://www.googletagmanager.com \
             https://static.cloudflareinsights.com \
-            https://cdnjs.cloudflare.com \
-            https://www.instagram.com \
-            https://connect.facebook.net; \
+            https://cdnjs.cloudflare.com; \
         style-src 'self' 'unsafe-inline' \
             https://fonts.googleapis.com \
             https://maps.googleapis.com \
@@ -84,11 +79,7 @@ Options -Indexes -ExecCGI
             https://maps.googleapis.com \
             https://www.paypalobjects.com \
             https://www.sandbox.paypal.com \
-            https://firebasestorage.googleapis.com \
-            https://www.instagram.com \
-            https://instagram.com \
-            https://cdninstagram.com \
-            https://*.cdninstagram.com; \
+            https://firebasestorage.googleapis.com; \
         connect-src 'self' \
             https://*.firebaseio.com \
             https://firestore.googleapis.com \
@@ -108,9 +99,7 @@ Options -Indexes -ExecCGI
             https://www.sandbox.paypal.com \
             https://www.paypal.com \
             https://maps.googleapis.com \
-            https://www.gstatic.com \
-            https://www.instagram.com \
-            https://graph.facebook.com; \
+            https://www.gstatic.com; \
         frame-src \
             https://js.stripe.com \
             https://hooks.stripe.com \
@@ -120,10 +109,7 @@ Options -Indexes -ExecCGI
             https://www.sandbox.paypal.com \
             https://www.google.com \
             https://maps.google.com \
-            https://www.google.com/maps \
-            https://www.instagram.com \
-            https://instagram.com \
-            https://www.facebook.com; \
+            https://www.google.com/maps; \
         worker-src blob:; \
         object-src 'none'; \
         base-uri 'self';"
@@ -136,7 +122,6 @@ Options -Indexes -ExecCGI
     <FilesMatch "^.*\.php$">
         Header always set Cache-Control "no-store, no-cache, must-revalidate"
     </FilesMatch>
-
 </IfModule>
 
 # ── Caché para assets estáticos ───────────────────────────────────
@@ -155,6 +140,3 @@ Options -Indexes -ExecCGI
 <IfModule mod_deflate.c>
     AddOutputFilterByType DEFLATE text/html text/css application/javascript application/json
 </IfModule>
-
-# ErrorDocument 403 /error403.php
-# ErrorDocument 404 /error404.php
