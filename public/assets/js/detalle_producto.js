@@ -55,7 +55,13 @@ function initTabs() {
 // ---- Cargar producto desde API ----
 async function cargarProducto() {
   const params    = new URLSearchParams(window.location.search);
-  const productId = params.get('id');
+  let productId = params.get('id');
+
+  // Fallback: leer ID del path (/detalle/123)
+  if (!productId) {
+    const match = window.location.pathname.match(/\/detalle\/(\d+)/);
+    if (match) productId = match[1];
+  }
 
   if (!productId) {
     mostrarError();

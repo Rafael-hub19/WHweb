@@ -626,6 +626,13 @@
 
       const filesNew = window._imgFilesPending || [];
       if (filesNew.length > 0) {
+        // Validar tamaño antes de subir (máx 5MB por imagen)
+        const MAX_SIZE = 5 * 1024 * 1024;
+        const oversized = filesNew.filter(f => f.size > MAX_SIZE);
+        if (oversized.length > 0) {
+          showNotification(`Imagen(s) muy grandes: ${oversized.map(f=>f.name).join(', ')}. Máximo 5MB por imagen.`, 'error');
+          return;
+        }
         try {
           const nuevasUrls = await subirImagenesFirebase(filesNew, nombre);
           imagenesUrls = [...imagenesUrls, ...nuevasUrls];
@@ -698,7 +705,11 @@
 
     // ── Subir imagenes a Firebase Storage ─────────────────────────
     async function subirImagenesFirebase(files, nombreProducto) {
-      if (!firebaseStorage) throw new Error('Firebase Storage no disponible');
+      // Re-intentar inicializar si aún no está listo
+      if (!firebaseStorage) {
+        if (typeof initFirebase === 'function') initFirebase();
+      }
+      if (!firebaseStorage) throw new Error('Firebase Storage no disponible. Verifica que hayas iniciado sesión correctamente.');
 
       const progress = document.getElementById('imgUploadProgress');
       const bar      = document.getElementById('imgProgressBar');

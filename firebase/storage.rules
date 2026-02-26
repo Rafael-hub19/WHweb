@@ -5,14 +5,14 @@ service firebase.storage {
     match /productos/{allPaths=**} {
       allow read: if true;        // Lectura pública (para mostrar en catálogo)
       allow write: if request.auth != null
-                   && request.resource.size < 2 * 1024 * 1024
+                   && request.resource.size < 5 * 1024 * 1024
                    && request.resource.contentType.matches('image/.*');
     }
     // Proyectos - igual
     match /proyectos/{allPaths=**} {
       allow read: if true;
       allow write: if request.auth != null
-                   && request.resource.size < 2 * 1024 * 1024
+                   && request.resource.size < 5 * 1024 * 1024
                    && request.resource.contentType.matches('image/.*');
     }
   }

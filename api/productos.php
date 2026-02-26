@@ -45,10 +45,16 @@ switch ($method) {
         $catId    = sanitizeInt($_GET['categoria_id'] ?? 0);
         $etiqueta = trim($_GET['etiqueta'] ?? '');
         $orden    = $_GET['orden'] ?? 'recientes';
-        $activo   = isset($_GET['activo']) ? sanitizeInt($_GET['activo']) : 1;
+        $activoRaw = trim($_GET['activo'] ?? '1');
+        $mostrarTodos = (strtolower($activoRaw) === 'todos' || $activoRaw === '');
+        $activo   = $mostrarTodos ? null : sanitizeInt($activoRaw, 1);
 
-        $where  = ['p.activo = ?'];
-        $params = [$activo];
+        $where  = [];
+        $params = [];
+        if (!$mostrarTodos) {
+            $where[]  = 'p.activo = ?';
+            $params[] = $activo;
+        }
 
         if ($busqueda) {
             $where[]  = '(p.nombre LIKE ? OR p.descripcion LIKE ?)';
@@ -64,7 +70,7 @@ switch ($method) {
             $params[] = $etiqueta;
         }
 
-        $whereStr = 'WHERE ' . implode(' AND ', $where);
+        $whereStr = $where ? 'WHERE ' . implode(' AND ', $where) : '';
 
         $orderMap = [
             'precio-asc'  => 'p.precio_base ASC',
