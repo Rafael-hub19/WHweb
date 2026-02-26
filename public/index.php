@@ -158,37 +158,37 @@
         <div class="work-card">
           <video autoplay muted loop playsinline
             style="width:100%; border-radius:8px; object-fit:cover; height:480px;">
-            <source src="/assets/video/proyecto1.mp4" type="video/mp4">
+            <source src="/assets/videos/proyecto1.mp4" type="video/mp4">
           </video>
         </div>
         <div class="work-card">
           <video autoplay muted loop playsinline
             style="width:100%; border-radius:8px; object-fit:cover; height:480px;">
-            <source src="/assets/video/proyecto2.mp4" type="video/mp4">
+            <source src="/assets/videos/proyecto2.mp4" type="video/mp4">
           </video>
         </div>
         <div class="work-card">
           <video autoplay muted loop playsinline
             style="width:100%; border-radius:8px; object-fit:cover; height:480px;">
-            <source src="/assets/video/proyecto3.mp4" type="video/mp4">
+            <source src="/assets/videos/proyecto3.mp4" type="video/mp4">
           </video>
         </div>
         <div class="work-card">
           <video autoplay muted loop playsinline
             style="width:100%; border-radius:8px; object-fit:cover; height:480px;">
-            <source src="/assets/video/proyecto4.mp4" type="video/mp4">
+            <source src="/assets/videos/proyecto4.mp4" type="video/mp4">
           </video>
         </div>
         <div class="work-card">
           <video autoplay muted loop playsinline
             style="width:100%; border-radius:8px; object-fit:cover; height:480px;">
-            <source src="/assets/video/proyecto5.mp4" type="video/mp4">
+            <source src="/assets/videos/proyecto5.mp4" type="video/mp4">
           </video>
         </div>
         <div class="work-card">
           <video autoplay muted loop playsinline
             style="width:100%; border-radius:8px; object-fit:cover; height:480px;">
-            <source src="/assets/video/proyecto6.mp4" type="video/mp4">
+            <source src="/assets/videos/proyecto6.mp4" type="video/mp4">
           </video>
         </div>
       </div>
