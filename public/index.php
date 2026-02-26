@@ -155,42 +155,44 @@
     <div id="proyectos">
       <h2 class="section-title"><i class="fa-solid fa-sparkles"></i> Proyectos Realizados</h2>
       <div class="work-grid">
-
-        <!-- Reel 1 -->
         <div class="work-card">
-          <blockquote class="instagram-media" data-instgrm-permalink="https://www.instagram.com/reel/DTbbaVcEbVP/" data-instgrm-version="14" style="width:100%; margin:0;"></blockquote>
+          <video autoplay muted loop playsinline
+            style="width:100%; border-radius:8px; object-fit:cover; height:480px;">
+            <source src="/assets/video/proyecto1.mp4" type="video/mp4">
+          </video>
         </div>
-
-        <!-- Reel 2 -->
         <div class="work-card">
-          <blockquote class="instagram-media" data-instgrm-permalink="https://www.instagram.com/reel/DS1FVraEXw7/" data-instgrm-version="14" style="width:100%; margin:0;"></blockquote>
+          <video autoplay muted loop playsinline
+            style="width:100%; border-radius:8px; object-fit:cover; height:480px;">
+            <source src="/assets/video/proyecto2.mp4" type="video/mp4">
+          </video>
         </div>
-
-        <!-- Reel 3 -->
         <div class="work-card">
-          <blockquote class="instagram-media" data-instgrm-permalink="https://www.instagram.com/reel/DSUKlbeDjCN/" data-instgrm-version="14" style="width:100%; margin:0;"></blockquote>
+          <video autoplay muted loop playsinline
+            style="width:100%; border-radius:8px; object-fit:cover; height:480px;">
+            <source src="/assets/video/proyecto3.mp4" type="video/mp4">
+          </video>
         </div>
-
-        <!-- Reel 4 -->
         <div class="work-card">
-          <blockquote class="instagram-media" data-instgrm-permalink="https://www.instagram.com/reel/DSESzZskRAx/" data-instgrm-version="14" style="width:100%; margin:0;"></blockquote>
+          <video autoplay muted loop playsinline
+            style="width:100%; border-radius:8px; object-fit:cover; height:480px;">
+            <source src="/assets/video/proyecto4.mp4" type="video/mp4">
+          </video>
         </div>
-
-        <!-- Reel 5 -->
         <div class="work-card">
-          <blockquote class="instagram-media" data-instgrm-permalink="https://www.instagram.com/reel/DR00iqLEZd8/" data-instgrm-version="14" style="width:100%; margin:0;"></blockquote>
+          <video autoplay muted loop playsinline
+            style="width:100%; border-radius:8px; object-fit:cover; height:480px;">
+            <source src="/assets/video/proyecto5.mp4" type="video/mp4">
+          </video>
         </div>
-
-        <!-- Reel 6 -->
         <div class="work-card">
-          <blockquote class="instagram-media" data-instgrm-permalink="https://www.instagram.com/reel/DMQRKUdxvY2/" data-instgrm-version="14" style="width:100%; margin:0;"></blockquote>
+          <video autoplay muted loop playsinline
+            style="width:100%; border-radius:8px; object-fit:cover; height:480px;">
+            <source src="/assets/video/proyecto6.mp4" type="video/mp4">
+          </video>
         </div>
-
       </div>
     </div>
-
-    <!-- Script Instagram embed -->
-    <script async src="//www.instagram.com/embed.js"></script>
 
     <!-- Call to Action -->
     <div class="cta-section">
