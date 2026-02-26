@@ -608,6 +608,29 @@
             opacity: 0.6;
         }
 
+        .btn-vaciar-carrito {
+            width: 100%;
+            padding: 12px;
+            margin-top: 10px;
+            background: transparent;
+            color: #888;
+            border: 1.5px solid #3d3d3d;
+            border-radius: 12px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all .2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .btn-vaciar-carrito:hover {
+            background: rgba(220,50,50,.08);
+            border-color: #c0392b;
+            color: #e05050;
+        }
+
         .secure-note {
             text-align: center;
             color: #a0a0a0;

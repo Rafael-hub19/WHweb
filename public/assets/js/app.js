@@ -29,27 +29,31 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 /**
- * Cargar carrito desde localStorage
+ * Cargar carrito desde sessionStorage (consistente con catalogo.js y detalle_producto.js)
  */
 function cargarCarritoDesdeStorage() {
   try {
-    const carritoGuardado = localStorage.getItem('wh_carrito');
+    const carritoGuardado = sessionStorage.getItem('wh_carrito');
     if (carritoGuardado) {
       AppState.carrito = JSON.parse(carritoGuardado);
       calcularTotalesCarrito();
+    } else {
+      AppState.carrito = [];
+      AppState.carritoCount = 0;
     }
   } catch (error) {
     console.error('Error al cargar carrito:', error);
     AppState.carrito = [];
+    AppState.carritoCount = 0;
   }
 }
 
 /**
- * Guardar carrito en localStorage
+ * Guardar carrito en sessionStorage
  */
 function guardarCarritoEnStorage() {
   try {
-    localStorage.setItem('wh_carrito', JSON.stringify(AppState.carrito));
+    sessionStorage.setItem('wh_carrito', JSON.stringify(AppState.carrito));
   } catch (error) {
     console.error('Error al guardar carrito:', error);
   }

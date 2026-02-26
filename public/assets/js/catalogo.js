@@ -229,6 +229,14 @@ function limpiarFiltros() {
 }
 
 // ---- Carrito ----
+function agregarAlCarritoBtn(btn) {
+  const id     = parseInt(btn.dataset.id);
+  const nombre = btn.dataset.nombre;
+  const precio = parseFloat(btn.dataset.precio);
+  const imagen = btn.dataset.imagen || '';
+  agregarAlCarrito(id, nombre, precio, imagen);
+}
+
 function agregarAlCarrito(id, nombre, precio, imagen) {
   let carrito = JSON.parse(sessionStorage.getItem('wh_carrito') || '[]');
   const exist = carrito.find(i => i.id === id);
@@ -277,4 +285,5 @@ function showToast(msg, type = 'success') {
 window.filtrarPorCategoria = filtrarPorCategoria;
 window.limpiarFiltros = limpiarFiltros;
 window.agregarAlCarrito = agregarAlCarrito;
+window.agregarAlCarritoBtn = agregarAlCarritoBtn;
 window.irAPagina = irAPagina;

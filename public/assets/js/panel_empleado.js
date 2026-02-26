@@ -838,18 +838,24 @@ const API_BASE = '/api';
 async function getAuthToken() {
   try {
     if (typeof firebaseAuth !== 'undefined' && firebaseAuth?.currentUser) {
-      return await firebaseAuth.currentUser.getIdToken(true);
+      return await firebaseAuth.currentUser.getIdToken(false);
     }
     return sessionStorage.getItem('wh_firebase_token') || '';
   } catch(e) { return ''; }
 }
 
 async function apiFetch(url, options = {}) {
-  const token = await getAuthToken();
   options.headers = options.headers || {};
+  options.credentials = 'same-origin';
+  const token = await getAuthToken();
   if (token) options.headers['Authorization'] = 'Bearer ' + token;
   options.headers['Content-Type'] = options.headers['Content-Type'] || 'application/json';
   const res = await fetch(url, options);
+  const ct = res.headers.get('content-type') || '';
+  if (!ct.includes('application/json')) {
+    if (res.status === 401 || res.status === 403) throw new Error('Sesion expirada. Recarga la pagina.');
+    throw new Error('Error servidor HTTP ' + res.status);
+  }
   return res.json();
 }
 

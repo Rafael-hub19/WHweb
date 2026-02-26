@@ -150,11 +150,36 @@ function cambiarCantidadItem(idx, delta) {
 
 function eliminarItemCarrito(idx) {
     const item = estado.items[idx];
-    if (!item || !confirm(`¿Eliminar "${item.nombre}" del carrito?`)) return;
+    if (!item || !confirm(`\u00bfEliminar "${item.nombre}" del carrito?`)) return;
     estado.items.splice(idx, 1);
     sessionStorage.setItem('wh_carrito', JSON.stringify(estado.items));
+    // Si el carrito quedó vacío, limpiar todos los datos guardados
+    if (estado.items.length === 0) {
+        sessionStorage.removeItem('wh_carrito');
+        sessionStorage.removeItem('wh_checkout');
+        localStorage.removeItem('wh_checkout_form');
+        localStorage.removeItem('wh_delivery');
+        localStorage.removeItem('wh_cliente');
+        localStorage.removeItem('wh_descuento');
+    }
     renderizarItems();
     actualizarTotales();
+}
+
+// Vaciar todo el carrito
+function confirmarVaciarCarrito() {
+    if (!estado.items.length) return;
+    if (!confirm('¿Vaciar el carrito? Se eliminarán todos los productos y tus datos de entrega.')) return;
+    estado.items = [];
+    sessionStorage.removeItem('wh_carrito');
+    sessionStorage.removeItem('wh_checkout');
+    localStorage.removeItem('wh_checkout_form');
+    localStorage.removeItem('wh_delivery');
+    localStorage.removeItem('wh_cliente');
+    localStorage.removeItem('wh_descuento');
+    renderizarItems();
+    actualizarTotales();
+    showToast('Carrito vaciado', 'success');
 }
 
 // ── Opciones de entrega e instalación ────────────────────────────
@@ -394,3 +419,5 @@ window.seleccionarDia         = seleccionarDia;
 window.procederAlPago         = procederAlPago;
 window.cambiarCantidadItem    = cambiarCantidadItem;
 window.eliminarItemCarrito    = eliminarItemCarrito;
+
+window.confirmarVaciarCarrito = confirmarVaciarCarrito;

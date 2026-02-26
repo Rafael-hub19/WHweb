@@ -1211,20 +1211,35 @@ const API_BASE = '/api';
 async function getAuthToken() {
   try {
     if (typeof firebaseAuth !== 'undefined' && firebaseAuth?.currentUser) {
-      return await firebaseAuth.currentUser.getIdToken(true);
+      return await firebaseAuth.currentUser.getIdToken(false);
     }
-    // Fallback: sessionStorage
     return sessionStorage.getItem('wh_firebase_token') || '';
   } catch (e) { return ''; }
 }
 
 async function apiFetch(url, options = {}) {
-  const token = await getAuthToken();
   options.headers = options.headers || {};
+  options.credentials = 'same-origin';
+  const token = await getAuthToken();
   if (token) options.headers['Authorization'] = 'Bearer ' + token;
   options.headers['Content-Type'] = options.headers['Content-Type'] || 'application/json';
+
   const res = await fetch(url, options);
-  return res.json();
+  const ct = res.headers.get('content-type') || '';
+  if (!ct.includes('application/json')) {
+    if (res.status === 401 || res.status === 403) {
+      showNotification('Sesión expirada. Recarga la página e inicia sesión.', 'error');
+      throw new Error('No autenticado (' + res.status + ')');
+    }
+    const txt = await res.text();
+    throw new Error('Error del servidor (HTTP ' + res.status + '): ' + txt.substring(0, 300));
+  }
+  const data = await res.json();
+  if ((res.status === 401 || res.status === 403) && !data.success) {
+    showNotification('Sesión expirada. Recarga la página.', 'error');
+    throw new Error(data.error || 'No autenticado');
+  }
+  return data;
 }
 
 async function logoutAdmin() {

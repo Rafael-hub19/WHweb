@@ -228,6 +228,10 @@
                 Proceder al pago <i class="fa-solid fa-credit-card"></i>
             </button>
 
+            <button class="btn-vaciar-carrito" id="btnVaciarCarrito" onclick="confirmarVaciarCarrito()">
+                <i class="fa-solid fa-trash"></i> Vaciar carrito
+            </button>
+
             <p class="secure-note">
                 <i class="fa-solid fa-lock"></i> Pago 100% seguro · Stripe &amp; PayPal<br>
                 <i class="fa-solid fa-box"></i> Garantía de satisfacción incluida

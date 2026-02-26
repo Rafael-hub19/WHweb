@@ -255,7 +255,7 @@ function mostrarProducto() {
 
     if (thumbsEl && imagenes.length > 1) {
       thumbsEl.innerHTML = imagenes.map((img, idx) => `
-        <div class="thumb ${idx === 0 ? 'active' : ''}" onclick="cambiarImagen(${idx}, '${escHtml(img.url_imagen)}')">
+        <div class="thumb ${idx === 0 ? 'active' : ''}" data-idx="${idx}" data-url="${escHtml(img.url_imagen)}" onclick="cambiarImagenBtn(this)">
           <img src="${escHtml(img.url_imagen)}" alt="Vista ${idx+1}" loading="lazy" style="width:100%;height:100%;object-fit:cover;object-position:center top;border-radius:8px;">
         </div>
       `).join('');
@@ -266,6 +266,9 @@ function mostrarProducto() {
 }
 
 // ---- Cambiar imagen ----
+function cambiarImagenBtn(el) {
+  cambiarImagen(parseInt(el.dataset.idx), el.dataset.url);
+}
 function cambiarImagen(idx, url) {
   imagenIndex = idx;
   const mainImg = document.getElementById('mainImage');
