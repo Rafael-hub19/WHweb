@@ -534,7 +534,7 @@ unset($_usuario);
 
       <!-- MODAL: PRODUCTO -->
       <div class="modal" id="productoModal">
-        <div class="modal-content">
+        <div class="modal-content" style="max-width:700px;">
           <div class="modal-header">
             <h3 class="modal-title" id="productoModalTitle">Nuevo Producto</h3>
             <button class="modal-close" onclick="closeModal('productoModal')">×</button>
@@ -543,19 +543,18 @@ unset($_usuario);
           <input type="hidden" id="p_mode" value="create"/>
           <input type="hidden" id="p_key" value=""/>
 
+          <!-- Fila 1: Nombre + Categoría -->
           <div class="form-grid">
             <div class="form-group">
-              <label class="form-label">Nombre *</label>
-              <input type="text" class="form-input" id="p_nombre" placeholder="ej: Mueble Milano"/>
+              <label class="form-label">Nombre del modelo *</label>
+              <input type="text" class="form-input" id="p_nombre" placeholder="ej: Modelo Sevilla"/>
             </div>
-
             <div class="form-group">
               <label class="form-label">Categoría *</label>
               <select class="form-select" id="p_categoria">
-                <option value="">Cargando categorías...</option>
+                <option value="">Cargando...</option>
               </select>
             </div>
-
             <div class="form-group">
               <label class="form-label">Etiqueta / Badge</label>
               <select class="form-select" id="p_badge">
@@ -563,11 +562,9 @@ unset($_usuario);
                 <option value="Nuevo">Nuevo</option>
                 <option value="Popular">Popular</option>
                 <option value="Oferta">Oferta</option>
-                <option value="Más vendido">Más vendido</option>
+                <option value="Mas vendido">Más vendido</option>
               </select>
-              <div class="help">Chip decorativo sobre la imagen en catálogo y detalle.</div>
             </div>
-
             <div class="form-group">
               <label class="form-label">Estado</label>
               <select class="form-select" id="p_estado">
@@ -575,48 +572,121 @@ unset($_usuario);
                 <option value="inactivo">Inactivo</option>
               </select>
             </div>
-
             <div class="form-group">
-              <label class="form-label">Precio (MXN) *</label>
-              <input type="number" class="form-input" id="p_precio" step="0.01" min="1" placeholder="8500"/>
+              <label class="form-label">Precio del mueble (MXN) *</label>
+              <input type="number" class="form-input" id="p_precio" step="0.01" min="1" placeholder="4900"/>
             </div>
           </div>
 
-          <div class="form-group" style="margin-top:14px;">
+          <div class="form-group" style="margin-top:12px;">
             <label class="form-label">Descripción del producto *</label>
-            <textarea class="form-textarea" id="p_descLarga" rows="4"
-              placeholder="Descripción completa que se muestra en catálogo y en detalle del producto."></textarea>
+            <textarea class="form-textarea" id="p_descLarga" rows="3"
+              placeholder="Descripción que se muestra en catálogo y detalle del producto."></textarea>
           </div>
 
-          <div class="section" style="margin-top:14px;">
+          <!-- SECCIÓN: Especificaciones reales del cliente -->
+          <div class="section" style="margin-top:16px;">
             <div class="section-header">
-              <h2 class="section-title">Especificaciones técnicas</h2>
+              <h2 class="section-title"><i class="fa-solid fa-ruler-combined"></i> Dimensiones y características</h2>
             </div>
-            <div class="help" style="margin-bottom:8px;">
-              Una especificación por línea en formato <strong>Clave: Valor</strong><br>
-              Ej: <code>Dimensiones: 120 x 60 x 45 cm</code>
-            </div>
-            <div class="form-group">
-              <textarea class="form-textarea" id="p_specs" rows="6"
-                placeholder="Dimensiones: 120 x 60 x 45 cm&#10;Material: MDF de alta densidad&#10;Acabado: Laminado nogal mate&#10;Lavabo: Cerámica blanca incluida&#10;Cajones: 2 cajones con cierre suave"></textarea>
+
+            <div class="form-grid" style="margin-top:10px;">
+              <div class="form-group">
+                <label class="form-label">Tipo de instalación *</label>
+                <select class="form-select" id="p_tipo_instalacion">
+                  <option value="A piso">A piso</option>
+                  <option value="Flotado">Flotado</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Largo (cm) *</label>
+                <input type="text" class="form-input" id="p_largo" placeholder="ej: 80 cm"/>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Alto (cm) *</label>
+                <input type="text" class="form-input" id="p_alto" placeholder="ej: 55 cm"/>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Fondo (cm) *</label>
+                <input type="text" class="form-input" id="p_fondo" placeholder="ej: 50 cm"/>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Ovalín *</label>
+                <input type="text" class="form-input" id="p_ovalin" placeholder="ej: Rectangular 60x40 cm"/>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Monomando *</label>
+                <input type="text" class="form-input" id="p_monomando" placeholder="ej: 30 cm cromado"/>
+              </div>
+              <div class="form-group" style="grid-column: span 2;">
+                <label class="form-label">Incluye</label>
+                <input type="text" class="form-input" id="p_incluye" value="Céspol de PBC - Contra canasta" placeholder="ej: Céspol de PBC - Contra canasta"/>
+              </div>
+              <div class="form-group" style="grid-column: span 2;">
+                <label class="form-label">Espejo opcional</label>
+                <input type="text" class="form-input" id="p_espejo"
+                  placeholder="ej: Rectangular 50x70 cm - LED/Touch 4mm - 3 intensidades - $1,300  (dejar vacío si no aplica)"/>
+                <div class="help">Si no incluye espejo opcional, dejar en blanco o escribir 'No incluye'.</div>
+              </div>
             </div>
           </div>
 
-          <div class="section" style="margin-top:14px;">
+          <!-- SECCIÓN: Imágenes con subida a Firebase -->
+          <div class="section" style="margin-top:16px;">
             <div class="section-header">
-              <h2 class="section-title">Imágenes del producto</h2>
+              <h2 class="section-title"><i class="fa-solid fa-images"></i> Imágenes del producto</h2>
             </div>
-            <div class="form-group">
-              <label class="form-label">URLs de imágenes (una por línea)</label>
-              <textarea class="form-textarea" id="p_imgs_urls" rows="3"
-                placeholder="https://ejemplo.com/imagen1.jpg&#10;https://ejemplo.com/imagen2.jpg"></textarea>
-              <div class="help">La primera URL será la imagen principal en el catálogo.</div>
+
+            <!-- Zona de drag & drop / selección -->
+            <div id="imgDropZone" style="
+              border:2px dashed var(--border);
+              border-radius:10px;
+              padding:24px;
+              text-align:center;
+              cursor:pointer;
+              transition:border-color .2s;
+              margin-top:10px;
+            " onclick="document.getElementById('p_imgs_files').click()"
+               ondragover="event.preventDefault();this.style.borderColor='var(--accent)'"
+               ondragleave="this.style.borderColor='var(--border)'"
+               ondrop="handleImgDrop(event)">
+              <i class="fa-solid fa-cloud-arrow-up" style="font-size:28px;color:var(--accent);"></i>
+              <p style="margin:8px 0 4px;font-weight:600;color:#ddd;">Arrastra imágenes aquí o haz clic para seleccionar</p>
+              <p style="color:var(--muted);font-size:12px;">JPG, PNG, WEBP — cualquier tamaño (se optimizan automáticamente)</p>
             </div>
+
+            <input type="file" id="p_imgs_files" multiple accept="image/*"
+                   style="display:none" onchange="previewImages(this.files)"/>
+
+            <!-- Progreso de subida -->
+            <div id="imgUploadProgress" style="display:none;margin-top:12px;">
+              <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+                <span style="font-size:12px;color:#ddd;" id="imgProgressLabel">Subiendo...</span>
+                <span style="font-size:12px;color:var(--accent);" id="imgProgressPct">0%</span>
+              </div>
+              <div style="background:var(--border);border-radius:4px;height:6px;overflow:hidden;">
+                <div id="imgProgressBar" style="height:100%;background:var(--accent);width:0%;transition:width .3s;"></div>
+              </div>
+            </div>
+
+            <!-- Preview de imágenes seleccionadas -->
+            <div id="imgPreviewGrid" style="
+              display:grid;
+              grid-template-columns:repeat(auto-fill,minmax(90px,1fr));
+              gap:8px;
+              margin-top:12px;
+            "></div>
+
+            <!-- URLs ya guardadas (para edición) -->
+            <textarea id="p_imgs_urls" style="display:none;"></textarea>
+            <div class="help" style="margin-top:8px;">La primera imagen será la principal en el catálogo. Puedes reordenar arrastrando.</div>
           </div>
 
-          <div style="display:flex; gap:10px; flex-wrap:wrap; justify-content:flex-end; margin-top:16px;">
+          <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end;margin-top:18px;">
             <button class="btn btn-secondary" onclick="closeModal('productoModal')">Cancelar</button>
-            <button class="btn btn-primary" id="btnGuardarProducto" onclick="saveProductoFull()">Guardar</button>
+            <button class="btn btn-primary" id="btnGuardarProducto" onclick="saveProductoFull()">
+              <i class="fa-solid fa-floppy-disk"></i> Guardar
+            </button>
           </div>
         </div>
       </div>

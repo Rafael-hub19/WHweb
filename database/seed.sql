@@ -1,9 +1,7 @@
 USE wooden_house;
 
--- Forzar UTF-8 en la conexión para que ñ, acentos, etc. se guarden correctamente
 SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci;
 SET CHARACTER SET utf8mb4;
-
 SET FOREIGN_KEY_CHECKS = 0;
 
 DELETE FROM pagos;
@@ -17,160 +15,241 @@ DELETE FROM productos;
 DELETE FROM categorias;
 DELETE FROM usuarios_personal;
 
-ALTER TABLE pagos AUTO_INCREMENT = 1;
-ALTER TABLE detalle_pedido AUTO_INCREMENT = 1;
-ALTER TABLE pedidos AUTO_INCREMENT = 1;
-ALTER TABLE citas AUTO_INCREMENT = 1;
-ALTER TABLE cotizaciones AUTO_INCREMENT = 1;
-ALTER TABLE especificaciones_producto AUTO_INCREMENT = 1;
-ALTER TABLE imagenes_producto AUTO_INCREMENT = 1;
-ALTER TABLE productos AUTO_INCREMENT = 1;
-ALTER TABLE categorias AUTO_INCREMENT = 1;
-ALTER TABLE usuarios_personal AUTO_INCREMENT = 1;
+ALTER TABLE pagos                      AUTO_INCREMENT = 1;
+ALTER TABLE detalle_pedido             AUTO_INCREMENT = 1;
+ALTER TABLE pedidos                    AUTO_INCREMENT = 1;
+ALTER TABLE citas                      AUTO_INCREMENT = 1;
+ALTER TABLE cotizaciones               AUTO_INCREMENT = 1;
+ALTER TABLE especificaciones_producto  AUTO_INCREMENT = 1;
+ALTER TABLE imagenes_producto          AUTO_INCREMENT = 1;
+ALTER TABLE productos                  AUTO_INCREMENT = 1;
+ALTER TABLE categorias                 AUTO_INCREMENT = 1;
+ALTER TABLE usuarios_personal          AUTO_INCREMENT = 1;
 
 SET FOREIGN_KEY_CHECKS = 1;
 
+-- ================================================================
+-- USUARIOS
+-- ================================================================
 INSERT INTO usuarios_personal (firebase_uid, nombre_completo, correo, rol, activo) VALUES
-('Kkpj4NaAHPZfLOCVEpD15jujIeh2', 'Rafael Avila', 'admin@woodenhouse.com', 'administrador', 1),
-('3BH54ZXy4dRsehurZX8eSgg5jbV2', 'Juan Pérez', 'empleado@woodenhouse.com', 'empleado', 1);
+('Kkpj4NaAHPZfLOCVEpD15jujIeh2', 'Rafael Avila', 'admin@woodenhouse.com',    'administrador', 1),
+('3BH54ZXy4dRsehurZX8eSgg5jbV2', 'Juan Perez',   'empleado@woodenhouse.com', 'empleado',      1);
 
+-- ================================================================
+-- CATEGORIAS
+-- id 1 = A Piso  |  id 2 = Flotados
+-- ================================================================
 INSERT INTO categorias (nombre, descripcion, activo) VALUES
-('A Piso', 'Muebles de baño con instalación a piso, diseño clásico y moderno', 1),
-('Flotados', 'Muebles de baño suspendidos o flotantes, línea contemporánea', 1);
+('A Piso',   'Muebles de bano con instalacion a piso', 1),
+('Flotados', 'Muebles de bano suspendidos o flotantes', 1);
 
--- categoria_id 1=A Piso, 2=Flotados
--- producto_id asignado en orden: Milano=1, Venecia=2, Toscana=3, Oslo=4, Paris=5, Tokyo=6,
---             Espejo=7, Organizador=8
--- NOTA: Los servicios de instalación (Básica/Completa) se eliminaron del catálogo de productos.
---       La instalación se gestiona como opción en el checkout (costo_instalacion en pedidos).
-INSERT INTO productos (categoria_id, nombre, descripcion, precio_base, stock_disponible, etiqueta, activo) VALUES
-(1, 'Mueble Milano',   'Mueble de baño moderno con diseño minimalista. Acabado nogal de alta calidad. Incluye lavabo de cerámica. Dimensiones: 120x60x45 cm. Fabricación bajo pedido.',                                                                     8500.00,  999, 'Más vendido', 1),
-(1, 'Mueble Venecia',  'Mueble clásico con acabado en madera natural barnizada. Lavabo de mármol incluido. Diseño elegante con 2 cajones de cierre suave y espacio inferior de almacenamiento. Dimensiones: 90x50x65 cm.',                               12800.00, 999, 'Popular',     1),
-(1, 'Mueble Toscana',  'Mueble rústico de madera de pino con acabado natural. Ideal para baños amplios. Doble lavabo de cerámica. 4 cajones espaciosos con rieles telescópicos. Dimensiones: 100x55x70 cm.',                                            15200.00, 999, NULL,          1),
-(1, 'Mueble Oslo',     'Diseño minimalista escandinavo. MDF laqueado blanco mate. Lavabo integrado. Perfecto para espacios pequeños. Sistema push-open en cajones. Dimensiones: 70x40x55 cm.',                                                           7900.00,  999, 'Nuevo',       1),
-(1, 'Mueble París',    'Mueble elegante de madera de cedro con barniz premium. Lavabo sobre cubierta de mármol sintético. 3 cajones con herrajes de lujo. Dimensiones: 85x48x62 cm.',                                                                   11500.00, 999, NULL,          1),
-(1, 'Mueble Tokyo',    'Diseño compacto y funcional. MDF gris mate con toques cromados. Lavabo cerámico pequeño. Ideal para baños de visitas. Dimensiones: 60x35x50 cm.',                                                                                6200.00,  999, 'Oferta',      1),
-(2, 'Espejo con Marco de Madera',   'Espejo de 80x60cm con marco de madera nogal a juego con muebles Milano y París.',                                                                                                                                   1200.00,  15,  NULL,          1),
-(2, 'Organizador de Pared',         'Estante flotante de madera para accesorios de baño. 60x20x15 cm.',                                                                                                                                                    850.00,  20,  NULL,          1);
+-- ================================================================
+-- PRODUCTOS (10 modelos reales)
+-- SIN imagenes — se suben desde el panel administrador
+-- id: Sevilla=1, Singapur=2, Roma=3, Edinburgo=4, Sydney=5,
+--     Palermo=6, Budapest=7, Quebec=8, Toronto=9, Amsterdam=10
+-- ================================================================
+INSERT INTO productos
+  (categoria_id, nombre, descripcion, precio_base, stock_disponible, etiqueta, activo)
+VALUES
+(1, 'Modelo Sevilla',
+   'Mueble de bano a piso en combinacion nogal y blanco. Incluye ovalin ceramico ovalado, monomando cuadrado cromado, cespol de PBC y contra canasta. Fabricacion bajo pedido.',
+   4900.00, 999, 'Popular', 1),
 
-INSERT IGNORE INTO imagenes_producto (producto_id, url_imagen, es_principal, orden) VALUES
-(1, 'https://firebasestorage.googleapis.com/v0/b/wooden-house/milano-principal.jpg',    1, 0),
-(1, 'https://firebasestorage.googleapis.com/v0/b/wooden-house/milano-lateral.jpg',      0, 1),
-(1, 'https://firebasestorage.googleapis.com/v0/b/wooden-house/milano-detalle.jpg',      0, 2),
-(2, 'https://firebasestorage.googleapis.com/v0/b/wooden-house/venecia-principal.jpg',   1, 0),
-(2, 'https://firebasestorage.googleapis.com/v0/b/wooden-house/venecia-lateral.jpg',     0, 1),
-(3, 'https://firebasestorage.googleapis.com/v0/b/wooden-house/toscana-principal.jpg',   1, 0),
-(4, 'https://firebasestorage.googleapis.com/v0/b/wooden-house/oslo-principal.jpg',      1, 0),
-(5, 'https://firebasestorage.googleapis.com/v0/b/wooden-house/paris-principal.jpg',     1, 0),
-(6, 'https://firebasestorage.googleapis.com/v0/b/wooden-house/tokyo-principal.jpg',     1, 0),
-(7, 'https://firebasestorage.googleapis.com/v0/b/wooden-house/espejo-principal.jpg',    1, 0),
-(8, 'https://firebasestorage.googleapis.com/v0/b/wooden-house/organizador-principal.jpg', 1, 0);
+(1, 'Modelo Singapur',
+   'Mueble de bano a piso con cajones amplios y acabado nogal natural. Monomando cuadrado negro cromado. Niche inferior abierto. Fabricacion bajo pedido.',
+   4800.00, 999, NULL, 1),
 
+(2, 'Modelo Roma',
+   'Mueble flotado en acabado gris antracita. Diseno minimalista con 2 puertas y niche inferior. Incluye ovalin rectangular y monomando cromado. Fabricacion bajo pedido.',
+   3900.00, 999, NULL, 1),
+
+(2, 'Modelo Edinburgo',
+   'Mueble flotado en acabado nogal natural con cajon corrido y niche inferior. Espejo LED/Touch rectangular disponible como accesorio opcional. Fabricacion bajo pedido.',
+   3200.00, 999, 'Nuevo', 1),
+
+(2, 'Modelo Sydney',
+   'Mueble flotado de 120 cm en combinacion blanco y nogal. Cajon amplio con jaladeras lineales. Ideal para banos medianos y grandes. Fabricacion bajo pedido.',
+   5900.00, 999, 'Mas vendido', 1),
+
+(2, 'Modelo Palermo',
+   'Mueble flotado de 120 cm con frentes en nogal natural y 3 puertas. Diseno rustico-contemporaneo con niche inferior corrido. Fabricacion bajo pedido.',
+   6100.00, 999, NULL, 1),
+
+(2, 'Modelo Budapest',
+   'Mueble flotado compacto con acabado nogal oscuro. Ovalin redondo negro de resina. Espejo redondo LED/Touch disponible como accesorio opcional. Fabricacion bajo pedido.',
+   3100.00, 999, NULL, 1),
+
+(2, 'Modelo Quebec',
+   'Mueble flotado con marco negro y cajon en nogal. Diseno bicolor moderno. Espejo redondo LED/Touch disponible como accesorio opcional. Fabricacion bajo pedido.',
+   3900.00, 999, NULL, 1),
+
+(2, 'Modelo Toronto',
+   'Mueble flotado de 190 cm ideal para banos grandes. Cajon corrido en combinacion blanco y nogal. Fabricacion bajo pedido.',
+   5950.00, 999, NULL, 1),
+
+(2, 'Modelo Amsterdam',
+   'Mueble flotado en acabado nogal con cajones amplios y niche inferior. Espejo rectangular LED/Touch disponible como accesorio opcional. Fabricacion bajo pedido.',
+   3900.00, 999, NULL, 1);
+
+-- imagenes_producto: VACIA intencionalmente
+-- Se llenan desde el panel administrador (Firebase Storage)
+
+-- ================================================================
+-- ESPECIFICACIONES
+-- ================================================================
 INSERT INTO especificaciones_producto (producto_id, clave, valor) VALUES
-(1, 'dimensiones', '120 x 60 x 45 cm'),
-(1, 'material',    'MDF de alta densidad'),
-(1, 'acabado',     'Laminado nogal mate'),
-(1, 'lavabo',      'Cerámica blanca incluido'),
-(1, 'cajones',     '2 cajones con cierre suave'),
-(1, 'peso',        '35 kg aproximadamente'),
-(2, 'dimensiones', '90 x 50 x 65 cm'),
-(2, 'material',    'Madera natural'),
-(2, 'acabado',     'Barniz transparente satinado'),
-(2, 'lavabo',      'Mármol natural incluido'),
-(2, 'cajones',     '2 cajones + 1 compartimento'),
-(2, 'peso',        '42 kg aproximadamente'),
-(3, 'dimensiones', '100 x 55 x 70 cm'),
-(3, 'material',    'Madera de pino'),
-(3, 'acabado',     'Natural con protección'),
-(3, 'lavabo',      'Doble lavabo cerámica'),
-(3, 'cajones',     '4 cajones con rieles telescópicos'),
-(3, 'peso',        '55 kg aproximadamente'),
-(4, 'dimensiones', '70 x 40 x 55 cm'),
-(4, 'material',    'MDF laqueado'),
-(4, 'acabado',     'Blanco mate'),
-(4, 'lavabo',      'Integrado de resina'),
-(4, 'cajones',     '2 cajones sistema push-open'),
-(4, 'peso',        '28 kg aproximadamente'),
-(5, 'dimensiones', '85 x 48 x 62 cm'),
-(5, 'material',    'Madera de cedro'),
-(5, 'acabado',     'Barniz premium brillante'),
-(5, 'lavabo',      'Sobre cubierta mármol sintético'),
-(5, 'cajones',     '3 cajones con herrajes premium'),
-(5, 'peso',        '38 kg aproximadamente'),
-(6, 'dimensiones', '60 x 35 x 50 cm'),
-(6, 'material',    'MDF'),
-(6, 'acabado',     'Gris mate con detalles cromados'),
-(6, 'lavabo',      'Cerámica compacta'),
-(6, 'cajones',     '1 cajón + estante'),
-(6, 'peso',        '22 kg aproximadamente'),
-(7, 'dimensiones', '80 x 60 x 3 cm'),
-(7, 'material',    'Vidrio + marco madera'),
-(7, 'acabado',     'Nogal mate'),
-(7, 'peso',        '8 kg aproximadamente'),
-(8, 'dimensiones', '60 x 20 x 15 cm'),
-(8, 'material',    'Madera MDF'),
-(8, 'acabado',     'Nogal mate'),
-(8, 'peso',        '3 kg aproximadamente');
+-- SEVILLA
+(1,'Tipo de instalacion','A piso'),
+(1,'Largo','70 cm'),(1,'Alto','85 cm'),(1,'Fondo','50 cm'),
+(1,'Ovalin','Ceramico ovalado 60x35 cm'),
+(1,'Monomando','Cuadrado 30 cm cromado'),
+(1,'Incluye','Cespol de PBC - Contra canasta'),
+(1,'Espejo opcional','No incluye'),
 
-INSERT INTO cotizaciones (numero_cotizacion, nombre_cliente, correo_cliente, telefono_cliente, tipo_mueble, descripcion_solicitud, tiene_medidas, medidas, rango_presupuesto, requiere_instalacion, estado) VALUES
-('COT-2026-000001', 'Ana María López',  'ana.lopez@email.com', '33-1234-5678', 'Mueble de baño doble',  'Necesito un mueble para dos lavabos, estilo moderno, para baño principal de 3x2.5 metros.', 1, 'Espacio disponible: 180cm ancho x 60cm profundidad', '$15,000 - $20,000', 1, 'nueva'),
-('COT-2026-000002', 'Roberto Sánchez', 'roberto.s@email.com', '33-8765-4321', 'Mueble esquinero',       'Busco aprovechar un espacio en esquina del baño de visitas.',                             0, NULL,                                                '$8,000 - $12,000',  0, 'en_revision');
+-- SINGAPUR
+(2,'Tipo de instalacion','A piso'),
+(2,'Largo','80 cm'),(2,'Alto','85 cm'),(2,'Fondo','50 cm'),
+(2,'Ovalin','Ceramico ovalado 60x40 cm'),
+(2,'Monomando','Cuadrado negro 30 cm cromado'),
+(2,'Incluye','Cespol de PBC - Contra canasta'),
+(2,'Espejo opcional','No incluye'),
 
-INSERT INTO citas (numero_cita, nombre_cliente, correo_cliente, telefono_cliente, direccion, fecha_cita, rango_horario, tipo, estado) VALUES
-('CIT-2026-000001', 'Laura Fernández', 'laura.f@email.com', '33-5555-1111', 'Calle Reforma 456, Col. Americana, Guadalajara, Jal.',          '2026-03-15', '10:00 AM - 12:00 PM', 'medicion',   'confirmada'),
-('CIT-2026-000002', 'Carlos Mendoza',  'carlos.m@email.com', '33-6666-2222', 'Av. Patria 789, Col. Jardines del Valle, Zapopan, Jal.',       '2026-03-20', '2:00 PM - 4:00 PM',   'instalacion', 'nueva');
+-- ROMA
+(3,'Tipo de instalacion','Flotado'),
+(3,'Largo','80 cm'),(3,'Alto','55 cm'),(3,'Fondo','50 cm'),
+(3,'Ovalin','Rectangular 60x40 cm'),
+(3,'Monomando','30 cm cromado'),
+(3,'Incluye','Cespol de PBC - Contra canasta'),
+(3,'Espejo opcional','No incluye'),
 
--- Pedidos de prueba (cp_envio y ciudad_envio ahora incluidos)
-INSERT INTO pedidos (numero_pedido, token_seguimiento, nombre_cliente, correo_cliente, telefono_cliente, tipo_entrega, direccion_envio, cp_envio, ciudad_envio, incluye_instalacion, fecha_estimada, subtotal, costo_envio, costo_instalacion, descuento, total, estado) VALUES
-('WH-2026-000001', MD5(CONCAT('WH-2026-000001', NOW())), 'Juan Pérez García', 'juan.perez@email.com', '33-1111-2222', 'envio',   'Calle Libertad 123, Col. Centro, Guadalajara, Jal.',        '44100', 'Guadalajara', 1, '2026-03-25', 8500.00,  300.00, 800.00,  0.00,   9600.00,  'pagado'),
-('WH-2026-000002', MD5(CONCAT('WH-2026-000002', NOW())), 'María González',    'maria.g@email.com',    '33-3333-4444', 'recoger', NULL,                                                        NULL,    NULL,          0, '2026-03-18', 12800.00,   0.00,   0.00,  0.00,  12800.00,  'en_produccion'),
-('WH-2026-000003', MD5(CONCAT('WH-2026-000003', NOW())), 'Pedro Ramírez',     'pedro.r@email.com',    '33-5555-6666', 'envio',   'Av. Americas 567, Col. Providencia, Guadalajara, Jal.',     '44630', 'Guadalajara', 1, '2026-04-05',  7400.00,  250.00, 1500.00, 200.00,  8950.00,  'pendiente');
+-- EDINBURGO
+(4,'Tipo de instalacion','Flotado'),
+(4,'Largo','80 cm'),(4,'Alto','55 cm'),(4,'Fondo','50 cm'),
+(4,'Ovalin','Redondo 32 cm'),
+(4,'Monomando','30 cm cromado'),
+(4,'Incluye','Cespol de PBC - Contra canasta'),
+(4,'Espejo opcional','Rectangular 50x70 cm - LED/Touch 4mm - 3 intensidades - $1,300'),
 
--- detalle_pedido con producto_id y cantidad reales
-INSERT INTO detalle_pedido (pedido_id, producto_id, nombre_producto, precio_unitario, cantidad, total_linea) VALUES
-(1, 1, 'Mueble Milano',            8500.00, 1,  8500.00),
-(2, 2, 'Mueble Venecia',          12800.00, 1, 12800.00),
-(3, 6, 'Mueble Tokyo',             6200.00, 1,  6200.00),
-(3, 7, 'Espejo con Marco de Madera', 1200.00, 1,  1200.00);
+-- SYDNEY
+(5,'Tipo de instalacion','Flotado'),
+(5,'Largo','120 cm'),(5,'Alto','50 cm'),(5,'Fondo','50 cm'),
+(5,'Ovalin','Rectangular 60x40 cm'),
+(5,'Monomando','30 cm cromado'),
+(5,'Incluye','Cespol de PBC - Contra canasta'),
+(5,'Espejo opcional','No incluye'),
 
-INSERT INTO pagos (pedido_id, metodo, id_transaccion_proveedor, estado, monto, moneda) VALUES
-(1, 'tarjeta', 'pi_3ABC123XYZ456', 'aprobado', 9600.00,  'MXN'),
-(2, 'paypal',  NULL,               'pendiente', 12800.00, 'MXN');
+-- PALERMO
+(6,'Tipo de instalacion','Flotado'),
+(6,'Largo','120 cm'),(6,'Alto','55 cm'),(6,'Fondo','50 cm'),
+(6,'Ovalin','Rectangular 60x40 cm'),
+(6,'Monomando','30 cm cromado'),
+(6,'Incluye','Cespol de PBC - Contra canasta'),
+(6,'Espejo opcional','No incluye'),
+
+-- BUDAPEST
+(7,'Tipo de instalacion','Flotado'),
+(7,'Largo','60 cm'),(7,'Alto','42 cm'),(7,'Fondo','42 cm'),
+(7,'Ovalin','Redondo negro de resina 32 cm'),
+(7,'Monomando','30 cm negro'),
+(7,'Incluye','Cespol de PBC - Contra canasta'),
+(7,'Espejo opcional','Redondo 90 cm - LED/Touch 6mm - 3 intensidades - $2,800'),
+
+-- QUEBEC
+(8,'Tipo de instalacion','Flotado'),
+(8,'Largo','90 cm'),(8,'Alto','45 cm'),(8,'Fondo','50 cm'),
+(8,'Ovalin','Redondo 40 cm'),
+(8,'Monomando','20 cm cromado'),
+(8,'Incluye','Cespol de PBC - Contra canasta'),
+(8,'Espejo opcional','Redondo 90 cm - LED/Touch 6mm - 3 intensidades - $2,800'),
+
+-- TORONTO
+(9,'Tipo de instalacion','Flotado'),
+(9,'Largo','190 cm'),(9,'Alto','50 cm'),(9,'Fondo','50 cm'),
+(9,'Ovalin','Rectangular 60x38 cm'),
+(9,'Monomando','30 cm cromado'),
+(9,'Incluye','Cespol de PBC - Contra canasta'),
+(9,'Espejo opcional','No incluye'),
+
+-- AMSTERDAM
+(10,'Tipo de instalacion','Flotado'),
+(10,'Largo','80 cm'),(10,'Alto','55 cm'),(10,'Fondo','50 cm'),
+(10,'Ovalin','Redondo 40 cm'),
+(10,'Monomando','20 cm cromado'),
+(10,'Incluye','Cespol de PBC - Contra canasta'),
+(10,'Espejo opcional','Rectangular 50x70 cm - LED/Touch 4mm - 3 intensidades - $1,300');
 
 -- ================================================================
--- Capacidad de producción: próximas 16 semanas
+-- DATOS DE PRUEBA (pedidos, citas, cotizaciones)
 -- ================================================================
-INSERT IGNORE INTO capacidad_produccion (semana_inicio, slots_produccion, slots_entrega, bloqueado) VALUES
-('2026-02-16', 999, 999, 0),
-('2026-02-23', 999, 999, 0),
-('2026-03-02', 999, 999, 0),
-('2026-03-09', 999, 999, 0),
-('2026-03-16', 999, 999, 0),
-('2026-03-23', 999, 999, 0),
-('2026-03-30', 999, 999, 0),
-('2026-04-06',   0,   0, 1),  -- Semana Santa (bloqueada)
-('2026-04-13', 999, 999, 0),
-('2026-04-20', 999, 999, 0),
-('2026-04-27', 999, 999, 0),
-('2026-05-04', 999, 999, 0),
-('2026-05-11', 999, 999, 0),
-('2026-05-18', 999, 999, 0),
-('2026-05-25', 999, 999, 0),
-('2026-06-01', 999, 999, 0);
+INSERT INTO cotizaciones
+  (numero_cotizacion, nombre_cliente, correo_cliente, telefono_cliente,
+   tipo_mueble, descripcion_solicitud, tiene_medidas, rango_presupuesto,
+   requiere_instalacion, estado)
+VALUES
+('COT-2026-000001','Ana Maria Lopez','ana.lopez@email.com','33-1234-5678',
+ 'Flotado doble','Bano principal estilo moderno.',1,'$5,000 - $8,000',1,'nueva'),
+('COT-2026-000002','Roberto Sanchez','roberto.s@email.com','33-8765-4321',
+ 'A piso','Modelo Sevilla o similar.',0,'$4,000 - $6,000',0,'en_revision');
 
--- Días festivos oficiales México 2026
+INSERT INTO citas
+  (numero_cita, nombre_cliente, correo_cliente, telefono_cliente,
+   direccion, fecha_cita, rango_horario, tipo, estado)
+VALUES
+('CIT-2026-000001','Laura Fernandez','laura.f@email.com','33-5555-1111',
+ 'Calle Reforma 456 Col. Americana Guadalajara',
+ '2026-03-15','10:00 AM - 12:00 PM','medicion','confirmada'),
+('CIT-2026-000002','Carlos Mendoza','carlos.m@email.com','33-6666-2222',
+ 'Av. Patria 789 Col. Jardines del Valle Zapopan',
+ '2026-03-20','2:00 PM - 4:00 PM','instalacion','nueva');
+
+INSERT INTO pedidos
+  (numero_pedido, token_seguimiento, nombre_cliente, correo_cliente,
+   tipo_entrega, incluye_instalacion, fecha_estimada,
+   subtotal, costo_envio, costo_instalacion, descuento, total, estado)
+VALUES
+('WH-2026-000001', MD5(CONCAT('WH-2026-000001',NOW())),
+ 'Juan Perez Garcia','juan.perez@email.com',
+ 'recoger', 0, '2026-03-25',
+ 4900.00, 0.00, 0.00, 0.00, 4900.00, 'pagado'),
+
+('WH-2026-000002', MD5(CONCAT('WH-2026-000002',NOW())),
+ 'Maria Gonzalez','maria.g@email.com',
+ 'envio', 1, '2026-03-28',
+ 5900.00, 300.00, 800.00, 0.00, 7000.00, 'en_produccion');
+
+INSERT INTO detalle_pedido
+  (pedido_id, producto_id, nombre_producto, precio_unitario, cantidad, total_linea)
+VALUES
+(1, 1, 'Modelo Sevilla', 4900.00, 1, 4900.00),
+(2, 5, 'Modelo Sydney',  5900.00, 1, 5900.00);
+
+INSERT INTO pagos
+  (pedido_id, metodo, id_transaccion_proveedor, estado, monto, moneda)
+VALUES
+(1, 'paypal', 'PAYPAL-TEST-001', 'aprobado', 4900.00, 'MXN'),
+(2, 'stripe', NULL,              'pendiente', 7000.00, 'MXN');
+
+INSERT IGNORE INTO capacidad_produccion
+  (semana_inicio, slots_produccion, slots_entrega, bloqueado)
+VALUES
+('2026-02-23',999,999,0),('2026-03-02',999,999,0),('2026-03-09',999,999,0),
+('2026-03-16',999,999,0),('2026-03-23',999,999,0),('2026-03-30',999,999,0),
+('2026-04-06',  0,  0,1),
+('2026-04-13',999,999,0),('2026-04-20',999,999,0),('2026-04-27',999,999,0),
+('2026-05-04',999,999,0),('2026-05-11',999,999,0);
+
 INSERT IGNORE INTO dias_bloqueados (fecha, motivo) VALUES
-('2026-02-02', 'Día de la Constitución (lunes)'),
-('2026-03-16', 'Natalicio de Benito Juárez (lunes)'),
-('2026-04-02', 'Jueves Santo'),
-('2026-04-03', 'Viernes Santo'),
-('2026-05-01', 'Día del Trabajo'),
-('2026-09-16', 'Día de la Independencia'),
-('2026-11-02', 'Día de Muertos'),
-('2026-11-16', 'Revolución Mexicana (lunes)'),
-('2026-12-25', 'Navidad');
+('2026-03-16','Natalicio de Benito Juarez'),
+('2026-04-02','Jueves Santo'),
+('2026-04-03','Viernes Santo'),
+('2026-05-01','Dia del Trabajo'),
+('2026-09-16','Dia de la Independencia'),
+('2026-12-25','Navidad');
 
-SELECT 'Base de datos cargada exitosamente' AS Mensaje;
-SELECT COUNT(*) AS total_productos   FROM productos;
-SELECT COUNT(*) AS total_usuarios    FROM usuarios_personal;
-SELECT COUNT(*) AS total_pedidos     FROM pedidos;
+-- Verificacion final
+SELECT 'Seed cargado correctamente' AS Mensaje;
+SELECT COUNT(*) AS total_productos     FROM productos;
+SELECT COUNT(*) AS total_imagenes      FROM imagenes_producto;   -- debe ser 0
+SELECT COUNT(*) AS total_specs         FROM especificaciones_producto;
+SELECT COUNT(*) AS total_usuarios      FROM usuarios_personal;

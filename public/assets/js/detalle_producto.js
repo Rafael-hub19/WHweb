@@ -123,32 +123,112 @@ function mostrarProducto() {
   const descEl = document.getElementById('pDesc');
   if (descEl) descEl.textContent = p.descripcion || '';
 
-  // Especificaciones en tabs
-  const specTable = document.getElementById('specTable');
-  if (specTable) {
-    const specs = p.especificaciones || [];
-    if (specs.length > 0) {
-      specTable.innerHTML = specs.map(s => `
-        <div class="spec-row">
-          <span class="spec-key">${escHtml(s.clave || s.nombre || '')}</span>
-          <span class="spec-val">${escHtml(s.valor || '')}</span>
+  // Especificaciones — layout por secciones segun datos reales del cliente
+  const specs = p.especificaciones || [];
+  const getSpec = (keyword) => {
+    const s = specs.find(x => x.clave && x.clave.toLowerCase().includes(keyword.toLowerCase()));
+    return s ? s.valor : null;
+  };
+
+  // Features box (resumen visible junto al precio)
+  const featuresBox = document.getElementById('featuresBox');
+  const pFeatures   = document.getElementById('pFeatures');
+  if (featuresBox && pFeatures) {
+    const tipo  = getSpec('instalacion');
+    const largo = getSpec('largo');
+    const alto  = getSpec('alto');
+    const fondo = getSpec('fondo');
+    const ovalin = getSpec('ovalin');
+    const espejo = getSpec('espejo');
+
+    const feats = [
+      tipo  ? { icon: 'fa-house',       label: 'Instalación',  val: tipo  } : null,
+      largo ? { icon: 'fa-ruler-horizontal', label: 'Dimensiones', val: `${largo} × ${alto || '?'} × ${fondo || '?'}` } : null,
+      ovalin ? { icon: 'fa-sink',        label: 'Ovalín',       val: ovalin } : null,
+      espejo && espejo !== 'No incluye' ? { icon: 'fa-sun', label: 'Espejo opcional', val: 'Disponible' } : null,
+    ].filter(Boolean);
+
+    if (feats.length) {
+      featuresBox.style.display = 'block';
+      pFeatures.innerHTML = feats.map(f => `
+        <div class="feature-item">
+          <span class="feature-key"><i class="fa-solid ${f.icon}"></i> ${escHtml(f.label)}</span>
+          <span class="feature-val">${escHtml(f.val)}</span>
         </div>
       `).join('');
+    }
+  }
 
-      // También mostrar las primeras 4 como features
-      const featuresBox = document.getElementById('featuresBox');
-      const pFeatures   = document.getElementById('pFeatures');
-      if (featuresBox && pFeatures && specs.length > 0) {
-        featuresBox.style.display = 'block';
-        pFeatures.innerHTML = specs.slice(0, 4).map(s => `
-          <div class="feature-item">
-            <span class="feature-key"><i class="fa-solid fa-thumbtack"></i> ${escHtml(s.clave || '')}</span>
-            <span class="feature-val">${escHtml(s.valor || '')}</span>
-          </div>
-        `).join('');
-      }
+  // Tab de especificaciones completas — agrupadas por sección
+  const specTable = document.getElementById('specTable');
+  if (specTable) {
+    if (specs.length === 0) {
+      specTable.innerHTML = '<p style="color:#888;">Sin especificaciones registradas.</p>';
     } else {
-      specTable.innerHTML = '<p style="color:#888;">No hay especificaciones registradas.</p>';
+      const tipo      = getSpec('instalacion');
+      const largo     = getSpec('largo');
+      const alto      = getSpec('alto');
+      const fondo     = getSpec('fondo');
+      const ovalin    = getSpec('ovalin');
+      const monomando = getSpec('monomando');
+      const incluye   = getSpec('incluye');
+      const espejo    = getSpec('espejo');
+
+      specTable.innerHTML = `
+        <!-- Sección 1: Dimensiones -->
+        <div class="spec-section-title"><i class="fa-solid fa-ruler-combined"></i> Dimensiones del mueble</div>
+        <div class="spec-row">
+          <span class="spec-key">Tipo de instalación</span>
+          <span class="spec-val">${escHtml(tipo || '—')}</span>
+        </div>
+        <div class="spec-row">
+          <span class="spec-key">Largo</span>
+          <span class="spec-val">${escHtml(largo || '—')}</span>
+        </div>
+        <div class="spec-row">
+          <span class="spec-key">Alto</span>
+          <span class="spec-val">${escHtml(alto || '—')}</span>
+        </div>
+        <div class="spec-row">
+          <span class="spec-key">Fondo</span>
+          <span class="spec-val">${escHtml(fondo || '—')}</span>
+        </div>
+
+        <!-- Sección 2: Accesorios incluidos -->
+        <div class="spec-section-title" style="margin-top:18px;"><i class="fa-solid fa-faucet"></i> Accesorios incluidos</div>
+        <div class="spec-row">
+          <span class="spec-key">Ovalín</span>
+          <span class="spec-val">${escHtml(ovalin || '—')}</span>
+        </div>
+        <div class="spec-row">
+          <span class="spec-key">Monomando</span>
+          <span class="spec-val">${escHtml(monomando || '—')}</span>
+        </div>
+        <div class="spec-row">
+          <span class="spec-key">Incluye</span>
+          <span class="spec-val">${escHtml(incluye || '—')}</span>
+        </div>
+
+        <!-- Sección 3: Espejo opcional (solo si aplica) -->
+        ${espejo && espejo !== 'No incluye' ? `
+        <div class="spec-section-title" style="margin-top:18px;"><i class="fa-solid fa-sun"></i> Espejo opcional</div>
+        <div class="spec-row spec-row-highlight">
+          <span class="spec-key">Espejo LED/Touch</span>
+          <span class="spec-val">${escHtml(espejo)}</span>
+        </div>
+        ` : ''}
+
+        <!-- Fabricación -->
+        <div class="spec-section-title" style="margin-top:18px;"><i class="fa-solid fa-screwdriver-wrench"></i> Fabricación</div>
+        <div class="spec-row">
+          <span class="spec-key">Producción</span>
+          <span class="spec-val">Bajo pedido · 10-15 días hábiles</span>
+        </div>
+        <div class="spec-row">
+          <span class="spec-key">Garantía</span>
+          <span class="spec-val">1 año en defectos de fabricación</span>
+        </div>
+      `;
     }
   }
 

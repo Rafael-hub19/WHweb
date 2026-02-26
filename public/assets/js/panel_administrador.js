@@ -522,79 +522,91 @@
     }
 
     async function openProductoModal(mode, id=''){
-      $('#p_mode').value = mode;
-      $('#p_key').value = id || '';
+      document.getElementById('p_mode').value = mode;
+      document.getElementById('p_key').value = id || '';
       const isEdit = mode === 'edit';
+      document.getElementById('productoModalTitle').textContent = isEdit ? 'Editar Producto' : 'Nuevo Producto';
 
-      $('#productoModalTitle').textContent = isEdit ? 'Editar Producto' : 'Nuevo Producto';
+      // Limpiar todos los campos
+      ['p_nombre','p_categoria','p_badge','p_estado','p_precio','p_descLarga',
+       'p_tipo_instalacion','p_largo','p_alto','p_fondo','p_ovalin','p_monomando',
+       'p_incluye','p_espejo','p_imgs_urls'].forEach(fieldId => {
+        const el = document.getElementById(fieldId);
+        if (el) el.value = '';
+      });
+      window._imgFilesPending = [];
+      const previewGrid = document.getElementById('imgPreviewGrid');
+      if (previewGrid) previewGrid.innerHTML = '';
 
-      // Limpiar campos
-      const clear = (x) => { const el = $('#'+x); if(el) el.value = ''; };
-      ['p_nombre','p_categoria','p_badge','p_estado','p_precio','p_descLarga','p_specs','p_imgs_urls'].forEach(clear);
-
-      // Poblar select de categorías
       const catSelect = document.getElementById('p_categoria');
       if (catSelect && window._apiCategorias && window._apiCategorias.length) {
-        catSelect.innerHTML = window._apiCategorias.map(c => `<option value="${c.id}">${escapeHtml(c.nombre)}</option>`).join('');
+        catSelect.innerHTML = window._apiCategorias.map(c =>
+          `<option value="${c.id}">${escapeHtml(c.nombre)}</option>`
+        ).join('');
       }
 
-      if(isEdit){
+      if (isEdit) {
         const p = getProductos().find(x => String(x.id) === String(id));
-        if(!p){ showNotification('No se encontró el producto', 'error'); return; }
+        if (!p) { showNotification('No se encontro el producto', 'error'); return; }
 
-        const setVal = (elId, val) => { const el = document.getElementById(elId); if(el && val !== undefined && val !== null) el.value = val; };
+        const setVal = (elId, val) => {
+          const el = document.getElementById(elId);
+          if (el && val !== undefined && val !== null) el.value = val;
+        };
         setVal('p_nombre',    p.nombre);
         setVal('p_categoria', p.categoria_id);
-        setVal('p_badge',     p.etiqueta || p.badge || '');
-        setVal('p_estado',    p.estado || 'activo');
+        setVal('p_badge',     p.etiqueta || '');
+        setVal('p_estado',    p.activo == 1 ? 'activo' : 'inactivo');
         setVal('p_precio',    p.precio || p.precio_base || 0);
-        setVal('p_descLarga', p.descripcion || p.descLarga || '');
+        setVal('p_descLarga', p.descripcion || '');
 
-        // Especificaciones: formato "Clave: Valor" una por línea
-        const specs = p.especificaciones || p.specs || [];
-        const specsText = specs.map(s => `${s.clave || s.label || ''}: ${s.valor || s.value || ''}`).join('\n');
-        setVal('p_specs', specsText);
+        // Leer specs especificas del array de especificaciones
+        const specs = p.especificaciones || [];
+        const getSpec = (keyword) => {
+          const s = specs.find(x => x.clave && x.clave.toLowerCase().includes(keyword.toLowerCase()));
+          return s ? s.valor : '';
+        };
+        setVal('p_tipo_instalacion', getSpec('instalacion') || 'Flotado');
+        setVal('p_largo',     getSpec('largo'));
+        setVal('p_alto',      getSpec('alto'));
+        setVal('p_fondo',     getSpec('fondo'));
+        setVal('p_ovalin',    getSpec('ovalin'));
+        setVal('p_monomando', getSpec('monomando'));
+        setVal('p_incluye',   getSpec('incluye') || 'Cespol de PBC - Contra canasta');
+        setVal('p_espejo',    getSpec('espejo') || '');
 
-        // Imágenes: URLs una por línea
-        const imgUrls = p.imgs || (p.imagen_principal ? [p.imagen_principal] : []);
-        setVal('p_imgs_urls', imgUrls.join('\n'));
+        // Cargar imagenes existentes en preview
+        const imgUrls = p.imagenes
+          ? p.imagenes.map(img => img.url_imagen)
+          : (p.imagen_principal ? [p.imagen_principal] : []);
+        document.getElementById('p_imgs_urls').value = imgUrls.join('\n');
+        renderImgPreviews();
 
       } else {
-        // Nuevo producto: defaults
-        const catSelect2 = document.getElementById('p_categoria');
-        if (catSelect2 && window._apiCategorias && window._apiCategorias.length) {
-          catSelect2.value = String(window._apiCategorias[0].id);
+        if (catSelect && window._apiCategorias?.length) {
+          catSelect.value = String(window._apiCategorias[0].id);
         }
-        const estadoEl = document.getElementById('p_estado');
-        if (estadoEl) estadoEl.value = 'activo';
+        document.getElementById('p_estado').value = 'activo';
+        const tipoEl = document.getElementById('p_tipo_instalacion');
+        if (tipoEl) tipoEl.value = 'Flotado';
+        const incluyeEl = document.getElementById('p_incluye');
+        if (incluyeEl) incluyeEl.value = 'Cespol de PBC - Contra canasta';
       }
 
       openModal('productoModal');
     }
 
     function validateProductoPayload(payload, isEdit=false){
-      const req = (v) => String(v||'').trim().length > 0;
-
-      if(!req(payload.id)) return 'Falta ID (slug)';
-      if(!req(payload.sku)) return 'Falta SKU';
-      if(!req(payload.nombre)) return 'Falta Nombre';
-      if(!req(payload.categoria)) return 'Falta Categoría';
-      if(!isFinite(payload.precio) || payload.precio <= 0) return 'Precio inválido';
-      if(!Number.isFinite(payload.stock) || payload.stock < 0) return 'Stock inválido';
-
-      if(!req(payload.specsResumen?.dimensiones)) return 'Faltan Dimensiones (resumen)';
-      if(!req(payload.specsResumen?.material)) return 'Falta Material (resumen)';
-      if(!req(payload.specsResumen?.lavabo)) return 'Falta Lavabo (resumen)';
-      if(!req(payload.descCorta)) return 'Falta Descripción corta';
-      if(!req(payload.descLarga)) return 'Falta Descripción larga';
-
+      if (!payload.nombre || !String(payload.nombre).trim()) return 'Falta Nombre';
+      if (!payload.categoria_id) return 'Falta Categoria';
+      if (!isFinite(payload.precio_base) || payload.precio_base <= 0) return 'Precio invalido';
       return '';
     }
 
     async function saveProductoFull(){
-      const mode   = ($('#p_mode')?.value || 'create');
+      const mode   = document.getElementById('p_mode')?.value || 'create';
       const isEdit = mode === 'edit';
-      const oldId  = ($('#p_key')?.value || '');
+      const oldId  = document.getElementById('p_key')?.value || '';
 
       const nombre      = (document.getElementById('p_nombre')?.value   || '').trim();
       const categoriaId = parseInt(document.getElementById('p_categoria')?.value || 0);
@@ -604,23 +616,47 @@
       const descLarga   = (document.getElementById('p_descLarga')?.value || '').trim();
 
       if (!nombre)      { showNotification('Falta el nombre del producto', 'error'); return; }
-      if (!categoriaId) { showNotification('Selecciona una categoría', 'error'); return; }
+      if (!categoriaId) { showNotification('Selecciona una categoria', 'error'); return; }
       if (precio <= 0)  { showNotification('El precio debe ser mayor a 0', 'error'); return; }
-      if (!descLarga)   { showNotification('Falta la descripción del producto', 'error'); return; }
+      if (!descLarga)   { showNotification('Falta la descripcion del producto', 'error'); return; }
 
-      // Especificaciones: parsear "Clave: Valor" por línea
-      const specsRaw = document.getElementById('p_specs')?.value || '';
-      const especificaciones = specsRaw.split('\n')
-        .map(l => l.trim()).filter(Boolean)
-        .map(line => {
-          const idx = line.indexOf(':');
-          if (idx === -1) return null;
-          return { clave: line.slice(0, idx).trim(), valor: line.slice(idx + 1).trim() };
-        }).filter(s => s && s.clave && s.valor);
+      // Subir imagenes nuevas a Firebase si hay archivos pendientes
+      let imagenesUrls = (document.getElementById('p_imgs_urls')?.value || '')
+        .split('\n').map(u => u.trim()).filter(Boolean);
 
-      // Imágenes: una URL por línea
-      const imgsRaw = document.getElementById('p_imgs_urls')?.value || '';
-      const imagenes = imgsRaw.split('\n').map(u => u.trim()).filter(Boolean).map(url => ({ url }));
+      const filesNew = window._imgFilesPending || [];
+      if (filesNew.length > 0) {
+        try {
+          const nuevasUrls = await subirImagenesFirebase(filesNew, nombre);
+          imagenesUrls = [...imagenesUrls, ...nuevasUrls];
+        } catch(e) {
+          showNotification('Error subiendo imagenes: ' + e.message, 'error');
+          return;
+        }
+      }
+
+      const imagenes = imagenesUrls.map(url => ({ url }));
+
+      // Construir especificaciones desde los campos especificos
+      const tipoInst  = (document.getElementById('p_tipo_instalacion')?.value || '').trim();
+      const largo     = (document.getElementById('p_largo')?.value  || '').trim();
+      const alto      = (document.getElementById('p_alto')?.value   || '').trim();
+      const fondo     = (document.getElementById('p_fondo')?.value  || '').trim();
+      const ovalin    = (document.getElementById('p_ovalin')?.value || '').trim();
+      const monomando = (document.getElementById('p_monomando')?.value || '').trim();
+      const incluye   = (document.getElementById('p_incluye')?.value  || '').trim();
+      const espejo    = (document.getElementById('p_espejo')?.value   || '').trim();
+
+      const especificaciones = [
+        { clave: 'Tipo de instalacion', valor: tipoInst },
+        { clave: 'Largo',   valor: largo },
+        { clave: 'Alto',    valor: alto },
+        { clave: 'Fondo',   valor: fondo },
+        { clave: 'Ovalin',  valor: ovalin },
+        { clave: 'Monomando', valor: monomando },
+        { clave: 'Incluye', valor: incluye || 'Cespol de PBC - Contra canasta' },
+        { clave: 'Espejo opcional', valor: espejo || 'No incluye' },
+      ].filter(s => s.valor);
 
       const apiPayload = {
         nombre,
@@ -637,16 +673,16 @@
       if (btnGuardar) { btnGuardar.disabled = true; btnGuardar.textContent = 'Guardando...'; }
 
       try {
-        const isEditMode = isEdit && oldId;
-        const method = isEditMode ? 'PUT' : 'POST';
-        const url    = isEditMode
+        const method = (isEdit && oldId) ? 'PUT' : 'POST';
+        const url    = (isEdit && oldId)
           ? `${API_BASE}/productos.php?id=${oldId}`
           : `${API_BASE}/productos.php`;
 
         const data = await apiFetch(url, { method, body: JSON.stringify(apiPayload) });
 
         if (data.success) {
-          showNotification(`Producto ${isEditMode ? 'actualizado' : 'creado'} correctamente`, 'success');
+          window._imgFilesPending = [];
+          showNotification(`Producto ${(isEdit && oldId) ? 'actualizado' : 'creado'} correctamente`, 'success');
           closeModal('productoModal');
           await cargarProductosAPI();
           renderCatalogo();
@@ -656,49 +692,56 @@
       } catch(e) {
         showNotification('Error: ' + e.message, 'error');
       } finally {
-        if (btnGuardar) { btnGuardar.disabled = false; btnGuardar.textContent = 'Guardar'; }
+        if (btnGuardar) { btnGuardar.disabled = false; btnGuardar.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Guardar'; }
       }
     }
 
-    // ── Subir imágenes a Firebase Storage ─────────────────────────
+    // ── Subir imagenes a Firebase Storage ─────────────────────────
     async function subirImagenesFirebase(files, nombreProducto) {
       if (!firebaseStorage) throw new Error('Firebase Storage no disponible');
 
-      const progress  = document.getElementById('imgUploadProgress');
-      const bar       = document.getElementById('imgProgressBar');
-      const label     = document.getElementById('imgProgressLabel');
+      const progress = document.getElementById('imgUploadProgress');
+      const bar      = document.getElementById('imgProgressBar');
+      const label    = document.getElementById('imgProgressLabel');
+      const pct      = document.getElementById('imgProgressPct');
       if (progress) progress.style.display = 'block';
 
-      const urls   = [];
-      const slug   = nombreProducto.toLowerCase().replace(/[^a-z0-9]/g, '-').substring(0, 30);
-      const ts     = Date.now();
+      const urls = [];
+      const slug = nombreProducto.toLowerCase()
+        .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+        .replace(/[^a-z0-9]/g,'-').substring(0, 30);
+      const ts = Date.now();
 
       for (let i = 0; i < files.length; i++) {
         const file = files[i];
-        if (file.size > 2 * 1024 * 1024) {
-          showNotification(`<i class="fa-solid fa-xmark"></i> "${file.name}" supera 2 MB, se omite`, 'error');
-          continue;
-        }
-        const ext  = file.name.split('.').pop().toLowerCase();
+        const pctVal = Math.round((i / files.length) * 100);
+        if (bar)   bar.style.width = pctVal + '%';
+        if (pct)   pct.textContent = pctVal + '%';
+        if (label) label.textContent = `Subiendo imagen ${i+1} de ${files.length}...`;
+
+        const ext  = file.name.split('.').pop().toLowerCase() || 'jpg';
         const path = `productos/${slug}-${ts}-${i}.${ext}`;
         const ref  = firebaseStorage.ref(path);
-
-        if (bar) bar.style.width = Math.round(((i) / files.length) * 100) + '%';
-        if (label) label.textContent = `Subiendo ${i+1} de ${files.length}...`;
 
         const snap = await ref.put(file);
         const url  = await snap.ref.getDownloadURL();
         urls.push(url);
       }
 
-      if (bar) bar.style.width = '100%';
-      if (label) label.textContent = 'Listo';
-      setTimeout(() => { if (progress) progress.style.display = 'none'; }, 1500);
+      if (bar)   bar.style.width = '100%';
+      if (pct)   pct.textContent = '100%';
+      if (label) label.textContent = '¡Listo!';
+      setTimeout(() => { if (progress) progress.style.display = 'none'; }, 2000);
 
       return urls;
     }
 
+
     // ── Manejar selección de archivos ──────────────────────────────
+    function previewImages(files) {
+      handleImgSelect(files);
+    }
+
     function handleImgSelect(files) {
       if (!window._imgFilesPending) window._imgFilesPending = [];
       window._imgFilesPending = [...window._imgFilesPending, ...Array.from(files)];
@@ -707,16 +750,16 @@
 
     function handleImgDrop(event) {
       event.preventDefault();
-      document.getElementById('imgDropZone').style.background = '#1a1a1a';
+      document.getElementById('imgDropZone').style.borderColor = 'var(--border)';
       handleImgSelect(event.dataTransfer.files);
     }
 
     function renderImgPreviews() {
-      const list = document.getElementById('imgPreviewList');
-      if (!list) return;
+      const grid = document.getElementById('imgPreviewGrid');
+      if (!grid) return;
 
       const existentes = (document.getElementById('p_imgs_urls')?.value || '')
-        .split('').map(u => u.trim()).filter(Boolean);
+        .split('\n').map(u => u.trim()).filter(Boolean);
 
       const pendientes = (window._imgFilesPending || []).map(f => ({
         src: URL.createObjectURL(f),
@@ -729,24 +772,24 @@
         ...pendientes
       ];
 
-      if (todas.length === 0) { list.innerHTML = ''; return; }
+      if (todas.length === 0) { grid.innerHTML = ''; return; }
 
-      list.innerHTML = todas.map((img, i) => `
-        <div style="position:relative;width:80px;height:80px;">
-          <img src="${img.src}" style="width:80px;height:80px;object-fit:cover;border-radius:8px;border:2px solid ${i===0?'#8b7355':'#444'};"
-               title="${i===0?'Principal':img.label}">
-          ${i===0?'<span style="position:absolute;bottom:2px;left:2px;background:#8b7355;color:#fff;font-size:9px;padding:1px 4px;border-radius:3px;">Principal</span>':''}
-          ${img.tipo==='guardada'?`<button onclick="eliminarImgGuardada(${i})" style="position:absolute;top:2px;right:2px;background:#cc3333;border:none;color:#fff;border-radius:50%;width:18px;height:18px;font-size:11px;cursor:pointer;padding:0;">×</button>`:''}
-          ${img.tipo==='nuevo'?`<button onclick="eliminarImgPendiente(${i-existentes.length})" style="position:absolute;top:2px;right:2px;background:#cc3333;border:none;color:#fff;border-radius:50%;width:18px;height:18px;font-size:11px;cursor:pointer;padding:0;">×</button>`:''}
+      grid.innerHTML = todas.map((img, i) => `
+        <div style="position:relative;">
+          <img src="${img.src}" style="width:100%;height:80px;object-fit:cover;border-radius:8px;border:2px solid ${i===0?'#8b7355':'#333'};"
+               onerror="this.style.background='#2a2a2a'" title="${i===0?'Principal (primera imagen)':img.label}">
+          ${i===0?'<span style="position:absolute;bottom:3px;left:3px;background:#8b7355;color:#fff;font-size:9px;padding:1px 5px;border-radius:3px;font-weight:700;">Principal</span>':''}
+          <button onclick="${img.tipo==='guardada'?`eliminarImgGuardada(${i})`:`eliminarImgPendiente(${i-existentes.length})`}"
+            style="position:absolute;top:3px;right:3px;background:rgba(180,0,0,.85);border:none;color:#fff;border-radius:50%;width:20px;height:20px;font-size:13px;cursor:pointer;line-height:1;display:flex;align-items:center;justify-content:center;">×</button>
         </div>
       `).join('');
     }
 
     function eliminarImgGuardada(idx) {
       const urls = (document.getElementById('p_imgs_urls')?.value || '')
-        .split('').map(u => u.trim()).filter(Boolean);
+        .split('\n').map(u => u.trim()).filter(Boolean);
       urls.splice(idx, 1);
-      document.getElementById('p_imgs_urls').value = urls.join('');
+      document.getElementById('p_imgs_urls').value = urls.join('\n');
       renderImgPreviews();
     }
 

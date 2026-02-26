@@ -1,5 +1,4 @@
-
-    * { margin: 0; padding: 0; box-sizing: border-box; }
+* { margin: 0; padding: 0; box-sizing: border-box; }
 
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -366,4 +365,51 @@
       .thumbnails { grid-template-columns: repeat(2, 1fr); }
       .spec-row { grid-template-columns: 1fr; }
       .main-image { height: 320px; }
+    }
+    /* ===== Especificaciones por secciones (modelos reales) ===== */
+    .spec-section-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: #8b7355;
+      text-transform: uppercase;
+      letter-spacing: .6px;
+      padding: 14px 0 6px;
+      margin-top: 4px;
+      border-top: 1px solid #2a2a2a;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+    .spec-section-title:first-child { border-top: none; padding-top: 0; }
+
+    .spec-row {
+      display: grid;
+      grid-template-columns: 190px 1fr;
+      padding: 10px 0;
+      border-bottom: 1px solid #2a2a2a;
+      gap: 12px;
+      align-items: start;
+    }
+    .spec-row:last-child { border-bottom: none; }
+    .spec-key {
+      color: #aaa;
+      font-size: 13px;
+      font-weight: 600;
+    }
+    .spec-val {
+      color: #e0e0e0;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+    .spec-row-highlight {
+      background: rgba(139,115,85,.08);
+      border-radius: 6px;
+      padding: 10px 8px;
+      margin: 0 -8px;
+    }
+    .spec-row-highlight .spec-key { color: #8b7355; }
+
+    @media (max-width: 500px) {
+      .spec-row { grid-template-columns: 1fr; gap: 2px; }
+      .spec-key { font-size: 11px; color: #8b7355; }
     }
