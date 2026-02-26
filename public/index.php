@@ -156,34 +156,40 @@
       <h2 class="section-title"><i class="fa-solid fa-sparkles"></i> Proyectos Realizados</h2>
       <div class="work-grid">
 
-        <!-- Reel 1 -->
         <div class="work-card">
-          <blockquote class="instagram-media" data-instgrm-permalink="https://www.instagram.com/reel/DTbbaVcEbVP/" data-instgrm-version="14" style="width:100%; margin:0;"></blockquote>
+          <iframe src="https://www.instagram.com/reel/DTbbaVcEbVP/embed/" 
+            width="100%" height="480" frameborder="0" scrolling="no" 
+            allowtransparency="true" style="border-radius:8px; display:block;"></iframe>
         </div>
 
-        <!-- Reel 2 -->
         <div class="work-card">
-          <blockquote class="instagram-media" data-instgrm-permalink="https://www.instagram.com/reel/DS1FVraEXw7/" data-instgrm-version="14" style="width:100%; margin:0;"></blockquote>
+          <iframe src="https://www.instagram.com/reel/DS1FVraEXw7/embed/" 
+            width="100%" height="480" frameborder="0" scrolling="no" 
+            allowtransparency="true" style="border-radius:8px; display:block;"></iframe>
         </div>
 
-        <!-- Reel 3 -->
         <div class="work-card">
-          <blockquote class="instagram-media" data-instgrm-permalink="https://www.instagram.com/reel/DSUKlbeDjCN/" data-instgrm-version="14" style="width:100%; margin:0;"></blockquote>
+          <iframe src="https://www.instagram.com/reel/DSUKlbeDjCN/embed/" 
+            width="100%" height="480" frameborder="0" scrolling="no" 
+            allowtransparency="true" style="border-radius:8px; display:block;"></iframe>
         </div>
 
-        <!-- Reel 4 -->
         <div class="work-card">
-          <blockquote class="instagram-media" data-instgrm-permalink="https://www.instagram.com/reel/DSESzZskRAx/" data-instgrm-version="14" style="width:100%; margin:0;"></blockquote>
+          <iframe src="https://www.instagram.com/reel/DSESzZskRAx/embed/" 
+            width="100%" height="480" frameborder="0" scrolling="no" 
+            allowtransparency="true" style="border-radius:8px; display:block;"></iframe>
         </div>
 
-        <!-- Reel 5 -->
         <div class="work-card">
-          <blockquote class="instagram-media" data-instgrm-permalink="https://www.instagram.com/reel/DR00iqLEZd8/" data-instgrm-version="14" style="width:100%; margin:0;"></blockquote>
+          <iframe src="https://www.instagram.com/reel/DR00iqLEZd8/embed/" 
+            width="100%" height="480" frameborder="0" scrolling="no" 
+            allowtransparency="true" style="border-radius:8px; display:block;"></iframe>
         </div>
 
-        <!-- Reel 6 -->
         <div class="work-card">
-          <blockquote class="instagram-media" data-instgrm-permalink="https://www.instagram.com/reel/DMQRKUdxvY2/" data-instgrm-version="14" style="width:100%; margin:0;"></blockquote>
+          <iframe src="https://www.instagram.com/reel/DMQRKUdxvY2/embed/" 
+            width="100%" height="480" frameborder="0" scrolling="no" 
+            allowtransparency="true" style="border-radius:8px; display:block;"></iframe>
         </div>
 
       </div>
