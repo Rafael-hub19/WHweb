@@ -117,6 +117,8 @@ Options -Indexes -ExecCGI
             https://www.google.com/maps \
             https://www.instagram.com \
             https://instagram.com; \
+        media-src 'self' \
+            https://firebasestorage.googleapis.com; \
         worker-src blob:; \
         object-src 'none'; \
         base-uri 'self';"

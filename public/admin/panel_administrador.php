@@ -647,9 +647,9 @@ unset($_usuario);
               transition:border-color .2s;
               margin-top:10px;
             " onclick="document.getElementById('p_imgs_files').click()"
-               ondragover="event.preventDefault();this.style.borderColor='var(--accent)'"
-               ondragleave="this.style.borderColor='var(--border)'"
-               ondrop="handleImgDrop(event)">
+               ondragover="event.preventDefault(); event.stopPropagation(); this.style.borderColor='var(--accent)'; this.style.background='rgba(139,115,85,0.08)';"
+               ondragleave="event.stopPropagation(); this.style.borderColor='var(--border)'; this.style.background='';"
+               ondrop="handleImgDrop(event); this.style.background='';">
               <i class="fa-solid fa-cloud-arrow-up" style="font-size:28px;color:var(--accent);"></i>
               <p style="margin:8px 0 4px;font-weight:600;color:#ddd;">Arrastra imágenes aquí o haz clic para seleccionar</p>
               <p style="color:var(--muted);font-size:12px;">JPG, PNG, WEBP — cualquier tamaño (se optimizan automáticamente)</p>

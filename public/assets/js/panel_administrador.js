@@ -546,8 +546,23 @@
       }
 
       if (isEdit) {
-        const p = getProductos().find(x => String(x.id) === String(id));
+        // Buscar en cache local primero
+        let p = getProductos().find(x => String(x.id) === String(id));
         if (!p) { showNotification('No se encontro el producto', 'error'); return; }
+
+        // IMPORTANTE: Siempre hacer fetch del detalle completo para tener imágenes y specs reales
+        try {
+          const detalle = await apiFetch(`${API_BASE}/productos.php?id=${id}`);
+          if (detalle.success && detalle.producto) {
+            // Mezclar datos del detalle con el producto local
+            p = {
+              ...p,
+              imagenes: detalle.producto.imagenes || [],
+              especificaciones: detalle.producto.especificaciones || [],
+              descripcion: detalle.producto.descripcion || p.descripcion || '',
+            };
+          }
+        } catch(e) { console.warn('No se pudo cargar detalle del producto', e); }
 
         const setVal = (elId, val) => {
           const el = document.getElementById(elId);

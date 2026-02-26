@@ -156,7 +156,7 @@ function renderProductos() {
 <button class="btn-add-cart" onclick="agregarAlCarrito(${p.id}, '${escHtml(p.nombre).replace(/'/g,"\\'")}', ${p.precio}, '${escHtml(p.imagen_principal || '')}')">
                    <i class="fa-solid fa-cart-shopping"></i> Agregar al carrito
                  </button>
-            <a href="detalle/${p.id}" class="btn-details">Ver detalles</a>
+            <a href="/detalle/${p.id}" class="btn-details">Ver detalles</a>
           </div>
         </div>
       </div>

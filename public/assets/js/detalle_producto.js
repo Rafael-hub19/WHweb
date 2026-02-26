@@ -331,7 +331,7 @@ async function cargarRelacionados(catId, excludeId) {
     container.innerHTML = items.map(p => {
       const img = p.imagen_principal ? `<img src="${escHtml(p.imagen_principal)}" alt="${escHtml(p.nombre)}" loading="lazy">` : '<div class="placeholder-img-small"><i class="fa-solid fa-tree"></i></div>';
       return `
-        <a href="detalle/${p.id}" class="related-card">
+        <a href="/detalle/${p.id}" class="related-card">
           <div class="related-img">${img}</div>
           <div class="related-info">
             <div class="related-name">${escHtml(p.nombre)}</div>
