@@ -256,7 +256,7 @@ function mostrarProducto() {
     if (thumbsEl && imagenes.length > 1) {
       thumbsEl.innerHTML = imagenes.map((img, idx) => `
         <div class="thumb ${idx === 0 ? 'active' : ''}" onclick="cambiarImagen(${idx}, '${escHtml(img.url_imagen)}')">
-          <img src="${escHtml(img.url_imagen)}" alt="Vista ${idx+1}" loading="lazy">
+          <img src="${escHtml(img.url_imagen)}" alt="Vista ${idx+1}" loading="lazy" style="width:100%;height:100%;object-fit:cover;object-position:center top;border-radius:8px;">
         </div>
       `).join('');
     }

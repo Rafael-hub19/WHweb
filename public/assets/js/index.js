@@ -84,6 +84,39 @@ function initVideos() {
   const cards = document.querySelectorAll('.video-card');
   if (!cards.length) return;
 
+  // ── Lazy load: cargar el src del video solo cuando entra al viewport ──
+  if ('IntersectionObserver' in window) {
+    const videoObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const video = entry.target.querySelector('video');
+          if (video) {
+            const source = video.querySelector('source');
+            if (source && source.dataset.src) {
+              source.src = source.dataset.src;
+              video.load();
+            }
+          }
+          videoObserver.unobserve(entry.target);
+        }
+      });
+    }, { rootMargin: '200px' });
+
+    cards.forEach(card => videoObserver.observe(card));
+  } else {
+    // Fallback para navegadores sin IntersectionObserver
+    cards.forEach(card => {
+      const video = card.querySelector('video');
+      if (video) {
+        const source = video.querySelector('source');
+        if (source && source.dataset.src) {
+          source.src = source.dataset.src;
+          video.load();
+        }
+      }
+    });
+  }
+
   function pauseAll(exceptVideo = null) {
     cards.forEach(c => {
       const v = c.querySelector('video');

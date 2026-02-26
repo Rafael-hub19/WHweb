@@ -157,38 +157,38 @@
       <div class="work-grid">
 
         <div class="work-card video-card">
-          <video muted loop playsinline preload="none" loading="lazy">
-            <source src="https://firebasestorage.googleapis.com/v0/b/woodenhouse-898de.firebasestorage.app/o/proyectos%2Fproyecto1.mp4?alt=media&token=27da66f5-8a7a-4b2f-aa97-2475947c5cb6" type="video/mp4">
+          <video muted loop playsinline preload="none">
+            <source data-src="https://firebasestorage.googleapis.com/v0/b/woodenhouse-898de.firebasestorage.app/o/proyectos%2Fproyecto1.mp4?alt=media&token=27da66f5-8a7a-4b2f-aa97-2475947c5cb6" type="video/mp4">
           </video>
         </div>
 
         <div class="work-card video-card">
-          <video muted loop playsinline preload="none" loading="lazy">
-            <source src="https://firebasestorage.googleapis.com/v0/b/woodenhouse-898de.firebasestorage.app/o/proyectos%2Fproyecto2.mp4?alt=media&token=ba5e5413-3bb3-407c-845b-afc6e113cf50" type="video/mp4">
+          <video muted loop playsinline preload="none">
+            <source data-src="https://firebasestorage.googleapis.com/v0/b/woodenhouse-898de.firebasestorage.app/o/proyectos%2Fproyecto2.mp4?alt=media&token=ba5e5413-3bb3-407c-845b-afc6e113cf50" type="video/mp4">
           </video>
         </div>
 
         <div class="work-card video-card">
-          <video muted loop playsinline preload="none" loading="lazy">
-            <source src="https://firebasestorage.googleapis.com/v0/b/woodenhouse-898de.firebasestorage.app/o/proyectos%2Fproyecto3.mp4?alt=media&token=859c8549-0c19-4a60-936e-45d1989c0f78" type="video/mp4">
+          <video muted loop playsinline preload="none">
+            <source data-src="https://firebasestorage.googleapis.com/v0/b/woodenhouse-898de.firebasestorage.app/o/proyectos%2Fproyecto3.mp4?alt=media&token=859c8549-0c19-4a60-936e-45d1989c0f78" type="video/mp4">
           </video>
         </div>
 
         <div class="work-card video-card">
-          <video muted loop playsinline preload="none" loading="lazy">
-            <source src="https://firebasestorage.googleapis.com/v0/b/woodenhouse-898de.firebasestorage.app/o/proyectos%2Fproyecto4.mp4?alt=media&token=f513e173-9386-4cfc-b98f-195abd566efd" type="video/mp4">
+          <video muted loop playsinline preload="none">
+            <source data-src="https://firebasestorage.googleapis.com/v0/b/woodenhouse-898de.firebasestorage.app/o/proyectos%2Fproyecto4.mp4?alt=media&token=f513e173-9386-4cfc-b98f-195abd566efd" type="video/mp4">
           </video>
         </div>
 
         <div class="work-card video-card">
-          <video muted loop playsinline preload="none" loading="lazy">
-            <source src="https://firebasestorage.googleapis.com/v0/b/woodenhouse-898de.firebasestorage.app/o/proyectos%2Fproyecto5.mp4?alt=media&token=a75ea48f-eb33-4b67-969d-6a0c1b3c9dd5" type="video/mp4">
+          <video muted loop playsinline preload="none">
+            <source data-src="https://firebasestorage.googleapis.com/v0/b/woodenhouse-898de.firebasestorage.app/o/proyectos%2Fproyecto5.mp4?alt=media&token=a75ea48f-eb33-4b67-969d-6a0c1b3c9dd5" type="video/mp4">
           </video>
         </div>
 
         <div class="work-card video-card">
-          <video muted loop playsinline preload="none" loading="lazy">
-            <source src="https://firebasestorage.googleapis.com/v0/b/woodenhouse-898de.firebasestorage.app/o/proyectos%2Fproyecto6.mp4?alt=media&token=cf9d54fe-9299-43dd-b79f-3def076921d0" type="video/mp4">
+          <video muted loop playsinline preload="none">
+            <source data-src="https://firebasestorage.googleapis.com/v0/b/woodenhouse-898de.firebasestorage.app/o/proyectos%2Fproyecto6.mp4?alt=media&token=cf9d54fe-9299-43dd-b79f-3def076921d0" type="video/mp4">
           </video>
         </div>
 
