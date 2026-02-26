@@ -153,49 +153,43 @@
     <!-- Projects Gallery -->
     <div id="proyectos">
       <h2 class="section-title"><i class="fa-solid fa-sparkles"></i> Proyectos Realizados</h2>
-      <p class="video-hint"><i class="fa-solid fa-hand-pointer"></i> Toca un video para reproducirlo</p>
+
       <div class="work-grid">
 
         <div class="work-card video-card">
           <video muted loop playsinline preload="metadata">
             <source src="/assets/videos/proyecto1.mp4" type="video/mp4">
           </video>
-          <div class="play-overlay"><i class="fa-solid fa-play"></i></div>
         </div>
 
         <div class="work-card video-card">
           <video muted loop playsinline preload="metadata">
             <source src="/assets/videos/proyecto2.mp4" type="video/mp4">
           </video>
-          <div class="play-overlay"><i class="fa-solid fa-play"></i></div>
         </div>
 
         <div class="work-card video-card">
           <video muted loop playsinline preload="metadata">
             <source src="/assets/videos/proyecto3.mp4" type="video/mp4">
           </video>
-          <div class="play-overlay"><i class="fa-solid fa-play"></i></div>
         </div>
 
         <div class="work-card video-card">
           <video muted loop playsinline preload="metadata">
             <source src="/assets/videos/proyecto4.mp4" type="video/mp4">
           </video>
-          <div class="play-overlay"><i class="fa-solid fa-play"></i></div>
         </div>
 
         <div class="work-card video-card">
           <video muted loop playsinline preload="metadata">
             <source src="/assets/videos/proyecto5.mp4" type="video/mp4">
           </video>
-          <div class="play-overlay"><i class="fa-solid fa-play"></i></div>
         </div>
 
         <div class="work-card video-card">
           <video muted loop playsinline preload="metadata">
             <source src="/assets/videos/proyecto6.mp4" type="video/mp4">
           </video>
-          <div class="play-overlay"><i class="fa-solid fa-play"></i></div>
         </div>
 
       </div>
