@@ -56,7 +56,7 @@
       <h2>¿Quiénes Somos?</h2>
       <p>
         En <strong>Wooden House</strong> nos especializamos en la fabricación de muebles de madera de alta calidad,
-        diseñados y construidos a medida para transformar tus espacios. Con más de 5 años de experiencia,
+        diseñados y construidos a medida para transformar tus espacios. Con más de 10 años de experiencia,
         combinamos tradición artesanal con diseño moderno para crear piezas únicas que se adaptan perfectamente
         a tus necesidades y estilo.
       </p>
@@ -155,98 +155,42 @@
     <div id="proyectos">
       <h2 class="section-title"><i class="fa-solid fa-sparkles"></i> Proyectos Realizados</h2>
       <div class="work-grid">
+
+        <!-- Reel 1 -->
         <div class="work-card">
-          <div class="work-image"><i class="fa-solid fa-bath"></i> [Imagen: Baño Moderno]</div>
-          <div class="work-info">
-            <h3>Baño Minimalista Premium</h3>
-            <p>Instalación completa con mueble flotante, lavabo de cerámica y espejo LED. Acabado en blanco mate con detalles en madera natural.</p>
-            <p class="work-location"><i class="fa-solid fa-location-dot"></i> Providencia, Guadalajara</p>
-          </div>
+          <blockquote class="instagram-media" data-instgrm-permalink="https://www.instagram.com/reel/DTbbaVcEbVP/" data-instgrm-version="14" style="width:100%; margin:0;"></blockquote>
         </div>
 
+        <!-- Reel 2 -->
         <div class="work-card">
-          <div class="work-image"><i class="fa-solid fa-utensils"></i> [Imagen: Cocina Integral]</div>
-          <div class="work-info">
-            <h3>Cocina Integral Moderna</h3>
-            <p>Cocina completa con gabinetes superiores e inferiores, barra desayunadora y cubierta de cuarzo. Diseño en L optimizado.</p>
-            <p class="work-location"><i class="fa-solid fa-location-dot"></i> Chapalita, Guadalajara</p>
-          </div>
+          <blockquote class="instagram-media" data-instgrm-permalink="https://www.instagram.com/reel/DS1FVraEXw7/" data-instgrm-version="14" style="width:100%; margin:0;"></blockquote>
         </div>
 
+        <!-- Reel 3 -->
         <div class="work-card">
-          <div class="work-image"><i class="fa-solid fa-shirt"></i> [Imagen: Clóset]</div>
-          <div class="work-info">
-            <h3>Clóset Walk-In Personalizado</h3>
-            <p>Vestidor completo con múltiples compartimentos, zapateras, cajones y espejos. Iluminación LED integrada.</p>
-            <p class="work-location"><i class="fa-solid fa-location-dot"></i> Americana, Guadalajara</p>
-          </div>
+          <blockquote class="instagram-media" data-instgrm-permalink="https://www.instagram.com/reel/DSUKlbeDjCN/" data-instgrm-version="14" style="width:100%; margin:0;"></blockquote>
         </div>
 
+        <!-- Reel 4 -->
         <div class="work-card">
-          <div class="work-image"><i class="fa-solid fa-couch"></i> [Imagen: Sala]</div>
-          <div class="work-info">
-            <h3>Centro de Entretenimiento</h3>
-            <p>Mueble para TV con repisas flotantes, compartimentos para consolas y sistema de organización de cables integrado.</p>
-            <p class="work-location"><i class="fa-solid fa-location-dot"></i> Zapopan Centro</p>
-          </div>
+          <blockquote class="instagram-media" data-instgrm-permalink="https://www.instagram.com/reel/DSESzZskRAx/" data-instgrm-version="14" style="width:100%; margin:0;"></blockquote>
         </div>
 
+        <!-- Reel 5 -->
         <div class="work-card">
-          <div class="work-image"><i class="fa-solid fa-bed"></i> [Imagen: Recámara]</div>
-          <div class="work-info">
-            <h3>Recámara Completa</h3>
-            <p>Cabecera acolchada con repisas integradas, burós a juego y armario empotrado. Diseño contemporáneo en tonos neutros.</p>
-            <p class="work-location"><i class="fa-solid fa-location-dot"></i> Tlaquepaque</p>
-          </div>
+          <blockquote class="instagram-media" data-instgrm-permalink="https://www.instagram.com/reel/DR00iqLEZd8/" data-instgrm-version="14" style="width:100%; margin:0;"></blockquote>
         </div>
 
+        <!-- Reel 6 -->
         <div class="work-card">
-          <div class="work-image"><i class="fa-solid fa-briefcase"></i> [Imagen: Oficina]</div>
-          <div class="work-info">
-            <h3>Home Office Ejecutivo</h3>
-            <p>Escritorio en L con cajonera, librero de pared a pared y panel para monitor. Espacio ergonómico y funcional.</p>
-            <p class="work-location"><i class="fa-solid fa-location-dot"></i> Colinas de San Javier</p>
-          </div>
+          <blockquote class="instagram-media" data-instgrm-permalink="https://www.instagram.com/reel/DMQRKUdxvY2/" data-instgrm-version="14" style="width:100%; margin:0;"></blockquote>
         </div>
+
       </div>
     </div>
 
-    <!-- Testimonials -->
-    <div>
-      <h2 class="section-title"><i class="fa-solid fa-comments"></i> Testimonios de Clientes</h2>
-      <div class="testimonials-grid">
-        <div class="testimonial-card">
-          <div class="stars"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i></div>
-          <p>"Excelente servicio desde la cotización hasta la instalación. El mueble de baño quedó perfecto, justo como lo imaginaba. Muy profesionales y puntuales. Totalmente recomendable."</p>
-          <p class="testimonial-author">- María González</p>
-        </div>
-        <div class="testimonial-card">
-          <div class="stars"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i></div>
-          <p>"Calidad excepcional en los materiales y acabados. El equipo fue muy profesional y cumplió con todos los tiempos. Mi cocina integral quedó hermosa y funcional."</p>
-          <p class="testimonial-author">- Carlos Ramírez</p>
-        </div>
-        <div class="testimonial-card">
-          <div class="stars"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i></div>
-          <p>"Los mejores precios sin sacrificar calidad. Hice cotizaciones en varios lugares y Wooden House superó mis expectativas. El clóset quedó increíble."</p>
-          <p class="testimonial-author">- Ana López</p>
-        </div>
-        <div class="testimonial-card">
-          <div class="stars"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i></div>
-          <p>"Transformaron completamente mi espacio. La atención al detalle y el seguimiento constante hicieron la diferencia. Definitivamente volveré a trabajar con ellos."</p>
-          <p class="testimonial-author">- Roberto Sánchez</p>
-        </div>
-        <div class="testimonial-card">
-          <div class="stars"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i></div>
-          <p>"Me ayudaron a diseñar el home office perfecto. Muy creativos y atentos a mis necesidades. El resultado final superó lo que esperaba."</p>
-          <p class="testimonial-author">- Laura Martínez</p>
-        </div>
-        <div class="testimonial-card">
-          <div class="stars"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i></div>
-          <p>"Excelente relación calidad-precio. Los materiales son de primera y la instalación fue impecable. Muy satisfecho con mi nueva recámara."</p>
-          <p class="testimonial-author">- Miguel Torres</p>
-        </div>
-      </div>
-    </div>
+    <!-- Script Instagram embed -->
+    <script async src="//www.instagram.com/embed.js"></script>
 
     <!-- Call to Action -->
     <div class="cta-section">
@@ -356,7 +300,7 @@
         <div class="contact-card">
           <div class="contact-icon"><i class="fa-solid fa-envelope"></i></div>
           <h4>Email</h4>
-          <p><a href="mailto:contacto@juan432.jpml.com">contacto@juan432.jpml.com</a></p>
+          <p><a href="/cdn-cgi/l/email-protection#51323e3f253032253e113b24303f6562637f3b213c3d7f323e3c"><span class="__cf_email__" data-cfemail="462529283227253229062c332728727574682c362b2a6825292b">[email&#160;protected]</span></a></p>
           <small>Respuesta en 24 hrs</small>
         </div>
         <div class="contact-card">
@@ -428,11 +372,4 @@
     <p>&copy; 2025 Wooden House. Todos los derechos reservados.</p>
     <p style="margin-top: 10px;">Muebles de madera a medida en Guadalajara, Jalisco</p>
     <p style="margin-top: 10px; font-size: 14px;">
-      <a href="mailto:contacto@juan432.jpml.com" style="color: #8b7355;">contacto@juan432.jpml.com</a> | 
-      <a href="tel:3317054017" style="color: #8b7355;">33 1705 4017</a>
-    </p>
-  </div>
-
-  <script src="./assets/js/index.js"></script>
-</body>
-</html>
+      <a href="/cdn-cgi/l/email-protection#f89b97968c999b8c97b8928d9996cccbcad692889594d69b9795" style="color: #8b7355;
