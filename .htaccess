@@ -1,34 +1,20 @@
 # ================================================================
-# Wooden House - .htaccess RAÍZ DEL PROYECTO
-# Redirige tráfico a /public/ y bloquea carpetas internas
+# Wooden House — .htaccess RAÍZ
 # ================================================================
 Options -Indexes
 
 <IfModule mod_rewrite.c>
     RewriteEngine On
 
-    # Redirigir raíz al frontend público
-    RewriteCond %{REQUEST_URI} !^/public/
-    RewriteRule ^$ /public/ [L,R=302]
+    # Bloquear carpetas internas sensibles
+    RewriteRule ^(includes|database|logs|firebase|\.git|vendor|backup|tmp)(/|$) - [F,L]
 
-    # ── Bloquear carpetas internas ────────────────────────────────
-    RewriteRule ^includes(/|$)  - [F,L]
-    RewriteRule ^database(/|$)  - [F,L]
-    RewriteRule ^logs(/|$)      - [F,L]
-    RewriteRule ^firebase(/|$)  - [F,L]
-    RewriteRule ^\.git(/|$)     - [F,L]
-    RewriteRule ^vendor(/|$)    - [F,L]
-    RewriteRule ^backup(/|$)    - [F,L]
-    RewriteRule ^tmp(/|$)       - [F,L]
-
-    # /api/ NO se bloquea — el VirtualHost lo sirve con Alias
-
-    # ── Bloquear User-Agents vacíos ───────────────────────────────
+    # Bloquear User-Agents vacíos
     RewriteCond %{HTTP_USER_AGENT} ^$
     RewriteRule ^ - [F,L]
 </IfModule>
 
-# ── Bloquear archivos sensibles ───────────────────────────────────
+# Bloquear archivos sensibles
 <FilesMatch "\.(env|log|bak|sql|sh|lock|yaml|yml)$">
     Require all denied
 </FilesMatch>
@@ -36,9 +22,8 @@ Options -Indexes
     Require all denied
 </Files>
 
-# ── Headers mínimos en raíz ───────────────────────────────────────
 <IfModule mod_headers.c>
+    Header always unset X-Powered-By
+    Header always unset Server
     Header always set X-Content-Type-Options "nosniff"
-    Header unset X-Powered-By
-    Header unset Server
 </IfModule>

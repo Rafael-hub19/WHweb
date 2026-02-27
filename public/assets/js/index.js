@@ -80,35 +80,10 @@ function initSmoothScroll() {
 // VIDEOS DE PROYECTOS
 // ================================================
 function initVideos() {
+  const isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
   const cards = document.querySelectorAll('.video-card');
   if (!cards.length) return;
 
-  // ── Lazy load: carga el src solo cuando el video entra al viewport ──
-  const loadVideo = (card) => {
-    const video = card.querySelector('video');
-    if (!video) return;
-    const source = video.querySelector('source[data-src]');
-    if (source && !source.src) {
-      source.src = source.dataset.src;
-      video.load();
-    }
-  };
-
-  if ('IntersectionObserver' in window) {
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          loadVideo(entry.target);
-          observer.unobserve(entry.target);
-        }
-      });
-    }, { rootMargin: '300px' });
-    cards.forEach(card => observer.observe(card));
-  } else {
-    cards.forEach(loadVideo);
-  }
-
-  // ── Pausa todos excepto el indicado ──
   function pauseAll(exceptVideo = null) {
     cards.forEach(c => {
       const v = c.querySelector('video');
@@ -120,43 +95,44 @@ function initVideos() {
     });
   }
 
-  // ── Click/Tap: toggle play/pause (funciona en mobile Y desktop) ──
   cards.forEach(card => {
     const video = card.querySelector('video');
     if (!video) return;
 
-    // Asegurar que el video nunca autoplaye solo
-    video.autoplay = false;
-    video.removeAttribute('autoplay');
+    // Inject transparent play button for mobile
+    if (!card.querySelector('.video-play-btn')) {
+      const playBtn = document.createElement('div');
+      playBtn.className = 'video-play-btn';
+      playBtn.innerHTML = '<svg viewBox="0 0 24 24"><polygon points="5,3 19,12 5,21"/></svg>';
+      card.appendChild(playBtn);
+    }
 
-    card.addEventListener('click', function (e) {
-      e.preventDefault();
-      // Cargar video si todavía no se cargó
-      loadVideo(card);
-      const isPlaying = card.classList.contains('playing');
-      if (isPlaying) {
-        video.pause();
-        card.classList.remove('playing');
-      } else {
+    if (isTouchDevice) {
+      // Móvil: tap para reproducir/pausar (toggle)
+      card.addEventListener('click', function (e) {
+        e.preventDefault();
+        if (card.classList.contains('playing')) {
+          video.pause();
+          card.classList.remove('playing');
+        } else {
+          pauseAll(video);
+          video.play().catch(() => {});
+          card.classList.add('playing');
+        }
+      });
+    } else {
+      // Desktop: hover para reproducir/pausar (sin botón visible)
+      card.addEventListener('mouseenter', function () {
         pauseAll(video);
-        video.play()
-          .then(() => card.classList.add('playing'))
-          .catch(() => {
-            // En algunos browsers el play falla sin interacción previa - mostrar error silencioso
-            card.classList.remove('playing');
-          });
-      }
-    });
-
-    // Cuando termina, quitar el estado playing
-    video.addEventListener('ended', () => {
-      card.classList.remove('playing');
-    });
-
-    // Cuando se pausa externamente, quitar estado
-    video.addEventListener('pause', () => {
-      card.classList.remove('playing');
-    });
+        video.play().catch(() => {});
+        card.classList.add('playing');
+      });
+      card.addEventListener('mouseleave', function () {
+        video.pause();
+        video.currentTime = 0;
+        card.classList.remove('playing');
+      });
+    }
   });
 }
 

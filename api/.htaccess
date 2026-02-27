@@ -1,29 +1,35 @@
 # ================================================================
-# Wooden House - .htaccess /api/
-# /api/ está FUERA del DocumentRoot (/public/).
-# Apache llega aquí por el Alias definido en el VirtualHost.
+# Wooden House — .htaccess /api/
 # ================================================================
 Options -Indexes -ExecCGI
 
-# ── Suprimir errores PHP en respuestas API ────────────────────────
-# Evita que warnings contaminen el JSON de respuesta
+# Suprimir errores PHP en respuestas (evita contaminar el JSON)
 php_flag display_errors Off
 php_flag display_startup_errors Off
+php_value error_reporting 0
 
-# ── Headers para respuestas API ───────────────────────────────────
+# CORS para llamadas desde el frontend
 <IfModule mod_headers.c>
     Header always set X-Content-Type-Options "nosniff"
     Header always set Cache-Control "no-store, no-cache, must-revalidate"
     Header always set Pragma "no-cache"
     Header always set X-Frame-Options "DENY"
+    Header always set Access-Control-Allow-Origin "*"
+    Header always set Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS"
+    Header always set Access-Control-Allow-Headers "Content-Type, Authorization, X-Requested-With"
 </IfModule>
 
-# ── Bloquear archivos sensibles ───────────────────────────────────
+# Responder preflight OPTIONS sin llegar a PHP
+RewriteEngine On
+RewriteCond %{REQUEST_METHOD} OPTIONS
+RewriteRule ^ - [L,R=204]
+
+# Bloquear archivos sensibles
 <FilesMatch "\.(env|log|bak|sql|sh|lock|yaml|yml|txt|md)$">
     Require all denied
 </FilesMatch>
 
-# ── Solo métodos HTTP válidos para API ────────────────────────────
+# Solo métodos válidos
 <LimitExcept GET POST PUT DELETE OPTIONS>
     Require all denied
 </LimitExcept>

@@ -29,15 +29,18 @@ function initFirebase() {
 
   // Auth — siempre disponible
   firebaseAuth = firebase.auth();
+  window.firebaseAuth = firebaseAuth;
 
   // Firestore — solo si el SDK fue incluido en la página
   if (typeof firebase.firestore === 'function') {
     firebaseFirestore = firebase.firestore();
+    window.firebaseFirestore = firebaseFirestore;
   }
 
   // Storage — solo si el SDK fue incluido en la página
   if (typeof firebase.storage === 'function') {
     firebaseStorage = firebase.storage();
+    window.firebaseStorage = firebaseStorage;
   }
 
   console.log('[OK] Firebase inicializado');

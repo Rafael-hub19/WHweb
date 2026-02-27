@@ -1,6 +1,5 @@
 # ================================================================
-# Wooden House - .htaccess /public/
-# DocumentRoot apunta a esta carpeta
+# Wooden House — .htaccess /public/  (DocumentRoot)
 # ================================================================
 Options -Indexes -ExecCGI
 
@@ -8,55 +7,42 @@ Options -Indexes -ExecCGI
     RewriteEngine On
     RewriteBase /
 
-    # No reescribir si el archivo o directorio existe físicamente
+    # No reescribir si el archivo o directorio ya existe
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteCond %{REQUEST_FILENAME} !-d
 
-    # ── Rutas limpias → archivo PHP ──────────────────────────────
-    RewriteRule ^catalogo/?$             catalogo.php                    [L,QSA]
-    RewriteRule ^login/?$                login.php                       [L,QSA]
-    RewriteRule ^carrito/?$              carrito-checkout.php            [L,QSA]
-    RewriteRule ^pago/?$                 pago.php                        [L,QSA]
-    RewriteRule ^solicitudes/?$          solicitudes.php                 [L,QSA]
-    RewriteRule ^detalle/([0-9]+)/?$     detalle_producto.php?id=$1      [L,QSA]
-    RewriteRule ^inicio/?$               index.php                       [L,QSA]
-    RewriteRule ^admin/?$                admin/panel_administrador.php   [L,QSA]
-    RewriteRule ^empleado/?$             empleado/panel_empleado.php     [L,QSA]
-
-    # /api/ es servido por el Alias en VirtualHost — no se toca aquí
-
-    # ── Bloquear User-Agents vacíos ───────────────────────────────
-    RewriteCond %{HTTP_USER_AGENT} ^$
-    RewriteRule ^ - [F,L]
-
-    # ── Hotlink protection: permite imágenes propias + Firebase ──
-    # Nota: Deshabilitado para evitar bloquear imágenes en páginas de pago o desde localhost
-    # RewriteCond %{HTTP_REFERER} !^$
-    # RewriteCond %{HTTP_REFERER} !^https?://(www\.)?muebleswh\.com [NC]
-    # RewriteCond %{HTTP_REFERER} !^https://firebasestorage\.googleapis\.com [NC]
-    # RewriteCond %{REQUEST_FILENAME} -f
-    # RewriteRule \.(jpg|jpeg|png|webp|gif|svg)$ - [F,L]
+    # Rutas limpias
+    RewriteRule ^$                           index.php                       [L,QSA]
+    RewriteRule ^inicio/?$                   index.php                       [L,QSA]
+    RewriteRule ^catalogo/?$                 catalogo.php                    [L,QSA]
+    RewriteRule ^login/?$                    login.php                       [L,QSA]
+    RewriteRule ^carrito/?$                  carrito-checkout.php            [L,QSA]
+    RewriteRule ^pago/?$                     pago.php                        [L,QSA]
+    RewriteRule ^solicitudes/?$              solicitudes.php                 [L,QSA]
+    RewriteRule ^detalle/([0-9]+)/?$         detalle_producto.php?id=$1      [L,QSA]
+    RewriteRule ^admin/?$                    admin/panel_administrador.php   [L,QSA]
+    RewriteRule ^empleado/?$                 empleado/panel_empleado.php     [L,QSA]
 </IfModule>
 
-# ── Bloquear archivos sensibles ───────────────────────────────────
-<FilesMatch "\.(env|log|bak|sh|lock|yaml|yml|gitignore)$">
+# Bloquear archivos sensibles
+<FilesMatch "\.(env|log|bak|sh|lock|yaml|yml|gitignore|sql)$">
     Require all denied
 </FilesMatch>
 <Files ".env">
     Require all denied
 </Files>
 
-# ── Headers de seguridad HTTP ─────────────────────────────────────
+# ── Seguridad HTTP ────────────────────────────────────────────────
 <IfModule mod_headers.c>
+    Header always unset X-Powered-By
+    Header always unset Server
     Header always set X-Content-Type-Options "nosniff"
     Header always set X-Frame-Options "SAMEORIGIN"
     Header always set X-XSS-Protection "1; mode=block"
     Header always set Referrer-Policy "strict-origin-when-cross-origin"
-    Header always set Permissions-Policy "geolocation=(), camera=(), microphone=(), payment=(self)"
     Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains"
-    Header unset X-Powered-By
-    Header unset Server
 
+    # Content Security Policy
     Header always set Content-Security-Policy "default-src 'self'; \
         script-src 'self' 'unsafe-inline' \
             https://js.stripe.com \
@@ -65,26 +51,15 @@ Options -Indexes -ExecCGI
             https://www.paypalobjects.com \
             https://www.gstatic.com \
             https://apis.google.com \
-            https://maps.googleapis.com \
-            https://maps.google.com \
-            https://www.googletagmanager.com \
-            https://static.cloudflareinsights.com \
-            https://cdnjs.cloudflare.com \
-            https://www.instagram.com \
-            https://connect.facebook.net; \
+            https://cdnjs.cloudflare.com; \
         style-src 'self' 'unsafe-inline' \
             https://fonts.googleapis.com \
-            https://maps.googleapis.com \
             https://cdnjs.cloudflare.com; \
         font-src 'self' \
             https://fonts.gstatic.com \
-            https://cdnjs.cloudflare.com; \
-        img-src 'self' data: blob: https: \
-            https://maps.gstatic.com \
-            https://maps.googleapis.com \
-            https://www.paypalobjects.com \
-            https://www.sandbox.paypal.com \
-            https://firebasestorage.googleapis.com; \
+            https://cdnjs.cloudflare.com \
+            data:; \
+        img-src 'self' data: blob: https:; \
         connect-src 'self' \
             https://*.firebaseio.com \
             https://firestore.googleapis.com \
@@ -96,59 +71,44 @@ Options -Indexes -ExecCGI
             https://*.firebaseapp.com \
             https://js.stripe.com \
             https://api.stripe.com \
-            https://merchant-ui-api.stripe.com \
             https://m.stripe.com \
             https://m.stripe.network \
             https://api-m.sandbox.paypal.com \
             https://api-m.paypal.com \
-            https://www.sandbox.paypal.com \
             https://www.paypal.com \
-            https://maps.googleapis.com \
-            https://www.gstatic.com \
-            https://www.instagram.com \
-            https://graph.instagram.com \
-            https://i.instagram.com; \
+            https://www.sandbox.paypal.com; \
         frame-src \
             https://js.stripe.com \
             https://hooks.stripe.com \
             https://m.stripe.com \
-            https://m.stripe.network \
             https://www.paypal.com \
-            https://www.sandbox.paypal.com \
-            https://www.google.com \
-            https://maps.google.com \
-            https://www.google.com/maps \
-            https://www.instagram.com \
-            https://instagram.com; \
-        media-src 'self' \
+            https://www.sandbox.paypal.com; \
+        media-src 'self' blob: \
             https://firebasestorage.googleapis.com; \
         worker-src blob:; \
         object-src 'none'; \
         base-uri 'self';"
 
-    <FilesMatch "^(panel_administrador|panel_empleado)\.php$">
+    # Sin caché para PHP
+    <FilesMatch "\.php$">
         Header always set Cache-Control "no-store, no-cache, must-revalidate"
         Header always set Pragma "no-cache"
-    </FilesMatch>
-
-    <FilesMatch "^.*\.php$">
-        Header always set Cache-Control "no-store, no-cache, must-revalidate"
     </FilesMatch>
 </IfModule>
 
 # ── Caché para assets estáticos ───────────────────────────────────
 <IfModule mod_expires.c>
     ExpiresActive On
-    ExpiresByType text/css                  "access plus 1 month"
-    ExpiresByType application/javascript    "access plus 1 month"
-    ExpiresByType image/jpeg                "access plus 6 months"
-    ExpiresByType image/png                 "access plus 6 months"
-    ExpiresByType image/webp                "access plus 6 months"
-    ExpiresByType image/svg+xml             "access plus 1 month"
-    ExpiresByType font/woff2                "access plus 1 year"
+    ExpiresByType text/css               "access plus 1 month"
+    ExpiresByType application/javascript "access plus 1 month"
+    ExpiresByType image/jpeg             "access plus 6 months"
+    ExpiresByType image/png              "access plus 6 months"
+    ExpiresByType image/webp             "access plus 6 months"
+    ExpiresByType image/svg+xml          "access plus 1 month"
+    ExpiresByType font/woff2             "access plus 1 year"
 </IfModule>
 
-# ── Comprimir respuestas ──────────────────────────────────────────
+# ── Compresión ────────────────────────────────────────────────────
 <IfModule mod_deflate.c>
     AddOutputFilterByType DEFLATE text/html text/css application/javascript application/json
 </IfModule>

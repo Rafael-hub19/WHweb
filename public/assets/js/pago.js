@@ -78,16 +78,7 @@ function cargarResumen() {
   const clienteCorreo   = checkout.correo_cliente   || formData.correo   || '';
   const clienteTelefono = checkout.telefono_cliente || formData.telefono || '';
 
-  // Siempre mostrar sección de confirmación de datos del cliente
-  // Pre-rellenar con datos del carrito si existen
-  const seccion = document.getElementById('seccion-cliente');
-  if (seccion) seccion.style.display = 'block';
-  const pn = document.getElementById('pagoNombre');
-  const pc = document.getElementById('pagoCorreo');
-  const pt = document.getElementById('pagoTelefono');
-  if (pn && clienteNombre) pn.value = clienteNombre;
-  if (pc && clienteCorreo) pc.value = clienteCorreo;
-  if (pt && clienteTelefono) pt.value = clienteTelefono;
+  // Los datos del cliente se toman del checkout/carrito (seccion-cliente eliminada del HTML)
 
   orderData = {
     carrito,
@@ -210,6 +201,10 @@ function initPayPal() {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ pedido_id: pedidoCreado.pedido_id }),
         });
+        const ct = res.headers.get('content-type') || '';
+        if (!ct.includes('application/json')) {
+          throw new Error('Error del servidor al crear orden PayPal. Intenta con Stripe.');
+        }
         const data = await res.json();
         if (!data.success) throw new Error(data.error || 'Error al crear orden PayPal');
         return data.order_id;
@@ -246,29 +241,21 @@ async function crearPedidoEnBD() {
     showError(msg); throw new Error(msg);
   }
 
-  // Si los datos del cliente no están en orderData, leerlos del formulario de la página
-  const pagoNombre   = document.getElementById('pagoNombre')?.value.trim()   || '';
-  const pagoCorreo   = document.getElementById('pagoCorreo')?.value.trim()   || '';
-  const pagoTelefono = document.getElementById('pagoTelefono')?.value.trim() || '';
-
+  // Datos del cliente vienen del checkout (carrito/entrega)
   const clienteData = {
-    nombre:   orderData.cliente?.nombre   || pagoNombre,
-    correo:   orderData.cliente?.correo   || pagoCorreo,
-    telefono: orderData.cliente?.telefono || pagoTelefono,
+    nombre:   orderData.cliente?.nombre   || '',
+    correo:   orderData.cliente?.correo   || '',
+    telefono: orderData.cliente?.telefono || '',
   };
 
   if (!clienteData.nombre || clienteData.nombre.length < 3) {
-    const msg = 'Por favor ingresa tu nombre completo.';
+    const msg = 'Por favor ingresa tu nombre completo en el carrito antes de pagar.';
     showError(msg);
-    document.getElementById('pagoNombre')?.focus();
-    document.getElementById('seccion-cliente')?.scrollIntoView({behavior:'smooth'});
     throw new Error(msg);
   }
   if (!clienteData.correo || !clienteData.correo.includes('@')) {
-    const msg = 'Por favor ingresa un correo electrónico válido.';
+    const msg = 'Por favor ingresa un correo electrónico válido en el carrito antes de pagar.';
     showError(msg);
-    document.getElementById('pagoCorreo')?.focus();
-    document.getElementById('seccion-cliente')?.scrollIntoView({behavior:'smooth'});
     throw new Error(msg);
   }
 
