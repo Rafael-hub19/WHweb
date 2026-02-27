@@ -99,6 +99,14 @@ function initVideos() {
     const video = card.querySelector('video');
     if (!video) return;
 
+    // Soporte lazy-load: si el <source> tiene data-src en lugar de src, cargar ahora
+    const source = video.querySelector('source[data-src]');
+    if (source) {
+      source.src = source.getAttribute('data-src');
+      source.removeAttribute('data-src');
+      video.load();
+    }
+
     // Inject transparent play button for mobile
     if (!card.querySelector('.video-play-btn')) {
       const playBtn = document.createElement('div');
@@ -121,7 +129,7 @@ function initVideos() {
         }
       });
     } else {
-      // Desktop: hover para reproducir/pausar (sin botón visible)
+      // Desktop: hover para reproducir/pausar
       card.addEventListener('mouseenter', function () {
         pauseAll(video);
         video.play().catch(() => {});

@@ -68,9 +68,10 @@ Options -Indexes -ExecCGI
             https://maps.gstatic.com \
             https://maps.googleapis.com \
             https://www.paypalobjects.com; \
-        media-src 'self' blob: \
+        media-src 'self' blob: https: \
             https://firebasestorage.googleapis.com \
-            https://*.firebasestorage.app; \
+            https://*.firebasestorage.app \
+            https://storage.googleapis.com; \
         connect-src 'self' \
             https://*.firebaseio.com \
             https://firestore.googleapis.com \
@@ -103,7 +104,7 @@ Options -Indexes -ExecCGI
             https://www.google.com \
             https://maps.google.com \
             https://www.google.com/maps; \
-        worker-src blob:; \
+        worker-src 'self' blob:; \
         object-src 'none'; \
         base-uri 'self';"
 

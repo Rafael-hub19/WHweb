@@ -9,9 +9,7 @@ Options -Indexes
     # Bloquear carpetas internas sensibles
     RewriteRule ^(includes|database|logs|firebase|\.git|vendor|backup|tmp)(/|$) - [F,L]
 
-    # Bloquear User-Agents vacíos
-    RewriteCond %{HTTP_USER_AGENT} ^$
-    RewriteRule ^ - [F,L]
+    # Nota: No bloqueamos User-Agents vacíos porque PHP/curl internos no siempre los envían
 </IfModule>
 
 # Bloquear archivos sensibles

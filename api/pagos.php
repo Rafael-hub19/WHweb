@@ -12,6 +12,7 @@ if ($action === 'stripe_intent') {
     $body    = getJsonBody();
     requireFields($body, ['pedido_id']);
     $pedidoId = sanitizeInt($body['pedido_id']);
+    if ($pedidoId <= 0) jsonError('pedido_id inválido', 422);
     $pedido  = dbRow("SELECT id, numero_pedido, nombre_cliente, correo_cliente, total FROM pedidos WHERE id = ?", [$pedidoId]);
     if (!$pedido) jsonError('Pedido no encontrado', 404);
 

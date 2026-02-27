@@ -54,7 +54,7 @@
             <div class="section-card">
                 <h3 class="section-title"><span class="section-icon"><i class="fa-solid fa-truck"></i></span> Tipo de entrega</h3>
                 <div class="delivery-options">
-                    <div class="option-card" id="optionRecoger" onclick="seleccionarEntrega('recoger')">
+                    <div class="option-card selected" id="optionRecoger" onclick="seleccionarEntrega('recoger')">
                         <input type="radio" name="tipoEntrega" value="recoger" checked>
                         <div class="option-content">
                             <div class="option-header">
@@ -67,7 +67,7 @@
                         </div>
                     </div>
 
-                    <div class="option-card selected" id="optionEnvio" onclick="seleccionarEntrega('envio')">
+                    <div class="option-card" id="optionEnvio" onclick="seleccionarEntrega('envio')">
                         <input type="radio" name="tipoEntrega" value="envio">
                         <div class="option-content">
                             <div class="option-header">

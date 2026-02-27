@@ -25,21 +25,38 @@ require_once dirname(__DIR__) . '/includes/auth.php';
 require_once dirname(__DIR__) . '/includes/notifications.php';
 
 // ── CORS ──────────────────────────────────────────────────────────
-// Solo permitir peticiones desde tu propio dominio
-// En desarrollo puedes agregar http://localhost:8080 etc.
+// Permitir peticiones desde el dominio propio (con y sin www)
 $allowedOrigins = array_filter(array_map('trim', explode(',',
     env('CORS_ALLOWED_ORIGINS', APP_URL)
 )));
 
+// Agregar automáticamente variante www/sin-www del APP_URL
+$appUrlBase = rtrim(env('APP_URL', ''), '/');
+if ($appUrlBase) {
+    $parsed = parse_url($appUrlBase);
+    $scheme = $parsed['scheme'] ?? 'https';
+    $host   = $parsed['host']   ?? '';
+    // Agregar sin www
+    $hostSinWww = preg_replace('/^www\./', '', $host);
+    $allowedOrigins[] = $scheme . '://' . $hostSinWww;
+    // Agregar con www
+    $allowedOrigins[] = $scheme . '://www.' . $hostSinWww;
+    // Puerto si lo tiene
+    if (!empty($parsed['port'])) {
+        $allowedOrigins[] = $scheme . '://' . $host . ':' . $parsed['port'];
+    }
+}
+$allowedOrigins = array_unique(array_filter($allowedOrigins));
+
 $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
-if (in_array($origin, $allowedOrigins, true)) {
+if ($origin && in_array($origin, $allowedOrigins, true)) {
     header("Access-Control-Allow-Origin: {$origin}");
     header('Vary: Origin');
-} elseif (empty($origin)) {
-    // Petición sin origen (ej. curl, Postman) - solo en desarrollo
-    if (APP_DEBUG) {
-        header('Access-Control-Allow-Origin: *');
-    }
+} elseif (!$origin) {
+    // Petición sin origen (curl, Postman, PHP interno) — permitir siempre
+    header('Access-Control-Allow-Origin: ' . ($appUrlBase ?: '*'));
+} else {
+    // Origen desconocido — denegar silenciosamente (sin header Allow-Origin)
 }
 
 header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
