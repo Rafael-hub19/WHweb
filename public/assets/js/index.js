@@ -99,7 +99,7 @@ function initVideos() {
     const video = card.querySelector('video');
     if (!video) return;
 
-    // Soporte lazy-load: si el <source> tiene data-src en lugar de src, cargar ahora
+    // Lazy-load: si el <source> tiene data-src, cargar ahora
     const source = video.querySelector('source[data-src]');
     if (source) {
       source.src = source.getAttribute('data-src');
@@ -107,16 +107,14 @@ function initVideos() {
       video.load();
     }
 
-    // Inject transparent play button for mobile
-    if (!card.querySelector('.video-play-btn')) {
+    if (isTouchDevice) {
+      // Móvil/tablet: inyectar botón play transparente
       const playBtn = document.createElement('div');
       playBtn.className = 'video-play-btn';
       playBtn.innerHTML = '<svg viewBox="0 0 24 24"><polygon points="5,3 19,12 5,21"/></svg>';
       card.appendChild(playBtn);
-    }
 
-    if (isTouchDevice) {
-      // Móvil: tap para reproducir/pausar (toggle)
+      // Tap para reproducir/pausar
       card.addEventListener('click', function (e) {
         e.preventDefault();
         if (card.classList.contains('playing')) {
@@ -129,7 +127,7 @@ function initVideos() {
         }
       });
     } else {
-      // Desktop: hover para reproducir/pausar
+      // Desktop: hover para reproducir/pausar — sin botón de play
       card.addEventListener('mouseenter', function () {
         pauseAll(video);
         video.play().catch(() => {});
