@@ -296,10 +296,6 @@
     .tab-pane { display: none; }
     .tab-pane.active { display: block; }
 
-    .tab-content, .tab-pane > * {
-      /* tab-pane hereda el fondo del contenedor */
-    }
-
     /* ===== ESPECIFICACIONES ===== */
     /* El JS genera .spec-key y .spec-val, el CSS viejo tenía .spec-label y .spec-value */
     /* Unificamos ambos */
@@ -527,6 +523,7 @@
       font-weight: 700;
       padding: 6px 4px;
       /* quitar flechas nativas */
+      appearance: textfield;
       -moz-appearance: textfield;
     }
     .quantity-input::-webkit-inner-spin-button,

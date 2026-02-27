@@ -1,4 +1,10 @@
 <?php
+// ── CRÍTICO: Suprimir errores PHP ANTES de cualquier output ─────
+// Evita que warnings/notices contaminen la respuesta JSON
+ini_set('display_errors', 0);
+ini_set('display_startup_errors', 0);
+error_reporting(0);
+
 /**
  * _helpers.php - Bootstrap de la API + Headers de seguridad
  * Se incluye al inicio de cada archivo en /api/

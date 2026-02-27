@@ -42,7 +42,7 @@ Options -Indexes -ExecCGI
     Header always set Referrer-Policy "strict-origin-when-cross-origin"
     Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains"
 
-    # Content Security Policy
+    # ── Content Security Policy ───────────────────────────────────
     Header always set Content-Security-Policy "default-src 'self'; \
         script-src 'self' 'unsafe-inline' \
             https://js.stripe.com \
@@ -51,15 +51,26 @@ Options -Indexes -ExecCGI
             https://www.paypalobjects.com \
             https://www.gstatic.com \
             https://apis.google.com \
-            https://cdnjs.cloudflare.com; \
+            https://maps.googleapis.com \
+            https://cdnjs.cloudflare.com \
+            https://static.cloudflareinsights.com \
+            https://www.googletagmanager.com \
+            https://www.google-analytics.com; \
         style-src 'self' 'unsafe-inline' \
             https://fonts.googleapis.com \
-            https://cdnjs.cloudflare.com; \
-        font-src 'self' \
-            https://fonts.gstatic.com \
             https://cdnjs.cloudflare.com \
-            data:; \
-        img-src 'self' data: blob: https:; \
+            https://maps.googleapis.com; \
+        font-src 'self' data: \
+            https://fonts.gstatic.com \
+            https://cdnjs.cloudflare.com; \
+        img-src 'self' data: blob: https: \
+            https://firebasestorage.googleapis.com \
+            https://maps.gstatic.com \
+            https://maps.googleapis.com \
+            https://www.paypalobjects.com; \
+        media-src 'self' blob: \
+            https://firebasestorage.googleapis.com \
+            https://*.firebasestorage.app; \
         connect-src 'self' \
             https://*.firebaseio.com \
             https://firestore.googleapis.com \
@@ -68,23 +79,30 @@ Options -Indexes -ExecCGI
             https://securetoken.googleapis.com \
             https://oauth2.googleapis.com \
             https://firebasestorage.googleapis.com \
+            https://*.firebasestorage.app \
             https://*.firebaseapp.com \
             https://js.stripe.com \
             https://api.stripe.com \
             https://m.stripe.com \
             https://m.stripe.network \
+            https://merchant-ui-api.stripe.com \
             https://api-m.sandbox.paypal.com \
             https://api-m.paypal.com \
             https://www.paypal.com \
-            https://www.sandbox.paypal.com; \
+            https://www.sandbox.paypal.com \
+            https://maps.googleapis.com \
+            https://cloudflareinsights.com \
+            https://static.cloudflareinsights.com; \
         frame-src \
             https://js.stripe.com \
             https://hooks.stripe.com \
             https://m.stripe.com \
+            https://m.stripe.network \
             https://www.paypal.com \
-            https://www.sandbox.paypal.com; \
-        media-src 'self' blob: \
-            https://firebasestorage.googleapis.com; \
+            https://www.sandbox.paypal.com \
+            https://www.google.com \
+            https://maps.google.com \
+            https://www.google.com/maps; \
         worker-src blob:; \
         object-src 'none'; \
         base-uri 'self';"
