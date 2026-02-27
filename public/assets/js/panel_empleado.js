@@ -3,11 +3,17 @@
     function closeModal(id){ document.getElementById(id)?.classList.remove('active'); }
 
     function showNotification(message, type='info'){
+      document.querySelectorAll('.notification').forEach(n => n.remove());
+      const icons = { success: 'fa-circle-check', error: 'fa-circle-xmark', info: 'fa-circle-info', warning: 'fa-triangle-exclamation' };
       const notif = document.createElement('div');
       notif.className = `notification ${type}`;
-      notif.textContent = message;
+      notif.innerHTML = `<i class="fa-solid ${icons[type] || 'fa-circle-info'}" style="margin-right:8px;"></i>${message}`;
       document.body.appendChild(notif);
-      setTimeout(() => notif.remove(), 3200);
+      const delay = type === 'error' ? 5000 : 3500;
+      setTimeout(() => {
+        notif.style.cssText += ';opacity:0;transform:translateX(120%);transition:all .3s ease';
+        setTimeout(() => notif.remove(), 350);
+      }, delay);
     }
 
     function escapeHtml(str){
@@ -19,8 +25,15 @@
         .replaceAll("'","&#039;");
     }
 
-    function logout(){
-      if(confirm('¿Cerrar sesión?')) window.location.href = '/login';
+    async function logout(){
+      if(!confirm('¿Cerrar sesión?')) return;
+      try {
+        if(typeof firebaseAuth !== 'undefined') await firebaseAuth.signOut();
+      } catch(e) {}
+      sessionStorage.removeItem('wh_firebase_token');
+      sessionStorage.removeItem('wh_usuario');
+      await fetch('/api/auth.php?action=logout', { method: 'POST' }).catch(() => {});
+      window.location.href = '/login?logout=1';
     }
 
     // ================== MENÚ HAMBURGUESA (MÓVIL) ==================
@@ -864,8 +877,9 @@ async function logout() {
   try {
     if (typeof firebaseAuth !== 'undefined') await firebaseAuth.signOut();
   } catch(e) {}
-  await fetch('/api/auth.php?action=logout', { method: 'POST' });
-  window.location.href = '/login';
+  await fetch('/api/auth.php?action=logout', { method: 'POST', credentials: 'same-origin' });
+  sessionStorage.setItem('wh_just_logged_out', '1');
+  window.location.replace('/login?logout=1');
 }
 
 // --- Pedidos ---
@@ -997,14 +1011,21 @@ async function refreshKpisAPI() {
   } catch(e) {}
 }
 
-// Verificar auth y cargar datos al iniciar
+// Verificar auth al iniciar (en segundo DOMContentLoaded)
 document.addEventListener('DOMContentLoaded', () => {
   if (typeof firebaseAuth !== 'undefined') {
+    // Solo redirigir si Firebase pierde sesión DESPUÉS de cargar
+    let initialized = false;
     firebaseAuth.onAuthStateChanged(user => {
-      if (!user) window.location.href = '/login';
+      if (!initialized) { initialized = true; return; } // ignorar primer disparo
+      if (!user) window.location.href = '/login?logout=1';
     });
   }
+  // Cargar nombre y KPIs
+  setTimeout(cargarNombreEmpleado, 200);
   setTimeout(refreshKpisAPI, 400);
+  // Cargar sección activa inicial
+  showSection('dashboard');
 });
 
 // showSection integrado en función principal

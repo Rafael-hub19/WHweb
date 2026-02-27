@@ -115,8 +115,8 @@
 
     .main-image {
       width: 100%;
-      aspect-ratio: 3/4;
-      background: linear-gradient(135deg, #4a4a4a, #2d2d2d);
+      aspect-ratio: 4/5;           /* Ratio vertical para muebles de baño */
+      background: linear-gradient(135deg, #3d3d3d, #2a2a2a);
       border-radius: 15px;
       display: flex;
       align-items: center;
@@ -131,9 +131,12 @@
     .main-image img {
       width: 100%;
       height: 100%;
-      object-fit: cover;
-      object-position: center top;
+      object-fit: contain;         /* Mostrar imagen COMPLETA sin recortar */
+      object-position: center center;
       display: block;
+      padding: 6px;               /* pequeño margen para que no toque los bordes */
+      box-sizing: border-box;
+      background: linear-gradient(135deg, #3d3d3d, #2a2a2a);
     }
 
     .thumbnails {
@@ -293,6 +296,10 @@
     .tab-pane { display: none; }
     .tab-pane.active { display: block; }
 
+    .tab-content, .tab-pane > * {
+      /* tab-pane hereda el fondo del contenedor */
+    }
+
     /* ===== ESPECIFICACIONES ===== */
     /* El JS genera .spec-key y .spec-val, el CSS viejo tenía .spec-label y .spec-value */
     /* Unificamos ambos */
@@ -437,7 +444,13 @@
     @media (max-width: 520px) {
       .thumbnails { grid-template-columns: repeat(2, 1fr); }
       .spec-row { grid-template-columns: 1fr; }
-      .main-image { height: 320px; }
+      /* Sin altura fija - aspect-ratio 4/3 lo controla */
+    }
+
+    @media (max-width: 400px) {
+      .main-image { aspect-ratio: 1/1; }  /* cuadrado en pantallas muy pequeñas */
+      .thumbnails { grid-template-columns: repeat(4, 1fr); }
+      .thumbnail, .thumb { height: 60px; }
     }
     /* ===== Especificaciones por secciones (modelos reales) ===== */
     .spec-section-title {
@@ -514,7 +527,7 @@
       font-weight: 700;
       padding: 6px 4px;
       /* quitar flechas nativas */
-      appearance: textfield;
+      -moz-appearance: textfield;
     }
     .quantity-input::-webkit-inner-spin-button,
     .quantity-input::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
@@ -656,3 +669,11 @@
       margin-left: 8px;
     }
     .product-header { display: flex; flex-direction: column; gap: 4px; }
+
+    @media (max-width: 360px) {
+      .main-image { aspect-ratio: 1/1; }   /* square on very small phones */
+      .thumbnails { grid-template-columns: repeat(3, 1fr); }
+      .tab-btn { padding: 10px 12px; font-size: 13px; }
+      .product-title { font-size: 20px; }
+      .price-large { font-size: 26px; }
+    }

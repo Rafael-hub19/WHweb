@@ -80,43 +80,35 @@ function initSmoothScroll() {
 // VIDEOS DE PROYECTOS
 // ================================================
 function initVideos() {
-  const isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
   const cards = document.querySelectorAll('.video-card');
   if (!cards.length) return;
 
-  // ── Lazy load: cargar el src del video solo cuando entra al viewport ──
+  // ── Lazy load: carga el src solo cuando el video entra al viewport ──
+  const loadVideo = (card) => {
+    const video = card.querySelector('video');
+    if (!video) return;
+    const source = video.querySelector('source[data-src]');
+    if (source && !source.src) {
+      source.src = source.dataset.src;
+      video.load();
+    }
+  };
+
   if ('IntersectionObserver' in window) {
-    const videoObserver = new IntersectionObserver((entries) => {
+    const observer = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
         if (entry.isIntersecting) {
-          const video = entry.target.querySelector('video');
-          if (video) {
-            const source = video.querySelector('source');
-            if (source && source.dataset.src) {
-              source.src = source.dataset.src;
-              video.load();
-            }
-          }
-          videoObserver.unobserve(entry.target);
+          loadVideo(entry.target);
+          observer.unobserve(entry.target);
         }
       });
-    }, { rootMargin: '200px' });
-
-    cards.forEach(card => videoObserver.observe(card));
+    }, { rootMargin: '300px' });
+    cards.forEach(card => observer.observe(card));
   } else {
-    // Fallback para navegadores sin IntersectionObserver
-    cards.forEach(card => {
-      const video = card.querySelector('video');
-      if (video) {
-        const source = video.querySelector('source');
-        if (source && source.dataset.src) {
-          source.src = source.dataset.src;
-          video.load();
-        }
-      }
-    });
+    cards.forEach(loadVideo);
   }
 
+  // ── Pausa todos excepto el indicado ──
   function pauseAll(exceptVideo = null) {
     cards.forEach(c => {
       const v = c.querySelector('video');
@@ -128,37 +120,43 @@ function initVideos() {
     });
   }
 
+  // ── Click/Tap: toggle play/pause (funciona en mobile Y desktop) ──
   cards.forEach(card => {
     const video = card.querySelector('video');
     if (!video) return;
 
-    if (isTouchDevice) {
-      // Móvil / tablet: reproducir al tocar, pausar al soltar el dedo
-      card.addEventListener('touchstart', function (e) {
-        e.preventDefault();
-        pauseAll(video);
-        video.play().catch(() => {});
-        card.classList.add('playing');
-      }, { passive: false });
+    // Asegurar que el video nunca autoplaye solo
+    video.autoplay = false;
+    video.removeAttribute('autoplay');
 
-      card.addEventListener('touchend', function () {
+    card.addEventListener('click', function (e) {
+      e.preventDefault();
+      // Cargar video si todavía no se cargó
+      loadVideo(card);
+      const isPlaying = card.classList.contains('playing');
+      if (isPlaying) {
         video.pause();
-        video.currentTime = 0;
         card.classList.remove('playing');
-      });
-    } else {
-      // Desktop: hover para reproducir/pausar
-      card.addEventListener('mouseenter', function () {
+      } else {
         pauseAll(video);
-        video.play().catch(() => {});
-        card.classList.add('playing');
-      });
-      card.addEventListener('mouseleave', function () {
-        video.pause();
-        video.currentTime = 0;
-        card.classList.remove('playing');
-      });
-    }
+        video.play()
+          .then(() => card.classList.add('playing'))
+          .catch(() => {
+            // En algunos browsers el play falla sin interacción previa - mostrar error silencioso
+            card.classList.remove('playing');
+          });
+      }
+    });
+
+    // Cuando termina, quitar el estado playing
+    video.addEventListener('ended', () => {
+      card.classList.remove('playing');
+    });
+
+    // Cuando se pausa externamente, quitar estado
+    video.addEventListener('pause', () => {
+      card.classList.remove('playing');
+    });
   });
 }
 

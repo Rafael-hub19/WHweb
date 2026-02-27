@@ -41,7 +41,9 @@ if (!$paypalId)  error_log('[pago.php] PAYPAL_CLIENT_ID vacío o no definido');
     id="paypalScript">
   </script>
 
-  <link rel="stylesheet" href="./assets/css/pago.css">
+    <link rel="stylesheet" href="/assets/css/variables.css">
+  <link rel="stylesheet" href="/assets/css/styles.css">
+<link rel="stylesheet" href="./assets/css/pago.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 </head>
 <body>
@@ -78,6 +80,8 @@ if (!$paypalId)  error_log('[pago.php] PAYPAL_CLIENT_ID vacío o no definido');
       <!-- Columna izquierda: métodos de pago -->
       <div class="payment-section">
 
+        <!-- Error global visible para todos los métodos de pago -->
+        <div id="payment-error-global" style="display:none; background:rgba(231,76,60,0.1); border:1px solid #e74c3c; border-radius:10px; padding:14px 18px; margin-bottom:20px; color:#e74c3c; font-size:14px; font-weight:600;"></div>
         <div class="notice" id="noticeBox" style="display:none;">
           <strong><i class="fa-solid fa-triangle-exclamation"></i> No hay datos del carrito.</strong><br>
           <a href="/catalogo">Regresa al catálogo</a> para seleccionar productos.

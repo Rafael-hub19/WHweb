@@ -114,8 +114,13 @@
       }
     }
 
-    function logout(){
-      if(confirm('¿Cerrar sesión?')) window.location.href = '/login';
+    async function logout(){
+      if(!confirm('¿Cerrar sesión?')) return;
+      try { if(typeof firebaseAuth !== 'undefined') await firebaseAuth.signOut(); } catch(e) {}
+      sessionStorage.removeItem('wh_firebase_token');
+      sessionStorage.removeItem('wh_usuario');
+      await fetch('/api/auth.php?action=logout', { method: 'POST', credentials: 'same-origin' }).catch(()=>{});
+      window.location.replace('/login?logout=1');
     }
 
     /* =========================
@@ -1248,8 +1253,9 @@ async function logoutAdmin() {
     if (typeof logoutFirebase === 'function') await logoutFirebase();
     else if (typeof firebaseAuth !== 'undefined') await firebaseAuth.signOut();
   } catch(e) {}
-  await fetch('/api/auth.php?action=logout', { method: 'POST' });
-  window.location.href = '/login';
+  await fetch('/api/auth.php?action=logout', { method: 'POST', credentials: 'same-origin' });
+  sessionStorage.setItem('wh_just_logged_out', '1');
+  window.location.replace('/login?logout=1');
 }
 
 // ── KPIs - Cargar desde API real ──────────────────────
@@ -1497,7 +1503,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if (typeof firebaseAuth !== 'undefined') {
     firebaseAuth.onAuthStateChanged(async (user) => {
       if (!user) {
-        window.location.href = '/login';
+        window.location.replace('/login?logout=1');
       }
     });
   }

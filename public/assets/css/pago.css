@@ -719,3 +719,40 @@ body {
     font-size: 24px;
   }
 }
+/* ── Customer confirmation section ────────────────────── */
+#seccion-cliente input {
+  transition: border-color 0.2s;
+}
+#seccion-cliente input:focus {
+  outline: none;
+  border-color: #8b7355 !important;
+  box-shadow: 0 0 0 3px rgba(139,115,85,.15);
+}
+#seccion-cliente input::placeholder {
+  color: #555;
+}
+
+/* ── RESPONSIVE EXTRA (fix mobile) ───────────────────── */
+@media (max-width: 380px) {
+  .container { padding: 20px 14px; }
+  .page-title { font-size: 22px; }
+  .steps-indicator { display: none; } /* muy pequeño para mostrar steps */
+  .payment-section { padding: 16px; }
+  .order-summary   { padding: 16px; }
+  .btn-pay { padding: 14px 20px; font-size: 15px; }
+}
+
+/* Asegurar que PayPal botón no se salga en móvil */
+#paypal-button-container {
+  max-width: 100%;
+  overflow: hidden;
+}
+
+/* Error global de pago */
+#payment-error-global {
+  animation: fadeIn .3s ease;
+}
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}

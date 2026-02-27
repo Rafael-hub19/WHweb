@@ -342,6 +342,9 @@
     border:1px solid var(--border);
     border-radius:10px;
     overflow:hidden;
+    overflow-x:auto;
+    -webkit-overflow-scrolling:touch;
+    width:100%;
   }
 
   .table-filters{
@@ -489,24 +492,40 @@
     position:fixed;
     top:70px;
     right:14px;
-    background:var(--panel);
+    background:#1e2122;
     border:1px solid var(--border);
-    padding:12px 14px;
+    padding:14px 18px;
     border-radius:12px;
-    border-left:4px solid;
-    z-index:7000;
-    max-width:340px;
-    font-size:12px;
-    white-space:pre-line;
-    animation:slideIn .25s;
+    border-left:5px solid;
+    z-index:9000;
+    max-width:360px;
+    font-size:13px;
+    font-weight:500;
+    line-height:1.4;
+    color:#e8e8e8;
+    box-shadow:0 8px 24px rgba(0,0,0,.5);
+    display:flex;
+    align-items:center;
+    gap:8px;
+    animation:slideIn .3s cubic-bezier(.22,1,.36,1);
+    word-break:break-word;
   }
-  .notification.success{ border-left-color:var(--ok); }
-  .notification.error{ border-left-color:var(--danger); }
-  .notification.info{ border-left-color:var(--info); }
+  .notification.success{ border-left-color:#4caf50; color:#81c784; }
+  .notification.success i{ color:#4caf50; }
+  .notification.error{ border-left-color:#f44336; color:#e57373; }
+  .notification.error i{ color:#f44336; }
+  .notification.info{ border-left-color:#2196f3; color:#90caf9; }
+  .notification.info i{ color:#2196f3; }
+  .notification.warning{ border-left-color:#ff9800; color:#ffb74d; }
+  .notification.warning i{ color:#ff9800; }
 
   @keyframes slideIn{
-    from{ transform:translateX(360px); opacity:0; }
+    from{ transform:translateX(120%); opacity:0; }
     to{ transform:translateX(0); opacity:1; }
+  }
+  @keyframes slideOut{
+    from{ transform:translateX(0); opacity:1; }
+    to{ transform:translateX(120%); opacity:0; }
   }
 
   /* NAV LINKS (MENÚ HAMBURGUESA) */
@@ -713,7 +732,8 @@
     .sidebar{ display:none; }
     .menu-toggle{ display:inline-flex; }
     .main-content{ padding:14px; }
-    table{ min-width:900px; }
+    .table-wrap{ overflow-x:auto; -webkit-overflow-scrolling:touch; width:100%; }
+    table{ min-width:700px; }
     .cal-side{ grid-template-columns:1fr; }
     .cal-day{ min-height:78px; }
   }
@@ -729,4 +749,42 @@
     .cal-dow{ font-size:10px; padding:6px 0; }
     .cal-day{ min-height:56px; padding:6px; border-radius:10px; }
     .cal-chip{ display:none; }
+  }
+
+  /* ── CLASES DE ESTADO FALTANTES ──────────────────── */
+  .status-info     { background: var(--info);   color: #fff; }
+  .status-warn     { background: var(--warn);   color: #fff; }
+  .status-disabled { background: #444;          color: #888; }
+  .status-warning  { background: var(--warn);   color: #fff; }
+
+  /* ── ANIMACIÓN DE SALIDA PARA NOTIFICACIONES ─────── */
+  @keyframes slideOut {
+    from { transform: translateX(0); opacity: 1; }
+    to   { transform: translateX(360px); opacity: 0; }
+  }
+
+  /* ── NOTIFICATION: color de texto explícito ─────── */
+  .notification { color: var(--text); }
+  .notification i { margin-right: 6px; }
+
+  /* ── TABLA: scroll horizontal en móvil ──────────── */
+  .table-scroll-wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+  }
+  .table-scroll-wrapper table { min-width: 700px; }
+
+  /* ── MEJOR RESPONSIVE 480px ─────────────────────── */
+  @media (max-width: 480px) {
+    .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+    .stat-value { font-size: 20px; }
+    .stat-title { font-size: 10px; }
+    .btn { padding: 6px 8px; font-size: 11px; }
+    .modal-content { padding: 14px; }
+    .timeline { gap: 6px; }
+    .step { font-size: 10px; padding: 6px 8px; }
+    .section { padding: 12px; }
+    table { min-width: 600px; }
   }

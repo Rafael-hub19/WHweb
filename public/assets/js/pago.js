@@ -78,19 +78,16 @@ function cargarResumen() {
   const clienteCorreo   = checkout.correo_cliente   || formData.correo   || '';
   const clienteTelefono = checkout.telefono_cliente || formData.telefono || '';
 
-  // Si faltan datos del cliente, mostrar formulario de confirmación
-  if (!clienteNombre || !clienteCorreo) {
-    const seccion = document.getElementById('seccion-cliente');
-    if (seccion) seccion.style.display = 'block';
-  } else {
-    // Pre-rellenar campos si existen
-    const pn = document.getElementById('pagoNombre');
-    const pc = document.getElementById('pagoCorreo');
-    const pt = document.getElementById('pagoTelefono');
-    if (pn) pn.value = clienteNombre;
-    if (pc) pc.value = clienteCorreo;
-    if (pt) pt.value = clienteTelefono;
-  }
+  // Siempre mostrar sección de confirmación de datos del cliente
+  // Pre-rellenar con datos del carrito si existen
+  const seccion = document.getElementById('seccion-cliente');
+  if (seccion) seccion.style.display = 'block';
+  const pn = document.getElementById('pagoNombre');
+  const pc = document.getElementById('pagoCorreo');
+  const pt = document.getElementById('pagoTelefono');
+  if (pn && clienteNombre) pn.value = clienteNombre;
+  if (pc && clienteCorreo) pc.value = clienteCorreo;
+  if (pt && clienteTelefono) pt.value = clienteTelefono;
 
   orderData = {
     carrito,
@@ -196,7 +193,12 @@ async function pagarConStripe() {
 
 // ── PayPal ────────────────────────────────────────────────────────
 function initPayPal() {
-  if (!window.paypal) return;
+  if (!window.paypal) {
+    console.warn('[PayPal] SDK no cargado - verificar Client ID en .env');
+    const ppContainer = document.getElementById('paypal-button-container');
+    if (ppContainer) ppContainer.innerHTML = '<p style="color:#e74c3c;font-size:13px;">⚠ PayPal no disponible. Usa Stripe.</p>';
+    return;
+  }
 
   paypal.Buttons({
     style: { layout: 'vertical', color: 'gold', shape: 'rect', label: 'paypal' },
@@ -229,7 +231,10 @@ function initPayPal() {
       } catch (err) { showError(err.message || 'Error en el pago PayPal'); }
     },
 
-    onError:  (err) => { showError('Ocurrió un error con PayPal. Por favor intenta nuevamente.'); },
+    onError:  (err) => {
+      console.error('[PayPal Error]', err);
+      showError('Error con PayPal: ' + (err.message || 'Intenta con Stripe o recarga la página.'));
+    },
     onCancel: ()    => { showError('Pago cancelado. Puedes intentarlo nuevamente.', 'warning'); },
   }).render('#paypal-button-container');
 }
@@ -305,8 +310,15 @@ function initMetodosPago() {
       metodoPago = opt.dataset.method;
       document.getElementById('stripe-section').style.display  = metodoPago === 'card'   ? 'block' : 'none';
       document.getElementById('paypal-section').style.display  = metodoPago === 'paypal' ? 'block' : 'none';
+      // Limpiar errores al cambiar método
+      const errEl = document.getElementById('card-errors');
+      if (errEl) { errEl.textContent = ''; errEl.style.display = 'none'; }
     });
   });
+
+  // Seleccionar Stripe por defecto al cargar
+  const defaultOpt = document.querySelector('.payment-option[data-method="card"]');
+  if (defaultOpt) defaultOpt.click();
 }
 
 // ── Confirmación ──────────────────────────────────────────────────
@@ -337,14 +349,21 @@ function formatCurrency(n) {
 }
 
 function showError(msg, type = 'error') {
+  // Mostrar en el área de errores de Stripe si existe
   const errEl = document.getElementById('card-errors');
   if (errEl) {
     errEl.textContent = msg;
     errEl.className   = type === 'warning' ? 'card-error warning' : 'card-error';
     errEl.style.display = msg ? 'block' : 'none';
-    return;
+    if (msg) errEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   }
-  alert(msg);
+  // También mostrar en área de errores global si existe
+  const globalErr = document.getElementById('payment-error-global');
+  if (globalErr) {
+    globalErr.textContent = msg;
+    globalErr.style.display = msg ? 'block' : 'none';
+  }
+  if (!errEl && !globalErr) alert(msg);
 }
 
 // ── Menú hamburguesa ─────────────────────────────────────────────
