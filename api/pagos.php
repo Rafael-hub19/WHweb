@@ -3,17 +3,19 @@ require_once __DIR__ . '/_helpers.php';
 require_once dirname(__DIR__) . '/includes/stripe.php';
 require_once dirname(__DIR__) . '/includes/paypal.php';
 
-$method = requestMethod();
-$action = $_GET['action'] ?? '';
+$method    = requestMethod();
+$_rawBody  = file_get_contents('php://input');
+$_jsonBody = json_decode($_rawBody, true) ?? [];
+$action    = $_GET['action'] ?? $_jsonBody['accion'] ?? $_jsonBody['action'] ?? '';
 
 // ── STRIPE ────────────────────────────────────────────
 if ($action === 'stripe_intent') {
     if ($method !== 'POST') jsonError('Método no permitido', 405);
-    $body    = getJsonBody();
+    $body     = $_jsonBody;
     requireFields($body, ['pedido_id']);
     $pedidoId = sanitizeInt($body['pedido_id']);
     if ($pedidoId <= 0) jsonError('pedido_id inválido', 422);
-    $pedido  = dbRow("SELECT id, numero_pedido, nombre_cliente, correo_cliente, total FROM pedidos WHERE id = ?", [$pedidoId]);
+    $pedido   = dbRow("SELECT id, numero_pedido, nombre_cliente, correo_cliente, total FROM pedidos WHERE id = ?", [$pedidoId]);
     if (!$pedido) jsonError('Pedido no encontrado', 404);
 
     try {
@@ -24,7 +26,6 @@ if ($action === 'stripe_intent') {
             'correo_cliente' => $pedido['correo_cliente'],
         ]);
 
-        // Registrar en pagos
         dbInsert('pagos', [
             'pedido_id'          => $pedidoId,
             'metodo'             => 'stripe',
@@ -47,7 +48,7 @@ if ($action === 'stripe_intent') {
 
 if ($action === 'stripe_confirm') {
     if ($method !== 'POST') jsonError('Método no permitido', 405);
-    $body = getJsonBody();
+    $body     = $_jsonBody;
     requireFields($body, ['payment_intent_id', 'pedido_id']);
     $piId     = trim($body['payment_intent_id']);
     $pedidoId = sanitizeInt($body['pedido_id']);
@@ -75,11 +76,11 @@ if ($action === 'stripe_confirm') {
 
 if ($action === 'stripe_webhook') {
     if ($method !== 'POST') jsonError('Método no permitido', 405);
-    $payload   = file_get_contents('php://input');
+    // IMPORTANTE: usar $_rawBody ya cacheado para no perder el stream
     $sigHeader = $_SERVER['HTTP_STRIPE_SIGNATURE'] ?? '';
 
     try {
-        $event = stripe()->verificarWebhook($payload, $sigHeader);
+        $event = stripe()->verificarWebhook($_rawBody, $sigHeader);
         if (!$event) jsonError('Webhook inválido', 400);
 
         $type   = $event['type'] ?? '';
@@ -110,7 +111,7 @@ if ($action === 'stripe_webhook') {
 // ── PAYPAL ────────────────────────────────────────────
 if ($action === 'paypal_orden') {
     if ($method !== 'POST') jsonError('Método no permitido', 405);
-    $body     = getJsonBody();
+    $body     = $_jsonBody;
     requireFields($body, ['pedido_id']);
     $pedidoId = sanitizeInt($body['pedido_id']);
     $pedido   = dbRow("SELECT * FROM pedidos WHERE id = ?", [$pedidoId]);
@@ -120,8 +121,8 @@ if ($action === 'paypal_orden') {
     $cancelUrl = APP_URL . '/pago?status=cancel';
 
     try {
-        $order     = paypal()->crearOrden((float)$pedido['total'], $pedido['numero_pedido'], $returnUrl, $cancelUrl);
-        $orderId   = $order['id'] ?? '';
+        $order      = paypal()->crearOrden((float)$pedido['total'], $pedido['numero_pedido'], $returnUrl, $cancelUrl);
+        $orderId    = $order['id'] ?? '';
         $approveUrl = paypal()->getApproveUrl($order);
 
         dbInsert('pagos', [
@@ -142,7 +143,7 @@ if ($action === 'paypal_orden') {
 
 if ($action === 'paypal_capturar') {
     if ($method !== 'POST') jsonError('Método no permitido', 405);
-    $body     = getJsonBody();
+    $body     = $_jsonBody;
     requireFields($body, ['order_id', 'pedido_id']);
     $orderId  = trim($body['order_id']);
     $pedidoId = sanitizeInt($body['pedido_id']);
