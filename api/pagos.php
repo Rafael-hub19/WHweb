@@ -61,7 +61,14 @@ if ($action === 'stripe_confirm') {
             dbQuery("UPDATE pagos SET estado = 'aprobado' WHERE referencia_externa = ?", [$piId]);
             dbUpdate('pedidos', ['estado' => 'pagado'], 'id = ?', [$pedidoId]);
             $pedido = dbRow("SELECT * FROM pedidos WHERE id = ?", [$pedidoId]);
-            if ($pedido) { try { notificarCambioPedido($pedido, $pedido['estado'] ?? 'pendiente'); } catch (Exception $e) {} }
+            if ($pedido) {
+                try {
+                    $pedido['items'] = dbRows("SELECT * FROM pedido_items WHERE pedido_id = ?", [$pedidoId]);
+                    notificarNuevoPedido($pedido);
+                } catch (Exception $e) {
+                    appLog('error', 'Email confirmacion stripe error', ['error' => $e->getMessage()]);
+                }
+            }
             jsonSuccess(['estado' => 'aprobado', 'mensaje' => 'Pago procesado exitosamente']);
         } elseif (in_array($status, ['requires_payment_method', 'requires_action', 'canceled'])) {
             dbQuery("UPDATE pagos SET estado = 'fallido' WHERE referencia_externa = ?", [$piId]);
@@ -93,7 +100,14 @@ if ($action === 'stripe_webhook') {
             if ($pago) {
                 dbUpdate('pedidos', ['estado' => 'pagado'], 'id = ?', [$pago['pedido_id']]);
                 $pedido = dbRow("SELECT * FROM pedidos WHERE id = ?", [$pago['pedido_id']]);
-                if ($pedido) { try { notificarCambioPedido($pedido, $pedido['estado'] ?? 'pendiente'); } catch (Exception $e) {} }
+                if ($pedido) {
+                    try {
+                        $pedido['items'] = dbRows("SELECT * FROM pedido_items WHERE pedido_id = ?", [$pago['pedido_id']]);
+                        notificarNuevoPedido($pedido);
+                    } catch (Exception $e) {
+                        appLog('error', 'Email confirmacion webhook error', ['error' => $e->getMessage()]);
+                    }
+                }
             }
         } elseif ($type === 'payment_intent.payment_failed') {
             $piId = $object['id'];
@@ -156,7 +170,14 @@ if ($action === 'paypal_capturar') {
             dbQuery("UPDATE pagos SET estado = 'aprobado' WHERE referencia_externa = ?", [$orderId]);
             dbUpdate('pedidos', ['estado' => 'pagado'], 'id = ?', [$pedidoId]);
             $pedido = dbRow("SELECT * FROM pedidos WHERE id = ?", [$pedidoId]);
-            if ($pedido) { try { notificarCambioPedido($pedido, $pedido['estado'] ?? 'pendiente'); } catch (Exception $e) {} }
+            if ($pedido) {
+                try {
+                    $pedido['items'] = dbRows("SELECT * FROM pedido_items WHERE pedido_id = ?", [$pedidoId]);
+                    notificarNuevoPedido($pedido);
+                } catch (Exception $e) {
+                    appLog('error', 'Email confirmacion paypal error', ['error' => $e->getMessage()]);
+                }
+            }
             jsonSuccess(['estado' => 'aprobado', 'mensaje' => 'Pago PayPal completado']);
         } else {
             jsonError('Pago PayPal no completado. Estado: ' . $status, 400);

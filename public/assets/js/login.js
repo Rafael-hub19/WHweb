@@ -31,8 +31,12 @@ forgotLink?.addEventListener('click', (e) => {
   e.preventDefault();
   const email = document.getElementById('email').value.trim();
   if (!email) { showAlert('Ingresa tu correo primero', 'error'); return; }
-  if (!firebaseAuth) { showAlert('Firebase no disponible', 'error'); return; }
-  firebaseAuth.sendPasswordResetEmail(email)
+
+  let auth = window.firebaseAuth;
+  try { if (!auth && typeof firebaseAuth !== 'undefined') auth = firebaseAuth; } catch(e){}
+  if (!auth) { showAlert('Firebase no disponible', 'error'); return; }
+
+  auth.sendPasswordResetEmail(email)
     .then(() => showAlert('Correo de recuperación enviado. Revisa tu bandeja.', 'success'))
     .catch(err => showAlert('Error: ' + err.message, 'error'));
 });
@@ -51,10 +55,13 @@ loginForm?.addEventListener('submit', async (e) => {
   alertBox.style.display = 'none';
 
   try {
-    // firebaseAuth puede estar en scope global o en window
     let auth = window.firebaseAuth;
     try { if (!auth && typeof firebaseAuth !== 'undefined') auth = firebaseAuth; } catch(e){}
     if (!auth) throw new Error('Firebase no inicializado');
+
+    // ── FIX CRASH: signOut previo para limpiar cualquier sesión residual ──
+    // Sin esto, Firebase compat a veces lanza error si ya hay un usuario cargado
+    try { await auth.signOut(); } catch(e) {}
 
     const credential = await auth.signInWithEmailAndPassword(email, password);
     const idToken    = await credential.user.getIdToken(true);
@@ -66,10 +73,9 @@ loginForm?.addEventListener('submit', async (e) => {
       body:    JSON.stringify({ firebase_token: idToken }),
     });
 
-    // Verificar que la respuesta sea JSON válido antes de parsear
     const contentType = res.headers.get('content-type') || '';
     if (!contentType.includes('application/json')) {
-      throw new Error('El servidor no respondio con JSON. Verifica la configuracion de la API PHP.');
+      throw new Error('El servidor no respondió con JSON. Verifica la configuración de la API PHP.');
     }
 
     const data = await res.json();
@@ -77,17 +83,20 @@ loginForm?.addEventListener('submit', async (e) => {
     if (data.success) {
       sessionStorage.setItem('wh_firebase_token', idToken);
       sessionStorage.setItem('wh_usuario', JSON.stringify(data.usuario));
+      sessionStorage.removeItem('wh_just_logged_out'); // limpiar flag de logout previo
       showAlert('<i class="fa-solid fa-circle-check"></i> Bienvenido, redirigiendo...', 'success');
       setTimeout(() => { window.location.href = data.redirect; }, 800);
     } else {
+      // Backend rechazó → también cerrar sesión Firebase para no quedar a medias
+      try { await auth.signOut(); } catch(e) {}
       throw new Error(data.error || 'Usuario no autorizado');
     }
 
   } catch (err) {
     console.error('Login error:', err);
-    let msg = 'Error al iniciar sesion';
+    let msg = 'Error al iniciar sesión';
     if      (err.code === 'auth/user-not-found')      msg = 'Correo no registrado';
-    else if (err.code === 'auth/wrong-password')       msg = 'Contrasena incorrecta';
+    else if (err.code === 'auth/wrong-password')       msg = 'Contraseña incorrecta';
     else if (err.code === 'auth/invalid-credential')   msg = 'Credenciales incorrectas';
     else if (err.code === 'auth/too-many-requests')    msg = 'Demasiados intentos. Espera un momento.';
     else if (err.message)                              msg = err.message;
@@ -95,16 +104,29 @@ loginForm?.addEventListener('submit', async (e) => {
 
   } finally {
     btnLogin.disabled    = false;
-    btnLogin.textContent = 'Iniciar Sesion';
+    btnLogin.textContent = 'Iniciar Sesión';
   }
 });
 
 // ── Verificar si ya está logueado al cargar ────────────────
 document.addEventListener('DOMContentLoaded', () => {
+  // ── FIX CRASH: Si venimos de un logout explícito, NO auto-redirigir ──
+  // El panel de empleado/admin pone 'wh_just_logged_out' en sessionStorage antes de redirigir
+  const justLoggedOut = sessionStorage.getItem('wh_just_logged_out');
+  if (justLoggedOut) {
+    sessionStorage.removeItem('wh_just_logged_out');
+    // Limpiar Firebase también para que no quede sesión cacheada
+    let auth = window.firebaseAuth;
+    try { if (!auth && typeof firebaseAuth !== 'undefined') auth = firebaseAuth; } catch(e){}
+    if (auth) auth.signOut().catch(() => {});
+    return; // No registrar onAuthStateChanged → el usuario ve el formulario limpio
+  }
+
   let auth = window.firebaseAuth;
   try { if (!auth && typeof firebaseAuth !== 'undefined') auth = firebaseAuth; } catch(e){}
   if (!auth) return;
 
+  // Auto-redirigir solo si Firebase tiene sesión activa Y el backend la valida
   auth.onAuthStateChanged(async (user) => {
     if (!user) return;
     try {
@@ -121,8 +143,6 @@ document.addEventListener('DOMContentLoaded', () => {
           ? '/admin/panel_administrador.php'
           : '/empleado/panel_empleado.php';
       }
-    } catch (e) { /* continuar con login normal */ }
+    } catch (e) { /* error de red → continuar mostrando login */ }
   });
 });
-
-console.log('[OK] Login.js cargado');
