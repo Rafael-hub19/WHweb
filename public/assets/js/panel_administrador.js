@@ -76,6 +76,9 @@
 
       closeNav();
 
+      // Registrar sección activa para el auto-polling
+      window._currentSection = section;
+
       if(section === 'citas')     renderCalendar();
       if(section === 'catalogo')  cargarProductosAPI().then(() => renderCatalogo());
       if(section === 'reportes')  { cargarReportesAPI(); renderReportes(); }
@@ -1248,6 +1251,7 @@ async function apiFetch(url, options = {}) {
 }
 
 async function logoutAdmin() {
+  if (window._adminRefreshInterval) clearInterval(window._adminRefreshInterval);
   if (!confirm('¿Cerrar sesión?')) return;
   try {
     if (typeof logoutFirebase === 'function') await logoutFirebase();
@@ -1645,3 +1649,34 @@ window.desactivarEmpleado       = desactivarEmpleado;
 window.guardarEmpleado          = guardarEmpleado;
 window.abrirEditarEmpleado      = abrirEditarEmpleado;
 window.abrirNuevoEmpleado       = abrirNuevoEmpleado;
+
+// ── AUTO-POLLING cada 30 segundos ──────────────────────────────────
+// Refresca la sección visible automáticamente, igual que el panel empleado.
+// Sin necesidad de que el administrador recargue la página manualmente.
+function _autoRefreshAdmin() {
+  const section = window._currentSection || 'dashboard';
+  if      (section === 'pedidos')    cargarPedidosAPI();
+  else if (section === 'catalogo')   cargarProductosAPI().then(() => renderCatalogo());
+  else if (section === 'empleados')  cargarEmpleadosAPI();
+  else if (section === 'reportes')   cargarReportesAPI();
+  else if (section === 'citas')      renderCalendar();
+  else if (section === 'dashboard')  { refreshKPIsFromAPI(); refreshKPIs(); }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  // Sección inicial
+  window._currentSection = 'dashboard';
+
+  // Iniciar ciclo de auto-polling
+  window._adminRefreshInterval = setInterval(_autoRefreshAdmin, 30000);
+
+  // Pausar cuando la pestaña no es visible, reanudar al volver
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+      clearInterval(window._adminRefreshInterval);
+    } else {
+      _autoRefreshAdmin();
+      window._adminRefreshInterval = setInterval(_autoRefreshAdmin, 30000);
+    }
+  });
+});

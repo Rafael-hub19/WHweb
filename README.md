@@ -10,12 +10,19 @@ Incluye catálogo con carrito, proceso de pago, cotizaciones, panel de administr
 | Capa | Tecnología |
 |------|-----------|
 | Frontend | HTML5, CSS3, JavaScript (Vanilla) |
+| Framework CSS | Bootstrap 5.3.3 (solo componentes JS — modales, dropdowns) |
 | Backend | PHP 8+ |
-| Base de datos | MySQL / MariaDB |
-| Autenticación | Firebase Auth (SDK v9 compat) |
-| Almacenamiento de imágenes | Firebase Storage |
-| Iconos | Font Awesome 6.5.1 |
-| Servidor | Apache con mod_rewrite |
+| Base de datos | MySQL 8 / MariaDB 10.4+ |
+| Autenticación | Firebase Auth SDK v10 compat |
+| Base de datos RT | Firebase Firestore SDK v10 compat |
+| Almacenamiento | Firebase Storage SDK v10 compat |
+| Cloud Functions | Firebase Functions v2 (Node.js 20) |
+| Pasarela 1 | Stripe JS v3 + PHP vía cURL |
+| Pasarela 2 | PayPal JS SDK v5 + REST API v2 |
+| Correos | SMTP directo desde PHP (Brevo/Gmail compatible) |
+| Iconos | Font Awesome 6.5.1 (cdnjs.cloudflare.com) |
+| Servidor | Apache 2.4+ con mod_rewrite |
+| Control versiones | Git + GitHub |
 
 ---
 
@@ -23,86 +30,100 @@ Incluye catálogo con carrito, proceso de pago, cotizaciones, panel de administr
 
 ```
 Wooden House/
-├── public/                        # Raíz pública (document root del servidor)
-│   ├── index.php                  # Página de inicio
-│   ├── catalogo.php               # Catálogo de productos
-│   ├── detalle_producto.php       # Detalle de un producto
-│   ├── carrito-checkout.php       # Carrito + selección de fecha
-│   ├── pago.php                   # Proceso de pago
-│   ├── solicitudes.php            # Cotizaciones y citas
-│   ├── login.php                  # Autenticación de personal
-│   ├── .htaccess                  # URLs limpias (mod_rewrite)
+├── public/                          # Raíz pública (DocumentRoot del servidor)
+│   ├── index.php                    # Página de inicio
+│   ├── catalogo.php                 # Catálogo de productos
+│   ├── detalle_producto.php         # Detalle de un producto
+│   ├── carrito-checkout.php         # Carrito + selector de fecha de entrega
+│   ├── pago.php                     # Proceso de pago (Stripe + PayPal)
+│   ├── solicitudes.php              # Cotizaciones, citas y seguimiento
+│   ├── login.php                    # Autenticación de personal (Firebase)
 │   ├── robots.txt
 │   ├── sitemap.xml
+│   ├── .htaccess                    # URLs limpias + CSP + caché + compresión
 │   ├── admin/
-│   │   └── panel_administrador.php
+│   │   └── panel_administrador.php  # Panel completo del administrador
 │   ├── empleado/
-│   │   └── panel_empleado.php
+│   │   └── panel_empleado.php       # Panel del empleado
 │   └── assets/
 │       ├── css/
-│       │   ├── variables.css      # Variables globales (colores, fuentes)
-│       │   ├── styles.css         # Estilos compartidos (header, footer, nav)
+│       │   ├── variables.css        # Variables globales (colores, fuentes)
+│       │   ├── styles.css           # Estilos compartidos (header, footer, nav)
 │       │   ├── index.css
 │       │   ├── catalogo.css
-│       │   ├── carrito.css        # Incluye estilos del selector de fechas
+│       │   ├── carrito.css          # Incluye estilos del selector de fechas
 │       │   ├── pago.css
 │       │   ├── solicitudes.css
 │       │   ├── login.css
 │       │   ├── detalle_producto.css
 │       │   ├── panel_administrador.css
 │       │   └── panel_empleado.css
-│       └── js/
-│           ├── app.js             # Utilidades globales y carrito
-│           ├── utils.js           # Funciones compartidas
-│           ├── firebase-config.js # Inicialización Firebase
-│           ├── index.js           # Inicio (FAQ, animaciones)
-│           ├── catalogo.js        # Carga de productos y filtros
-│           ├── detalle_producto.js# Galería, tabs, agregar al carrito
-│           ├── carrito.js         # Gestión del carrito
-│           ├── checkout.js        # Selector de fechas y validación
-│           ├── pago.js            # Proceso de pago
-│           ├── solicitudes.js     # Cotizaciones y citas (tabs)
-│           ├── login.js           # Autenticación Firebase
-│           ├── panel_administrador.js
-│           └── panel_empleado.js
+│       ├── js/
+│       │   ├── app.js               # Utilidades globales y carrito
+│       │   ├── utils.js             # Funciones compartidas
+│       │   ├── firebase-config.js   # Inicialización Firebase (Auth+Firestore+Storage)
+│       │   ├── index.js             # Inicio (FAQ, animaciones)
+│       │   ├── catalogo.js          # Carga de productos y filtros
+│       │   ├── detalle_producto.js  # Galería, tabs, agregar al carrito
+│       │   ├── carrito.js           # Gestión del carrito (localStorage)
+│       │   ├── checkout.js          # Selector de fechas y validación
+│       │   ├── pago.js              # Stripe Elements + PayPal Buttons
+│       │   ├── solicitudes.js       # Cotizaciones, citas y seguimiento (tabs)
+│       │   ├── login.js             # Autenticación Firebase
+│       │   ├── panel_administrador.js  # Panel admin con auto-polling 30s
+│       │   └── panel_empleado.js    # Panel empleado con auto-polling 30s
+│       └── img/
+│           ├── logo-header.png
+│           └── logo-login.png
 │
-├── api/                           # Endpoints REST (PHP)
-│   ├── _helpers.php               # Funciones comunes de API
-│   ├── auth.php                   # Verificación de tokens Firebase
-│   ├── productos.php              # CRUD productos + imágenes + specs
-│   ├── categorias.php             # CRUD categorías
-│   ├── pedidos.php                # CRUD pedidos
-│   ├── disponibilidad.php         # Fechas disponibles según capacidad
-│   ├── capacidad.php              # Gestión de slots de producción (admin)
-│   ├── cotizaciones.php
-│   ├── citas.php
-│   ├── empleados.php
-│   ├── notificaciones.php
-│   ├── pagos.php
-│   ├── reportes.php
-│   ├── calendario.php
-│   └── .htaccess                  # Bloqueo de acceso directo
+├── api/                             # Endpoints REST (PHP)
+│   ├── _helpers.php                 # Funciones comunes de API (auth, sanitize, JSON)
+│   ├── auth.php                     # Verificación de tokens Firebase JWT
+│   ├── productos.php                # CRUD productos + imágenes + especificaciones
+│   ├── categorias.php               # CRUD categorías
+│   ├── pedidos.php                  # CRUD pedidos + cambio de estado
+│   ├── disponibilidad.php           # Fechas disponibles según capacidad real
+│   ├── capacidad.php                # Gestión de slots de producción (admin)
+│   ├── cotizaciones.php             # CRUD cotizaciones
+│   ├── citas.php                    # CRUD citas y calendario
+│   ├── empleados.php                # CRUD empleados (Firebase Auth + MySQL)
+│   ├── notificaciones.php           # Notificaciones vía Firestore REST
+│   ├── pagos.php                    # Stripe + PayPal: crear, capturar, webhooks
+│   ├── reportes.php                 # Reportes: resumen, pedidos, productos, ingresos, clientes
+│   ├── calendario.php               # Disponibilidad del calendario de citas
+│   └── .htaccess                    # CORS + bloqueo de acceso directo + preflight OPTIONS
 │
-├── includes/                      # Helpers PHP del servidor
-│   ├── config.php                 # Configuración general
-│   ├── db.php                     # Conexión MySQL (PDO)
-│   ├── auth.php                   # Utilidades de sesión
-│   ├── functions.php
-│   ├── notifications.php
-│   ├── stripe.php
-│   └── paypal.php
+├── includes/                        # Helpers PHP del servidor
+│   ├── config.php                   # Constantes de configuración (lee .env)
+│   ├── db.php                       # Conexión MySQL (PDO singleton)
+│   ├── auth.php                     # Verificación de token Firebase + sesión PHP
+│   ├── functions.php                # Helpers generales (sanitize, logs, Firestore)
+│   ├── notifications.php            # Envío de emails SMTP + escritura en Firestore
+│   ├── stripe.php                   # Wrapper de la API de Stripe vía cURL
+│   └── paypal.php                   # Wrapper de la API de PayPal + verificación de webhooks
 │
 ├── database/
-│   ├── schema.sql                 # Estructura completa de tablas
-│   └── seed.sql                   # Datos de prueba + festivos 2026
+│   ├── schema.sql                   # Estructura completa de tablas (12 tablas)
+│   └── seed.sql                     # Datos de prueba + festivos 2026
 │
 ├── firebase/
-│   ├── firebase.json
-│   ├── firestore.rules
-│   ├── storage.rules
+│   ├── firebase.json                # Configuración: Firestore, Storage, Functions, Hosting, Emulators
+│   ├── firestore.rules              # Reglas de seguridad Firestore (colección notificaciones)
+│   ├── firestore.indexes.json       # Índices compuestos para consultas ordenadas
+│   ├── storage.rules                # Reglas de seguridad Storage (imágenes de productos)
+│   └── functions/
+│       ├── package.json             # Dependencias (firebase-admin, firebase-functions, nodemailer)
+│       └── index.js                 # 5 Cloud Functions:
+│                                    #   · onNuevaNotificacion  — trigger Firestore → email al admin
+│                                    #   · enviarConfirmacionPedido    — HTTP callable
+│                                    #   · enviarConfirmacionCotizacion — HTTP callable
+│                                    #   · enviarConfirmacionCita       — HTTP callable
+│                                    #   · limpiarNotificacionesAntiguas — scheduled (cada 24h)
 │
-├── logs/                          # Logs del servidor (ignorados en Git)
-├── .env.example                   # Plantilla de variables de entorno
+├── logs/                            # Logs del servidor (excluidos de Git)
+├── .htaccess                        # Bloqueo de carpetas internas sensibles
+├── .env                             # Variables de entorno (excluido de Git)
+├── .env.example                     # Plantilla de variables de entorno
 ├── .gitignore
 └── README.md
 ```
@@ -123,36 +144,37 @@ Wooden House/
 | `/admin/` | `public/admin/panel_administrador.php` |
 | `/empleado/` | `public/empleado/panel_empleado.php` |
 
-> Requiere Apache con `mod_rewrite` activo y `AllowOverride All` en la configuración del servidor.
+> Requiere Apache con `mod_rewrite` activo y `AllowOverride All`.
 
 ---
 
-## Base de datos — Tablas principales
+## Base de datos — Tablas
 
 | Tabla | Descripción |
 |-------|-------------|
+| `usuarios_personal` | Admins y empleados (espejo de Firebase Auth) |
 | `categorias` | Categorías de productos |
 | `productos` | Productos con precio, stock y etiqueta |
-| `imagenes_producto` | Galería de imágenes por producto (Firebase Storage URLs) |
+| `imagenes_producto` | Galería de imágenes por producto (URLs de Firebase Storage) |
 | `especificaciones_producto` | Specs técnicas clave-valor por producto |
-| `pedidos` | Pedidos de clientes con fecha estimada de entrega |
+| `pedidos` | Pedidos con token de seguimiento y fecha estimada |
+| `detalle_pedido` | Líneas de cada pedido (productos + cantidades) |
+| `pagos` | Registro de transacciones Stripe y PayPal |
+| `cotizaciones` | Solicitudes de cotización de clientes |
+| `citas` | Citas agendadas (medición e instalación) |
 | `capacidad_produccion` | Slots de producción y entrega por semana |
 | `dias_bloqueados` | Festivos y cierres del taller |
-| `citas` | Citas agendadas |
-| `cotizaciones` | Solicitudes de cotización |
-| `empleados` | Personal registrado |
-| `notificaciones` | Sistema de notificaciones internas |
 
 ### Inicializar la base de datos
 
-```sql
--- 1. Crear la base de datos
-CREATE DATABASE wooden_house CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+```bash
+# 1. Crear la base de datos
+mysql -u root -p -e "CREATE DATABASE wooden_house CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
 
--- 2. Ejecutar el schema
+# 2. Crear estructura
 mysql -u usuario -p wooden_house < database/schema.sql
 
--- 3. Cargar datos de prueba + festivos 2026
+# 3. Cargar datos de prueba + festivos 2026
 mysql -u usuario -p wooden_house < database/seed.sql
 ```
 
@@ -160,13 +182,33 @@ mysql -u usuario -p wooden_house < database/seed.sql
 
 ## Sistema de disponibilidad de fechas
 
-El carrito consulta disponibilidad real antes de mostrar fechas de entrega:
+El carrito consulta disponibilidad real antes de mostrar semanas de entrega:
 
-- `GET /api/disponibilidad.php` — devuelve semanas disponibles según capacidad configurada y pedidos existentes
+- `GET /api/disponibilidad.php` — devuelve semanas disponibles según capacidad y pedidos existentes
 - `GET|POST|PUT|DELETE /api/capacidad.php` — gestión de slots por semana (solo admin)
-- La tabla `capacidad_produccion` define cuántos pedidos entran por semana
+- La tabla `capacidad_produccion` define cuántos pedidos caben por semana
 - La tabla `dias_bloqueados` contiene festivos y cierres (Semana Santa, etc.)
 - Si la API falla, el checkout calcula 8 semanas estimadas como fallback
+
+---
+
+## Auto-actualización en tiempo real (Paneles)
+
+Tanto el panel de administrador como el de empleado se actualizan **automáticamente cada 30 segundos** sin necesidad de recargar la página:
+
+- La función `_autoRefreshAdmin()` / `_autoRefresh()` detecta la sección visible y recarga solo esos datos
+- El polling se **pausa** automáticamente cuando la pestaña no está activa (visibilitychange)
+- Al **volver a la pestaña** se dispara una actualización inmediata y se reinicia el ciclo
+- El intervalo se **cancela en logout** para no dejar procesos huérfanos
+
+| Sección | Función que se refresca |
+|---------|------------------------|
+| Dashboard | `refreshKPIsFromAPI()` |
+| Pedidos | `cargarPedidosAPI()` |
+| Catálogo | `cargarProductosAPI()` + `renderCatalogo()` |
+| Empleados | `cargarEmpleadosAPI()` |
+| Reportes | `cargarReportesAPI()` |
+| Citas | `renderCalendar()` |
 
 ---
 
@@ -177,86 +219,220 @@ El carrito consulta disponibilidad real antes de mostrar fechas de entrega:
 Copiar `.env.example` a `.env` y completar:
 
 ```env
+# Base de datos
 DB_HOST=localhost
 DB_NAME=wooden_house
 DB_USER=tu_usuario
 DB_PASS=tu_contraseña
 
-FIREBASE_PROJECT_ID=tu-proyecto
+# Firebase (backend PHP)
+FIREBASE_PROJECT_ID=woodenhouse-898de
 FIREBASE_API_KEY=...
-FIREBASE_AUTH_DOMAIN=...
-FIREBASE_STORAGE_BUCKET=...
+FIREBASE_AUTH_DOMAIN=woodenhouse-898de.firebaseapp.com
+FIREBASE_STORAGE_BUCKET=woodenhouse-898de.firebasestorage.app
+
+# Stripe
+STRIPE_SECRET_KEY=sk_live_...
+STRIPE_PUBLISHABLE_KEY=pk_live_...
+STRIPE_WEBHOOK_SECRET=whsec_...
+
+# PayPal
+PAYPAL_CLIENT_ID=...
+PAYPAL_CLIENT_SECRET=...
+PAYPAL_WEBHOOK_ID=...          # Registrar endpoint en developer.paypal.com primero
+PAYPAL_MODE=sandbox            # Cambiar a 'live' en producción
+
+# Email SMTP (Brevo, Gmail, etc.)
+SMTP_HOST=smtp-relay.brevo.com
+SMTP_PORT=587
+SMTP_USER=tu@correo.com
+SMTP_PASS=tu_smtp_password
+EMAIL_FROM=noreply@woodenhouse.com.mx
+EMAIL_FROM_NAME=Wooden House
+ADMIN_EMAIL=contacto@woodenhouse.com.mx
 ```
 
-### 2. Firebase
+### 2. Firebase — Consola web
 
-- Crear proyecto en [Firebase Console](https://console.firebase.google.com)
-- Habilitar **Authentication** (correo/contraseña + Google)
-- Habilitar **Storage** para imágenes de productos
-- Actualizar `public/assets/js/firebase-config.js` con las credenciales del proyecto
+1. Crear proyecto en [Firebase Console](https://console.firebase.google.com)
+2. Habilitar **Authentication** → Correo/contraseña
+3. Habilitar **Firestore** → Modo producción → desplegar `firebase/firestore.rules`
+4. Habilitar **Storage** → desplegar `firebase/storage.rules`
+5. Actualizar `public/assets/js/firebase-config.js` con las credenciales del proyecto
 
-### 3. Servidor Apache
+### 3. Firebase Cloud Functions (opcional, mejora correos)
+
+```bash
+npm install -g firebase-tools
+cd firebase
+firebase login
+firebase use woodenhouse-898de
+
+# Configurar variables de entorno de las Functions
+firebase functions:config:set \
+  smtp.host="smtp-relay.brevo.com" \
+  smtp.port="587" \
+  smtp.user="tu@correo.com" \
+  smtp.pass="tu_password" \
+  email.from="noreply@woodenhouse.com.mx" \
+  email.from_name="Wooden House" \
+  email.admin="contacto@woodenhouse.com.mx"
+
+# Desplegar
+firebase deploy --only functions
+```
+
+> **Nota:** Los correos automáticos ya funcionan vía SMTP directo desde PHP (`includes/notifications.php`). Las Cloud Functions son un sistema complementario de notificaciones en tiempo real.
+
+### 4. PayPal Webhook
+
+1. Ir a [developer.paypal.com](https://developer.paypal.com) → My Apps & Credentials → tu app → **Webhooks**
+2. Agregar URL: `https://tudominio.com/api/pagos.php?action=paypal_webhook`
+3. Seleccionar eventos: `PAYMENT.CAPTURE.COMPLETED`, `PAYMENT.CAPTURE.DENIED`, `PAYMENT.CAPTURE.REFUNDED`, `CHECKOUT.ORDER.VOIDED`
+4. Copiar el **Webhook ID** generado al `.env` como `PAYPAL_WEBHOOK_ID`
+
+### 5. Stripe Webhook
+
+1. Ir a [dashboard.stripe.com](https://dashboard.stripe.com) → Developers → Webhooks
+2. Agregar URL: `https://tudominio.com/api/pagos.php?action=stripe_webhook`
+3. Seleccionar eventos: `payment_intent.succeeded`, `payment_intent.payment_failed`, `charge.refunded`
+4. Copiar el **Signing Secret** al `.env` como `STRIPE_WEBHOOK_SECRET`
+
+### 6. Servidor Apache
 
 ```apache
-# En httpd.conf o el VirtualHost del proyecto
-<Directory "/ruta/al/proyecto/public">
-    AllowOverride All
-</Directory>
+# En httpd.conf o el VirtualHost — apuntar DocumentRoot a /public
+<VirtualHost *:443>
+    DocumentRoot "/ruta/al/proyecto/Wooden House/public"
+    ServerName woodenhouse.com.mx
+
+    <Directory "/ruta/al/proyecto/Wooden House/public">
+        AllowOverride All
+        Require all granted
+    </Directory>
+</VirtualHost>
 ```
 
-Asegurarse de que `mod_rewrite` esté activo:
 ```bash
-a2enmod rewrite
+# Habilitar módulos necesarios
+a2enmod rewrite headers expires deflate
 service apache2 restart
 ```
+
+---
+
+## Seguridad — .htaccess
+
+### `/public/.htaccess` — Content Security Policy completa
+
+Todos los servicios externos están explícitamente permitidos. Si ves errores CSP en la consola del navegador, verifica que el dominio del error esté incluido en la directiva correspondiente:
+
+| Directiva | Dominios clave permitidos |
+|-----------|--------------------------|
+| `script-src` | gstatic.com, firebaseapp.com, stripe.com, paypal.com, jsdelivr.net, cdnjs |
+| `connect-src` | *.firebaseio.com, **wss://*.firebaseio.com**, firestore.googleapis.com, www.googleapis.com, identitytoolkit.googleapis.com, securetoken.googleapis.com, accounts.google.com, api.stripe.com, api-m.paypal.com |
+| `frame-src` | js.stripe.com, paypal.com, **woodenhouse-898de.firebaseapp.com**, accounts.google.com |
+| `img-src` | firebasestorage.googleapis.com, paypalobjects.com |
+| `worker-src` | 'self' blob: |
+
+> **`wss://*.firebaseio.com`** es crítico para que Firestore Realtime funcione (WebSocket).  
+> **`woodenhouse-898de.firebaseapp.com`** en `frame-src` y `script-src` es requerido por Firebase Auth.  
+> **`accounts.google.com`** en `connect-src` y `frame-src` es necesario para el refresh de tokens.
+
+### `/api/.htaccess` — CORS y protección
+
+- CORS abierto (`*`) para llamadas del frontend al backend PHP
+- Preflight OPTIONS respondido directamente sin llegar a PHP (204)
+- Solo métodos GET, POST, PUT, DELETE, OPTIONS permitidos
+- Errores PHP suprimidos para no contaminar las respuestas JSON
+
+### `/.htaccess` — Raíz del proyecto
+
+- Bloquea acceso a carpetas internas: `includes/`, `database/`, `logs/`, `firebase/`, `.git/`
+- Bloquea archivos sensibles: `.env`, `.sql`, `.log`, `.sh`, etc.
 
 ---
 
 ## Funcionalidades implementadas
 
 ### Frontend público
-- Página de inicio con sección hero, servicios, proceso, proyectos realizados y FAQ
+- Página de inicio: hero, servicios, proceso de fabricación, proyectos y FAQ
 - Catálogo con filtro por categoría, búsqueda en tiempo real y ordenamiento
 - Detalle de producto con galería, especificaciones en tabs y selector de cantidad
-- Carrito con selector de semanas de entrega basado en disponibilidad real
-- Proceso de pago con validación completa
-- Formulario de cotizaciones y citas con tabs
+- Carrito con selector de semanas de entrega basado en disponibilidad real de la API
+- Proceso de pago completo: Stripe Elements (tarjeta) + PayPal Smart Buttons
+- Seguimiento de pedidos por número sin necesidad de login
+- Formularios de cotización y agendado de citas con tabs
 
-### Panel Administrador
-- Gestión de productos (CRUD + imágenes + especificaciones)
-- Gestión de pedidos y cambio de estado
-- Gestión de empleados
+### Panel Administrador *(auto-polling 30s)*
+- Dashboard con KPIs en tiempo real y gráficas de ventas y estados
+- Gestión completa de pedidos (listado, cambio de estado, detalle)
+- Gestión de productos (CRUD + galería Firebase Storage + especificaciones)
+- Gestión de empleados (crear/editar en Firebase Auth + MySQL)
 - Gestión de capacidad de producción por semana
-- Reportes y estadísticas
+- Reportes: resumen, pedidos por período, productos más vendidos, ingresos, clientes
+- Cotizaciones y calendario de citas
+- Análisis financiero
 
-### Panel Empleado
-- Vista de pedidos asignados
-- Actualización de estados
-- Calendario de citas
+### Panel Empleado *(auto-polling 30s)*
+- Vista de pedidos asignados y actualización de estado
+- Calendario de citas del día/semana
+- Gestión de inventario
+- Notificaciones en tiempo real desde Firestore
+
+### Sistema de notificaciones
+- Escritura en Firestore al crear pedidos/cotizaciones/citas
+- Listener en tiempo real en los paneles (sin recarga)
+- Email automático al admin vía SMTP PHP en cada evento nuevo
+- Cloud Function `onNuevaNotificacion` como sistema complementario
 
 ### Seguridad
-- Tokens Firebase verificados en cada llamada a la API
+- Tokens JWT de Firebase verificados en cada llamada a la API PHP
 - Rate limiting en endpoints críticos
-- Headers de seguridad HTTP (CSP, X-Frame-Options, etc.)
-- CORS configurado
-- Archivos sensibles bloqueados vía `.htaccess`
-- Todo el CSS/JS separado del HTML (sin código embebido)
+- Headers de seguridad HTTP completos (CSP, HSTS, X-Frame-Options, etc.)
+- CORS configurado en `/api/.htaccess`
+- Archivos sensibles bloqueados en los tres niveles de `.htaccess`
+- Firestore Rules: solo personal autenticado puede leer/escribir notificaciones
+- Storage Rules: solo usuarios autenticados pueden subir imágenes
+
+---
+
+## Módulos de la API
+
+| Endpoint | Métodos | Acceso | Descripción |
+|----------|---------|--------|-------------|
+| `/api/productos.php` | GET POST PUT DELETE | público (GET) / admin | CRUD productos + imágenes |
+| `/api/categorias.php` | GET POST PUT DELETE | público (GET) / admin | CRUD categorías |
+| `/api/pedidos.php` | GET POST PUT | público (POST) / empleado+ | Crear y gestionar pedidos |
+| `/api/disponibilidad.php` | GET | público | Semanas disponibles |
+| `/api/capacidad.php` | GET POST PUT DELETE | admin | Slots de producción |
+| `/api/cotizaciones.php` | GET POST PUT | público (POST) / empleado+ | Cotizaciones |
+| `/api/citas.php` | GET POST PUT DELETE | público (POST) / empleado+ | Citas |
+| `/api/pagos.php` | POST | público / webhook | Stripe + PayPal |
+| `/api/reportes.php` | GET | admin | Reportes y estadísticas |
+| `/api/notificaciones.php` | GET POST PUT | empleado+ | Notificaciones Firestore |
+| `/api/empleados.php` | GET POST PUT DELETE | admin | Gestión de personal |
+| `/api/calendario.php` | GET | empleado+ | Disponibilidad de citas |
+| `/api/auth.php` | POST | — | Verificación de tokens |
 
 ---
 
 ## Requisitos del servidor
 
-- PHP 8.0 o superior
-- MySQL 5.7+ o MariaDB 10.4+
-- Apache 2.4+ con `mod_rewrite`
-- Extensiones PHP: `pdo`, `pdo_mysql`, `json`, `mbstring`
+- **PHP** 8.0 o superior
+- **MySQL** 8.0+ o **MariaDB** 10.4+
+- **Apache** 2.4+ con módulos: `mod_rewrite`, `mod_headers`, `mod_expires`, `mod_deflate`
+- **Extensiones PHP**: `pdo`, `pdo_mysql`, `json`, `mbstring`, `curl`, `openssl`
+- **HTTPS** obligatorio en producción (requerido por Firebase Auth, Stripe y PayPal)
 
 ---
 
 ## Notas de desarrollo
 
-- Los iconos usan **Font Awesome 6.5.1** (CDN) — no hay emojis en el código
-- El menú hamburguesa está implementado en todos los módulos JS
+- Los iconos usan **Font Awesome 6.5.1** vía CDN — sin emojis en el código
+- **Bootstrap 5.3.3** se carga solo el JS (sin CSS) para no sobreescribir el tema oscuro personalizado
 - El carrito persiste en `localStorage` con la clave `wh_carrito`
-- Los paneles de admin y empleado requieren sesión activa de Firebase
-- La sección "Proyectos Realizados" del index está hardcodeada en `index.php` — para actualizarla editar directamente ese archivo
+- Los paneles de admin y empleado requieren sesión activa de Firebase Auth
+- La sección "Proyectos Realizados" del index está hardcodeada en `index.php`
+- Los logs del servidor se guardan en `logs/` (ignorado en `.gitignore`)
+- El `firebase/` completo está **fuera de `public/`** — no es accesible desde el navegador

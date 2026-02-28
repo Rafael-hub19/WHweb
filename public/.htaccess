@@ -54,6 +54,7 @@ Options -Indexes -ExecCGI
             https://maps.googleapis.com \
             https://cdnjs.cloudflare.com \
             https://cdn.jsdelivr.net \
+            https://woodenhouse-898de.firebaseapp.com \
             https://static.cloudflareinsights.com \
             https://www.googletagmanager.com \
             https://www.google-analytics.com; \
@@ -77,14 +78,18 @@ Options -Indexes -ExecCGI
         connect-src 'self' \
             https://cdn.jsdelivr.net \
             https://*.firebaseio.com \
+            wss://*.firebaseio.com \
             https://firestore.googleapis.com \
             https://firebase.googleapis.com \
+            https://www.googleapis.com \
             https://identitytoolkit.googleapis.com \
             https://securetoken.googleapis.com \
             https://oauth2.googleapis.com \
+            https://accounts.google.com \
             https://firebasestorage.googleapis.com \
             https://*.firebasestorage.app \
             https://*.firebaseapp.com \
+            https://woodenhouse-898de.firebaseapp.com \
             https://js.stripe.com \
             https://api.stripe.com \
             https://m.stripe.com \
@@ -104,6 +109,8 @@ Options -Indexes -ExecCGI
             https://m.stripe.network \
             https://www.paypal.com \
             https://www.sandbox.paypal.com \
+            https://woodenhouse-898de.firebaseapp.com \
+            https://accounts.google.com \
             https://www.google.com \
             https://maps.google.com \
             https://www.google.com/maps; \

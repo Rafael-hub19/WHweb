@@ -58,8 +58,8 @@
       <!-- Info del producto -->
       <div class="product-info">
         <div class="product-header">
-          <span id="pCategoria" class="product-category-badge"></span>
           <div class="product-title" id="pNombre"></div>
+          <span id="pCategoria" class="product-category-badge"></span>
           <span id="pEtiqueta" class="product-etiqueta" style="display:none;"></span>
         </div>
 
