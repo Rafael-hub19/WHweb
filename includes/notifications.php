@@ -36,11 +36,9 @@ function enviarEmail(string $to, string $subject, string $bodyHtml, string $body
     $subjectEncoded = '=?UTF-8?B?' . base64_encode($subject) . '?=';
     $fromEncoded    = '=?UTF-8?B?' . base64_encode($fromName) . '?= <' . $from . '>';
 
-    // Construir el cuerpo MIME
-    $body  = "MIME-Version: 1.0\r\n";
-    $body .= "Content-Type: multipart/alternative; boundary=\"{$boundary}\"\r\n";
-    $body .= "\r\n";
-    $body .= "--{$boundary}\r\n";
+    // Construir las partes MIME del cuerpo (SIN headers de nivel raíz aquí)
+    // Los headers MIME van en $headers, antes del \r\n separador
+    $body  = "--{$boundary}\r\n";
     $body .= "Content-Type: text/plain; charset=UTF-8\r\n";
     $body .= "Content-Transfer-Encoding: quoted-printable\r\n\r\n";
     $body .= quoted_printable_encode($bodyText) . "\r\n\r\n";
@@ -48,7 +46,7 @@ function enviarEmail(string $to, string $subject, string $bodyHtml, string $body
     $body .= "Content-Type: text/html; charset=UTF-8\r\n";
     $body .= "Content-Transfer-Encoding: quoted-printable\r\n\r\n";
     $body .= quoted_printable_encode($bodyHtml) . "\r\n\r\n";
-    $body .= "--{$boundary}--\r\n";
+    $body .= "--{$boundary}--";
 
     try {
         // Conectar sin cifrado (STARTTLS en puerto 587, TLS directo en puerto 465)
@@ -119,13 +117,18 @@ function enviarEmail(string $to, string $subject, string $bodyHtml, string $body
         $smtpCmd($socket, "DATA\r\n",                      '354');
 
         // Enviar cabeceras + cuerpo
+        // CRÍTICO: MIME-Version y Content-Type van ANTES del \r\n separador
+        // Si van después, el cliente de correo los muestra como texto en el body
         $headers  = "From: {$fromEncoded}\r\n";
         $headers .= "To: {$to}\r\n";
         $headers .= "Subject: {$subjectEncoded}\r\n";
         $headers .= "Message-ID: {$msgId}\r\n";
         $headers .= "Date: " . date('r') . "\r\n";
         $headers .= "X-Mailer: WoodenHouse/2.0\r\n";
+        $headers .= "MIME-Version: 1.0\r\n";
+        $headers .= "Content-Type: multipart/alternative; boundary=\"{$boundary}\"\r\n";
 
+        // \r\n separa headers de cuerpo — después solo van las partes MIME
         fwrite($socket, $headers . "\r\n" . $body . "\r\n.\r\n");
         $resp = fgets($socket, 512);
         if (substr($resp, 0, 3) !== '250') {
@@ -140,8 +143,33 @@ function enviarEmail(string $to, string $subject, string $bodyHtml, string $body
 
     } catch (RuntimeException $e) {
         appLog('error', 'Email SMTP error: ' . $e->getMessage(), ['to' => $to]);
+        // ── Fallback modo demo/escuela: guardar el email como archivo de log ──
+        // Si SMTP falla (firewall, sin internet, etc.) el correo se archiva
+        // en logs/emails_YYYY-MM.log para que pueda verificarse en demo
+        _guardarEmailLog($to, $subject, $bodyText);
         return false;
     }
+}
+
+/**
+ * Guardar email en archivo de log cuando SMTP no está disponible
+ * Útil para demos escolares o entornos sin salida SMTP
+ */
+function _guardarEmailLog(string $to, string $subject, string $body): void {
+    $logDir  = dirname(__DIR__) . '/logs';
+    if (!is_dir($logDir)) @mkdir($logDir, 0750, true);
+    $archivo = $logDir . '/emails_' . date('Y-m') . '.log';
+    $sep     = str_repeat('=', 70);
+    $entrada = implode(PHP_EOL, [
+        $sep,
+        '[EMAIL LOG] ' . date('Y-m-d H:i:s'),
+        'TO:      ' . $to,
+        'SUBJECT: ' . $subject,
+        'BODY:',
+        $body,
+        '',
+    ]);
+    @file_put_contents($archivo, $entrada . PHP_EOL, FILE_APPEND | LOCK_EX);
 }
 
 // ================================================================
@@ -310,16 +338,12 @@ function emailCotizacionRecibida(array $cot): bool {
     $nombre = htmlspecialchars($cot['nombre_cliente']);
     // Mapear values del select al label legible para el email
     $tipoMap = [
-        'baño'         => 'Modelo Sevilla',
-        'baño'         => 'Modelo Roma',
-        'baño'         => 'Modelo Edinburgo',
-        'baño'         => 'Modelo Singapur',
-        'baño'         => 'Modelo Sydney',
-        'baño'         => 'Modelo Palermo',
-        'baño'         => 'Modelo Budapest',
-        'baño'         => 'Modelo Quebec',
-        'baño'         => 'Modelo Toronto',
-        'baño'         => 'Modelo Amsterdam',
+        'cocina'       => 'Mueble Milano',
+        'closet'       => 'Mueble Venecia',
+        'bano'         => 'Mueble Toscana',
+        'sala'         => 'Mueble Oslo',
+        'recamara'     => 'Muebles Paris',
+        'estudio'      => 'Mueble Tokio',
         'personalizado'=> 'Diseño Personalizado',
     ];
     $tipoRaw = $cot['tipo_mueble'] ?? '';
@@ -503,6 +527,9 @@ function notificarNuevaCotizacion(array $cot): void {
 }
 
 function notificarNuevaCita(array $cita): void {
+    // Email de confirmación al cliente
+    emailCitaConfirmada($cita);
+    // Notificación interna Firestore para el panel
     crearNotificacionFirestore(
         'nueva_cita',
         '📅 Nueva cita agendada',

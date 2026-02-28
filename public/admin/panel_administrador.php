@@ -328,11 +328,14 @@ unset($_usuario);
       <!-- COTIZACIONES (DEMO) -->
       <div id="cotizaciones-section" class="content-section hidden">
         <h1 class="page-title">Gestión de Cotizaciones</h1>
-        <p class="page-subtitle">Todas las cotizaciones del sistema</p>
+        <p class="page-subtitle">Todas las solicitudes de cotización recibidas</p>
 
         <div class="section">
           <div class="section-header">
             <h2 class="section-title">Cotizaciones</h2>
+            <button class="btn btn-secondary btn-small" onclick="cargarCotizacionesAPI()">
+              <i class="fa-solid fa-rotate-right"></i> Actualizar
+            </button>
           </div>
 
           <div class="table-container">
@@ -340,42 +343,23 @@ unset($_usuario);
               <table>
                 <thead>
                   <tr>
-                    <th>ID</th><th>Cliente</th><th>Producto</th><th>Monto</th><th>Estado</th><th>Acciones</th>
+                    <th>Folio</th>
+                    <th>Cliente</th>
+                    <th>Correo</th>
+                    <th>Tipo de Mueble</th>
+                    <th>Fecha</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
                   </tr>
                 </thead>
-                <tbody id="cotTable">
-                  <tr>
-                    <td>COT-045</td>
-                    <td>Juan Pedro Herrera Sanchez</td>
-                    <td>Personalizado</td>
-                    <td style="color: var(--accent); font-weight:800;">$18,500</td>
-                    <td><span class="status-badge status-pending">Pendiente</span></td>
-                    <td>
-                      <button class="btn btn-secondary btn-small" onclick="showNotification('Ver cotización (demo)', 'info')">Ver</button>
-                      <button class="btn btn-secondary btn-small" onclick="showNotification('Actualizar cotización (demo)', 'info')">Actualizar</button>
-                      <button class="btn btn-danger btn-small" onclick="confirmDelete('cot-045')"><i class="fa-solid fa-trash"></i></button>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td>COT-046</td>
-                    <td>Laura Torres</td>
-                    <td>Milano</td>
-                    <td style="color: var(--accent); font-weight:800;">$9,200</td>
-                    <td><span class="status-badge status-progress">En Proceso</span></td>
-                    <td>
-                      <button class="btn btn-secondary btn-small" onclick="showNotification('Ver cotización (demo)', 'info')">Ver</button>
-                      <button class="btn btn-secondary btn-small" onclick="showNotification('Actualizar cotización (demo)', 'info')">Actualizar</button>
-                      <button class="btn btn-danger btn-small" onclick="confirmDelete('cot-046')"><i class="fa-solid fa-trash"></i></button>
-                    </td>
-                  </tr>
+                <tbody id="cotizacionesAdminBody">
+                  <tr><td colspan="7" style="text-align:center;padding:30px;color:var(--muted);">
+                    <i class="fa-solid fa-spinner fa-spin"></i> Cargando cotizaciones...
+                  </td></tr>
                 </tbody>
               </table>
             </div>
           </div>
-
-          <p class="help" style="margin-top:10px;">
-            *Esto es demo. En Reportes verás la conversión (cotizaciones → ventas) con datos simulados.
-          </p>
         </div>
       </div>
 
@@ -763,6 +747,76 @@ unset($_usuario);
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
   <script src="../assets/js/firebase-config.js"></script>
+  <!-- ═══ MODAL: DETALLE PEDIDO (admin) ══════════════════════════ -->
+  <div class="modal" id="adminPedidoDetalleModal">
+    <div class="modal-content" style="max-width:750px;">
+      <div class="modal-header" style="background:var(--accent);color:#fff;border-radius:8px 8px 0 0;">
+        <h3 class="modal-title" style="color:#fff;">
+          <i class="fa-solid fa-box"></i> Detalle del Pedido
+          <span id="adm_ped_folio" style="font-weight:900;margin-left:8px;opacity:.85;"></span>
+        </h3>
+        <button class="modal-close" onclick="closeModal('adminPedidoDetalleModal')" style="color:#fff;">×</button>
+      </div>
+      <div id="adm_ped_body" style="padding:20px 24px;max-height:75vh;overflow-y:auto;">
+        <div style="text-align:center;padding:40px;color:var(--muted);"><i class="fa-solid fa-spinner fa-spin fa-2x"></i></div>
+      </div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end;padding:12px 24px;border-top:1px solid #eee;">
+        <button class="btn btn-secondary" onclick="closeModal('adminPedidoDetalleModal')">Cerrar</button>
+        <button class="btn btn-primary" id="adm_ped_edit_btn" onclick="closeModal('adminPedidoDetalleModal')">
+          <i class="fa-solid fa-pen"></i> Cambiar Estado
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ MODAL: DETALLE CITA (admin) ════════════════════════════ -->
+  <div class="modal" id="adminCitaDetalleModal">
+    <div class="modal-content" style="max-width:600px;">
+      <div class="modal-header" style="background:#5C6BC0;color:#fff;border-radius:8px 8px 0 0;">
+        <h3 class="modal-title" style="color:#fff;">
+          <i class="fa-solid fa-calendar-days"></i> Detalle de Cita
+          <span id="adm_cita_folio" style="font-weight:900;margin-left:8px;opacity:.85;"></span>
+        </h3>
+        <button class="modal-close" onclick="closeModal('adminCitaDetalleModal')" style="color:#fff;">×</button>
+      </div>
+      <div id="adm_cita_body" style="padding:20px 24px;max-height:75vh;overflow-y:auto;">
+        <div style="text-align:center;padding:40px;color:var(--muted);"><i class="fa-solid fa-spinner fa-spin fa-2x"></i></div>
+      </div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:space-between;align-items:center;padding:12px 24px;border-top:1px solid #eee;">
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <button class="btn btn-secondary btn-small" onclick="cambiarEstadoCitaAdmin(window._admCitaId,'confirmada')">✅ Confirmar</button>
+          <button class="btn btn-secondary btn-small" onclick="cambiarEstadoCitaAdmin(window._admCitaId,'completada')">🏁 Completar</button>
+          <button class="btn btn-danger btn-small"    onclick="cambiarEstadoCitaAdmin(window._admCitaId,'cancelada')">❌ Cancelar</button>
+        </div>
+        <button class="btn btn-secondary" onclick="closeModal('adminCitaDetalleModal')">Cerrar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ MODAL: DETALLE COTIZACIÓN (admin) ══════════════════════ -->
+  <div class="modal" id="adminCotDetalleModal">
+    <div class="modal-content" style="max-width:650px;">
+      <div class="modal-header" style="background:#2E7D32;color:#fff;border-radius:8px 8px 0 0;">
+        <h3 class="modal-title" style="color:#fff;">
+          <i class="fa-solid fa-briefcase"></i> Detalle de Cotización
+          <span id="adm_cot_folio" style="font-weight:900;margin-left:8px;opacity:.85;"></span>
+        </h3>
+        <button class="modal-close" onclick="closeModal('adminCotDetalleModal')" style="color:#fff;">×</button>
+      </div>
+      <div id="adm_cot_body" style="padding:20px 24px;max-height:75vh;overflow-y:auto;">
+        <div style="text-align:center;padding:40px;color:var(--muted);"><i class="fa-solid fa-spinner fa-spin fa-2x"></i></div>
+      </div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:space-between;align-items:center;padding:12px 24px;border-top:1px solid #eee;">
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <button class="btn btn-secondary btn-small" onclick="cambiarEstadoCotAdmin(window._admCotId,'en_revision')">📋 En Revisión</button>
+          <button class="btn btn-secondary btn-small" onclick="cambiarEstadoCotAdmin(window._admCotId,'respondida')">✅ Respondida</button>
+          <button class="btn btn-secondary btn-small" onclick="cambiarEstadoCotAdmin(window._admCotId,'cerrada')">🔒 Cerrar</button>
+        </div>
+        <button class="btn btn-secondary" onclick="closeModal('adminCotDetalleModal')">Cerrar</button>
+      </div>
+    </div>
+  </div>
+
   <script src="../assets/js/panel_administrador.js"></script>
 </body>
 </html>

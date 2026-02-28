@@ -6,11 +6,26 @@ $id     = isset($_GET['id']) ? sanitizeInt($_GET['id']) : null;
 
 switch ($method) {
     case 'GET':
-        requerirEmpleado();
+        // Consulta pública de disponibilidad por fecha (para el formulario de citas)
+        // Solo devuelve rango_horario y estado — sin datos personales
+        $consultaPublica = !empty($_GET['fecha']) && !$id && empty($_GET['estado']) && empty($_GET['tipo']);
+        if (!$consultaPublica) requerirEmpleado();
+
         if ($id) {
             $cita = dbRow("SELECT * FROM citas WHERE id = ?", [$id]);
             if (!$cita) jsonError('Cita no encontrada', 404);
             jsonSuccess(['cita' => $cita]);
+        }
+        
+        // Si es consulta pública, solo devolver horarios y estados (sin datos personales)
+        if ($consultaPublica) {
+            $fecha = $_GET['fecha'];
+            if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $fecha)) jsonError('Fecha inválida', 422);
+            $citas = dbRows(
+                "SELECT rango_horario, estado FROM citas WHERE DATE(fecha_cita) = ? AND estado != 'cancelada'",
+                [$fecha]
+            );
+            jsonSuccess(['citas' => $citas]);
         }
         $page  = max(1, sanitizeInt($_GET['page'] ?? 1));
         $limit = min(50, max(1, sanitizeInt($_GET['limit'] ?? 20)));

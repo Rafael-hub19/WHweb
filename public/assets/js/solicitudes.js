@@ -218,6 +218,67 @@ function initFormCita() {
 }
 
 // ── Selección de hora (global para onclick) ──────
+// ── Horarios disponibles por fecha (consulta BD real) ──────────
+const HORARIOS_NEGOCIO = [
+  '9:00 AM','10:00 AM','11:00 AM','12:00 PM',
+  '2:00 PM','3:00 PM','4:00 PM','5:00 PM'
+];
+
+async function cargarSlotsDisponibles(fecha) {
+  const container = document.getElementById('timeSlots');
+  if (!container || !fecha) return;
+
+  selectedTime = null;
+  container.innerHTML = '<div style="color:var(--muted,#888);font-size:14px;padding:12px;grid-column:1/-1;"><i class="fa-solid fa-spinner fa-spin"></i> Verificando disponibilidad...</div>';
+
+  try {
+    // Obtener citas ya agendadas para esa fecha
+    const res  = await fetch(`${API_URL}/citas.php?fecha=${fecha}&limit=50`);
+    const data = await res.json();
+    // Horarios ya ocupados ese día
+    const ocupados = new Set(
+      (data.citas || [])
+        .filter(c => c.estado !== 'cancelada')
+        .map(c => c.rango_horario)
+    );
+
+    // Verificar si el día es válido (no pasado, no domingo/sábado)
+    const fechaObj = new Date(fecha + 'T12:00:00'); // noon para evitar timezone issues
+    const diaSemana = fechaObj.getDay(); // 0=dom, 6=sab
+    const hoy = new Date(); hoy.setHours(0,0,0,0);
+    const fechaSelec = new Date(fecha + 'T00:00:00');
+
+    if (fechaSelec < hoy) {
+      container.innerHTML = '<div style="color:#c62828;font-size:14px;padding:12px;grid-column:1/-1;">No puedes agendar en fechas pasadas.</div>';
+      return;
+    }
+    if (diaSemana === 0 || diaSemana === 6) {
+      container.innerHTML = '<div style="color:#c62828;font-size:14px;padding:12px;grid-column:1/-1;">Solo atendemos de lunes a viernes. Selecciona otro día.</div>';
+      return;
+    }
+
+    // Renderizar slots
+    const slots = HORARIOS_NEGOCIO.map(hora => {
+      const ocupado = ocupados.has(hora);
+      return `<div class="time-slot${ocupado ? ' unavailable' : ''}"${!ocupado ? ` onclick="selectTime(this)"` : ''} title="${ocupado ? 'Horario no disponible' : 'Seleccionar este horario'}">${hora}</div>`;
+    });
+
+    container.innerHTML = slots.join('');
+
+    const libres = HORARIOS_NEGOCIO.length - ocupados.size;
+    if (libres === 0) {
+      container.innerHTML += '<div style="color:#c62828;font-size:13px;padding:6px;grid-column:1/-1;"><i class="fa-solid fa-circle-exclamation"></i> No hay horarios disponibles para este día. Selecciona otra fecha.</div>';
+    }
+
+  } catch(e) {
+    console.warn('Error cargando slots:', e);
+    // Fallback: mostrar todos los horarios sin verificación
+    container.innerHTML = HORARIOS_NEGOCIO.map(hora =>
+      `<div class="time-slot" onclick="selectTime(this)">${hora}</div>`
+    ).join('');
+  }
+}
+
 function selectTime(element) {
   if (element.classList.contains('unavailable')) return;
   document.querySelectorAll('.time-slot').forEach(s => s.classList.remove('selected'));

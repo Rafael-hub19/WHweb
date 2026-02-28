@@ -35,7 +35,7 @@ $fechaMinima = calcularFechaMinima($hoy, MARGEN_DIAS_HABILES);
 // ── Cargar carga real de productos por día de la BD ───────────
 $limite = (clone $hoy)->modify('+60 days')->format('Y-m-d');
 
-$cargaPorDia = cargarCargaPorDia($hoy->format('Y-m-d'), $limite);
+[$cargaPorDia, $cargaPorZona] = cargarCargaPorDia($hoy->format('Y-m-d'), $limite, $tipoEntrega, $cpCliente);
 $diasBloqueados = cargarDiasBloqueados($hoy->format('Y-m-d'), $limite);
 
 // ── Construir lista de días disponibles ───────────────────────

@@ -88,7 +88,10 @@ function showSection(section){
   window._currentSection = section;
 
   if(section === 'inventario'){  bootstrapInventoryFromTableIfEmpty(); renderInventory(); }
-  if(section === 'calendario'){  buildCalendar(); renderNext7(); }
+  if(section === 'calendario'){
+    // Sincronizar citas de la API con el calendario local
+    cargarCitasParaCalendario().then(() => { buildCalendar(); renderNext7(); });
+  }
   if(section === 'dashboard'){   refreshKpisFromPedidosTable(); renderActivity(); refreshKpisAPI(); }
   if(section === 'pedidos')      cargarPedidosEmpleadoAPI();
   if(section === 'citas')        cargarCitasAPI();
@@ -797,9 +800,90 @@ function deleteEvent(id){
   showNotification('Evento eliminado', 'info');
 }
 
-// ================== FORM DUMMIES ==================
-function saveCita(){ closeModal('nuevaCita'); showNotification('<i class="fa-solid fa-check"></i> Cita agendada (demo)', 'success'); }
-function saveCotizacion(){ closeModal('nuevaCotizacion'); showNotification('<i class="fa-solid fa-check"></i> Cotización creada (demo)', 'success'); }
+// ================== FORM HANDLERS — conectados a la API ==================
+async function saveCita() {
+  // Recoger datos del modal de nueva cita
+  const nombre   = document.getElementById('citaNombre')?.value?.trim();
+  const correo   = document.getElementById('citaCorreo')?.value?.trim();
+  const telefono = document.getElementById('citaTelefono')?.value?.trim();
+  const fecha    = document.getElementById('citaFecha')?.value;
+  const horario  = document.getElementById('citaHorario')?.value || 'Por confirmar';
+  const tipo     = document.getElementById('citaTipo')?.value || 'medicion';
+  const notas    = document.getElementById('citaNotas')?.value?.trim() || '';
+
+  if (!nombre || !correo || !fecha) {
+    showNotification('Completa nombre, correo y fecha', 'error'); return;
+  }
+
+  try {
+    const data = await apiFetch(`${API_BASE}/citas.php`, {
+      method: 'POST',
+      body: JSON.stringify({
+        nombre_cliente: nombre, correo_cliente: correo, telefono_cliente: telefono || 'N/A',
+        fecha_cita: fecha, rango_horario: horario, tipo, notas, direccion: 'Por confirmar'
+      })
+    });
+    if (data.success) {
+      closeModal('nuevaCita');
+      showNotification(`<i class="fa-solid fa-check"></i> Cita ${data.numero_cita} agendada`, 'success');
+      cargarCitasAPI();
+    } else {
+      showNotification(data.error || 'Error al agendar cita', 'error');
+    }
+  } catch(e) { showNotification('Error de conexión', 'error'); }
+}
+
+async function saveCotizacion() {
+  const nombre      = document.getElementById('cotNombre')?.value?.trim();
+  const correo      = document.getElementById('cotCorreo')?.value?.trim();
+  const telefono    = document.getElementById('cotTelefono')?.value?.trim();
+  const tipo        = document.getElementById('cotTipo')?.value || '';
+  const descripcion = document.getElementById('cotDescripcion')?.value?.trim();
+
+  if (!nombre || !correo || !descripcion) {
+    showNotification('Completa nombre, correo y descripción', 'error'); return;
+  }
+
+  try {
+    const data = await apiFetch(`${API_BASE}/cotizaciones.php`, {
+      method: 'POST',
+      body: JSON.stringify({
+        nombre_cliente: nombre, correo_cliente: correo, telefono_cliente: telefono || 'N/A',
+        tipo_mueble: tipo, descripcion_solicitud: descripcion
+      })
+    });
+    if (data.success) {
+      closeModal('nuevaCotizacion');
+      showNotification(`<i class="fa-solid fa-check"></i> Cotización ${data.numero_cotizacion} registrada`, 'success');
+      cargarCotizacionesAPI();
+    } else {
+      showNotification(data.error || 'Error al crear cotización', 'error');
+    }
+  } catch(e) { showNotification('Error de conexión', 'error'); }
+}
+
+// Cargar citas de la API y sincronizar con el calendario local
+async function cargarCitasParaCalendario() {
+  try {
+    const data = await apiFetch(`${API_BASE}/citas.php?limit=50`);
+    if (!data.success || !data.citas?.length) return;
+    // Fusionar citas de la API en el calendario (no duplicar por id)
+    const existentes = getCalEvents();
+    const idsExistentes = new Set(existentes.map(e => e.apiId).filter(Boolean));
+    const nuevos = data.citas
+      .filter(c => !idsExistentes.has(String(c.id)))
+      .map(c => ({
+        id: 'API-' + c.id,
+        apiId: String(c.id),
+        date: (c.fecha_cita || '').substring(0, 10),
+        time: c.rango_horario || '10:00',
+        type: 'cita',
+        title: `${c.tipo === 'medicion' ? 'Medición' : 'Instalación'}: ${c.nombre_cliente}`,
+        notes: c.notas || ''
+      }));
+    if (nuevos.length) saveCalEvents([...existentes, ...nuevos]);
+  } catch(e) { /* silencioso — el calendario muestra lo que tenga en local */ }
+}
 
 // ================== INIT (primer DOMContentLoaded) ==================
 document.addEventListener('DOMContentLoaded', () => {
@@ -895,8 +979,11 @@ async function cargarPedidosEmpleadoAPI() {
         <td>${p.fecha_estimada || '—'}</td>
         <td><span class="status-badge ${clsMap[p.estado] || ''}">${labMap[p.estado] || p.estado}</span></td>
         <td style="color:var(--accent);font-weight:800;">$${parseFloat(p.total||0).toLocaleString('es-MX')}</td>
-        <td>
-          <select class="form-select" style="width:140px;" onchange="actualizarEstadoPedidoEmp(${p.id}, this.value)">
+        <td style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
+          <button onclick="verDetallePedidoEmp(${p.id})" style="background:var(--accent);color:#fff;border:none;padding:5px 12px;border-radius:4px;cursor:pointer;font-size:12px;white-space:nowrap;flex-shrink:0;">
+            <i class="fa-solid fa-eye"></i> Ver
+          </button>
+          <select class="form-select" style="width:120px;font-size:12px;" onchange="actualizarEstadoPedidoEmp(${p.id}, this.value)">
             ${['pendiente','pagado','en_produccion','listo','entregado'].map(s =>
               `<option value="${s}" ${s===p.estado?'selected':''}>${labMap[s]}</option>`
             ).join('')}
@@ -935,9 +1022,10 @@ async function cargarCitasAPI() {
         <td>${c.rango_horario || '—'}</td>
         <td>${c.tipo}</td>
         <td><span class="status-badge ${clsMap[c.estado]||''}">${c.estado}</span></td>
-        <td>
-          <button class="btn btn-secondary btn-small" onclick="confirmarCita(${c.id})">Confirmar</button>
-          <button class="btn btn-secondary btn-small" onclick="completarCita(${c.id})">Completar</button>
+        <td style="display:flex;gap:4px;flex-wrap:wrap;">
+          <button onclick="verDetalleCitaEmp(${c.id})" style="background:#5C6BC0;color:#fff;border:none;padding:4px 10px;border-radius:4px;cursor:pointer;font-size:11px;white-space:nowrap;"><i class='fa-solid fa-eye'></i> Ver</button>
+          <button class="btn btn-secondary btn-small" onclick="confirmarCita(${c.id})">✅</button>
+          <button class="btn btn-secondary btn-small" onclick="completarCita(${c.id})">🏁</button>
         </td>
       </tr>
     `).join('');
@@ -969,15 +1057,218 @@ async function cargarCotizacionesAPI() {
         <td>${c.rango_presupuesto || '—'}</td>
         <td><span class="status-badge ${clsMap[c.estado]||''}">${c.estado}</span></td>
         <td>
-          <select class="form-select" style="width:130px;" onchange="actualizarCotizacion(${c.id}, this.value)">
-            ${['nueva','en_revision','respondida','cerrada'].map(s =>
-              `<option value="${s}" ${s===c.estado?'selected':''}>${s}</option>`
-            ).join('')}
-          </select>
+          <div style="display:flex;gap:4px;flex-wrap:wrap;align-items:center;">
+            <button onclick="verDetalleCotEmp(${c.id})" style="background:#2E7D32;color:#fff;border:none;padding:4px 10px;border-radius:4px;cursor:pointer;font-size:11px;white-space:nowrap;"><i class='fa-solid fa-eye'></i> Ver</button>
+            <select class="form-select" style="width:120px;font-size:11px;" onchange="actualizarCotizacion(${c.id}, this.value)">
+              ${['nueva','en_revision','respondida','cerrada'].map(s =>
+                `<option value="${s}" ${s===c.estado?'selected':''}>${s}</option>`
+              ).join('')}
+            </select>
+          </div>
         </td>
       </tr>
     `).join('');
   } catch(e) { console.error('Cotizaciones API error:', e); }
+}
+
+// ════════════════════════════════════════════════════════════════
+// MODALES DE DETALLE — Pedido, Cita, Cotización (empleado)
+// ════════════════════════════════════════════════════════════════
+
+async function verDetallePedidoEmp(id) {
+  // Reutilizar el modal existente pedidoModal del empleado con datos de API
+  const modal = document.getElementById('pedidoModal');
+  if (!modal) return;
+  // Limpiar campos básicos mientras carga
+  document.getElementById('pDetId').textContent = '#' + id;
+  document.getElementById('pDetCliente').textContent = '...';
+  document.getElementById('pDetProducto').textContent = '...';
+  document.getElementById('pDetEntrega').textContent = '...';
+  document.getElementById('pDetTotal').textContent = '...';
+  openModal('pedidoModal');
+
+  try {
+    const data = await apiFetch(`${API_BASE}/pedidos.php?id=${id}`);
+    if (!data.success || !data.pedido) return;
+    const p = data.pedido;
+
+    document.getElementById('pDetId').textContent = p.numero_pedido;
+    document.getElementById('pDetCliente').textContent = p.nombre_cliente + (p.correo_cliente ? ` — ${p.correo_cliente}` : '');
+
+    // Productos
+    const items = p.items || [];
+    const prods = items.map(i => `${i.nombre_producto||i.producto_nombre||'Producto'} x${i.cantidad}`).join(', ') || '—';
+    document.getElementById('pDetProducto').textContent = prods;
+    document.getElementById('pDetEntrega').textContent = p.fecha_estimada || '—';
+    document.getElementById('pDetTotal').textContent = '$' + parseFloat(p.total||0).toLocaleString('es-MX');
+    renderPedidoTimeline(timelineStageFromStatus(p.estado));
+
+    // Datos adicionales — agregar dinámicamente debajo del modal si hay espacio
+    const extraId = 'pedidoExtraInfo';
+    let extra = document.getElementById(extraId);
+    if (!extra) {
+      extra = document.createElement('div');
+      extra.id = extraId;
+      extra.style.cssText = 'margin-top:12px;padding:12px;background:#faf6f0;border-radius:6px;font-size:13px;';
+      modal.querySelector('.modal-content').insertBefore(extra, modal.querySelector('.modal-content').lastElementChild);
+    }
+    extra.innerHTML = `
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+        <div><span style="color:var(--muted);">Teléfono:</span><br><strong>${escapeHtml(p.telefono_cliente||'—')}</strong></div>
+        <div><span style="color:var(--muted);">Entrega:</span><br><strong>${p.tipo_entrega==='recoger'?'🏪 Recoge en tienda':'🚚 Envío'}</strong></div>
+        ${p.direccion_envio?`<div style="grid-column:1/-1;"><span style="color:var(--muted);">Dirección:</span><br><strong>${escapeHtml(p.direccion_envio)}</strong></div>`:''}
+        <div><span style="color:var(--muted);">Instalación:</span><br><strong>${parseInt(p.incluye_instalacion)?'✅ Incluye':'❌ No incluye'}</strong></div>
+        <div><span style="color:var(--muted);">Estado:</span><br><strong>${p.estado}</strong></div>
+        ${items.length>1?`<div style="grid-column:1/-1;"><span style="color:var(--muted);">Todos los productos:</span><br>${items.map(i=>`<span style="display:inline-block;background:#eee;border-radius:4px;padding:2px 8px;margin:2px;font-size:12px;">${escapeHtml(i.nombre_producto||i.producto_nombre||'?')} ×${i.cantidad}</span>`).join('')}</div>`:''}
+      </div>
+    `;
+  } catch(e) { console.error('Error cargando pedido:', e); }
+}
+
+async function verDetalleCitaEmp(id) {
+  // Crear modal temporal si no existe uno específico para citas
+  let modal = document.getElementById('citaDetalleEmpModal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'citaDetalleEmpModal';
+    modal.className = 'modal';
+    modal.innerHTML = `
+      <div class="modal-content" style="max-width:560px;">
+        <div class="modal-header" style="background:#5C6BC0;color:#fff;border-radius:8px 8px 0 0;">
+          <h3 class="modal-title" style="color:#fff;"><i class="fa-solid fa-calendar-days"></i> Detalle de Cita <span id="emp_cita_folio" style="opacity:.8;"></span></h3>
+          <button class="modal-close" onclick="closeModal('citaDetalleEmpModal')" style="color:#fff;">×</button>
+        </div>
+        <div id="emp_cita_body" style="padding:20px;max-height:70vh;overflow-y:auto;"></div>
+        <div style="display:flex;gap:8px;justify-content:space-between;flex-wrap:wrap;padding:12px 20px;border-top:1px solid #eee;">
+          <div style="display:flex;gap:6px;flex-wrap:wrap;">
+            <button class="btn btn-secondary btn-small" onclick="confirmarCita(window._empCitaId);closeModal('citaDetalleEmpModal');cargarCitasAPI();">✅ Confirmar</button>
+            <button class="btn btn-secondary btn-small" onclick="completarCita(window._empCitaId);closeModal('citaDetalleEmpModal');cargarCitasAPI();">🏁 Completar</button>
+          </div>
+          <button class="btn btn-secondary" onclick="closeModal('citaDetalleEmpModal')">Cerrar</button>
+        </div>
+      </div>`;
+    document.body.appendChild(modal);
+    modal.addEventListener('click', e => { if(e.target===modal) modal.classList.remove('active'); });
+  }
+
+  const body  = document.getElementById('emp_cita_body');
+  const folio = document.getElementById('emp_cita_folio');
+  window._empCitaId = id;
+  body.innerHTML = '<div style="text-align:center;padding:30px;color:#888;"><i class="fa-solid fa-spinner fa-spin fa-2x"></i></div>';
+  openModal('citaDetalleEmpModal');
+
+  try {
+    const data = await apiFetch(`${API_BASE}/citas.php?id=${id}`);
+    if (!data.success || !data.cita) throw new Error('No encontrada');
+    const c = data.cita;
+    folio.textContent = c.numero_cita;
+
+    const estLabels = { nueva:'Nueva 🆕', confirmada:'Confirmada ✅', completada:'Completada 🏁', cancelada:'Cancelada ❌' };
+    const estColors = { nueva:'#1565C0', confirmada:'#2E7D32', completada:'#5C3D11', cancelada:'#B71C1C' };
+    const tipoLabels = { medicion:'Medición 📐', instalacion:'Instalación 🔧', otro:'Otro' };
+    const est = c.estado || 'nueva';
+
+    body.innerHTML = `
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:8px;">
+        <span style="background:${estColors[est]}22;color:${estColors[est]};padding:5px 14px;border-radius:20px;font-weight:700;font-size:13px;">${estLabels[est]||est}</span>
+        <span style="font-size:12px;color:#888;">Registrada: ${(c.fecha_creacion||'').substring(0,10)}</span>
+      </div>
+      <div style="background:#f0f4ff;border-left:3px solid #5C6BC0;border-radius:4px;padding:12px;margin-bottom:12px;">
+        <div style="font-weight:700;color:#5C6BC0;font-size:12px;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;">Fecha y Tipo</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:13px;">
+          <div><span style="color:#888;">📅 Fecha:</span><br><strong style="font-size:15px;">${c.fecha_cita||'—'}</strong></div>
+          <div><span style="color:#888;">🕐 Horario:</span><br><strong style="font-size:15px;">${c.rango_horario||'Por confirmar'}</strong></div>
+          <div><span style="color:#888;">Tipo:</span><br><strong>${tipoLabels[c.tipo]||c.tipo||'—'}</strong></div>
+        </div>
+      </div>
+      <div style="background:#faf6f0;border-left:3px solid var(--accent);border-radius:4px;padding:12px;">
+        <div style="font-weight:700;color:var(--accent);font-size:12px;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;">Cliente</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:13px;">
+          <div><span style="color:#888;">Nombre:</span><br><strong>${escapeHtml(c.nombre_cliente)}</strong></div>
+          <div><span style="color:#888;">Teléfono:</span><br><strong>${escapeHtml(c.telefono_cliente||'—')}</strong></div>
+          <div style="grid-column:1/-1;"><span style="color:#888;">Correo:</span><br><strong>${escapeHtml(c.correo_cliente)}</strong></div>
+          <div style="grid-column:1/-1;"><span style="color:#888;">📍 Dirección:</span><br><strong>${escapeHtml(c.direccion||'Sin especificar')}</strong></div>
+          ${c.notas?`<div style="grid-column:1/-1;"><span style="color:#888;">Notas:</span><br>${escapeHtml(c.notas)}</div>`:''}
+        </div>
+      </div>`;
+  } catch(e) {
+    body.innerHTML = `<div style="color:#c62828;padding:20px;text-align:center;">${e.message}</div>`;
+  }
+}
+
+async function verDetalleCotEmp(id) {
+  let modal = document.getElementById('cotDetalleEmpModal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'cotDetalleEmpModal';
+    modal.className = 'modal';
+    modal.innerHTML = `
+      <div class="modal-content" style="max-width:600px;">
+        <div class="modal-header" style="background:#2E7D32;color:#fff;border-radius:8px 8px 0 0;">
+          <h3 class="modal-title" style="color:#fff;"><i class="fa-solid fa-briefcase"></i> Detalle de Cotización <span id="emp_cot_folio" style="opacity:.8;"></span></h3>
+          <button class="modal-close" onclick="closeModal('cotDetalleEmpModal')" style="color:#fff;">×</button>
+        </div>
+        <div id="emp_cot_body" style="padding:20px;max-height:70vh;overflow-y:auto;"></div>
+        <div style="display:flex;gap:8px;justify-content:space-between;flex-wrap:wrap;padding:12px 20px;border-top:1px solid #eee;">
+          <div style="display:flex;gap:6px;flex-wrap:wrap;">
+            <button class="btn btn-secondary btn-small" onclick="actualizarCotizacion(window._empCotId,'en_revision');closeModal('cotDetalleEmpModal');cargarCotizacionesAPI();">📋 En revisión</button>
+            <button class="btn btn-secondary btn-small" onclick="actualizarCotizacion(window._empCotId,'respondida');closeModal('cotDetalleEmpModal');cargarCotizacionesAPI();">✅ Respondida</button>
+          </div>
+          <button class="btn btn-secondary" onclick="closeModal('cotDetalleEmpModal')">Cerrar</button>
+        </div>
+      </div>`;
+    document.body.appendChild(modal);
+    modal.addEventListener('click', e => { if(e.target===modal) modal.classList.remove('active'); });
+  }
+
+  const body  = document.getElementById('emp_cot_body');
+  const folio = document.getElementById('emp_cot_folio');
+  window._empCotId = id;
+  body.innerHTML = '<div style="text-align:center;padding:30px;color:#888;"><i class="fa-solid fa-spinner fa-spin fa-2x"></i></div>';
+  openModal('cotDetalleEmpModal');
+
+  try {
+    const data = await apiFetch(`${API_BASE}/cotizaciones.php?id=${id}`);
+    if (!data.success || !data.cotizacion) throw new Error('No encontrada');
+    const cot = data.cotizacion;
+    folio.textContent = cot.numero_cotizacion;
+
+    const estLabels = { nueva:'Nueva 🆕', en_revision:'En Revisión 📋', respondida:'Respondida ✅', cerrada:'Cerrada 🔒' };
+    const estColors = { nueva:'#1565C0', en_revision:'#F57F17', respondida:'#2E7D32', cerrada:'#757575' };
+    const tipoMap   = { baño:'Mueble de baño', personalizado:'Diseño Personalizado' };
+    const est = cot.estado || 'nueva';
+    const tipoLabel = tipoMap[cot.tipo_mueble] || (cot.tipo_mueble || 'No especificado');
+
+    body.innerHTML = `
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:8px;">
+        <span style="background:${estColors[est]}22;color:${estColors[est]};padding:5px 14px;border-radius:20px;font-weight:700;font-size:13px;">${estLabels[est]||est}</span>
+        <span style="font-size:12px;color:#888;">Creada: ${(cot.fecha_creacion||'').substring(0,10)}</span>
+      </div>
+      <div style="background:#faf6f0;border-left:3px solid var(--accent);border-radius:4px;padding:12px;margin-bottom:12px;">
+        <div style="font-weight:700;color:var(--accent);font-size:12px;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;">Cliente</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:13px;">
+          <div><span style="color:#888;">Nombre:</span><br><strong>${escapeHtml(cot.nombre_cliente)}</strong></div>
+          <div><span style="color:#888;">Teléfono:</span><br><strong>${escapeHtml(cot.telefono_cliente||'—')}</strong></div>
+          <div style="grid-column:1/-1;"><span style="color:#888;">Correo:</span><br><strong>${escapeHtml(cot.correo_cliente)}</strong></div>
+        </div>
+      </div>
+      <div style="background:#f0fff4;border-left:3px solid #2E7D32;border-radius:4px;padding:12px;">
+        <div style="font-weight:700;color:#2E7D32;font-size:12px;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;">Solicitud</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:13px;">
+          <div><span style="color:#888;">Tipo:</span><br><strong>${escapeHtml(tipoLabel)}</strong></div>
+          <div><span style="color:#888;">Presupuesto:</span><br><strong>${escapeHtml(cot.rango_presupuesto||'No especificado')}</strong></div>
+          <div><span style="color:#888;">Medidas:</span><br><strong>${parseInt(cot.tiene_medidas)?'✅ Tiene medidas':'❌ Sin medidas'}</strong></div>
+          <div><span style="color:#888;">Instalación:</span><br><strong>${parseInt(cot.requiere_instalacion)?'✅ Requiere':'❌ No requiere'}</strong></div>
+          ${cot.medidas?`<div style="grid-column:1/-1;"><span style="color:#888;">Medidas:</span><br><strong>${escapeHtml(cot.medidas)}</strong></div>`:''}
+          <div style="grid-column:1/-1;">
+            <span style="color:#888;">Descripción:</span><br>
+            <div style="background:#fff;border:1px solid #e0e0e0;border-radius:4px;padding:10px;margin-top:4px;line-height:1.6;">${escapeHtml(cot.descripcion_solicitud||'—')}</div>
+          </div>
+        </div>
+      </div>`;
+  } catch(e) {
+    body.innerHTML = `<div style="color:#c62828;padding:20px;text-align:center;">${e.message}</div>`;
+  }
 }
 
 async function actualizarCotizacion(id, estado) {

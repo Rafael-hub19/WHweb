@@ -79,11 +79,12 @@
       // Registrar sección activa para el auto-polling
       window._currentSection = section;
 
-      if(section === 'citas')     renderCalendar();
+      if(section === 'citas')     cargarCitasCalendarioAPI();
       if(section === 'catalogo')  cargarProductosAPI().then(() => renderCatalogo());
       if(section === 'reportes')  { cargarReportesAPI(); }
       if(section === 'dashboard') setTimeout(refreshKPIsFromAPI, 100);
-      if(section === 'pedidos')   cargarPedidosAPI();
+      if(section === 'pedidos')      cargarPedidosAPI();
+      if(section === 'cotizaciones')  cargarCotizacionesAPI();
       if(section === 'empleados') cargarEmpleadosAPI();
       refreshKPIs();
     }
@@ -144,21 +145,35 @@
     ========================= */
     let calYear = 2026;
     let calMonth = 1; // Feb
-    const CITA_KEY = 'wh_admin_citas';
+    // Citas cargadas desde la API — sin localStorage, datos reales de MySQL
+    let _citasCache = [];
 
-    const seedCitas = [
-      { id:'C-001', cliente:'Ana Martínez', empleado:'Juan Pérez', date:'2026-02-05', time:'10:00', tipo:'inst', estado:'completed' },
-      { id:'C-002', cliente:'Pedro Sánchez', empleado:'María García', date:'2026-02-06', time:'14:00', tipo:'cot', estado:'pending' },
-      { id:'C-003', cliente:'Laura Torres', empleado:'Juan Pérez', date:'2026-02-12', time:'12:30', tipo:'cita', estado:'progress' }
-    ];
-    function getCitas(){
-      const raw = localStorage.getItem(CITA_KEY);
-      if(!raw){
-        localStorage.setItem(CITA_KEY, JSON.stringify(seedCitas));
-        return seedCitas;
+    async function cargarCitasCalendarioAPI() {
+      try {
+        // Cargar citas del mes actual y el siguiente para el calendario
+        const hoy = new Date();
+        const desde = `${hoy.getFullYear()}-01-01`; // desde inicio del año
+        const hasta = `${hoy.getFullYear()}-12-31`; // hasta fin del año
+        const data = await apiFetch(`${API_BASE}/citas.php?limit=200&fecha_desde=${desde}&fecha_hasta=${hasta}`);
+        if (data.success && data.citas) {
+          _citasCache = data.citas.map(c => ({
+            id:      c.numero_cita || c.id,
+            cliente: c.nombre_cliente || '',
+            date:    (c.fecha_cita || '').substring(0, 10),
+            time:    c.rango_horario || '00:00',
+            tipo:    c.tipo || 'medicion',
+            estado:  c.estado || 'nueva',
+            datos:   c, // datos completos para el panel de detalle
+          }));
+        }
+      } catch(e) {
+        console.warn('Error cargando citas:', e);
+        _citasCache = [];
       }
-      try{ return JSON.parse(raw) || []; } catch{ return []; }
+      renderCalendar();
     }
+
+    function getCitas(){ return _citasCache; }
     function pad(n){ return String(n).padStart(2,'0'); }
     function monthName(m){
       return ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'][m] || '';
@@ -245,9 +260,17 @@
       citas.forEach(c => {
         const el = document.createElement('div');
         el.className = 'cal-item';
+        const estadoTexto = {'nueva':'Nueva','confirmada':'Confirmada','completada':'Completada','cancelada':'Cancelada'}[c.estado] || c.estado;
+        const tipoTexto   = {'medicion':'Medición','instalacion':'Instalación','otro':'Otro'}[c.tipo] || c.tipo;
+        const dbId = c.datos?.id || '';
         el.innerHTML = `
-          <div class="t">${escapeHtml(c.time)} • ${escapeHtml(c.cliente)}</div>
-          <div class="m">${escapeHtml(c.empleado)} • ${tipoLabel(c.tipo)} • ${estadoLabel(c.estado)}</div>
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">
+            <div>
+              <div class="t">${escapeHtml(c.time)} • ${escapeHtml(c.cliente)}</div>
+              <div class="m">${tipoTexto} • ${estadoTexto} • ${escapeHtml(c.id)}</div>
+            </div>
+            ${dbId ? `<button onclick="verDetalleCitaAdmin(${dbId})" style="background:#5C6BC0;color:#fff;border:none;padding:4px 10px;border-radius:4px;cursor:pointer;font-size:11px;white-space:nowrap;flex-shrink:0;"><i class='fa-solid fa-eye'></i> Ver</button>` : ''}
+          </div>
         `;
         list.appendChild(el);
       });
@@ -300,9 +323,12 @@
         next.forEach(c => {
           const el = document.createElement('div');
           el.className = 'cal-item';
+          const tipoTexto = {'medicion':'Medición','instalacion':'Instalación','otro':'Otro'}[c.tipo] || c.tipo;
+          const hoy = new Date().toISOString().substring(0,10);
+          const esHoy = c.date === hoy;
           el.innerHTML = `
-            <div class="t">${escapeHtml(c.cliente)} • ${escapeHtml(c.empleado)}</div>
-            <div class="m">${fmtDMY(c.date)} • ${escapeHtml(c.time)} • ${tipoLabel(c.tipo)}</div>
+            <div class="t">${escapeHtml(c.cliente)}${esHoy ? ' <span style="color:#2E7D32;font-size:11px;">● HOY</span>' : ''}</div>
+            <div class="m">${fmtDMY(c.date)} • ${escapeHtml(c.time)} • ${tipoTexto}</div>
           `;
           nextList.appendChild(el);
         });
@@ -1010,7 +1036,7 @@
       body.innerHTML = '';
 
       if(!top.length){
-        body.innerHTML = `<tr><td colspan="4" style="color:var(--muted);">No hay ventas aún. Usa “Generar datos demo”.</td></tr>`;
+        body.innerHTML = `<tr><td colspan="4" style="color:var(--muted);text-align:center;padding:16px;">Sin ventas registradas en este período</td></tr>`;
         return;
       }
 
@@ -1202,7 +1228,6 @@
 
     document.addEventListener('DOMContentLoaded', () => {
       renderCalendar();
-      renderReportes();
       refreshKPIs();
       drawDashboardCharts();
       // Cargar productos y categorías desde la API al iniciar
@@ -1210,6 +1235,15 @@
         renderCatalogo();
       }).catch(e => console.warn('No se pudieron cargar productos:', e));
       setTimeout(() => showNotification('Bienvenido, Administrador', 'success'), 450);
+      // Cargar datos reales del backend cuando Firebase confirme la sesión
+      if (typeof firebaseAuth !== 'undefined') {
+        firebaseAuth.onAuthStateChanged(async (user) => {
+          if (user) {
+            await refreshKPIsFromAPI();
+            await cargarPedidosAPI();
+          }
+        });
+      }
     });
   
 // ── API LAYER - Conexión real al backend PHP ──────────
@@ -1383,8 +1417,11 @@ async function cargarPedidosAPI() {
         <td>${p.fecha_estimada || '—'}</td>
         <td><span class="status-badge ${statusMap[p.estado] || ''}">${labelMap[p.estado] || p.estado}</span></td>
         <td style="color:var(--accent);font-weight:800;">${money(p.total)}</td>
-        <td>
-          <select class="form-select" style="width:140px;" onchange="actualizarEstadoPedido(${p.id}, this.value)">
+        <td style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
+          <button onclick="verDetallePedidoAdmin(${p.id})" style="background:var(--accent);color:#fff;border:none;padding:5px 12px;border-radius:4px;cursor:pointer;font-size:12px;white-space:nowrap;flex-shrink:0;">
+            <i class="fa-solid fa-eye"></i> Ver
+          </button>
+          <select class="form-select" style="width:130px;font-size:12px;" onchange="actualizarEstadoPedido(${p.id}, this.value)">
             ${['pendiente','pagado','en_produccion','listo','entregado','cancelado'].map(s =>
               `<option value="${s}" ${s === p.estado ? 'selected' : ''}>${labelMap[s]}</option>`
             ).join('')}
@@ -1465,6 +1502,309 @@ async function desactivarEmpleado(id) {
 }
 
 // ── REPORTES - API real ───────────────────────────────
+// ════════════════════════════════════════════════════════════════
+// MODALES DE DETALLE — Pedido, Cita, Cotización (admin)
+// ════════════════════════════════════════════════════════════════
+
+// ── Ver detalle de PEDIDO ──────────────────────────────────────
+async function verDetallePedidoAdmin(id) {
+  const body = document.getElementById('adm_ped_body');
+  const folio = document.getElementById('adm_ped_folio');
+  openModal('adminPedidoDetalleModal');
+  body.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted);"><i class="fa-solid fa-spinner fa-spin fa-2x"></i></div>';
+
+  try {
+    const data = await apiFetch(`${API_BASE}/pedidos.php?id=${id}`);
+    if (!data.success || !data.pedido) throw new Error(data.error || 'No encontrado');
+    const p = data.pedido;
+
+    folio.textContent = p.numero_pedido;
+    window._admPedId = id;
+
+    const estadoLabels = { pendiente:'Pendiente',pagado:'Pagado ✓',en_produccion:'En Producción 🔨',listo:'Listo 📦',entregado:'Entregado ✅',cancelado:'Cancelado ❌' };
+    const estadoColors = { pendiente:'#F57F17',pagado:'#1565C0',en_produccion:'#6A1B9A',listo:'#00695C',entregado:'#2E7D32',cancelado:'#B71C1C' };
+    const est = p.estado || 'pendiente';
+    const color = estadoColors[est] || '#888';
+    const label = estadoLabels[est] || est;
+
+    const entrega = p.tipo_entrega === 'recoger' ? '🏪 Recoge en tienda' : `🚚 Envío — ${p.direccion_envio || 'Sin dirección'}`;
+    const instalacion = parseInt(p.incluye_instalacion) ? '✅ Incluye instalación' : '❌ Sin instalación';
+
+    // Items del pedido
+    const items = (p.items || []);
+    const itemsHtml = items.length
+      ? `<table style="width:100%;border-collapse:collapse;font-size:13px;margin-top:8px;">
+          <thead><tr style="background:#f5f0eb;">
+            <th style="padding:8px;text-align:left;color:var(--accent);">Producto</th>
+            <th style="padding:8px;text-align:center;color:var(--accent);">Cant.</th>
+            <th style="padding:8px;text-align:right;color:var(--accent);">P. Unit.</th>
+            <th style="padding:8px;text-align:right;color:var(--accent);">Total</th>
+          </tr></thead>
+          <tbody>${items.map(i => `
+            <tr style="border-bottom:1px solid #f0e8d8;">
+              <td style="padding:8px;">${escapeHtml(i.nombre_producto||i.producto_nombre||'Producto')}</td>
+              <td style="padding:8px;text-align:center;">${i.cantidad}</td>
+              <td style="padding:8px;text-align:right;">${money(i.precio_unitario)}</td>
+              <td style="padding:8px;text-align:right;font-weight:600;color:var(--accent);">${money(i.total||i.precio_unitario*i.cantidad)}</td>
+            </tr>`).join('')}
+          </tbody>
+        </table>`
+      : '<p style="color:var(--muted);font-style:italic;font-size:13px;">Sin productos registrados</p>';
+
+    // Pagos
+    const pagos = (p.pagos || []);
+    const pagosHtml = pagos.length
+      ? pagos.map(pg => `<div style="display:flex;justify-content:space-between;font-size:13px;padding:4px 0;border-bottom:1px solid #f0e8d8;">
+          <span>${pg.metodo_pago || 'Pago'} — ${(pg.fecha_creacion||'').substring(0,10)}</span>
+          <span style="font-weight:600;color:#2E7D32;">${money(pg.monto||pg.amount||0)}</span>
+        </div>`).join('')
+      : '<p style="color:var(--muted);font-style:italic;font-size:13px;">Sin pagos registrados</p>';
+
+    body.innerHTML = `
+      <!-- Estado + totales -->
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px;margin-bottom:20px;">
+        <span style="background:${color}22;color:${color};padding:6px 16px;border-radius:20px;font-weight:700;font-size:15px;">${label}</span>
+        <div style="text-align:right;">
+          <div style="font-size:24px;font-weight:800;color:var(--accent);">${money(p.total)}</div>
+          <div style="font-size:12px;color:var(--muted);">Subtotal ${money(p.subtotal)} + Envío ${money(p.costo_envio)} + Inst. ${money(p.costo_instalacion)}</div>
+        </div>
+      </div>
+
+      <!-- Datos cliente -->
+      <div style="background:#faf6f0;border-left:3px solid var(--accent);border-radius:4px;padding:14px;margin-bottom:16px;">
+        <div style="font-weight:700;color:var(--accent);margin-bottom:8px;font-size:13px;text-transform:uppercase;letter-spacing:.5px;">Cliente</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:13px;">
+          <div><span style="color:var(--muted);">Nombre:</span><br><strong>${escapeHtml(p.nombre_cliente)}</strong></div>
+          <div><span style="color:var(--muted);">Teléfono:</span><br><strong>${escapeHtml(p.telefono_cliente||'—')}</strong></div>
+          <div><span style="color:var(--muted);">Correo:</span><br><strong>${escapeHtml(p.correo_cliente)}</strong></div>
+          <div><span style="color:var(--muted);">Fecha estimada:</span><br><strong>${p.fecha_estimada||'—'}</strong></div>
+          <div style="grid-column:1/-1;"><span style="color:var(--muted);">Entrega:</span> ${entrega}</div>
+          <div style="grid-column:1/-1;"><span style="color:var(--muted);">Instalación:</span> ${instalacion}</div>
+          ${p.notas ? `<div style="grid-column:1/-1;"><span style="color:var(--muted);">Notas:</span> ${escapeHtml(p.notas)}</div>` : ''}
+        </div>
+      </div>
+
+      <!-- Productos -->
+      <div style="margin-bottom:16px;">
+        <div style="font-weight:700;color:var(--accent);margin-bottom:8px;font-size:13px;text-transform:uppercase;letter-spacing:.5px;">Productos del Pedido</div>
+        ${itemsHtml}
+      </div>
+
+      <!-- Pagos -->
+      <div>
+        <div style="font-weight:700;color:var(--accent);margin-bottom:8px;font-size:13px;text-transform:uppercase;letter-spacing:.5px;">Historial de Pagos</div>
+        ${pagosHtml}
+      </div>
+
+      <!-- Cambiar estado rápido -->
+      <div style="margin-top:20px;padding-top:16px;border-top:1px solid #eee;">
+        <div style="font-weight:700;color:var(--accent);margin-bottom:8px;font-size:13px;text-transform:uppercase;letter-spacing:.5px;">Cambiar Estado</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          ${['pendiente','pagado','en_produccion','listo','entregado','cancelado'].map(s => {
+            const c2 = estadoColors[s]||'#888';
+            const l2 = estadoLabels[s]||s;
+            const active = s === est ? `style="background:${c2};color:#fff;"` : `style="border:1px solid ${c2};color:${c2};background:#fff;"`;
+            return `<button ${active} onclick="actualizarEstadoPedido(${id},'${s}');closeModal('adminPedidoDetalleModal');cargarPedidosAPI();" style="padding:5px 12px;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer;border:none;transition:all .2s;">${l2}</button>`;
+          }).join('')}
+        </div>
+      </div>
+    `;
+  } catch(e) {
+    body.innerHTML = `<div style="color:#c62828;padding:20px;text-align:center;"><i class="fa-solid fa-circle-exclamation"></i> Error: ${e.message}</div>`;
+  }
+}
+
+// ── Ver detalle de CITA ────────────────────────────────────────
+async function verDetalleCitaAdmin(id) {
+  const body   = document.getElementById('adm_cita_body');
+  const folio  = document.getElementById('adm_cita_folio');
+  openModal('adminCitaDetalleModal');
+  body.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted);"><i class="fa-solid fa-spinner fa-spin fa-2x"></i></div>';
+  window._admCitaId = id;
+
+  try {
+    const data = await apiFetch(`${API_BASE}/citas.php?id=${id}`);
+    if (!data.success || !data.cita) throw new Error(data.error || 'No encontrada');
+    const c = data.cita;
+
+    folio.textContent = c.numero_cita;
+
+    const estLabels = { nueva:'Nueva 🆕', confirmada:'Confirmada ✅', completada:'Completada 🏁', cancelada:'Cancelada ❌' };
+    const estColors = { nueva:'#1565C0', confirmada:'#2E7D32', completada:'#5C3D11', cancelada:'#B71C1C' };
+    const tipoLabels = { medicion:'Medición', instalacion:'Instalación', otro:'Otro' };
+    const est = c.estado || 'nueva';
+
+    body.innerHTML = `
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:20px;">
+        <span style="background:${estColors[est]||'#888'}22;color:${estColors[est]||'#888'};padding:6px 16px;border-radius:20px;font-weight:700;font-size:14px;">${estLabels[est]||est}</span>
+        <span style="font-size:12px;color:var(--muted);">Creada: ${(c.fecha_creacion||'').substring(0,10)}</span>
+      </div>
+
+      <div style="background:#f0f4ff;border-left:3px solid #5C6BC0;border-radius:4px;padding:14px;margin-bottom:16px;">
+        <div style="font-weight:700;color:#5C6BC0;margin-bottom:10px;font-size:13px;text-transform:uppercase;letter-spacing:.5px;">Fecha y Tipo</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:13px;">
+          <div><span style="color:var(--muted);">📅 Fecha:</span><br><strong style="font-size:16px;">${c.fecha_cita||'—'}</strong></div>
+          <div><span style="color:var(--muted);">🕐 Horario:</span><br><strong style="font-size:16px;">${c.rango_horario||'Por confirmar'}</strong></div>
+          <div><span style="color:var(--muted);">🔧 Tipo:</span><br><strong>${tipoLabels[c.tipo]||c.tipo||'—'}</strong></div>
+          <div><span style="color:var(--muted);">📋 Folio:</span><br><strong>${c.numero_cita}</strong></div>
+        </div>
+      </div>
+
+      <div style="background:#faf6f0;border-left:3px solid var(--accent);border-radius:4px;padding:14px;margin-bottom:16px;">
+        <div style="font-weight:700;color:var(--accent);margin-bottom:10px;font-size:13px;text-transform:uppercase;letter-spacing:.5px;">Cliente</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:13px;">
+          <div><span style="color:var(--muted);">Nombre:</span><br><strong>${escapeHtml(c.nombre_cliente)}</strong></div>
+          <div><span style="color:var(--muted);">Teléfono:</span><br><strong>${escapeHtml(c.telefono_cliente||'—')}</strong></div>
+          <div style="grid-column:1/-1;"><span style="color:var(--muted);">Correo:</span><br><strong>${escapeHtml(c.correo_cliente)}</strong></div>
+          <div style="grid-column:1/-1;"><span style="color:var(--muted);">📍 Dirección:</span><br><strong>${escapeHtml(c.direccion||'Sin especificar')}</strong></div>
+          ${c.notas ? `<div style="grid-column:1/-1;"><span style="color:var(--muted);">Notas:</span><br>${escapeHtml(c.notas)}</div>` : ''}
+        </div>
+      </div>
+    `;
+  } catch(e) {
+    body.innerHTML = `<div style="color:#c62828;padding:20px;text-align:center;"><i class="fa-solid fa-circle-exclamation"></i> Error: ${e.message}</div>`;
+  }
+}
+
+async function cambiarEstadoCitaAdmin(id, estado) {
+  if (!id) return;
+  try {
+    const data = await apiFetch(`${API_BASE}/citas.php?id=${id}`, {
+      method: 'PUT', body: JSON.stringify({ estado })
+    });
+    if (data.success) {
+      showNotification('Estado de cita actualizado', 'success');
+      closeModal('adminCitaDetalleModal');
+      cargarCitasCalendarioAPI();
+    }
+  } catch(e) { console.error(e); }
+}
+
+// ── Ver detalle de COTIZACIÓN ──────────────────────────────────
+async function verDetalleCotAdmin(id) {
+  const body  = document.getElementById('adm_cot_body');
+  const folio = document.getElementById('adm_cot_folio');
+  openModal('adminCotDetalleModal');
+  body.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted);"><i class="fa-solid fa-spinner fa-spin fa-2x"></i></div>';
+  window._admCotId = id;
+
+  try {
+    const data = await apiFetch(`${API_BASE}/cotizaciones.php?id=${id}`);
+    if (!data.success || !data.cotizacion) throw new Error(data.error || 'No encontrada');
+    const cot = data.cotizacion;
+
+    folio.textContent = cot.numero_cotizacion;
+
+    const estLabels = { nueva:'Nueva 🆕', en_revision:'En Revisión 📋', respondida:'Respondida ✅', cerrada:'Cerrada 🔒' };
+    const estColors = { nueva:'#1565C0', en_revision:'#F57F17', respondida:'#2E7D32', cerrada:'#757575' };
+    const tipoMap   = { cocina:'Milano', closet:'Venecia', bano:'Toscana', sala:'Oslo', recamara:'Paris', estudio:'Tokio', personalizado:'Personalizado' };
+    const est = cot.estado || 'nueva';
+
+    const tipoLabel = tipoMap[cot.tipo_mueble] || (cot.tipo_mueble ? `Modelo ${cot.tipo_mueble.charAt(0).toUpperCase()+cot.tipo_mueble.slice(1)}` : 'No especificado');
+
+    body.innerHTML = `
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:20px;">
+        <span style="background:${estColors[est]||'#888'}22;color:${estColors[est]||'#888'};padding:6px 16px;border-radius:20px;font-weight:700;font-size:14px;">${estLabels[est]||est}</span>
+        <span style="font-size:12px;color:var(--muted);">Creada: ${(cot.fecha_creacion||'').substring(0,10)}</span>
+      </div>
+
+      <div style="background:#faf6f0;border-left:3px solid var(--accent);border-radius:4px;padding:14px;margin-bottom:16px;">
+        <div style="font-weight:700;color:var(--accent);margin-bottom:10px;font-size:13px;text-transform:uppercase;letter-spacing:.5px;">Cliente</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:13px;">
+          <div><span style="color:var(--muted);">Nombre:</span><br><strong>${escapeHtml(cot.nombre_cliente)}</strong></div>
+          <div><span style="color:var(--muted);">Teléfono:</span><br><strong>${escapeHtml(cot.telefono_cliente||'—')}</strong></div>
+          <div style="grid-column:1/-1;"><span style="color:var(--muted);">Correo:</span><br><strong>${escapeHtml(cot.correo_cliente)}</strong></div>
+        </div>
+      </div>
+
+      <div style="background:#f0fff4;border-left:3px solid #2E7D32;border-radius:4px;padding:14px;margin-bottom:16px;">
+        <div style="font-weight:700;color:#2E7D32;margin-bottom:10px;font-size:13px;text-transform:uppercase;letter-spacing:.5px;">Especificaciones</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:13px;">
+          <div><span style="color:var(--muted);">Tipo de mueble:</span><br><strong>${escapeHtml(tipoLabel)}</strong></div>
+          <div><span style="color:var(--muted);">Presupuesto:</span><br><strong>${escapeHtml(cot.rango_presupuesto||'No especificado')}</strong></div>
+          <div><span style="color:var(--muted);">Tiene medidas:</span><br><strong>${parseInt(cot.tiene_medidas)?'✅ Sí':'❌ No'}</strong></div>
+          <div><span style="color:var(--muted);">Requiere instalación:</span><br><strong>${parseInt(cot.requiere_instalacion)?'✅ Sí':'❌ No'}</strong></div>
+          ${cot.medidas ? `<div style="grid-column:1/-1;"><span style="color:var(--muted);">Medidas:</span><br><strong>${escapeHtml(cot.medidas)}</strong></div>` : ''}
+          <div style="grid-column:1/-1;">
+            <span style="color:var(--muted);">Descripción:</span><br>
+            <div style="background:#fff;border:1px solid #e0e0e0;border-radius:4px;padding:10px;margin-top:4px;line-height:1.6;">${escapeHtml(cot.descripcion_solicitud||'—')}</div>
+          </div>
+          ${cot.notas_admin ? `<div style="grid-column:1/-1;"><span style="color:var(--muted);">Notas admin:</span><br><div style="background:#fffde7;border:1px solid #f9a825;border-radius:4px;padding:10px;margin-top:4px;">${escapeHtml(cot.notas_admin)}</div></div>` : ''}
+        </div>
+      </div>
+    `;
+  } catch(e) {
+    body.innerHTML = `<div style="color:#c62828;padding:20px;text-align:center;"><i class="fa-solid fa-circle-exclamation"></i> Error: ${e.message}</div>`;
+  }
+}
+
+// ── Cotizaciones (admin) — datos reales de la API ───────────
+async function cargarCotizacionesAPI() {
+  const tbody = document.getElementById('cotizacionesAdminBody') ||
+                document.querySelector('#cotizaciones-section tbody');
+  if (tbody) tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:20px;color:var(--muted)"><i class="fa-solid fa-spinner fa-spin"></i> Cargando...</td></tr>';
+
+  try {
+    const data = await apiFetch(`${API_BASE}/cotizaciones.php?limit=50`);
+    if (!data.success) { throw new Error(data.error || 'Error'); }
+    const cots = data.cotizaciones || [];
+
+    if (tbody) {
+      if (!cots.length) {
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:20px;color:var(--muted)">Sin cotizaciones registradas</td></tr>';
+        return;
+      }
+      const estadoColors = {
+        'nueva':'#1565C0','en_revision':'#F57F17','respondida':'#2E7D32','cerrada':'#757575'
+      };
+      const estadoLabels = {
+        'nueva':'Nueva','en_revision':'En revisión','respondida':'Respondida','cerrada':'Cerrada'
+      };
+      tbody.innerHTML = cots.map(c => {
+        const est = c.estado || 'nueva';
+        const color = estadoColors[est] || '#757575';
+        const label = estadoLabels[est] || est;
+        const fecha = (c.fecha_creacion || '').substring(0, 10);
+        const tipo  = {
+          'cocina':'Milano','closet':'Venecia','bano':'Toscana',
+          'sala':'Oslo','recamara':'Paris','estudio':'Tokio',
+          'personalizado':'Personalizado'
+        }[c.tipo_mueble] || (c.tipo_mueble || 'Sin tipo');
+        return `<tr>
+          <td><strong>${escapeHtml(c.numero_cotizacion || '')}</strong></td>
+          <td>${escapeHtml(c.nombre_cliente || '')}</td>
+          <td>${escapeHtml(c.correo_cliente || '')}</td>
+          <td>${escapeHtml(tipo)}</td>
+          <td>${escapeHtml(fecha)}</td>
+          <td><span style="background:${color}22;color:${color};padding:3px 10px;border-radius:12px;font-size:12px;font-weight:600;">${label}</span></td>
+          <td>
+            <button onclick="verDetalleCotAdmin(${c.id})" style="background:#2E7D32;color:#fff;border:none;padding:4px 10px;border-radius:4px;cursor:pointer;font-size:11px;margin:1px;" title="Ver detalle"><i class='fa-solid fa-eye'></i> Ver</button>
+            <button onclick="cambiarEstadoCotAdmin(${c.id}, 'en_revision')" style="font-size:11px;padding:3px 8px;margin:1px;background:#fff;border:1px solid #ccc;border-radius:4px;cursor:pointer;" title="En revisión">📋</button>
+            <button onclick="cambiarEstadoCotAdmin(${c.id}, 'respondida')" style="font-size:11px;padding:3px 8px;margin:1px;background:#fff;border:1px solid #ccc;border-radius:4px;cursor:pointer;" title="Respondida">✅</button>
+            <button onclick="cambiarEstadoCotAdmin(${c.id}, 'cerrada')"   style="font-size:11px;padding:3px 8px;margin:1px;background:#fff;border:1px solid #ccc;border-radius:4px;cursor:pointer;" title="Cerrar">🔒</button>
+          </td>
+        </tr>`;
+      }).join('');
+    }
+  } catch(e) {
+    console.error('Error cargando cotizaciones:', e);
+    if (tbody) tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:20px;color:#c62828">Error al cargar cotizaciones. Verifica tu conexión.</td></tr>';
+  }
+}
+
+async function cambiarEstadoCotAdmin(id, estado) {
+  try {
+    const data = await apiFetch(`${API_BASE}/cotizaciones.php?id=${id}`, {
+      method: 'PUT',
+      body: JSON.stringify({ estado })
+    });
+    if (data.success) {
+      showNotification(`Estado actualizado a: ${estado}`, 'success');
+      cargarCotizacionesAPI();
+    }
+  } catch(e) { console.error(e); }
+}
+
 async function cargarReportesAPI() {
   try {
     // Promise.allSettled: si uno falla el otro sigue funcionando

@@ -104,7 +104,7 @@
               <select name="tipoMueble" required>
                 <option value="">Selecciona una opción</option>
                 <option value="baño">Modelo Sevilla</option>
-                <option value="baño">Modelo Roma </option>
+                <option value="baño">Modelo Roma</option>
                 <option value="baño">Modelo Edinburgo</option>
                 <option value="baño">Modelo Singapur</option>
                 <option value="baño">Modelo Sydney</option>
@@ -241,22 +241,17 @@
           <div class="form-grid">
             <div class="form-group">
               <label>Fecha Preferida <span class="required">*</span></label>
-              <input type="date" name="fecha" id="fechaCita" required>
+              <input type="date" name="fecha" id="fechaCita" required onchange="cargarSlotsDisponibles(this.value)">
             </div>
 
             <div class="form-group full-width">
               <label>Horarios Disponibles <span class="required">*</span></label>
               <div class="time-slots" id="timeSlots">
-                <div class="time-slot" onclick="selectTime(this)">9:00 AM</div>
-                <div class="time-slot" onclick="selectTime(this)">10:00 AM</div>
-                <div class="time-slot unavailable">11:00 AM</div>
-                <div class="time-slot" onclick="selectTime(this)">12:00 PM</div>
-                <div class="time-slot" onclick="selectTime(this)">2:00 PM</div>
-                <div class="time-slot" onclick="selectTime(this)">3:00 PM</div>
-                <div class="time-slot" onclick="selectTime(this)">4:00 PM</div>
-                <div class="time-slot" onclick="selectTime(this)">5:00 PM</div>
+                <div style="color:var(--muted,#888);font-size:14px;padding:10px;grid-column:1/-1;">
+                  Selecciona una fecha para ver horarios disponibles
+                </div>
               </div>
-              <div class="help-text">Los horarios en gris no están disponibles</div>
+              <div class="help-text">Los horarios en gris ya están ocupados para esa fecha</div>
             </div>
           </div>
         </div>
@@ -384,10 +379,10 @@
 
   <!-- Footer -->
   <div class="footer">
-    <p>&copy; 2025 Wooden House. Todos los derechos reservados.</p>
+    <p>&copy; 2026 Wooden House. Todos los derechos reservados.</p>
     <p style="margin-top: 10px;">Muebles de madera a medida en Guadalajara, Jalisco</p>
     <p style="margin-top: 10px; font-size: 14px;">
-      <a href="mailto:contacto@juan432.jpml.com" style="color: #8b7355;">contacto@juan432.jpml.com</a> | 
+      <a href="mailto:ventas@muebleswh.com" style="color: #8b7355;">ventas@muebleswh.com</a> | 
       <a href="tel:3317054017" style="color: #8b7355;">33 1705 4017</a>
     </p>
   </div>
