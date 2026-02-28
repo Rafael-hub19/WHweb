@@ -75,6 +75,7 @@ Options -Indexes -ExecCGI
             https://*.firebasestorage.app \
             https://storage.googleapis.com; \
         connect-src 'self' \
+            https://cdn.jsdelivr.net \
             https://*.firebaseio.com \
             https://firestore.googleapis.com \
             https://firebase.googleapis.com \
