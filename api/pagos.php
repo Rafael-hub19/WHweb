@@ -123,6 +123,93 @@ if ($action === 'stripe_webhook') {
 }
 
 // ── PAYPAL ────────────────────────────────────────────
+if ($action === 'paypal_webhook') {
+    if ($method !== 'POST') jsonError('Método no permitido', 405);
+
+    // Pasar todos los headers SERVER para verificar firma
+    $event = paypal()->verificarWebhook($_rawBody, $_SERVER);
+    if (!$event) {
+        http_response_code(400);
+        echo json_encode(['error' => 'Webhook PayPal inválido o firma incorrecta']);
+        exit;
+    }
+
+    $eventType = $event['event_type'] ?? '';
+    $resource  = $event['resource']   ?? [];
+
+    switch ($eventType) {
+
+        // Orden aprobada y captura completada
+        case 'PAYMENT.CAPTURE.COMPLETED':
+            $orderId    = $resource['supplementary_data']['related_ids']['order_id']
+                       ?? $resource['id']
+                       ?? '';
+            $captureId  = $resource['id'] ?? '';
+            $captureStatus = strtoupper($resource['status'] ?? '');
+
+            if ($captureStatus === 'COMPLETED' && $orderId) {
+                dbQuery("UPDATE pagos SET estado = 'aprobado', referencia_externa = ? WHERE referencia_externa = ?",
+                    [$captureId, $orderId]);
+
+                // También intentar por capture_id directamente
+                $pago = dbRow("SELECT pedido_id FROM pagos WHERE referencia_externa = ?", [$captureId])
+                     ?? dbRow("SELECT pedido_id FROM pagos WHERE referencia_externa = ?", [$orderId]);
+
+                if ($pago) {
+                    dbUpdate('pedidos', ['estado' => 'pagado'], 'id = ?', [$pago['pedido_id']]);
+                    $pedido = dbRow("SELECT * FROM pedidos WHERE id = ?", [$pago['pedido_id']]);
+                    if ($pedido) {
+                        try {
+                            $pedido['items'] = dbRows("SELECT * FROM pedido_items WHERE pedido_id = ?", [$pago['pedido_id']]);
+                            notificarNuevoPedido($pedido);
+                        } catch (Exception $e) {
+                            appLog('error', 'Email PayPal webhook error', ['error' => $e->getMessage()]);
+                        }
+                    }
+                }
+            }
+            break;
+
+        // Captura denegada o fallida
+        case 'PAYMENT.CAPTURE.DENIED':
+        case 'PAYMENT.CAPTURE.DECLINED':
+            $orderId = $resource['supplementary_data']['related_ids']['order_id'] ?? $resource['id'] ?? '';
+            if ($orderId) {
+                dbQuery("UPDATE pagos SET estado = 'fallido' WHERE referencia_externa = ?", [$orderId]);
+            }
+            break;
+
+        // Reembolso completado
+        case 'PAYMENT.CAPTURE.REFUNDED':
+            $captureId = $resource['id'] ?? '';
+            if ($captureId) {
+                dbQuery("UPDATE pagos SET estado = 'reembolsado' WHERE referencia_externa = ?", [$captureId]);
+                $pago = dbRow("SELECT pedido_id FROM pagos WHERE referencia_externa = ?", [$captureId]);
+                if ($pago) {
+                    dbUpdate('pedidos', ['estado' => 'cancelado'], 'id = ?', [$pago['pedido_id']]);
+                }
+            }
+            break;
+
+        // Orden expirada sin pago
+        case 'CHECKOUT.ORDER.VOIDED':
+            $orderId = $resource['id'] ?? '';
+            if ($orderId) {
+                dbQuery("UPDATE pagos SET estado = 'fallido' WHERE referencia_externa = ?", [$orderId]);
+            }
+            break;
+
+        default:
+            // Evento no manejado — loggear y responder 200 para que PayPal no reintente
+            appLog('info', 'PayPal webhook evento no manejado', ['event_type' => $eventType]);
+            break;
+    }
+
+    http_response_code(200);
+    echo json_encode(['received' => true]);
+    exit;
+}
+
 if ($action === 'paypal_orden') {
     if ($method !== 'POST') jsonError('Método no permitido', 405);
     $body     = $_jsonBody;

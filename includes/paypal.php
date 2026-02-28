@@ -186,11 +186,78 @@ class PayPalClient {
     }
 
     /**
-     * Verificar webhook básico de PayPal
+     * Verificar firma de webhook de PayPal via API (método oficial)
+     * PayPal no usa HMAC local — verifica contra su propia API
+     *
+     * @param string $payload        Body crudo del request
+     * @param array  $headers        Headers HTTP del request (SERVER vars)
+     * @param string $webhookId      ID del webhook registrado en PayPal Developer Dashboard
      */
-    public function verificarWebhook(string $payload): ?array {
+    public function verificarWebhook(string $payload, array $headers = [], string $webhookId = ''): ?array {
         $data = json_decode($payload, true);
-        return is_array($data) ? $data : null;
+        if (!is_array($data)) return null;
+
+        $webhookId = $webhookId ?: (defined('PAYPAL_WEBHOOK_ID') ? PAYPAL_WEBHOOK_ID : '');
+
+        // Si no hay webhookId configurado, solo parsear (modo desarrollo sin verificación)
+        if (!$webhookId) {
+            error_log('[PayPal Webhook] ADVERTENCIA: PAYPAL_WEBHOOK_ID no configurado. Verificación omitida.');
+            return $data;
+        }
+
+        // Extraer headers necesarios para la verificación
+        $authAlgo         = $headers['HTTP_PAYPAL_AUTH_ALGO']         ?? $headers['PAYPAL_AUTH_ALGO']         ?? '';
+        $certUrl          = $headers['HTTP_PAYPAL_CERT_URL']          ?? $headers['PAYPAL_CERT_URL']          ?? '';
+        $transmissionId   = $headers['HTTP_PAYPAL_TRANSMISSION_ID']   ?? $headers['PAYPAL_TRANSMISSION_ID']   ?? '';
+        $transmissionSig  = $headers['HTTP_PAYPAL_TRANSMISSION_SIG']  ?? $headers['PAYPAL_TRANSMISSION_SIG']  ?? '';
+        $transmissionTime = $headers['HTTP_PAYPAL_TRANSMISSION_TIME'] ?? $headers['PAYPAL_TRANSMISSION_TIME'] ?? '';
+
+        if (!$transmissionId || !$transmissionSig) {
+            error_log('[PayPal Webhook] Headers de firma ausentes — posible request no auténtico');
+            return null;
+        }
+
+        try {
+            $token = $this->getAccessToken();
+            $verifyBody = [
+                'auth_algo'         => $authAlgo,
+                'cert_url'          => $certUrl,
+                'transmission_id'   => $transmissionId,
+                'transmission_sig'  => $transmissionSig,
+                'transmission_time' => $transmissionTime,
+                'webhook_id'        => $webhookId,
+                'webhook_event'     => $data,
+            ];
+
+            $ch = curl_init($this->apiUrl . '/v1/notifications/verify-webhook-signature');
+            curl_setopt_array($ch, [
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_POST           => true,
+                CURLOPT_POSTFIELDS     => json_encode($verifyBody),
+                CURLOPT_HTTPHEADER     => [
+                    'Content-Type: application/json',
+                    'Authorization: Bearer ' . $token,
+                ],
+                CURLOPT_TIMEOUT        => 15,
+                CURLOPT_SSL_VERIFYPEER => true,
+            ]);
+            $response = curl_exec($ch);
+            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            curl_close($ch);
+
+            $result = json_decode($response, true);
+            $verificationStatus = $result['verification_status'] ?? '';
+
+            if ($httpCode !== 200 || $verificationStatus !== 'SUCCESS') {
+                error_log('[PayPal Webhook] Verificación fallida. HTTP: ' . $httpCode . ' Status: ' . $verificationStatus);
+                return null;
+            }
+
+            return $data;
+        } catch (\Exception $e) {
+            error_log('[PayPal Webhook] Error verificando firma: ' . $e->getMessage());
+            return null;
+        }
     }
 }
 

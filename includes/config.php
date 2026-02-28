@@ -83,6 +83,7 @@ define('PAYPAL_MODE',          env('PAYPAL_MODE',          'sandbox'));
 define('PAYPAL_API_URL', PAYPAL_MODE === 'live'
     ? 'https://api-m.paypal.com'
     : 'https://api-m.sandbox.paypal.com');
+define('PAYPAL_WEBHOOK_ID',    env('PAYPAL_WEBHOOK_ID',    ''));
 
 // ── Email ─────────────────────────────────────────────────────────
 define('EMAIL_FROM',      env('EMAIL_FROM',      ''));
