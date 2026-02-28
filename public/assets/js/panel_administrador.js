@@ -81,7 +81,7 @@
 
       if(section === 'citas')     renderCalendar();
       if(section === 'catalogo')  cargarProductosAPI().then(() => renderCatalogo());
-      if(section === 'reportes')  { cargarReportesAPI(); renderReportes(); }
+      if(section === 'reportes')  { cargarReportesAPI(); }
       if(section === 'dashboard') setTimeout(refreshKPIsFromAPI, 100);
       if(section === 'pedidos')   cargarPedidosAPI();
       if(section === 'empleados') cargarEmpleadosAPI();
@@ -1467,30 +1467,59 @@ async function desactivarEmpleado(id) {
 // ── REPORTES - API real ───────────────────────────────
 async function cargarReportesAPI() {
   try {
-    const [resumen, productos] = await Promise.all([
+    // Promise.allSettled: si uno falla el otro sigue funcionando
+    const [resumenResult, productosResult] = await Promise.allSettled([
       apiFetch(`${API_BASE}/reportes.php?tipo=resumen`),
       apiFetch(`${API_BASE}/reportes.php?tipo=productos`),
     ]);
 
-    if (resumen.success) {
-      setText('repVentas',  money(resumen.ingresos_mes || 0));
-      setText('repOrdenes', resumen.pedidos_mes || 0);
-      const ticket = resumen.pedidos_mes > 0 ? resumen.ingresos_mes / resumen.pedidos_mes : 0;
+    // ── KPIs del resumen ─────────────────────────────────
+    if (resumenResult.status === 'fulfilled' && resumenResult.value?.success) {
+      const r = resumenResult.value;
+      setText('repVentas',  money(r.ingresos_mes || 0));
+      setText('repOrdenes', r.pedidos_mes || 0);
+      const ticket = (r.pedidos_mes > 0) ? (r.ingresos_mes / r.pedidos_mes) : 0;
       setText('repTicket', money(ticket));
+
+      // Conversión: pedidos vs cotizaciones
+      const cotTotal = r.cotizaciones_nuevas || 0;
+      const pedTotal = r.pedidos_mes || 0;
+      const conv = (cotTotal + pedTotal) > 0 ? Math.round((pedTotal / (cotTotal + pedTotal)) * 100) : 0;
+      setText('repConv', conv + '%');
+
+      // Actualizar KPIs del dashboard también
+      const ventasEl = document.getElementById('kpiVentasMes');
+      if (ventasEl) ventasEl.textContent = money(r.ingresos_mes || 0);
+      const pedEl = document.getElementById('kpiPedidos');
+      if (pedEl) pedEl.textContent = r.total_pedidos || 0;
+      const prodEl = document.getElementById('kpiProductos');
+      if (prodEl) prodEl.textContent = r.productos_activos || 0;
+      const hintEl = document.getElementById('kpiVentasHint');
+      if (hintEl) hintEl.textContent = `${r.pedidos_mes || 0} pedidos este mes`;
+      const stockEl = document.getElementById('kpiStockLow');
+      if (stockEl) stockEl.textContent = `${r.pedidos_pendientes || 0} pendientes`;
     }
 
-    // Top productos table
-    if (productos.success && productos.productos) {
-      const tbody = document.querySelector('#reportes-section table tbody');
-      if (tbody) {
-        tbody.innerHTML = (productos.productos || []).map(p => `
-          <tr>
-            <td>${escapeHtml(p.nombre_producto)}</td>
-            <td>${p.unidades_vendidas || 0}</td>
-            <td style="color:var(--accent);font-weight:800;">${money(p.ingresos_generados || 0)}</td>
-            <td>${p.num_pedidos || 0}</td>
-          </tr>
-        `).join('');
+    // ── Top productos ─────────────────────────────────────
+    const tbody = document.getElementById('repTopBody') ||
+                  document.querySelector('#reportes-section table tbody');
+    if (tbody) {
+      if (productosResult.status === 'fulfilled' && productosResult.value?.success) {
+        const prods = productosResult.value.productos || [];
+        if (prods.length > 0) {
+          tbody.innerHTML = prods.map(p => `
+            <tr>
+              <td>${escapeHtml(p.nombre_producto || '')}</td>
+              <td>${p.unidades_vendidas || 0}</td>
+              <td style="color:var(--accent);font-weight:800;">${money(p.ingresos_generados || 0)}</td>
+              <td>${p.num_pedidos || 0}</td>
+            </tr>
+          `).join('');
+        } else {
+          tbody.innerHTML = `<tr><td colspan="4" style="color:var(--muted);text-align:center;">Sin ventas en el período seleccionado</td></tr>`;
+        }
+      } else {
+        tbody.innerHTML = `<tr><td colspan="4" style="color:var(--muted);text-align:center;">Sin datos disponibles aún</td></tr>`;
       }
     }
   } catch(e) { console.error('Reportes API error:', e); }

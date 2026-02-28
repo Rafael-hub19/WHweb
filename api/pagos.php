@@ -63,7 +63,7 @@ if ($action === 'stripe_confirm') {
             $pedido = dbRow("SELECT * FROM pedidos WHERE id = ?", [$pedidoId]);
             if ($pedido) {
                 try {
-                    $pedido['items'] = dbRows("SELECT * FROM pedido_items WHERE pedido_id = ?", [$pedidoId]);
+                    $pedido['items'] = dbRows("SELECT producto_id, nombre_producto, cantidad, precio_unitario, subtotal FROM detalle_pedido WHERE pedido_id = ?", [$pedidoId]);
                     notificarNuevoPedido($pedido);
                 } catch (Exception $e) {
                     appLog('error', 'Email confirmacion stripe error', ['error' => $e->getMessage()]);
@@ -102,7 +102,7 @@ if ($action === 'stripe_webhook') {
                 $pedido = dbRow("SELECT * FROM pedidos WHERE id = ?", [$pago['pedido_id']]);
                 if ($pedido) {
                     try {
-                        $pedido['items'] = dbRows("SELECT * FROM pedido_items WHERE pedido_id = ?", [$pago['pedido_id']]);
+                        $pedido['items'] = dbRows("SELECT producto_id, nombre_producto, cantidad, precio_unitario, subtotal FROM detalle_pedido WHERE pedido_id = ?", [$pago['pedido_id']]);
                         notificarNuevoPedido($pedido);
                     } catch (Exception $e) {
                         appLog('error', 'Email confirmacion webhook error', ['error' => $e->getMessage()]);
@@ -160,7 +160,7 @@ if ($action === 'paypal_webhook') {
                     $pedido = dbRow("SELECT * FROM pedidos WHERE id = ?", [$pago['pedido_id']]);
                     if ($pedido) {
                         try {
-                            $pedido['items'] = dbRows("SELECT * FROM pedido_items WHERE pedido_id = ?", [$pago['pedido_id']]);
+                            $pedido['items'] = dbRows("SELECT producto_id, nombre_producto, cantidad, precio_unitario, subtotal FROM detalle_pedido WHERE pedido_id = ?", [$pago['pedido_id']]);
                             notificarNuevoPedido($pedido);
                         } catch (Exception $e) {
                             appLog('error', 'Email PayPal webhook error', ['error' => $e->getMessage()]);
@@ -259,7 +259,7 @@ if ($action === 'paypal_capturar') {
             $pedido = dbRow("SELECT * FROM pedidos WHERE id = ?", [$pedidoId]);
             if ($pedido) {
                 try {
-                    $pedido['items'] = dbRows("SELECT * FROM pedido_items WHERE pedido_id = ?", [$pedidoId]);
+                    $pedido['items'] = dbRows("SELECT producto_id, nombre_producto, cantidad, precio_unitario, subtotal FROM detalle_pedido WHERE pedido_id = ?", [$pedidoId]);
                     notificarNuevoPedido($pedido);
                 } catch (Exception $e) {
                     appLog('error', 'Email confirmacion paypal error', ['error' => $e->getMessage()]);

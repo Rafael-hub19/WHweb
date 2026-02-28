@@ -50,7 +50,12 @@ switch ($method) {
         ]);
 
         try {
-            notificarNuevaCotizacion(['numero_cotizacion' => $numCot, 'nombre_cliente' => $body['nombre_cliente'], 'correo_cliente' => $body['correo_cliente']]);
+            notificarNuevaCotizacion([
+                'numero_cotizacion' => $numCot,
+                'nombre_cliente'    => $body['nombre_cliente'],
+                'correo_cliente'    => $body['correo_cliente'],
+                'tipo_mueble'       => $body['tipo_mueble'] ?? 'Mueble personalizado',
+            ]);
             crearNotificacionFirestore('cotizacion_nueva', "Nueva Cotización: $numCot", "Cliente: {$body['nombre_cliente']}", ['numero_cotizacion' => $numCot, 'destino' => 'admin']);
         } catch (Exception $e) {}
 

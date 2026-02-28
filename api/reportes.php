@@ -1,11 +1,17 @@
 <?php
 require_once __DIR__ . '/_helpers.php';
 
-requerirAdmin();
+$usuario = requerirEmpleado(); // Admin y empleado pueden ver KPIs básicos
+$esAdmin = $usuario['rol'] === 'administrador';
 
 if (requestMethod() !== 'GET') jsonError('Método no permitido', 405);
 
 $tipo = $_GET['tipo'] ?? 'resumen';
+
+// Solo admin puede ver reportes financieros detallados
+if (in_array($tipo, ['ingresos', 'clientes']) && !$esAdmin) {
+    jsonError('Acceso denegado: se requiere rol administrador', 403);
+}
 $desde = trim($_GET['desde'] ?? date('Y-m-01'));
 $hasta = trim($_GET['hasta'] ?? date('Y-m-d'));
 $limit = min(100, max(1, sanitizeInt($_GET['limit'] ?? 20)));

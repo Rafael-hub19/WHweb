@@ -51,35 +51,72 @@ function enviarEmail(string $to, string $subject, string $bodyHtml, string $body
     $body .= "--{$boundary}--\r\n";
 
     try {
-        // Conectar al servidor SMTP
-        $socket = fsockopen('tls://' . $host, $port, $errno, $errstr, 10);
+        // Conectar sin cifrado (STARTTLS en puerto 587, TLS directo en puerto 465)
+        $useTls  = ((int)$port === 465);
+        $prefix  = $useTls ? 'ssl://' : '';
+        $socket  = fsockopen($prefix . $host, $port, $errno, $errstr, 15);
         if (!$socket) {
-            throw new RuntimeException("No se pudo conectar a SMTP: $errstr ($errno)");
+            throw new RuntimeException("No se pudo conectar a SMTP {$host}:{$port} — $errstr ($errno)");
         }
-        stream_set_timeout($socket, 10);
+        stream_set_timeout($socket, 15);
 
+        // Leer banner de bienvenida
         $read = fgets($socket, 512);
         if (substr($read, 0, 3) !== '220') {
-            throw new RuntimeException("SMTP saludo inválido: $read");
+            throw new RuntimeException("SMTP banner inválido: $read");
         }
 
-        $cmds = [
-            "EHLO " . (gethostname() ?: 'woodenhouse') . "\r\n"  => '250',
-            "AUTH LOGIN\r\n"                                       => '334',
-            base64_encode($user) . "\r\n"                         => '334',
-            base64_encode($pass) . "\r\n"                         => '235',
-            "MAIL FROM:<{$from}>\r\n"                             => '250',
-            "RCPT TO:<{$to}>\r\n"                                 => '250',
-            "DATA\r\n"                                            => '354',
-        ];
+        // EHLO inicial
+        $hostname = gethostname() ?: 'woodenhouse';
+        fwrite($socket, "EHLO {$hostname}\r\n");
+        $ehloResp = '';
+        while ($line = fgets($socket, 512)) {
+            $ehloResp .= $line;
+            if (substr($line, 3, 1) === ' ') break; // última línea del multi-line EHLO
+        }
+        if (substr($ehloResp, 0, 3) !== '250') {
+            throw new RuntimeException("EHLO error: " . trim($ehloResp));
+        }
 
-        foreach ($cmds as $cmd => $expected) {
+        // STARTTLS solo si no es puerto 465 (que ya va cifrado)
+        if (!$useTls) {
+            fwrite($socket, "STARTTLS\r\n");
+            $resp = fgets($socket, 512);
+            if (substr($resp, 0, 3) !== '220') {
+                throw new RuntimeException("STARTTLS rechazado: " . trim($resp));
+            }
+            // Actualizar el socket a TLS
+            if (!stream_socket_enable_crypto($socket, true, STREAM_CRYPTO_METHOD_TLS_CLIENT)) {
+                throw new RuntimeException('No se pudo iniciar TLS en el socket');
+            }
+            // Segundo EHLO post-TLS (requerido por el estándar SMTP)
+            fwrite($socket, "EHLO {$hostname}\r\n");
+            $ehloResp2 = '';
+            while ($line = fgets($socket, 512)) {
+                $ehloResp2 .= $line;
+                if (substr($line, 3, 1) === ' ') break;
+            }
+            if (substr($ehloResp2, 0, 3) !== '250') {
+                throw new RuntimeException("EHLO post-TLS error: " . trim($ehloResp2));
+            }
+        }
+
+        // AUTH LOGIN
+        $smtpCmd = function($socket, $cmd, $expected) {
             fwrite($socket, $cmd);
             $resp = fgets($socket, 512);
             if (substr($resp, 0, 3) !== $expected) {
-                throw new RuntimeException("SMTP cmd error (esperado {$expected}): " . trim($resp));
+                throw new RuntimeException("SMTP error (esperado {$expected}): " . trim($resp));
             }
-        }
+            return $resp;
+        };
+
+        $smtpCmd($socket, "AUTH LOGIN\r\n",                '334');
+        $smtpCmd($socket, base64_encode($user) . "\r\n",   '334');
+        $smtpCmd($socket, base64_encode($pass) . "\r\n",   '235');
+        $smtpCmd($socket, "MAIL FROM:<{$from}>\r\n",       '250');
+        $smtpCmd($socket, "RCPT TO:<{$to}>\r\n",           '250');
+        $smtpCmd($socket, "DATA\r\n",                      '354');
 
         // Enviar cabeceras + cuerpo
         $headers  = "From: {$fromEncoded}\r\n";
@@ -271,7 +308,22 @@ HTML;
 function emailCotizacionRecibida(array $cot): bool {
     $folio  = htmlspecialchars($cot['numero_cotizacion']);
     $nombre = htmlspecialchars($cot['nombre_cliente']);
-    $tipo   = htmlspecialchars($cot['tipo_mueble'] ?? 'Mueble personalizado');
+    // Mapear values del select al label legible para el email
+    $tipoMap = [
+        'baño'         => 'Modelo Sevilla',
+        'baño'         => 'Modelo Roma',
+        'baño'         => 'Modelo Edinburgo',
+        'baño'         => 'Modelo Singapur',
+        'baño'         => 'Modelo Sydney',
+        'baño'         => 'Modelo Palermo',
+        'baño'         => 'Modelo Budapest',
+        'baño'         => 'Modelo Quebec',
+        'baño'         => 'Modelo Toronto',
+        'baño'         => 'Modelo Amsterdam',
+        'personalizado'=> 'Diseño Personalizado',
+    ];
+    $tipoRaw = $cot['tipo_mueble'] ?? '';
+    $tipo    = htmlspecialchars($tipoMap[$tipoRaw] ?? ($tipoRaw ?: 'Mueble personalizado'));
 
     $contenido = <<<HTML
 <h2 style="color:#8B6914;margin-top:0;">Cotización recibida ✓</h2>

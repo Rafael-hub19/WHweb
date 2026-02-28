@@ -35,14 +35,21 @@ switch ($method) {
         $tiposValidos = ['medicion', 'instalacion', 'otro'];
         if (!in_array($body['tipo'], $tiposValidos)) jsonError('tipo inválido. Usa: medicion, instalacion, otro', 422);
 
+        // Extraer solo la parte DATE (el frontend puede enviar 'YYYY-MM-DD HH:MM:SS')
+        $fechaCita = trim($body['fecha_cita']);
+        if (strlen($fechaCita) > 10) $fechaCita = substr($fechaCita, 0, 10);
+        if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $fechaCita)) {
+            jsonError('fecha_cita debe tener formato YYYY-MM-DD', 422);
+        }
+
         $numeroCita = generarNumeroCita();
         $citaId = dbInsert('citas', [
             'numero_cita'     => $numeroCita,
             'nombre_cliente'  => sanitize($body['nombre_cliente']),
             'correo_cliente'  => strtolower(trim($body['correo_cliente'])),
             'telefono_cliente'=> sanitize($body['telefono_cliente']),
-            'direccion'       => sanitize($body['direccion'] ?? ''),
-            'fecha_cita'      => $body['fecha_cita'],
+            'direccion'       => sanitize($body['direccion'] ?? '') ?: 'Sin especificar',
+            'fecha_cita'      => $fechaCita,
             'rango_horario'   => sanitize($body['rango_horario'] ?? 'Por confirmar'),
             'tipo'            => $body['tipo'],
             'estado'          => 'nueva',
