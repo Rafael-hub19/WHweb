@@ -750,17 +750,17 @@ unset($_usuario);
   <!-- ═══ MODAL: DETALLE PEDIDO (admin) ══════════════════════════ -->
   <div class="modal" id="adminPedidoDetalleModal">
     <div class="modal-content" style="max-width:750px;">
-      <div class="modal-header" style="background:var(--accent);color:#fff;border-radius:8px 8px 0 0;">
+      <div class="modal-header" style="background:var(--accent);color:#fff;border-radius:8px 8px 0 0;margin:-18px -18px 16px;padding:16px 18px;">
         <h3 class="modal-title" style="color:#fff;">
           <i class="fa-solid fa-box"></i> Detalle del Pedido
           <span id="adm_ped_folio" style="font-weight:900;margin-left:8px;opacity:.85;"></span>
         </h3>
         <button class="modal-close" onclick="closeModal('adminPedidoDetalleModal')" style="color:#fff;">×</button>
       </div>
-      <div id="adm_ped_body" style="padding:20px 24px;max-height:75vh;overflow-y:auto;">
+      <div id="adm_ped_body" style="max-height:70vh;overflow-y:auto;overflow-x:hidden;">
         <div style="text-align:center;padding:40px;color:var(--muted);"><i class="fa-solid fa-spinner fa-spin fa-2x"></i></div>
       </div>
-      <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end;padding:12px 24px;border-top:1px solid #eee;">
+      <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end;padding:12px 0 0;margin-top:4px;border-top:1px solid var(--border);">
         <button class="btn btn-secondary" onclick="closeModal('adminPedidoDetalleModal')">Cerrar</button>
         <button class="btn btn-primary" id="adm_ped_edit_btn" onclick="closeModal('adminPedidoDetalleModal')">
           <i class="fa-solid fa-pen"></i> Cambiar Estado
@@ -772,17 +772,17 @@ unset($_usuario);
   <!-- ═══ MODAL: DETALLE CITA (admin) ════════════════════════════ -->
   <div class="modal" id="adminCitaDetalleModal">
     <div class="modal-content" style="max-width:600px;">
-      <div class="modal-header" style="background:#5C6BC0;color:#fff;border-radius:8px 8px 0 0;">
+      <div class="modal-header" style="background:#3d4d8b;color:#fff;border-radius:8px 8px 0 0;margin:-18px -18px 16px;padding:16px 18px;">
         <h3 class="modal-title" style="color:#fff;">
           <i class="fa-solid fa-calendar-days"></i> Detalle de Cita
           <span id="adm_cita_folio" style="font-weight:900;margin-left:8px;opacity:.85;"></span>
         </h3>
         <button class="modal-close" onclick="closeModal('adminCitaDetalleModal')" style="color:#fff;">×</button>
       </div>
-      <div id="adm_cita_body" style="padding:20px 24px;max-height:75vh;overflow-y:auto;">
+      <div id="adm_cita_body" style="max-height:70vh;overflow-y:auto;overflow-x:hidden;">
         <div style="text-align:center;padding:40px;color:var(--muted);"><i class="fa-solid fa-spinner fa-spin fa-2x"></i></div>
       </div>
-      <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:space-between;align-items:center;padding:12px 24px;border-top:1px solid #eee;">
+      <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:space-between;align-items:center;padding:12px 0 0;margin-top:4px;border-top:1px solid var(--border);">
         <div style="display:flex;gap:8px;flex-wrap:wrap;">
           <button class="btn btn-secondary btn-small" onclick="cambiarEstadoCitaAdmin(window._admCitaId,'confirmada')">✅ Confirmar</button>
           <button class="btn btn-secondary btn-small" onclick="cambiarEstadoCitaAdmin(window._admCitaId,'completada')">🏁 Completar</button>
@@ -796,17 +796,17 @@ unset($_usuario);
   <!-- ═══ MODAL: DETALLE COTIZACIÓN (admin) ══════════════════════ -->
   <div class="modal" id="adminCotDetalleModal">
     <div class="modal-content" style="max-width:650px;">
-      <div class="modal-header" style="background:#2E7D32;color:#fff;border-radius:8px 8px 0 0;">
+      <div class="modal-header" style="background:#1e5c22;color:#fff;border-radius:8px 8px 0 0;margin:-18px -18px 16px;padding:16px 18px;">
         <h3 class="modal-title" style="color:#fff;">
           <i class="fa-solid fa-briefcase"></i> Detalle de Cotización
           <span id="adm_cot_folio" style="font-weight:900;margin-left:8px;opacity:.85;"></span>
         </h3>
         <button class="modal-close" onclick="closeModal('adminCotDetalleModal')" style="color:#fff;">×</button>
       </div>
-      <div id="adm_cot_body" style="padding:20px 24px;max-height:75vh;overflow-y:auto;">
+      <div id="adm_cot_body" style="max-height:70vh;overflow-y:auto;overflow-x:hidden;">
         <div style="text-align:center;padding:40px;color:var(--muted);"><i class="fa-solid fa-spinner fa-spin fa-2x"></i></div>
       </div>
-      <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:space-between;align-items:center;padding:12px 24px;border-top:1px solid #eee;">
+      <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:space-between;align-items:center;padding:12px 0 0;margin-top:4px;border-top:1px solid var(--border);">
         <div style="display:flex;gap:8px;flex-wrap:wrap;">
           <button class="btn btn-secondary btn-small" onclick="cambiarEstadoCotAdmin(window._admCotId,'en_revision')">📋 En Revisión</button>
           <button class="btn btn-secondary btn-small" onclick="cambiarEstadoCotAdmin(window._admCotId,'respondida')">✅ Respondida</button>

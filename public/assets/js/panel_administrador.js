@@ -105,11 +105,29 @@
        NOTIFICACIONES
     ========================= */
     function showNotification(message, type='info'){
+      // Eliminar notificaciones previas
+      document.querySelectorAll('.notification').forEach(n => n.remove());
+      const icons = {
+        success: 'fa-circle-check',
+        error:   'fa-circle-xmark',
+        warning: 'fa-triangle-exclamation',
+        info:    'fa-circle-info',
+      };
       const notif = document.createElement('div');
       notif.className = `notification ${type}`;
-      notif.textContent = message;
+      // Si el mensaje ya trae un <i> no agregar ícono extra
+      const hasIcon = message.includes('<i ');
+      notif.innerHTML = hasIcon
+        ? message
+        : `<i class="fa-solid ${icons[type] || 'fa-circle-info'}"></i>${message}`;
       document.body.appendChild(notif);
-      setTimeout(() => notif.remove(), 3200);
+      const delay = type === 'error' ? 5000 : 3500;
+      setTimeout(() => {
+        notif.style.opacity = '0';
+        notif.style.transform = 'translateX(20px)';
+        notif.style.transition = 'all .3s ease';
+        setTimeout(() => notif.remove(), 300);
+      }, delay);
     }
 
     function confirmDelete(id){
@@ -1440,7 +1458,7 @@ async function actualizarEstadoPedido(id, estado) {
       body: JSON.stringify({ estado }),
     });
     if (data.success) {
-      showNotification('<i class="fa-solid fa-circle-check"></i> Estado actualizado', 'success');
+      showNotification('✅ Estado del pedido actualizado', 'success');
     } else {
       showNotification('<i class="fa-solid fa-xmark"></i> ' + (data.error || 'Error'), 'error');
     }
@@ -1508,7 +1526,7 @@ async function desactivarEmpleado(id) {
 
 // ── Ver detalle de PEDIDO ──────────────────────────────────────
 async function verDetallePedidoAdmin(id) {
-  const body = document.getElementById('adm_ped_body');
+  const body  = document.getElementById('adm_ped_body');
   const folio = document.getElementById('adm_ped_folio');
   openModal('adminPedidoDetalleModal');
   body.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted);"><i class="fa-solid fa-spinner fa-spin fa-2x"></i></div>';
@@ -1519,105 +1537,102 @@ async function verDetallePedidoAdmin(id) {
     const p = data.pedido;
 
     folio.textContent = p.numero_pedido;
-    window._admPedId = id;
+    window._admPedId  = id;
 
     const estadoLabels = { pendiente:'Pendiente',pagado:'Pagado ✓',en_produccion:'En Producción 🔨',listo:'Listo 📦',entregado:'Entregado ✅',cancelado:'Cancelado ❌' };
-    const estadoColors = { pendiente:'#F57F17',pagado:'#1565C0',en_produccion:'#6A1B9A',listo:'#00695C',entregado:'#2E7D32',cancelado:'#B71C1C' };
-    const est = p.estado || 'pendiente';
-    const color = estadoColors[est] || '#888';
+    const estadoColors = { pendiente:'#c8860a',pagado:'#4a7c8b',en_produccion:'#7c5c8b',listo:'#3d8b6a',entregado:'#4a8b5a',cancelado:'#8b4a4a' };
+    const est   = p.estado || 'pendiente';
+    const color = estadoColors[est] || 'var(--accent)';
     const label = estadoLabels[est] || est;
 
-    const entrega = p.tipo_entrega === 'recoger' ? '🏪 Recoge en tienda' : `🚚 Envío — ${p.direccion_envio || 'Sin dirección'}`;
+    const entrega     = p.tipo_entrega === 'recoger' ? '🏪 Recoge en tienda' : `🚚 Envío — ${p.direccion_envio||'Sin dirección'}`;
     const instalacion = parseInt(p.incluye_instalacion) ? '✅ Incluye instalación' : '❌ Sin instalación';
 
-    // Items del pedido
-    const items = (p.items || []);
+    const items = p.items || [];
     const itemsHtml = items.length
-      ? `<table style="width:100%;border-collapse:collapse;font-size:13px;margin-top:8px;">
-          <thead><tr style="background:#f5f0eb;">
-            <th style="padding:8px;text-align:left;color:var(--accent);">Producto</th>
-            <th style="padding:8px;text-align:center;color:var(--accent);">Cant.</th>
-            <th style="padding:8px;text-align:right;color:var(--accent);">P. Unit.</th>
-            <th style="padding:8px;text-align:right;color:var(--accent);">Total</th>
+      ? `<table style="width:100%;border-collapse:collapse;font-size:12px;margin-top:8px;">
+          <thead><tr style="background:var(--bg);">
+            <th style="padding:8px 6px;text-align:left;color:var(--accent);border-bottom:1px solid var(--border);">Producto</th>
+            <th style="padding:8px 6px;text-align:center;color:var(--accent);border-bottom:1px solid var(--border);">Cant.</th>
+            <th style="padding:8px 6px;text-align:right;color:var(--accent);border-bottom:1px solid var(--border);">P. Unit.</th>
+            <th style="padding:8px 6px;text-align:right;color:var(--accent);border-bottom:1px solid var(--border);">Total</th>
           </tr></thead>
-          <tbody>${items.map(i => `
-            <tr style="border-bottom:1px solid #f0e8d8;">
-              <td style="padding:8px;">${escapeHtml(i.nombre_producto||i.producto_nombre||'Producto')}</td>
-              <td style="padding:8px;text-align:center;">${i.cantidad}</td>
-              <td style="padding:8px;text-align:right;">${money(i.precio_unitario)}</td>
-              <td style="padding:8px;text-align:right;font-weight:600;color:var(--accent);">${money(i.total||i.precio_unitario*i.cantidad)}</td>
+          <tbody>${items.map(i=>`
+            <tr style="border-bottom:1px solid var(--border);">
+              <td style="padding:8px 6px;color:var(--muted2);">${escapeHtml(i.nombre_producto||i.producto_nombre||'Producto')}</td>
+              <td style="padding:8px 6px;text-align:center;color:var(--muted2);">${i.cantidad}</td>
+              <td style="padding:8px 6px;text-align:right;color:var(--muted2);">${money(i.precio_unitario)}</td>
+              <td style="padding:8px 6px;text-align:right;font-weight:700;color:var(--accent);">${money(i.total||i.precio_unitario*i.cantidad)}</td>
             </tr>`).join('')}
           </tbody>
         </table>`
-      : '<p style="color:var(--muted);font-style:italic;font-size:13px;">Sin productos registrados</p>';
+      : '<p style="color:var(--muted);font-style:italic;font-size:12px;padding:8px 0;">Sin productos registrados</p>';
 
-    // Pagos
-    const pagos = (p.pagos || []);
+    const pagos = p.pagos || [];
     const pagosHtml = pagos.length
-      ? pagos.map(pg => `<div style="display:flex;justify-content:space-between;font-size:13px;padding:4px 0;border-bottom:1px solid #f0e8d8;">
-          <span>${pg.metodo_pago || 'Pago'} — ${(pg.fecha_creacion||'').substring(0,10)}</span>
-          <span style="font-weight:600;color:#2E7D32;">${money(pg.monto||pg.amount||0)}</span>
+      ? pagos.map(pg=>`<div style="display:flex;justify-content:space-between;font-size:12px;padding:6px 0;border-bottom:1px solid var(--border);color:var(--muted2);">
+          <span>${pg.metodo_pago||'Pago'} — ${(pg.fecha_creacion||'').substring(0,10)}</span>
+          <span style="font-weight:700;color:var(--ok);">${money(pg.monto||0)}</span>
         </div>`).join('')
-      : '<p style="color:var(--muted);font-style:italic;font-size:13px;">Sin pagos registrados</p>';
+      : '<p style="color:var(--muted);font-style:italic;font-size:12px;padding:6px 0;">Sin pagos registrados</p>';
 
     body.innerHTML = `
-      <!-- Estado + totales -->
-      <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px;margin-bottom:20px;">
-        <span style="background:${color}22;color:${color};padding:6px 16px;border-radius:20px;font-weight:700;font-size:15px;">${label}</span>
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px;margin-bottom:18px;">
+        <span style="background:${color}30;color:${color};padding:5px 14px;border-radius:20px;font-weight:700;font-size:13px;border:1px solid ${color}50;">${label}</span>
         <div style="text-align:right;">
-          <div style="font-size:24px;font-weight:800;color:var(--accent);">${money(p.total)}</div>
-          <div style="font-size:12px;color:var(--muted);">Subtotal ${money(p.subtotal)} + Envío ${money(p.costo_envio)} + Inst. ${money(p.costo_instalacion)}</div>
+          <div style="font-size:22px;font-weight:900;color:var(--accent);">${money(p.total)}</div>
+          <div style="font-size:11px;color:var(--muted);">Sub ${money(p.subtotal)} + Envío ${money(p.costo_envio)} + Inst. ${money(p.costo_instalacion)}</div>
         </div>
       </div>
 
-      <!-- Datos cliente -->
-      <div style="background:#faf6f0;border-left:3px solid var(--accent);border-radius:4px;padding:14px;margin-bottom:16px;">
-        <div style="font-weight:700;color:var(--accent);margin-bottom:8px;font-size:13px;text-transform:uppercase;letter-spacing:.5px;">Cliente</div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:13px;">
-          <div><span style="color:var(--muted);">Nombre:</span><br><strong>${escapeHtml(p.nombre_cliente)}</strong></div>
-          <div><span style="color:var(--muted);">Teléfono:</span><br><strong>${escapeHtml(p.telefono_cliente||'—')}</strong></div>
-          <div><span style="color:var(--muted);">Correo:</span><br><strong>${escapeHtml(p.correo_cliente)}</strong></div>
-          <div><span style="color:var(--muted);">Fecha estimada:</span><br><strong>${p.fecha_estimada||'—'}</strong></div>
-          <div style="grid-column:1/-1;"><span style="color:var(--muted);">Entrega:</span> ${entrega}</div>
-          <div style="grid-column:1/-1;"><span style="color:var(--muted);">Instalación:</span> ${instalacion}</div>
-          ${p.notas ? `<div style="grid-column:1/-1;"><span style="color:var(--muted);">Notas:</span> ${escapeHtml(p.notas)}</div>` : ''}
+      <div style="background:var(--bg);border-left:3px solid var(--accent);border-radius:6px;padding:12px;margin-bottom:14px;">
+        <div style="font-weight:700;color:var(--accent);margin-bottom:8px;font-size:11px;text-transform:uppercase;letter-spacing:.8px;">Cliente</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:12px;color:var(--muted2);">
+          <div><span style="color:var(--muted);display:block;font-size:10px;">Nombre</span><strong>${escapeHtml(p.nombre_cliente)}</strong></div>
+          <div><span style="color:var(--muted);display:block;font-size:10px;">Teléfono</span><strong>${escapeHtml(p.telefono_cliente||'—')}</strong></div>
+          <div><span style="color:var(--muted);display:block;font-size:10px;">Correo</span><strong>${escapeHtml(p.correo_cliente)}</strong></div>
+          <div><span style="color:var(--muted);display:block;font-size:10px;">Fecha estimada</span><strong>${p.fecha_estimada||'—'}</strong></div>
+          <div style="grid-column:1/-1;"><span style="color:var(--muted);display:block;font-size:10px;">Entrega</span><strong>${entrega}</strong></div>
+          <div style="grid-column:1/-1;"><span style="color:var(--muted);display:block;font-size:10px;">Instalación</span><strong>${instalacion}</strong></div>
+          ${p.notas?`<div style="grid-column:1/-1;"><span style="color:var(--muted);display:block;font-size:10px;">Notas</span><strong>${escapeHtml(p.notas)}</strong></div>`:''}
         </div>
       </div>
 
-      <!-- Productos -->
-      <div style="margin-bottom:16px;">
-        <div style="font-weight:700;color:var(--accent);margin-bottom:8px;font-size:13px;text-transform:uppercase;letter-spacing:.5px;">Productos del Pedido</div>
+      <div style="margin-bottom:14px;">
+        <div style="font-weight:700;color:var(--accent);margin-bottom:6px;font-size:11px;text-transform:uppercase;letter-spacing:.8px;">Productos del Pedido</div>
         ${itemsHtml}
       </div>
 
-      <!-- Pagos -->
-      <div>
-        <div style="font-weight:700;color:var(--accent);margin-bottom:8px;font-size:13px;text-transform:uppercase;letter-spacing:.5px;">Historial de Pagos</div>
+      <div style="margin-bottom:14px;">
+        <div style="font-weight:700;color:var(--accent);margin-bottom:6px;font-size:11px;text-transform:uppercase;letter-spacing:.8px;">Historial de Pagos</div>
         ${pagosHtml}
       </div>
 
-      <!-- Cambiar estado rápido -->
-      <div style="margin-top:20px;padding-top:16px;border-top:1px solid #eee;">
-        <div style="font-weight:700;color:var(--accent);margin-bottom:8px;font-size:13px;text-transform:uppercase;letter-spacing:.5px;">Cambiar Estado</div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap;">
-          ${['pendiente','pagado','en_produccion','listo','entregado','cancelado'].map(s => {
-            const c2 = estadoColors[s]||'#888';
-            const l2 = estadoLabels[s]||s;
-            const active = s === est ? `style="background:${c2};color:#fff;"` : `style="border:1px solid ${c2};color:${c2};background:#fff;"`;
-            return `<button ${active} onclick="actualizarEstadoPedido(${id},'${s}');closeModal('adminPedidoDetalleModal');cargarPedidosAPI();" style="padding:5px 12px;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer;border:none;transition:all .2s;">${l2}</button>`;
+      <div style="padding-top:14px;border-top:1px solid var(--border);">
+        <div style="font-weight:700;color:var(--accent);margin-bottom:8px;font-size:11px;text-transform:uppercase;letter-spacing:.8px;">Cambiar Estado</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;">
+          ${['pendiente','pagado','en_produccion','listo','entregado','cancelado'].map(s=>{
+            const c2=estadoColors[s]||'var(--accent)';
+            const l2=estadoLabels[s]||s;
+            const isActive=s===est;
+            return `<button onclick="actualizarEstadoPedido(${id},'${s}');closeModal('adminPedidoDetalleModal');cargarPedidosAPI();"
+              style="padding:5px 12px;border-radius:20px;font-size:11px;font-weight:600;cursor:pointer;transition:all .2s;
+              background:${isActive?c2:'transparent'};color:${isActive?'#fff':c2};
+              border:1px solid ${c2};">${l2}</button>`;
           }).join('')}
         </div>
       </div>
     `;
   } catch(e) {
-    body.innerHTML = `<div style="color:#c62828;padding:20px;text-align:center;"><i class="fa-solid fa-circle-exclamation"></i> Error: ${e.message}</div>`;
+    body.innerHTML = `<div style="color:var(--danger);padding:20px;text-align:center;"><i class="fa-solid fa-circle-exclamation"></i> Error: ${e.message}</div>`;
   }
 }
 
+
 // ── Ver detalle de CITA ────────────────────────────────────────
 async function verDetalleCitaAdmin(id) {
-  const body   = document.getElementById('adm_cita_body');
-  const folio  = document.getElementById('adm_cita_folio');
+  const body  = document.getElementById('adm_cita_body');
+  const folio = document.getElementById('adm_cita_folio');
   openModal('adminCitaDetalleModal');
   body.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted);"><i class="fa-solid fa-spinner fa-spin fa-2x"></i></div>';
   window._admCitaId = id;
@@ -1626,45 +1641,45 @@ async function verDetalleCitaAdmin(id) {
     const data = await apiFetch(`${API_BASE}/citas.php?id=${id}`);
     if (!data.success || !data.cita) throw new Error(data.error || 'No encontrada');
     const c = data.cita;
-
     folio.textContent = c.numero_cita;
 
-    const estLabels = { nueva:'Nueva 🆕', confirmada:'Confirmada ✅', completada:'Completada 🏁', cancelada:'Cancelada ❌' };
-    const estColors = { nueva:'#1565C0', confirmada:'#2E7D32', completada:'#5C3D11', cancelada:'#B71C1C' };
-    const tipoLabels = { medicion:'Medición', instalacion:'Instalación', otro:'Otro' };
+    const estLabels = { nueva:'Nueva 🆕',confirmada:'Confirmada ✅',completada:'Completada 🏁',cancelada:'Cancelada ❌' };
+    const estColors = { nueva:'#4a7c8b',confirmada:'#4a8b5a',completada:'#8b7355',cancelada:'#8b4a4a' };
+    const tipoLabels = { medicion:'Medición 📐',instalacion:'Instalación 🔧',otro:'Otro' };
     const est = c.estado || 'nueva';
 
     body.innerHTML = `
-      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:20px;">
-        <span style="background:${estColors[est]||'#888'}22;color:${estColors[est]||'#888'};padding:6px 16px;border-radius:20px;font-weight:700;font-size:14px;">${estLabels[est]||est}</span>
-        <span style="font-size:12px;color:var(--muted);">Creada: ${(c.fecha_creacion||'').substring(0,10)}</span>
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:18px;">
+        <span style="background:${estColors[est]||'var(--accent)'}30;color:${estColors[est]||'var(--accent)'};padding:5px 14px;border-radius:20px;font-weight:700;font-size:13px;border:1px solid ${estColors[est]||'var(--accent)'}50;">${estLabels[est]||est}</span>
+        <span style="font-size:11px;color:var(--muted);">Registrada: ${(c.fecha_creacion||'').substring(0,10)}</span>
       </div>
 
-      <div style="background:#f0f4ff;border-left:3px solid #5C6BC0;border-radius:4px;padding:14px;margin-bottom:16px;">
-        <div style="font-weight:700;color:#5C6BC0;margin-bottom:10px;font-size:13px;text-transform:uppercase;letter-spacing:.5px;">Fecha y Tipo</div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:13px;">
-          <div><span style="color:var(--muted);">📅 Fecha:</span><br><strong style="font-size:16px;">${c.fecha_cita||'—'}</strong></div>
-          <div><span style="color:var(--muted);">🕐 Horario:</span><br><strong style="font-size:16px;">${c.rango_horario||'Por confirmar'}</strong></div>
-          <div><span style="color:var(--muted);">🔧 Tipo:</span><br><strong>${tipoLabels[c.tipo]||c.tipo||'—'}</strong></div>
-          <div><span style="color:var(--muted);">📋 Folio:</span><br><strong>${c.numero_cita}</strong></div>
+      <div style="background:var(--bg);border-left:3px solid #4a7c8b;border-radius:6px;padding:12px;margin-bottom:14px;">
+        <div style="font-weight:700;color:#5b9aad;margin-bottom:8px;font-size:11px;text-transform:uppercase;letter-spacing:.8px;">Fecha y Tipo</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:12px;color:var(--muted2);">
+          <div><span style="color:var(--muted);display:block;font-size:10px;">📅 Fecha</span><strong style="font-size:15px;">${c.fecha_cita||'—'}</strong></div>
+          <div><span style="color:var(--muted);display:block;font-size:10px;">🕐 Horario</span><strong style="font-size:15px;">${c.rango_horario||'Por confirmar'}</strong></div>
+          <div><span style="color:var(--muted);display:block;font-size:10px;">Tipo</span><strong>${tipoLabels[c.tipo]||c.tipo||'—'}</strong></div>
+          <div><span style="color:var(--muted);display:block;font-size:10px;">Folio</span><strong>${c.numero_cita}</strong></div>
         </div>
       </div>
 
-      <div style="background:#faf6f0;border-left:3px solid var(--accent);border-radius:4px;padding:14px;margin-bottom:16px;">
-        <div style="font-weight:700;color:var(--accent);margin-bottom:10px;font-size:13px;text-transform:uppercase;letter-spacing:.5px;">Cliente</div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:13px;">
-          <div><span style="color:var(--muted);">Nombre:</span><br><strong>${escapeHtml(c.nombre_cliente)}</strong></div>
-          <div><span style="color:var(--muted);">Teléfono:</span><br><strong>${escapeHtml(c.telefono_cliente||'—')}</strong></div>
-          <div style="grid-column:1/-1;"><span style="color:var(--muted);">Correo:</span><br><strong>${escapeHtml(c.correo_cliente)}</strong></div>
-          <div style="grid-column:1/-1;"><span style="color:var(--muted);">📍 Dirección:</span><br><strong>${escapeHtml(c.direccion||'Sin especificar')}</strong></div>
-          ${c.notas ? `<div style="grid-column:1/-1;"><span style="color:var(--muted);">Notas:</span><br>${escapeHtml(c.notas)}</div>` : ''}
+      <div style="background:var(--bg);border-left:3px solid var(--accent);border-radius:6px;padding:12px;">
+        <div style="font-weight:700;color:var(--accent);margin-bottom:8px;font-size:11px;text-transform:uppercase;letter-spacing:.8px;">Cliente</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:12px;color:var(--muted2);">
+          <div><span style="color:var(--muted);display:block;font-size:10px;">Nombre</span><strong>${escapeHtml(c.nombre_cliente)}</strong></div>
+          <div><span style="color:var(--muted);display:block;font-size:10px;">Teléfono</span><strong>${escapeHtml(c.telefono_cliente||'—')}</strong></div>
+          <div style="grid-column:1/-1;"><span style="color:var(--muted);display:block;font-size:10px;">Correo</span><strong>${escapeHtml(c.correo_cliente)}</strong></div>
+          <div style="grid-column:1/-1;"><span style="color:var(--muted);display:block;font-size:10px;">📍 Dirección</span><strong>${escapeHtml(c.direccion||'Sin especificar')}</strong></div>
+          ${c.notas?`<div style="grid-column:1/-1;"><span style="color:var(--muted);display:block;font-size:10px;">Notas</span><strong>${escapeHtml(c.notas)}</strong></div>`:''}
         </div>
       </div>
     `;
   } catch(e) {
-    body.innerHTML = `<div style="color:#c62828;padding:20px;text-align:center;"><i class="fa-solid fa-circle-exclamation"></i> Error: ${e.message}</div>`;
+    body.innerHTML = `<div style="color:var(--danger);padding:20px;text-align:center;"><i class="fa-solid fa-circle-exclamation"></i> Error: ${e.message}</div>`;
   }
 }
+
 
 async function cambiarEstadoCitaAdmin(id, estado) {
   if (!id) return;
@@ -1692,51 +1707,48 @@ async function verDetalleCotAdmin(id) {
     const data = await apiFetch(`${API_BASE}/cotizaciones.php?id=${id}`);
     if (!data.success || !data.cotizacion) throw new Error(data.error || 'No encontrada');
     const cot = data.cotizacion;
-
     folio.textContent = cot.numero_cotizacion;
 
-    const estLabels = { nueva:'Nueva 🆕', en_revision:'En Revisión 📋', respondida:'Respondida ✅', cerrada:'Cerrada 🔒' };
-    const estColors = { nueva:'#1565C0', en_revision:'#F57F17', respondida:'#2E7D32', cerrada:'#757575' };
-    const tipoMap   = { cocina:'Milano', closet:'Venecia', bano:'Toscana', sala:'Oslo', recamara:'Paris', estudio:'Tokio', personalizado:'Personalizado' };
+    const estLabels = { nueva:'Nueva 🆕',en_revision:'En Revisión 📋',respondida:'Respondida ✅',cerrada:'Cerrada 🔒' };
+    const estColors = { nueva:'#4a7c8b',en_revision:'#8b7355',respondida:'#4a8b5a',cerrada:'#555' };
     const est = cot.estado || 'nueva';
 
-    const tipoLabel = tipoMap[cot.tipo_mueble] || (cot.tipo_mueble ? `Modelo ${cot.tipo_mueble.charAt(0).toUpperCase()+cot.tipo_mueble.slice(1)}` : 'No especificado');
-
     body.innerHTML = `
-      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:20px;">
-        <span style="background:${estColors[est]||'#888'}22;color:${estColors[est]||'#888'};padding:6px 16px;border-radius:20px;font-weight:700;font-size:14px;">${estLabels[est]||est}</span>
-        <span style="font-size:12px;color:var(--muted);">Creada: ${(cot.fecha_creacion||'').substring(0,10)}</span>
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:18px;">
+        <span style="background:${estColors[est]||'var(--accent)'}30;color:${estColors[est]||'var(--accent)'};padding:5px 14px;border-radius:20px;font-weight:700;font-size:13px;border:1px solid ${estColors[est]||'var(--accent)'}50;">${estLabels[est]||est}</span>
+        <span style="font-size:11px;color:var(--muted);">Creada: ${(cot.fecha_creacion||'').substring(0,10)}</span>
       </div>
 
-      <div style="background:#faf6f0;border-left:3px solid var(--accent);border-radius:4px;padding:14px;margin-bottom:16px;">
-        <div style="font-weight:700;color:var(--accent);margin-bottom:10px;font-size:13px;text-transform:uppercase;letter-spacing:.5px;">Cliente</div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:13px;">
-          <div><span style="color:var(--muted);">Nombre:</span><br><strong>${escapeHtml(cot.nombre_cliente)}</strong></div>
-          <div><span style="color:var(--muted);">Teléfono:</span><br><strong>${escapeHtml(cot.telefono_cliente||'—')}</strong></div>
-          <div style="grid-column:1/-1;"><span style="color:var(--muted);">Correo:</span><br><strong>${escapeHtml(cot.correo_cliente)}</strong></div>
+      <div style="background:var(--bg);border-left:3px solid var(--accent);border-radius:6px;padding:12px;margin-bottom:14px;">
+        <div style="font-weight:700;color:var(--accent);margin-bottom:8px;font-size:11px;text-transform:uppercase;letter-spacing:.8px;">Cliente</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:12px;color:var(--muted2);">
+          <div><span style="color:var(--muted);display:block;font-size:10px;">Nombre</span><strong>${escapeHtml(cot.nombre_cliente)}</strong></div>
+          <div><span style="color:var(--muted);display:block;font-size:10px;">Teléfono</span><strong>${escapeHtml(cot.telefono_cliente||'—')}</strong></div>
+          <div style="grid-column:1/-1;"><span style="color:var(--muted);display:block;font-size:10px;">Correo</span><strong>${escapeHtml(cot.correo_cliente)}</strong></div>
         </div>
       </div>
 
-      <div style="background:#f0fff4;border-left:3px solid #2E7D32;border-radius:4px;padding:14px;margin-bottom:16px;">
-        <div style="font-weight:700;color:#2E7D32;margin-bottom:10px;font-size:13px;text-transform:uppercase;letter-spacing:.5px;">Especificaciones</div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:13px;">
-          <div><span style="color:var(--muted);">Tipo de mueble:</span><br><strong>${escapeHtml(tipoLabel)}</strong></div>
-          <div><span style="color:var(--muted);">Presupuesto:</span><br><strong>${escapeHtml(cot.rango_presupuesto||'No especificado')}</strong></div>
-          <div><span style="color:var(--muted);">Tiene medidas:</span><br><strong>${parseInt(cot.tiene_medidas)?'✅ Sí':'❌ No'}</strong></div>
-          <div><span style="color:var(--muted);">Requiere instalación:</span><br><strong>${parseInt(cot.requiere_instalacion)?'✅ Sí':'❌ No'}</strong></div>
-          ${cot.medidas ? `<div style="grid-column:1/-1;"><span style="color:var(--muted);">Medidas:</span><br><strong>${escapeHtml(cot.medidas)}</strong></div>` : ''}
+      <div style="background:var(--bg);border-left:3px solid var(--ok);border-radius:6px;padding:12px;">
+        <div style="font-weight:700;color:var(--ok);margin-bottom:8px;font-size:11px;text-transform:uppercase;letter-spacing:.8px;">Especificaciones</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:12px;color:var(--muted2);">
+          <div><span style="color:var(--muted);display:block;font-size:10px;">Tipo de mueble</span><strong>${escapeHtml(cot.tipo_mueble||'No especificado')}</strong></div>
+          <div><span style="color:var(--muted);display:block;font-size:10px;">Presupuesto</span><strong>${escapeHtml(cot.rango_presupuesto||'No especificado')}</strong></div>
+          <div><span style="color:var(--muted);display:block;font-size:10px;">Tiene medidas</span><strong>${parseInt(cot.tiene_medidas)?'✅ Sí':'❌ No'}</strong></div>
+          <div><span style="color:var(--muted);display:block;font-size:10px;">Requiere instalación</span><strong>${parseInt(cot.requiere_instalacion)?'✅ Sí':'❌ No'}</strong></div>
+          ${cot.medidas?`<div style="grid-column:1/-1;"><span style="color:var(--muted);display:block;font-size:10px;">Medidas</span><strong>${escapeHtml(cot.medidas)}</strong></div>`:''}
           <div style="grid-column:1/-1;">
-            <span style="color:var(--muted);">Descripción:</span><br>
-            <div style="background:#fff;border:1px solid #e0e0e0;border-radius:4px;padding:10px;margin-top:4px;line-height:1.6;">${escapeHtml(cot.descripcion_solicitud||'—')}</div>
+            <span style="color:var(--muted);display:block;font-size:10px;margin-bottom:4px;">Descripción de la solicitud</span>
+            <div style="background:var(--panel);border:1px solid var(--border);border-radius:6px;padding:10px;line-height:1.6;color:var(--muted2);">${escapeHtml(cot.descripcion_solicitud||'—')}</div>
           </div>
-          ${cot.notas_admin ? `<div style="grid-column:1/-1;"><span style="color:var(--muted);">Notas admin:</span><br><div style="background:#fffde7;border:1px solid #f9a825;border-radius:4px;padding:10px;margin-top:4px;">${escapeHtml(cot.notas_admin)}</div></div>` : ''}
+          ${cot.notas_admin?`<div style="grid-column:1/-1;"><span style="color:var(--muted);display:block;font-size:10px;margin-bottom:4px;">Notas internas</span><div style="background:var(--panel);border:1px solid var(--warn);border-radius:6px;padding:10px;color:var(--muted2);">${escapeHtml(cot.notas_admin)}</div></div>`:''}
         </div>
       </div>
     `;
   } catch(e) {
-    body.innerHTML = `<div style="color:#c62828;padding:20px;text-align:center;"><i class="fa-solid fa-circle-exclamation"></i> Error: ${e.message}</div>`;
+    body.innerHTML = `<div style="color:var(--danger);padding:20px;text-align:center;"><i class="fa-solid fa-circle-exclamation"></i> Error: ${e.message}</div>`;
   }
 }
+
 
 // ── Cotizaciones (admin) — datos reales de la API ───────────
 async function cargarCotizacionesAPI() {
@@ -1799,7 +1811,8 @@ async function cambiarEstadoCotAdmin(id, estado) {
       body: JSON.stringify({ estado })
     });
     if (data.success) {
-      showNotification(`Estado actualizado a: ${estado}`, 'success');
+      const lbl = {nueva:'Nueva',en_revision:'En Revisión',respondida:'Respondida',cerrada:'Cerrada'}[estado] || estado;
+      showNotification(`✅ Cotización: ${lbl}`, 'success');
       cargarCotizacionesAPI();
     }
   } catch(e) { console.error(e); }

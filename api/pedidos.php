@@ -13,10 +13,35 @@ require_once __DIR__ . '/_helpers.php';
 
 $method = requestMethod();
 $id     = isset($_GET['id'])    ? sanitizeInt($_GET['id'])    : null;
-$token  = isset($_GET['token']) ? trim($_GET['token'])        : null;
+$token  = isset($_GET['token'])  ? trim($_GET['token'])         : null;
+$numero = isset($_GET['numero']) ? trim($_GET['numero'])        : null;
 
 switch ($method) {
     case 'GET':
+        // Seguimiento público por número de pedido (sin autenticación)
+        if ($numero) {
+            // Validar formato WH-YYYY-NNNNNN
+            if (!preg_match('/^WH-\d{4}-\d{6}$/', $numero)) {
+                jsonError('Formato de número inválido', 422);
+            }
+            $pedido = dbRow(
+                "SELECT id, numero_pedido, nombre_cliente, correo_cliente, telefono_cliente,
+                        tipo_entrega, direccion_envio, incluye_instalacion, estado,
+                        subtotal, costo_envio, costo_instalacion, descuento, total,
+                        fecha_estimada, fecha_creacion, notas
+                 FROM pedidos WHERE numero_pedido = ?",
+                [$numero]
+            );
+            if (!$pedido) jsonError('Pedido no encontrado', 404);
+            $pedido['items'] = dbRows(
+                "SELECT dp.id, dp.producto_id, dp.cantidad, dp.precio_unitario,
+                        dp.total_linea AS subtotal, dp.nombre_producto AS producto_nombre
+                 FROM detalle_pedido dp WHERE dp.pedido_id = ?",
+                [$pedido['id']]
+            );
+            jsonSuccess(['pedido' => $pedido]);
+        }
+
         // Seguimiento público por token
         if ($token) {
             $pedido = dbRow(

@@ -171,7 +171,7 @@ function initFormCita() {
       correo_cliente:    fd.get('email')?.trim().toLowerCase(),
       telefono_cliente:  fd.get('telefono')?.trim(),
       direccion:         fd.get('direccion')?.trim() || '',
-      fecha_cita:        `${fechaSeleccionada} ${selectedTime}:00`,
+      fecha_cita:        fechaSeleccionada,  // Solo YYYY-MM-DD — el horario va en rango_horario
       rango_horario:     selectedTime,
       tipo:              'medicion',
       notas:             fd.get('notas') || '',
@@ -294,65 +294,143 @@ function initSeguimiento() {
 
 async function trackOrder() {
   const input          = document.getElementById('trackingNumber');
-  const trackingNumber = input?.value.trim();
+  const trackingNumber = (input?.value || '').trim().toUpperCase();
   const resultBox      = document.getElementById('trackingResult');
+  const btn            = document.querySelector('.btn-track');
 
   if (!trackingNumber) {
     showAlert('Por favor ingresa un número de pedido o cotización', 'error'); return;
   }
 
-  // Acepta WH-YYYY-NNNNNN (pedido) o COT-YYYY-NNNNNN (cotización)
+  // Acepta WH-YYYY-NNNNNN (pedido) o CIT-YYYY-NNNNNN (cita) o COT-YYYY-NNNNNN (cotización)
   const regexPedido = /^WH-\d{4}-\d{6}$/;
+  const regexCit    = /^CIT-\d{4}-\d{6}$/;
   const regexCot    = /^COT-\d{4,}-\d+$/i;
+  const esPedido    = regexPedido.test(trackingNumber);
+  const esCita      = regexCit.test(trackingNumber);
+  const esCot       = regexCot.test(trackingNumber);
 
-  if (!regexPedido.test(trackingNumber) && !regexCot.test(trackingNumber)) {
-    showAlert('Formato inválido. Ejemplo: WH-2025-000001 o COT-2025-000001', 'error'); return;
+  if (!esPedido && !esCita && !esCot) {
+    showAlert('Formato inválido. Usa: WH-2026-000001 (pedido) o CIT-2026-000001 (cita) o COT-2026-000001 (cotización)', 'error');
+    return;
   }
 
+  if (btn) { btn.disabled = true; btn.textContent = 'Buscando...'; }
+  if (resultBox) resultBox.style.display = 'none';
+
   try {
-    // Intentar buscar como pedido
-    const endpoint = regexPedido.test(trackingNumber)
-      ? `${API_URL}/pedidos.php?numero=${encodeURIComponent(trackingNumber)}`
-      : `${API_URL}/cotizaciones.php?numero=${encodeURIComponent(trackingNumber)}`;
+    // Usar endpoint de seguimiento público — sin auth requerida
+    const endpoint = `${API_URL}/seguimiento.php?numero=${encodeURIComponent(trackingNumber)}`;
 
     const res  = await fetch(endpoint);
-    const ct   = res.headers.get('content-type') || '';
-    if (!ct.includes('application/json')) throw new Error('Error al consultar');
-    const data = await res.json();
+    const data = await res.json().catch(() => ({}));
 
-    if (data.success && (data.pedido || data.cotizacion)) {
-      const item  = data.pedido || data.cotizacion;
-      const tipo  = data.pedido ? 'pedido' : 'cotización';
-      const estado = item.estado || 'nueva';
-      const estadoLabel = {
-        nueva: 'Nueva', pendiente: 'Pendiente', en_proceso: 'En proceso', pagado: 'Pagado',
-        fabricando: 'En fabricación', listo: 'Listo para entrega', entregado: 'Entregado',
-        en_revision: 'En revisión', respondida: 'Respondida', cerrada: 'Cerrada'
-      }[estado] || estado;
-
-      if (resultBox) {
-        resultBox.style.display = 'block';
-        resultBox.innerHTML = `
-          <div style="background:#2d2d2d;border:2px solid #8b7355;border-radius:14px;padding:24px;margin-top:16px;">
-            <h3 style="color:#8b7355;margin-bottom:12px;"><i class="fa-solid fa-magnifying-glass"></i> ${tipo.charAt(0).toUpperCase()+tipo.slice(1)} encontrad${tipo==='pedido'?'o':'a'}</h3>
-            <div style="display:grid;gap:8px;">
-              <p style="color:#e0e0e0;"><strong>Número:</strong> <span style="color:#8b7355;">${item.numero_pedido || item.numero_cotizacion}</span></p>
-              <p style="color:#e0e0e0;"><strong>Cliente:</strong> ${item.nombre_cliente}</p>
-              <p style="color:#e0e0e0;"><strong>Estado:</strong> <span style="background:rgba(139,115,85,.2);color:#8b7355;padding:3px 10px;border-radius:6px;font-weight:700;">${estadoLabel}</span></p>
-              ${item.total ? `<p style="color:#e0e0e0;"><strong>Total:</strong> ${new Intl.NumberFormat('es-MX',{style:'currency',currency:'MXN'}).format(item.total)}</p>` : ''}
-              ${item.fecha_estimada ? `<p style="color:#e0e0e0;"><strong>Entrega estimada:</strong> ${item.fecha_estimada}</p>` : ''}
-              <p style="color:#e0e0e0;"><strong>Fecha:</strong> ${new Date(item.fecha_creacion).toLocaleDateString('es-MX',{year:'numeric',month:'long',day:'numeric'})}</p>
-            </div>
-          </div>`;
-        showAlert('<i class="fa-solid fa-circle-check"></i> Solicitud encontrada', 'success');
-        resultBox.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }
-    } else {
+    if (!data.success || (!data.pedido && !data.cotizacion && !data.cita)) {
       if (resultBox) resultBox.style.display = 'none';
       showAlert('No se encontró ninguna solicitud con ese número. Verifica e intenta de nuevo.', 'error');
+      return;
+    }
+
+    const item = data.pedido || data.cotizacion || data.cita;
+    const tipo = data.pedido ? 'Pedido' : data.cita ? 'Cita' : 'Cotización';
+
+    const estadoLabels = {
+      nueva:'Nueva 🆕', pendiente:'Pendiente ⏳', pagado:'Pagado ✓', en_produccion:'En Producción 🔨',
+      listo:'Listo para entrega 📦', entregado:'Entregado ✅', cancelado:'Cancelado ❌',
+      en_revision:'En Revisión 📋', respondida:'Respondida ✅', cerrada:'Cerrada 🔒',
+      confirmada:'Confirmada ✅', completada:'Completada 🏁'
+    };
+    const estadoColors = {
+      nueva:'#1565C0', pendiente:'#F57F17', pagado:'#1565C0', en_produccion:'#6A1B9A',
+      listo:'#00695C', entregado:'#2E7D32', cancelado:'#B71C1C',
+      en_revision:'#E65100', respondida:'#2E7D32', cerrada:'#757575',
+      confirmada:'#2E7D32', completada:'#5C3D11'
+    };
+    const estado      = item.estado || 'nueva';
+    const label       = estadoLabels[estado] || estado;
+    const color       = estadoColors[estado] || '#8b7355';
+    const folio       = item.numero_pedido || item.numero_cotizacion || item.numero_cita || '—';
+    const fechaCreada = (item.fecha_creacion || '').substring(0, 10);
+
+    // Línea de tiempo según tipo
+    let timelineHtml = '';
+    if (data.pedido) {
+      const stages = ['pendiente','pagado','en_produccion','listo','entregado'];
+      const stageIdx = stages.indexOf(estado);
+      const stageLabels = ['Pedido recibido','Pago confirmado','En producción','Listo','Entregado'];
+      timelineHtml = `
+        <div style="margin:20px 0 0;">
+          <p style="font-size:12px;font-weight:700;color:#8b7355;text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px;">Progreso del pedido</p>
+          <div style="display:flex;gap:0;align-items:flex-start;">
+            ${stages.map((s, i) => {
+              const done    = i <= stageIdx && estado !== 'cancelado';
+              const current = i === stageIdx && estado !== 'cancelado';
+              const dotColor = done ? '#2E7D32' : '#ddd';
+              const textColor = current ? '#8b7355' : (done ? '#555' : '#aaa');
+              return `<div style="flex:1;text-align:center;position:relative;">
+                ${i > 0 ? `<div style="position:absolute;top:10px;left:-50%;width:100%;height:2px;background:${i <= stageIdx && estado !== 'cancelado' ? '#2E7D32' : '#ddd'};z-index:0;"></div>` : ''}
+                <div style="width:20px;height:20px;border-radius:50%;background:${dotColor};margin:0 auto 6px;position:relative;z-index:1;display:flex;align-items:center;justify-content:center;">
+                  ${done ? '<span style="color:#fff;font-size:10px;">✓</span>' : ''}
+                </div>
+                <p style="font-size:10px;color:${textColor};font-weight:${current?'700':'400'};margin:0;line-height:1.3;">${stageLabels[i]}</p>
+              </div>`;
+            }).join('')}
+          </div>
+        </div>`;
+    }
+
+    // Detalles extra según tipo
+    let extrasHtml = '';
+    if (data.pedido && item.fecha_estimada) {
+      extrasHtml += `<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #f0e8d8;"><span style="color:#888;font-size:13px;">Entrega estimada</span><strong style="font-size:13px;">${item.fecha_estimada}</strong></div>`;
+    }
+    if (data.pedido && item.total) {
+      extrasHtml += `<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #f0e8d8;"><span style="color:#888;font-size:13px;">Total</span><strong style="color:#8b7355;font-size:15px;">${new Intl.NumberFormat('es-MX',{style:'currency',currency:'MXN'}).format(item.total)}</strong></div>`;
+    }
+    if (data.cita && item.fecha_cita) {
+      extrasHtml += `<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #f0e8d8;"><span style="color:#888;font-size:13px;">Fecha de cita</span><strong style="font-size:13px;">${item.fecha_cita}</strong></div>`;
+      if (item.rango_horario) extrasHtml += `<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #f0e8d8;"><span style="color:#888;font-size:13px;">Horario</span><strong style="font-size:13px;">${item.rango_horario}</strong></div>`;
+    }
+    if (data.cotizacion && item.tipo_mueble) {
+      extrasHtml += `<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #f0e8d8;"><span style="color:#888;font-size:13px;">Tipo de mueble</span><strong style="font-size:13px;">${item.tipo_mueble}</strong></div>`;
+    }
+
+    if (resultBox) {
+      resultBox.style.display = 'block';
+      resultBox.innerHTML = `
+        <div style="background:#fff;border:1px solid #e8dcc8;border-radius:12px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,.08);margin-top:16px;">
+          <!-- Header -->
+          <div style="background:#8b7355;padding:20px 24px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+            <div>
+              <p style="margin:0;color:rgba(255,255,255,.75);font-size:11px;text-transform:uppercase;letter-spacing:1px;">${tipo}</p>
+              <h3 style="margin:4px 0 0;color:#fff;font-size:20px;font-family:Georgia,serif;">${folio}</h3>
+            </div>
+            <span style="background:${color};color:#fff;padding:6px 16px;border-radius:20px;font-size:13px;font-weight:700;">${label}</span>
+          </div>
+          <!-- Body -->
+          <div style="padding:20px 24px;">
+            <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #f0e8d8;">
+              <span style="color:#888;font-size:13px;">Cliente</span>
+              <strong style="font-size:13px;">${item.nombre_cliente || '—'}</strong>
+            </div>
+            <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #f0e8d8;">
+              <span style="color:#888;font-size:13px;">Folio registrado</span>
+              <strong style="font-size:13px;">${fechaCreada}</strong>
+            </div>
+            ${extrasHtml}
+            ${timelineHtml}
+          </div>
+          <div style="background:#faf6f0;padding:14px 24px;text-align:center;border-top:1px solid #e8dcc8;">
+            <p style="margin:0;color:#888;font-size:12px;">¿Dudas? Contáctanos a <a href="mailto:ventas@muebleswh.com" style="color:#8b7355;">ventas@muebleswh.com</a></p>
+          </div>
+        </div>`;
+      resultBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
   } catch (err) {
+    if (resultBox) resultBox.style.display = 'none';
     showAlert('Error al consultar. Por favor intenta más tarde.', 'error');
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = 'Buscar'; }
   }
 }
 

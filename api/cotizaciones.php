@@ -2,10 +2,26 @@
 require_once __DIR__ . '/_helpers.php';
 
 $method = requestMethod();
-$id     = isset($_GET['id']) ? sanitizeInt($_GET['id']) : null;
+$id     = isset($_GET['id'])     ? sanitizeInt($_GET['id'])   : null;
+$numero = isset($_GET['numero']) ? trim($_GET['numero'])      : null;
 
 switch ($method) {
     case 'GET':
+        // Búsqueda pública por número de cotización (para seguimiento sin login)
+        if ($numero && !$id) {
+            if (!preg_match('/^COT-\d{4,}-\d+$/i', $numero)) {
+                jsonError('Formato de número inválido', 422);
+            }
+            $cot = dbRow(
+                "SELECT numero_cotizacion, nombre_cliente, tipo_mueble,
+                        descripcion_solicitud, estado, fecha_creacion
+                 FROM cotizaciones WHERE numero_cotizacion = ?",
+                [$numero]
+            );
+            if (!$cot) jsonError('Cotización no encontrada', 404);
+            jsonSuccess(['cotizacion' => $cot]);
+        }
+
         requerirEmpleado();
         if ($id) {
             $cot = dbRow("SELECT * FROM cotizaciones WHERE id = ?", [$id]);
@@ -35,13 +51,23 @@ switch ($method) {
         if (!isValidEmail($body['correo_cliente'])) jsonError('correo_cliente inválido', 422);
 
         $numCot = generarNumeroCotizacion();
+        // Enriquecer descripción con campos extra del formulario web
+        $descripcionCompleta = sanitize($body['descripcion_solicitud']);
+        $extra = [];
+        if (!empty($body['urgencia']))   $extra[] = 'Urgencia: ' . sanitize($body['urgencia']);
+        if (!empty($body['referencia'])) $extra[] = 'Nos conoció por: ' . sanitize($body['referencia']);
+        if (!empty($body['instalacion']) && $body['instalacion'] !== 'nose') {
+            $extra[] = 'Instalación: ' . sanitize($body['instalacion']);
+        }
+        if ($extra) $descripcionCompleta .= ' | ' . implode(' | ', $extra);
+
         $cotId = dbInsert('cotizaciones', [
             'numero_cotizacion'     => $numCot,
             'nombre_cliente'        => sanitize($body['nombre_cliente']),
             'correo_cliente'        => strtolower(trim($body['correo_cliente'])),
             'telefono_cliente'      => sanitize($body['telefono_cliente']),
             'tipo_mueble'           => sanitize($body['tipo_mueble'] ?? ''),
-            'descripcion_solicitud' => sanitize($body['descripcion_solicitud']),
+            'descripcion_solicitud' => $descripcionCompleta,
             'tiene_medidas'         => !empty($body['tiene_medidas']) ? 1 : 0,
             'medidas'               => sanitize($body['medidas'] ?? ''),
             'rango_presupuesto'     => sanitize($body['rango_presupuesto'] ?? ''),

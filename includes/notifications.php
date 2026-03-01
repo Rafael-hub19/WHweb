@@ -177,36 +177,110 @@ function _guardarEmailLog(string $to, string $subject, string $body): void {
 // ================================================================
 
 function _emailWrapper(string $titulo, string $contenido): string {
-    $year  = date('Y');
-    $color = '#8B6914';
+    $year = date('Y');
+    $gold = '#8B6914';
+    $bg   = '#f0ebe3';
     return <<<HTML
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" xmlns="http://www.w3.org/1999/xhtml">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>{$titulo}</title>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{$titulo}</title>
+  <!--[if mso]>
+  <noscript><xml><o:OfficeDocumentSettings><o:PixelsPerInch>96</o:PixelsPerInch></o:OfficeDocumentSettings></xml></noscript>
+  <![endif]-->
+  <style>
+    body,table,td,p,a,li,blockquote{-webkit-text-size-adjust:100%;-ms-text-size-adjust:100%;}
+    body{margin:0;padding:0;background-color:{$bg};}
+    table{border-spacing:0;mso-table-lspace:0pt;mso-table-rspace:0pt;}
+    td{padding:0;}
+    img{border:0;outline:none;text-decoration:none;display:block;}
+    @media only screen and (max-width:640px){
+      .email-outer{padding:12px 0 !important;}
+      .email-card{width:100% !important;border-radius:0 !important;}
+      .email-body{padding:28px 20px !important;}
+      .email-header{padding:24px 20px !important;}
+    }
+  </style>
 </head>
-<body style="margin:0;padding:0;font-family:Georgia,serif;background:#f5f0eb;">
-<table width="100%" cellpadding="0" cellspacing="0" style="background:#f5f0eb;padding:30px 0;">
-  <tr><td align="center">
-    <table width="600" cellpadding="0" cellspacing="0" style="background:#fff;border-radius:8px;overflow:hidden;box-shadow:0 2px 10px rgba(0,0,0,0.1);">
-      <tr><td style="background:{$color};padding:30px;text-align:center;">
-        <h1 style="margin:0;color:#fff;font-size:26px;letter-spacing:2px;">WOODEN HOUSE</h1>
-        <p style="margin:6px 0 0;color:rgba(255,255,255,0.85);font-size:13px;">Muebles de baño de madera</p>
-      </td></tr>
-      <tr><td style="padding:40px 50px;">
-        {$contenido}
-      </td></tr>
-      <tr><td style="background:#f9f5f0;padding:20px;text-align:center;border-top:1px solid #e8dcc8;">
-        <p style="margin:0;color:#888;font-size:12px;">
-          © {$year} Wooden House — Guadalajara, Jalisco, México<br>
-          Este correo fue generado automáticamente, por favor no respondas a él.
-        </p>
-      </td></tr>
-    </table>
-  </td></tr>
+<body style="margin:0;padding:0;background-color:{$bg};">
+<div style="display:none;max-height:0;overflow:hidden;">{$titulo} — Wooden House</div>
+
+<!-- ═══ OUTER WRAPPER ═══════════════════════════════════════════ -->
+<table role="presentation" border="0" cellpadding="0" cellspacing="0"
+       width="100%" class="email-outer"
+       style="background-color:{$bg};padding:32px 0;">
+  <tr>
+    <td align="center" style="padding:0 16px;">
+
+      <!-- ═══ CARD (600px) ═══════════════════════════════════════ -->
+      <table role="presentation" border="0" cellpadding="0" cellspacing="0"
+             width="600" class="email-card"
+             style="width:600px;max-width:600px;background:#ffffff;
+                    border-radius:10px;overflow:hidden;
+                    box-shadow:0 4px 24px rgba(0,0,0,.12);">
+
+        <!-- HEADER -->
+        <tr>
+          <td align="center" bgcolor="{$gold}" class="email-header"
+              style="background-color:{$gold};padding:28px 40px;">
+            <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%">
+              <tr>
+                <td align="center">
+                  <p style="margin:0;font-size:11px;letter-spacing:3px;color:rgba(255,255,255,.70);
+                             font-family:Arial,sans-serif;text-transform:uppercase;">
+                    WOODEN HOUSE
+                  </p>
+                  <div style="width:48px;height:2px;background:rgba(255,255,255,.40);margin:10px auto;"></div>
+                  <h1 style="margin:0;color:#ffffff;font-size:22px;letter-spacing:1px;
+                              font-family:Georgia,'Times New Roman',serif;font-weight:normal;">
+                    {$titulo}
+                  </h1>
+                  <p style="margin:8px 0 0;color:rgba(255,255,255,.75);font-size:12px;
+                             font-family:Arial,sans-serif;letter-spacing:.5px;">
+                    Muebles de baño de madera • Guadalajara, México
+                  </p>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+
+        <!-- BODY -->
+        <tr>
+          <td class="email-body" valign="top"
+              style="padding:40px 48px;background:#ffffff;
+                     font-family:Georgia,'Times New Roman',serif;
+                     font-size:15px;line-height:1.75;color:#3a3a3a;">
+            {$contenido}
+          </td>
+        </tr>
+
+        <!-- FOOTER -->
+        <tr>
+          <td align="center" bgcolor="#f8f4ef"
+              style="background-color:#f8f4ef;padding:24px 40px;
+                     border-top:1px solid #e5ddd4;">
+            <p style="margin:0 0 4px;color:#aaa;font-size:11px;
+                       font-family:Arial,sans-serif;line-height:1.7;">
+              © {$year} Wooden House — Guadalajara, Jalisco, México
+            </p>
+            <p style="margin:0;color:#bbb;font-size:11px;font-family:Arial,sans-serif;">
+              Este correo fue generado automáticamente, por favor no respondas a él.
+            </p>
+          </td>
+        </tr>
+
+      </table>
+      <!-- /CARD -->
+
+    </td>
+  </tr>
 </table>
+<!-- /OUTER WRAPPER -->
+
 </body>
 </html>
 HTML;
@@ -239,10 +313,15 @@ function emailPedidoConfirmado(array $pedido): bool {
 <h2 style="color:#8B6914;margin-top:0;">¡Pedido confirmado, {$nombre}! 🎉</h2>
 <p style="color:#555;line-height:1.7;">Hemos recibido tu pedido. Nos pondremos en contacto para coordinar los detalles de entrega.</p>
 
-<div style="background:#faf6f0;border-left:4px solid #8B6914;padding:20px;margin:25px 0;border-radius:4px;">
-  <strong style="font-size:18px;color:#5C3D11;">{$folio}</strong><br>
-  <span style="color:#888;font-size:13px;">Número de pedido — guárdalo para rastrear tu pedido</span>
-</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:25px 0;">
+  <tr>
+    <td style="background:#faf6f0;border-left:4px solid #8B6914;
+                padding:18px 20px;border-radius:4px;">
+      <strong style="font-size:18px;color:#5C3D11;display:block;margin-bottom:4px;">{$folio}</strong>
+      <span style="color:#888;font-size:13px;">Número de pedido — guárdalo para rastrear tu pedido</span>
+    </td>
+  </tr>
+</table>
 
 <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;margin:20px 0;">
   <tr style="background:#f0e8d8;">
@@ -257,11 +336,19 @@ function emailPedidoConfirmado(array $pedido): bool {
 
 <p style="color:#555;"><strong>Semana estimada de entrega:</strong> {$fecha}</p>
 
-<div style="text-align:center;margin:30px 0;">
-  <a href="{$trackUrl}" style="background:#8B6914;color:#fff;text-decoration:none;padding:14px 30px;border-radius:6px;font-size:15px;display:inline-block;">
-    Rastrear mi pedido →
-  </a>
-</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:30px 0;">
+  <tr><td align="center">
+    <a href="{$trackUrl}"
+       style="background:#8B6914;color:#ffffff;text-decoration:none;
+               padding:14px 32px;border-radius:6px;font-size:15px;
+               font-weight:bold;display:inline-block;mso-padding-alt:0;
+               font-family:Georgia,serif;">
+      <!--[if mso]><i style="letter-spacing:20px;mso-font-width:-100%;" hidden>&nbsp;</i><![endif]-->
+      Rastrear mi pedido →
+      <!--[if mso]><i style="letter-spacing:20px;mso-font-width:-100%;" hidden>&nbsp;</i><![endif]-->
+    </a>
+  </td></tr>
+</table>
 <p style="color:#888;font-size:13px;text-align:center;">
   También puedes ingresar tu número de pedido en <a href="{$trackUrl}" style="color:#8B6914;">muebleswh.com/seguimiento</a>
 </p>
@@ -338,13 +425,15 @@ function emailCotizacionRecibida(array $cot): bool {
     $nombre = htmlspecialchars($cot['nombre_cliente']);
     // Mapear values del select al label legible para el email
     $tipoMap = [
-        'cocina'       => 'Mueble Milano',
-        'closet'       => 'Mueble Venecia',
-        'bano'         => 'Mueble Toscana',
-        'sala'         => 'Mueble Oslo',
-        'recamara'     => 'Muebles Paris',
-        'estudio'      => 'Mueble Tokio',
+        'baño'         => 'Mueble de baño',
         'personalizado'=> 'Diseño Personalizado',
+        // Legacy values
+        'cocina'       => 'Mueble de cocina',
+        'closet'       => 'Mueble closet',
+        'bano'         => 'Mueble de baño',
+        'sala'         => 'Mueble de sala',
+        'recamara'     => 'Mueble de recámara',
+        'estudio'      => 'Mueble de estudio',
     ];
     $tipoRaw = $cot['tipo_mueble'] ?? '';
     $tipo    = htmlspecialchars($tipoMap[$tipoRaw] ?? ($tipoRaw ?: 'Mueble personalizado'));

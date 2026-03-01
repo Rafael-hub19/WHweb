@@ -1000,7 +1000,7 @@ async function actualizarEstadoPedidoEmp(id, estado) {
       method: 'PUT',
       body: JSON.stringify({ estado }),
     });
-    if (data.success) showNotification('<i class="fa-solid fa-circle-check"></i> Estado actualizado', 'success');
+    if (data.success) showNotification('✅ Estado del pedido actualizado', 'success');
     else showNotification('<i class="fa-solid fa-xmark"></i> ' + (data.error || 'Error'), 'error');
   } catch(e) { showNotification('<i class="fa-solid fa-xmark"></i> Error de conexión', 'error'); }
 }

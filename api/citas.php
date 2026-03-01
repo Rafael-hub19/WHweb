@@ -8,6 +8,19 @@ switch ($method) {
     case 'GET':
         // Consulta pública de disponibilidad por fecha (para el formulario de citas)
         // Solo devuelve rango_horario y estado — sin datos personales
+        // Búsqueda pública por número de cita (para seguimiento)
+        if (!empty($_GET['numero_cita']) && !$id) {
+            $num = trim($_GET['numero_cita']);
+            if (!preg_match('/^CIT-\d{4}-\d{6}$/i', $num)) jsonError('Formato inválido', 422);
+            $cita = dbRow(
+                "SELECT numero_cita, nombre_cliente, fecha_cita, rango_horario, tipo, estado, fecha_creacion
+                 FROM citas WHERE numero_cita = ?",
+                [$num]
+            );
+            if (!$cita) jsonError('Cita no encontrada', 404);
+            jsonSuccess(['cita' => $cita]);
+        }
+
         $consultaPublica = !empty($_GET['fecha']) && !$id && empty($_GET['estado']) && empty($_GET['tipo']);
         if (!$consultaPublica) requerirEmpleado();
 
@@ -68,7 +81,6 @@ switch ($method) {
             'rango_horario'   => sanitize($body['rango_horario'] ?? 'Por confirmar'),
             'tipo'            => $body['tipo'],
             'estado'          => 'nueva',
-            'notas'           => sanitize($body['notas'] ?? ''),
         ]);
 
         try {
@@ -80,7 +92,7 @@ switch ($method) {
                 'rango_horario'   => $body['rango_horario'] ?? '',
             ]);
             crearNotificacionFirestore('cita_nueva', "Nueva Cita: $numeroCita", "Cliente: {$body['nombre_cliente']} | Fecha: {$body['fecha_cita']}", ['numero_cita' => $numeroCita, 'destino' => 'empleado']);
-        } catch (Exception $e) { appLog('warning', 'Notif cita falló', ['e' => $e->getMessage()]); }
+        } catch (Throwable $e) { appLog('warning', 'Notif cita falló', ['e' => $e->getMessage()]); }
 
         jsonSuccess(['cita_id' => $citaId, 'numero_cita' => $numeroCita], 201);
         break;
