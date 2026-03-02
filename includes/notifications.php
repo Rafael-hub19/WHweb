@@ -14,13 +14,14 @@ if (!defined('WH_LOADED')) {
 // Compatible con Brevo, Gmail, cualquier SMTP
 // ================================================================
 
-function enviarEmail(string $to, string $subject, string $bodyHtml, string $bodyText = ''): bool {
+function enviarEmail(string $to, string $subject, string $bodyHtml, string $bodyText = '', string $fromOverride = '', string $fromNameOverride = ''): bool {
     $host     = SMTP_HOST;
     $port     = SMTP_PORT;
     $user     = SMTP_USER;
     $pass     = SMTP_PASS;
-    $from     = EMAIL_FROM;
-    $fromName = EMAIL_FROM_NAME;
+    // Usar el remitente específico si se pasa, si no usar el default del .env
+    $from     = !empty($fromOverride)     ? $fromOverride     : EMAIL_FROM;
+    $fromName = !empty($fromNameOverride) ? $fromNameOverride : EMAIL_FROM_NAME;
 
     if (empty($host) || empty($user) || empty($pass)) {
         appLog('error', 'SMTP no configurado', ['to' => $to]);
@@ -295,7 +296,7 @@ function emailPedidoConfirmado(array $pedido): bool {
     $total    = formatMoney($pedido['total']);
     $fecha    = $pedido['fecha_estimada'] ?? 'Por confirmar';
     $tracking = $pedido['token_seguimiento'] ?? '';
-    $trackUrl = APP_URL . "/seguimiento?token={$tracking}";
+    $trackUrl = APP_URL . "/seguimiento?token={$tracking}&pedido={$folio}";
 
     $items = '';
     foreach (($pedido['items'] ?? []) as $item) {
@@ -357,7 +358,10 @@ HTML;
     return enviarEmail(
         $pedido['correo_cliente'],
         "Pedido confirmado – {$folio} | Wooden House",
-        _emailWrapper("Pedido Confirmado", $contenido)
+        _emailWrapper("Pedido Confirmado", $contenido),
+        '',
+        'pedidos@muebleswh.com',
+        'Wooden House Pedidos'
     );
 }
 
@@ -390,7 +394,7 @@ function emailEstadoPedido(array $pedido, string $estadoAnterior): bool {
 
     $msg      = $mensajes[$estadoActual] ?? 'El estado de tu pedido ha sido actualizado.';
     $tracking = $pedido['token_seguimiento'] ?? '';
-    $trackUrl = APP_URL . "/seguimiento?token={$tracking}";
+    $trackUrl = APP_URL . "/seguimiento?token={$tracking}&pedido={$folio}";
 
     $contenido = <<<HTML
 <h2 style="color:#8B6914;margin-top:0;">Actualización de tu pedido</h2>
@@ -413,7 +417,10 @@ HTML;
     return enviarEmail(
         $pedido['correo_cliente'],
         "Pedido {$folio} — {$label} | Wooden House",
-        _emailWrapper("Estado de Pedido", $contenido)
+        _emailWrapper("Estado de Pedido", $contenido),
+        '',
+        'pedidos@muebleswh.com',
+        'Wooden House Pedidos'
     );
 }
 
@@ -453,7 +460,10 @@ HTML;
     return enviarEmail(
         $cot['correo_cliente'],
         "Cotización {$folio} recibida | Wooden House",
-        _emailWrapper("Cotización Recibida", $contenido)
+        _emailWrapper("Cotización Recibida", $contenido),
+        '',
+        'ventas@muebleswh.com',
+        'Wooden House Ventas'
     );
 }
 
@@ -483,8 +493,11 @@ HTML;
 
     return enviarEmail(
         $cita['correo_cliente'],
-        "Cita confirmada – {$fecha} | Wooden House",
-        _emailWrapper("Cita Confirmada", $contenido)
+        "Cita confirmada – {$folio} | Wooden House",
+        _emailWrapper("Cita Confirmada", $contenido),
+        '',
+        'soporte@muebleswh.com',
+        'Wooden House Soporte'
     );
 }
 
@@ -582,11 +595,94 @@ function marcarNotificacionLeida(string $docId): bool {
 }
 
 // ================================================================
+// EMAIL AL ADMINISTRADOR
+// ================================================================
+
+/**
+ * Enviar email de alerta al administrador cuando llega algo nuevo.
+ * Usa SITE_EMAIL definido en .env (ventas@muebleswh.com)
+ */
+function emailAdminNuevoEvento(string $tipo, array $datos): void {
+    $adminEmail = defined('SITE_EMAIL') ? SITE_EMAIL : EMAIL_FROM;
+
+    switch ($tipo) {
+        case 'pedido':
+            $folio   = htmlspecialchars($datos['numero_pedido'] ?? '');
+            $cliente = htmlspecialchars($datos['nombre_cliente'] ?? '');
+            $total   = '$' . number_format((float)($datos['total'] ?? 0), 2);
+            $subject = "🛒 Nuevo pedido {$folio} — {$total}";
+            $body    = <<<HTML
+<h2 style="color:#8B6914;margin-top:0;">Nuevo pedido recibido</h2>
+<p style="color:#555;">Se acaba de confirmar un pedido en tu tienda.</p>
+<div style="background:#faf6f0;border-left:4px solid #8B6914;padding:16px 20px;margin:20px 0;border-radius:4px;">
+  <p style="margin:4px 0;"><strong>Folio:</strong> {$folio}</p>
+  <p style="margin:4px 0;"><strong>Cliente:</strong> {$cliente}</p>
+  <p style="margin:4px 0;"><strong>Total:</strong> {$total}</p>
+  <p style="margin:4px 0;"><strong>Entrega:</strong> {$datos['tipo_entrega']}</p>
+</div>
+<p><a href="https://muebleswh.com/admin" style="background:#8B6914;color:#fff;text-decoration:none;padding:12px 24px;border-radius:6px;display:inline-block;">Ver en el panel →</a></p>
+HTML;
+            break;
+
+        case 'cotizacion':
+            $folio   = htmlspecialchars($datos['numero_cotizacion'] ?? '');
+            $cliente = htmlspecialchars($datos['nombre_cliente'] ?? '');
+            $subject = "📋 Nueva cotización {$folio} de {$cliente}";
+            $body    = <<<HTML
+<h2 style="color:#8B6914;margin-top:0;">Nueva cotización recibida</h2>
+<p style="color:#555;">Un cliente ha enviado una solicitud de cotización.</p>
+<div style="background:#faf6f0;border-left:4px solid #8B6914;padding:16px 20px;margin:20px 0;border-radius:4px;">
+  <p style="margin:4px 0;"><strong>Folio:</strong> {$folio}</p>
+  <p style="margin:4px 0;"><strong>Cliente:</strong> {$cliente}</p>
+  <p style="margin:4px 0;"><strong>Email:</strong> {$datos['correo_cliente']}</p>
+  <p style="margin:4px 0;"><strong>Teléfono:</strong> {$datos['telefono_cliente']}</p>
+</div>
+<p><a href="https://muebleswh.com/admin" style="background:#8B6914;color:#fff;text-decoration:none;padding:12px 24px;border-radius:6px;display:inline-block;">Ver en el panel →</a></p>
+HTML;
+            break;
+
+        case 'cita':
+            $folio   = htmlspecialchars($datos['numero_cita'] ?? '');
+            $cliente = htmlspecialchars($datos['nombre_cliente'] ?? '');
+            $fecha   = htmlspecialchars($datos['fecha_cita'] ?? '');
+            $hora    = htmlspecialchars($datos['rango_horario'] ?? '');
+            $subject = "📅 Nueva cita {$folio} — {$fecha}";
+            $body    = <<<HTML
+<h2 style="color:#8B6914;margin-top:0;">Nueva cita agendada</h2>
+<p style="color:#555;">Un cliente ha agendado una cita.</p>
+<div style="background:#faf6f0;border-left:4px solid #8B6914;padding:16px 20px;margin:20px 0;border-radius:4px;">
+  <p style="margin:4px 0;"><strong>Folio:</strong> {$folio}</p>
+  <p style="margin:4px 0;"><strong>Cliente:</strong> {$cliente}</p>
+  <p style="margin:4px 0;"><strong>Fecha:</strong> {$fecha}</p>
+  <p style="margin:4px 0;"><strong>Horario:</strong> {$hora}</p>
+</div>
+<p><a href="https://muebleswh.com/admin" style="background:#8B6914;color:#fff;text-decoration:none;padding:12px 24px;border-radius:6px;display:inline-block;">Ver en el panel →</a></p>
+HTML;
+            break;
+
+        default:
+            return;
+    }
+
+    // Enviar desde ventas@ (el correo del negocio) al mismo ventas@
+    // Reply-To puede ser el cliente para responder fácil
+    enviarEmail(
+        $adminEmail,
+        $subject,
+        _emailWrapper('Notificación Interna', $body),
+        '',
+        'ventas@muebleswh.com',
+        'Wooden House Sistema'
+    );
+}
+
+// ================================================================
 // NOTIFICACIONES COMPUESTAS (email + Firestore)
 // ================================================================
 
 function notificarNuevoPedido(array $pedido): void {
     emailPedidoConfirmado($pedido);
+    emailAdminNuevoEvento('pedido', $pedido);
     crearNotificacionFirestore(
         'nuevo_pedido',
         '🛒 Nuevo pedido recibido',
@@ -607,6 +703,7 @@ function notificarCambioPedido(array $pedido, string $estadoAnterior): void {
 
 function notificarNuevaCotizacion(array $cot): void {
     emailCotizacionRecibida($cot);
+    emailAdminNuevoEvento('cotizacion', $cot);
     crearNotificacionFirestore(
         'nueva_cotizacion',
         '📋 Nueva cotización recibida',
@@ -618,6 +715,8 @@ function notificarNuevaCotizacion(array $cot): void {
 function notificarNuevaCita(array $cita): void {
     // Email de confirmación al cliente
     emailCitaConfirmada($cita);
+    // Email de alerta al administrador
+    emailAdminNuevoEvento('cita', $cita);
     // Notificación interna Firestore para el panel
     crearNotificacionFirestore(
         'nueva_cita',

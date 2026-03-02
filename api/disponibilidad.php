@@ -6,11 +6,13 @@
  *   → devuelve los próximos días hábiles disponibles con su carga real
  *
  * Lógica de negocio:
- *   - Margen mínimo: 2 días hábiles desde hoy (tiempo para arrancar fabricación)
- *   - Límite diario: 5 productos totales por día (SUM de cantidades, no pedidos)
- *   - Un pedido con 3 productos ocupa 3 de los 5 lugares del día
- *   - Se muestran los próximos 14 días hábiles disponibles
- *   - La "fecha sugerida" es el primer día con espacio disponible
+ *   - Margen mínimo: MARGEN_HABILES días hábiles desde hoy (config.php, default 2)
+ *   - Límite diario: LIMITE_DIA productos totales por día (config.php, default 10)
+ *     → Cuenta pedidos con estado: pendiente, pagado, en_produccion, listo
+ *     → NO cuenta cancelados ni entregados
+ *   - Un pedido con 3 productos ocupa 3 de los 10 lugares del día
+ *   - Se muestran los próximos DIAS_VISTA días hábiles
+ *   - La "fecha sugerida" es el primer día con espacio para TODO el pedido actual
  */
 
 require_once __DIR__ . '/_helpers.php';
@@ -20,17 +22,20 @@ if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
 }
 
 // ── Parámetros de la petición ─────────────────────────────────
-$tipoEntrega = $_GET['tipo_entrega'] ?? 'envio';   // 'envio' | 'recoger'
-$cpCliente   = trim($_GET['cp'] ?? '');             // CP del cliente (para agrupar zonas)
+$tipoEntrega    = $_GET['tipo_entrega'] ?? 'envio';   // 'envio' | 'recoger'
+$cpCliente      = trim($_GET['cp'] ?? '');             // CP del cliente (para agrupar zonas)
+$cantidadPedido = max(1, (int)($_GET['cantidad'] ?? 1)); // cuántos productos quiere pedir el usuario
 
 // ── Configuración ──────────────────────────────────────────────
-define('LIMITE_PRODUCTOS_DIA', 5);   // máximo productos por día
-define('MARGEN_DIAS_HABILES',  2);   // días mínimos desde hoy
-define('DIAS_VISTA',          20);   // cuántos días hábiles mostrar hacia adelante
+// LIMITE_DIA y MARGEN_HABILES vienen de config.php (definidos ahí para centralizar)
+// Si por alguna razón no están definidos, usar fallback
+if (!defined('LIMITE_DIA'))    define('LIMITE_DIA',    10);
+if (!defined('MARGEN_HABILES')) define('MARGEN_HABILES', 2);
+define('DIAS_VISTA', 20);   // cuántos días hábiles mostrar hacia adelante
 
 // ── Calcular fecha mínima de entrega ──────────────────────────
 $hoy         = new DateTime();
-$fechaMinima = calcularFechaMinima($hoy, MARGEN_DIAS_HABILES);
+$fechaMinima = calcularFechaMinima($hoy, MARGEN_HABILES);
 
 // ── Cargar carga real de productos por día de la BD ───────────
 $limite = (clone $hoy)->modify('+60 days')->format('Y-m-d');
@@ -50,23 +55,28 @@ while ($diasHabilesEncontrados < DIAS_VISTA) {
     // Solo días hábiles (lun-vie) no bloqueados
     if ($dow <= 5 && !in_array($ymd, $diasBloqueados, true)) {
         $productosAgendados = $cargaPorDia[$ymd] ?? 0;
-        $lugaresLibres      = max(0, LIMITE_PRODUCTOS_DIA - $productosAgendados);
-        $pct                = round(($productosAgendados / LIMITE_PRODUCTOS_DIA) * 100);
+        $lugaresLibres      = max(0, LIMITE_DIA - $productosAgendados);
+        $pct                = round(($productosAgendados / LIMITE_DIA) * 100);
 
         // Detectar si hay pedidos de la misma zona (mismo CP) en este día
         $mismaZona = !empty($cpCliente) && $tipoEntrega === 'envio'
                      && isset($cargaPorZona[$ymd]);
 
+        // Un día está disponible para este pedido SOLO si tiene lugares suficientes
+        // para TODOS los productos del pedido actual (no solo 1 lugar libre)
+        $disponibleParaEstePedido = $lugaresLibres >= $cantidadPedido;
+
         $dias[] = [
             'fecha'      => $ymd,
             'etiqueta'   => formatearDia($fecha),
-            'disponible' => $lugaresLibres > 0,
+            'disponible' => $disponibleParaEstePedido,
             'lugares_libres'   => $lugaresLibres,
             'lugares_ocupados' => $productosAgendados,
-            'lugares_total'    => LIMITE_PRODUCTOS_DIA,
+            'lugares_total'    => LIMITE_DIA,
             'porcentaje_ocupado' => $pct,
             'nivel'      => $pct >= 80 ? 'lleno' : ($pct >= 40 ? 'medio' : 'libre'),
             'misma_zona' => $mismaZona,   // true = hay pedidos de tu zona ese día
+            'lugares_necesarios' => $cantidadPedido, // para debug/UI
         ];
 
         $diasHabilesEncontrados++;
@@ -95,8 +105,8 @@ if ($tipoEntrega === 'envio' && !empty($cpCliente) && $fechaZona !== null) {
 jsonSuccess([
     'fecha_minima'    => $fechaMinima->format('Y-m-d'),
     'fecha_sugerida'  => $fechaSugerida,
-    'margen_dias'     => MARGEN_DIAS_HABILES,
-    'limite_por_dia'  => LIMITE_PRODUCTOS_DIA,
+    'margen_dias'     => MARGEN_HABILES,
+    'limite_por_dia'  => LIMITE_DIA,
     'dias'            => $dias,
 ]);
 

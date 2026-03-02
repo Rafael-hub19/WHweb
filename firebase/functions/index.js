@@ -19,10 +19,10 @@ const nodemailer              = require('nodemailer');
 initializeApp();
 const db = getFirestore();
 
-// ── Config SMTP (variables de entorno de Firebase) ────────────────
+// ── Config SMTP (Brevo) ───────────────────────────────────────────
 function getTransporter() {
   return nodemailer.createTransport({
-    host:   process.env.SMTP_HOST   || 'smtp.gmail.com',
+    host:   process.env.SMTP_HOST || 'smtp-relay.brevo.com',
     port:   parseInt(process.env.SMTP_PORT || '587'),
     secure: false,
     auth: {
@@ -32,9 +32,13 @@ function getTransporter() {
   });
 }
 
-const FROM_EMAIL = process.env.EMAIL_FROM      || 'noreply@woodenhouse.com.mx';
-const FROM_NAME  = process.env.EMAIL_FROM_NAME || 'Wooden House';
-const ADMIN_EMAIL = process.env.ADMIN_EMAIL    || 'contacto@woodenhouse.com.mx';
+// ── Remitentes por tipo de correo ─────────────────────────────────
+const EMAIL_PEDIDOS = process.env.EMAIL_PEDIDOS || 'pedidos@muebleswh.com';
+const EMAIL_VENTAS  = process.env.EMAIL_VENTAS  || 'ventas@muebleswh.com';
+const EMAIL_SOPORTE = process.env.EMAIL_SOPORTE || 'soporte@muebleswh.com';
+const EMAIL_FROM    = process.env.EMAIL_FROM    || 'noreply@muebleswh.com'; // fallback global
+
+const ADMIN_EMAIL   = process.env.ADMIN_EMAIL   || 'ventas@muebleswh.com';
 
 // ── Plantilla base de email ───────────────────────────────────────
 function emailBase(titulo, contenido) {
@@ -68,7 +72,7 @@ function emailBase(titulo, contenido) {
           <td style="background:#1a1a1a;padding:20px 40px;text-align:center;">
             <p style="color:#666;font-size:12px;margin:0;">
               Wooden House · Guadalajara, Jalisco · México<br>
-              <a href="mailto:contacto@woodenhouse.com.mx" style="color:#8b7355;">contacto@woodenhouse.com.mx</a>
+              <a href="mailto:ventas@muebleswh.com" style="color:#8b7355;">ventas@muebleswh.com</a>
             </p>
           </td>
         </tr>
@@ -88,7 +92,6 @@ exports.onNuevaNotificacion = onDocumentCreated(
     const data = event.data?.data();
     if (!data) return;
 
-    // Solo notificar por email si es para el admin y es pedido/cotización nueva
     const tiposImportantes = ['pedido_nuevo', 'cotizacion_nueva', 'cita_nueva', 'pago_recibido'];
     if (!tiposImportantes.includes(data.tipo)) return;
 
@@ -108,7 +111,7 @@ exports.onNuevaNotificacion = onDocumentCreated(
       <p style="color:#ccc;line-height:1.7;margin:0 0 16px;">${data.mensaje}</p>
       ${data.referencia ? `<p style="color:#8b7355;font-size:13px;margin:0;">Referencia: <strong>${data.referencia}</strong></p>` : ''}
       <div style="margin:28px 0 0;">
-        <a href="https://woodenhouse.com.mx/admin"
+        <a href="https://muebleswh.com/admin"
            style="background:#8b7355;color:#fff;padding:12px 28px;border-radius:8px;text-decoration:none;font-weight:bold;display:inline-block;">
           Ver en Panel Admin
         </a>
@@ -118,7 +121,7 @@ exports.onNuevaNotificacion = onDocumentCreated(
 
     try {
       await getTransporter().sendMail({
-        from:    `"${FROM_NAME}" <${FROM_EMAIL}>`,
+        from:    `"Wooden House Pedidos" <${EMAIL_PEDIDOS}>`,
         to:      ADMIN_EMAIL,
         subject: `${icono} ${data.titulo} — Wooden House`,
         html,
@@ -133,6 +136,7 @@ exports.onNuevaNotificacion = onDocumentCreated(
 
 // ================================================================
 // 2. HTTP CALLABLE: Enviar confirmación de pedido al cliente
+//    Remitente: pedidos@muebleswh.com
 // ================================================================
 exports.enviarConfirmacionPedido = onCall(async (request) => {
   const { pedido, cliente } = request.data;
@@ -189,7 +193,7 @@ exports.enviarConfirmacionPedido = onCall(async (request) => {
       Puedes consultar el estado de tu pedido en cualquier momento usando tu número de seguimiento:
     </p>
     <div style="text-align:center;">
-      <a href="https://woodenhouse.com.mx/solicitudes?pedido=${pedido.numero_pedido}"
+      <a href="https://muebleswh.com/solicitudes?pedido=${pedido.numero_pedido}"
          style="background:#8b7355;color:#fff;padding:12px 28px;border-radius:8px;text-decoration:none;font-weight:bold;display:inline-block;">
         Ver estado de mi pedido
       </a>
@@ -199,7 +203,7 @@ exports.enviarConfirmacionPedido = onCall(async (request) => {
 
   try {
     await getTransporter().sendMail({
-      from:    `"${FROM_NAME}" <${FROM_EMAIL}>`,
+      from:    `"Wooden House Pedidos" <${EMAIL_PEDIDOS}>`,
       to:      cliente.correo,
       subject: `✅ Pedido confirmado ${pedido.numero_pedido} — Wooden House`,
       html,
@@ -214,6 +218,7 @@ exports.enviarConfirmacionPedido = onCall(async (request) => {
 
 // ================================================================
 // 3. HTTP CALLABLE: Confirmación de cotización al cliente
+//    Remitente: ventas@muebleswh.com
 // ================================================================
 exports.enviarConfirmacionCotizacion = onCall(async (request) => {
   const { cotizacion, cliente } = request.data;
@@ -246,7 +251,7 @@ exports.enviarConfirmacionCotizacion = onCall(async (request) => {
       Puedes hacer seguimiento de tu cotización usando el número de referencia.
     </p>
     <div style="text-align:center;">
-      <a href="https://woodenhouse.com.mx/solicitudes?cotizacion=${cotizacion.numero_cotizacion}"
+      <a href="https://muebleswh.com/solicitudes?cotizacion=${cotizacion.numero_cotizacion}"
          style="background:#8b7355;color:#fff;padding:12px 28px;border-radius:8px;text-decoration:none;font-weight:bold;display:inline-block;">
         Ver estado de cotización
       </a>
@@ -256,7 +261,7 @@ exports.enviarConfirmacionCotizacion = onCall(async (request) => {
 
   try {
     await getTransporter().sendMail({
-      from:    `"${FROM_NAME}" <${FROM_EMAIL}>`,
+      from:    `"Wooden House Ventas" <${EMAIL_VENTAS}>`,
       to:      cliente.correo,
       subject: `📋 Cotización ${cotizacion.numero_cotizacion} recibida — Wooden House`,
       html,
@@ -271,6 +276,7 @@ exports.enviarConfirmacionCotizacion = onCall(async (request) => {
 
 // ================================================================
 // 4. HTTP CALLABLE: Confirmación de cita al cliente
+//    Remitente: soporte@muebleswh.com
 // ================================================================
 exports.enviarConfirmacionCita = onCall(async (request) => {
   const { cita, cliente } = request.data;
@@ -313,7 +319,7 @@ exports.enviarConfirmacionCita = onCall(async (request) => {
 
   try {
     await getTransporter().sendMail({
-      from:    `"${FROM_NAME}" <${FROM_EMAIL}>`,
+      from:    `"Wooden House Soporte" <${EMAIL_SOPORTE}>`,
       to:      cliente.correo,
       subject: `📅 Cita confirmada — Wooden House`,
       html,

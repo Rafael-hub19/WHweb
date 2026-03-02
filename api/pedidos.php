@@ -156,7 +156,28 @@ switch ($method) {
         $tokenSeg     = generarTokenSeguimiento();
         // Calcular fecha inteligente según tipo de entrega y zona
         $totalProductos = array_sum(array_column(array_map(fn($i) => ['c' => $i['cantidad']], $itemsData), 'c'));
-        $fechaEst = calcularFechaInteligente($tipoEntrega, $cpEnvio, $totalProductos);
+        // Si el cliente seleccionó una fecha específica en el checkout, validarla y respetarla.
+        // Si no, o si ya no hay espacio, calcular automáticamente.
+        $fechaClienteRaw = trim($body['fecha_estimada'] ?? '');
+        $fechaEst        = calcularFechaInteligente($tipoEntrega, $cpEnvio, $totalProductos);
+
+        if (!empty($fechaClienteRaw) && preg_match('/^\d{4}-\d{2}-\d{2}$/', $fechaClienteRaw)) {
+            // Verificar que la fecha del cliente todavía tiene capacidad (race condition guard)
+            $limite     = defined('LIMITE_DIA') ? LIMITE_DIA : 10;
+            $cargaDia   = (int)(dbRow(
+                "SELECT COALESCE(SUM(dp.cantidad),0) AS total
+                  FROM pedidos p
+                  INNER JOIN detalle_pedido dp ON dp.pedido_id = p.id
+                  WHERE p.fecha_estimada = ?
+                    AND p.estado NOT IN ('cancelado','entregado')",
+                [$fechaClienteRaw]
+            )['total'] ?? 0);
+            // Si hay espacio suficiente para este pedido en esa fecha, usarla
+            if (($limite - $cargaDia) >= $totalProductos) {
+                $fechaEst = $fechaClienteRaw;
+            }
+            // Si no hay espacio, $fechaEst ya tiene la siguiente fecha disponible calculada
+        }
 
         try {
             db()->beginTransaction();

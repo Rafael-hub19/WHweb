@@ -113,6 +113,9 @@
                 <option value="baño">Modelo Quebec</option>
                 <option value="baño">Modelo Toronto</option>
                 <option value="baño">Modelo Amsterdam</option>
+                <option value="sala">Mueble Oslo</option>
+                <option value="recamara">Muebles Paris</option>
+                <option value="estudio">Mueble Tokio</option>
                 <option value="personalizado">Diseño Personalizado</option>
               </select>
             </div>
@@ -273,106 +276,61 @@
     <!-- TAB 3: SEGUIMIENTO -->
     <div id="tab-seguimiento" class="tab-content">
       <div class="tracking-section">
-        <h2 style="color:#8b7355; font-size:28px; margin-bottom:15px;"><i class="fa-solid fa-magnifying-glass"></i> Consultar Estado de Solicitud</h2>
-        <p style="color:#a0a0a0; margin-bottom:30px;">
-          Ingresa tu número de pedido o referencia para ver el estado actual de tu solicitud
-        </p>
 
-        <div class="tracking-input-group">
-          <input type="text" id="trackingNumber" placeholder="Ej: WH-2025-001234" maxlength="20">
-          <button class="btn-track" onclick="trackOrder()">Buscar</button>
+        <!-- Encabezado -->
+        <div class="tracking-header">
+          <div class="tracking-icon-circle">
+            <i class="fa-solid fa-magnifying-glass"></i>
+          </div>
+          <h2 class="tracking-title">Consultar Estado de Solicitud</h2>
+          <p class="tracking-subtitle">
+            Ingresa el número de tu pedido, cotización o cita para ver su estado en tiempo real
+          </p>
         </div>
 
-        <div class="info-box">
-          <h4><i class="fa-solid fa-thumbtack"></i> ¿Dónde encuentro mi número de seguimiento?</h4>
-          <p>Tu número fue enviado a tu correo electrónico al realizar tu solicitud. Formato: WH-YYYY-NNNNNN</p>
+        <!-- Input de búsqueda -->
+        <div class="tracking-search-box">
+          <div class="tracking-input-wrap">
+            <i class="fa-solid fa-hashtag tracking-search-icon"></i>
+            <input type="text" id="trackingNumber"
+              placeholder="WH-2026-000001 · CIT-2026-000001 · COT-2026-000001"
+              maxlength="25" autocomplete="off" autocapitalize="characters">
+          </div>
+          <button class="btn-track" onclick="trackOrder()">
+            <i class="fa-solid fa-search"></i> Buscar
+          </button>
         </div>
 
-        <div id="trackingResult" class="tracking-result">
-          <div class="form-section">
-            <h3 class="section-title"><i class="fa-solid fa-box"></i> Información de la Solicitud</h3>
-
-            <div class="form-grid">
-              <div class="form-group">
-                <label>Número de Pedido</label>
-                <input type="text" id="resultOrderNumber" readonly value="WH-2025-001234">
-              </div>
-              <div class="form-group">
-                <label>Fecha de Solicitud</label>
-                <input type="text" id="resultOrderDate" readonly value="25 de Enero, 2025">
-              </div>
-              <div class="form-group">
-                <label>Tipo</label>
-                <input type="text" id="resultOrderType" readonly value="Cotización">
-              </div>
-              <div class="form-group">
-                <label>Estado</label>
-                <input type="text" id="resultOrderStatus" readonly value="En Proceso" style="color:#27ae60; font-weight:bold;">
-              </div>
-              <div class="form-group full-width">
-                <label>Descripción</label>
-                <textarea id="resultDescription" readonly rows="2">Cocina integral de madera con acabado natural, 3.5m lineales</textarea>
-              </div>
-            </div>
-
-            <div class="status-timeline">
-              <h4 style="color:#8b7355; margin-bottom:20px; font-size:20px;"><i class="fa-solid fa-chart-bar"></i> Línea de Tiempo</h4>
-
-              <div class="status-item completed">
-                <div class="status-icon"><i class="fa-solid fa-check"></i></div>
-                <div class="status-content">
-                  <h4>Solicitud Recibida</h4>
-                  <p>Tu solicitud ha sido registrada exitosamente</p>
-                  <div class="status-date">25 Ene, 2025 - 10:30 AM</div>
-                </div>
-              </div>
-
-              <div class="status-item completed">
-                <div class="status-icon"><i class="fa-solid fa-check"></i></div>
-                <div class="status-content">
-                  <h4>Revisión Inicial</h4>
-                  <p>Nuestro equipo ha revisado los detalles</p>
-                  <div class="status-date">25 Ene, 2025 - 2:15 PM</div>
-                </div>
-              </div>
-
-              <div class="status-item current">
-                <div class="status-icon"><i class="fa-solid fa-hourglass-half"></i></div>
-                <div class="status-content">
-                  <h4>Preparando Propuesta</h4>
-                  <p>Elaborando cotización y renders</p>
-                  <div class="status-date">En progreso...</div>
-                </div>
-              </div>
-
-              <div class="status-item">
-                <div class="status-icon"><i class="fa-solid fa-envelope"></i></div>
-                <div class="status-content">
-                  <h4>Envío de Cotización</h4>
-                  <p>Recibirás la propuesta por correo</p>
-                  <div class="status-date">Pendiente</div>
-                </div>
-              </div>
-
-              <div class="status-item">
-                <div class="status-icon"><i class="fa-solid fa-sparkles"></i></div>
-                <div class="status-content">
-                  <h4>Listo para Producción</h4>
-                  <p>Una vez aprobado, comenzamos fabricación</p>
-                  <div class="status-date">Pendiente</div>
-                </div>
-              </div>
-            </div>
-
-            <div class="info-box success">
-              <h4><i class="fa-solid fa-comments"></i> ¿Necesitas ayuda?</h4>
-              <p>
-                Contáctanos por correo a
-                <strong>contacto@woodenhouse.com</strong>
-              </p>
-            </div>
+        <!-- Tipos de número aceptados -->
+        <div class="tracking-types-row">
+          <div class="tracking-type-chip">
+            <i class="fa-solid fa-box" style="color:#8b7355;"></i>
+            <span><strong>WH-</strong> Pedido</span>
+          </div>
+          <div class="tracking-type-chip">
+            <i class="fa-solid fa-calendar-days" style="color:#5b9aad;"></i>
+            <span><strong>CIT-</strong> Cita</span>
+          </div>
+          <div class="tracking-type-chip">
+            <i class="fa-solid fa-briefcase" style="color:#6aad7a;"></i>
+            <span><strong>COT-</strong> Cotización</span>
           </div>
         </div>
+
+        <!-- Info box -->
+        <div class="tracking-hint-box">
+          <i class="fa-solid fa-envelope-open-text" style="color:#8b7355;font-size:20px;flex-shrink:0;"></i>
+          <div>
+            <strong style="color:#e0e0e0;">¿Dónde encuentro mi número?</strong>
+            <p style="color:#a0a0a0;margin:4px 0 0;font-size:13px;">
+              Te lo enviamos automáticamente por correo al registrar tu pedido, cita o cotización.
+            </p>
+          </div>
+        </div>
+
+        <!-- Resultado dinámico — lo llena trackOrder() desde el JS -->
+        <div id="trackingResult"></div>
+
       </div>
     </div>
   </div>

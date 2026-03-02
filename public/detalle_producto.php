@@ -58,8 +58,8 @@
       <!-- Info del producto -->
       <div class="product-info">
         <div class="product-header">
-          <div class="product-title" id="pNombre"></div>
           <span id="pCategoria" class="product-category-badge"></span>
+          <div class="product-title" id="pNombre"></div>
           <span id="pEtiqueta" class="product-etiqueta" style="display:none;"></span>
         </div>
 
@@ -108,7 +108,7 @@
       <div id="tab-delivery" class="tab-pane">
         <h3>Información de Entrega</h3>
         <ul>
-          <li><strong>Tiempo de fabricación:</strong> 10-15 días hábiles</li>
+          <li><strong>Tiempo de fabricación:</strong> A partir de 2 días hábiles (varía según demanda de producción)</li>
           <li><strong>Entrega a domicilio:</strong> Zona Metropolitana de Guadalajara (costo adicional)</li>
           <li><strong>Recogida en sucursal:</strong> Sin costo adicional</li>
           <li><strong>Instalación profesional:</strong> Disponible con costo adicional</li>

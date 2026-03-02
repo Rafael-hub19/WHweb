@@ -146,6 +146,7 @@ function cambiarCantidadItem(idx, delta) {
     sessionStorage.setItem('wh_carrito', JSON.stringify(estado.items));
     renderizarItems();
     actualizarTotales();
+    cargarFechasDisponibles(); // recalcular disponibilidad al cambiar cantidad
 }
 
 function eliminarItemCarrito(idx) {
@@ -167,6 +168,7 @@ function eliminarItemCarrito(idx) {
     }
     renderizarItems();
     actualizarTotales();
+    cargarFechasDisponibles(); // recalcular disponibilidad al eliminar
 }
 
 // Vaciar todo el carrito
@@ -236,14 +238,40 @@ function seleccionarInstalacion(conInstalacion) {
 }
 
 function actualizarTotales() {
-    const subtotal   = estado.items.reduce((s, i) => s + i.precio * i.cantidad, 0);
-    const costoEnvio = estado.tipoEntrega === 'envio' ? estado.costos.envio : 0;
-    const costoInst  = estado.instalacion ? estado.costos.instalacion : 0;
+    const subtotal       = estado.items.reduce((s, i) => s + i.precio * i.cantidad, 0);
+    const totalMuebles   = estado.items.reduce((s, i) => s + i.cantidad, 0); // suma de todas las cantidades
+    const costoEnvio     = estado.tipoEntrega === 'envio' ? estado.costos.envio : 0;
+    const costoInstUnit  = estado.costos.instalacion; // $1,500 por mueble
+    const costoInst      = estado.instalacion ? costoInstUnit * totalMuebles : 0;
 
     const el      = document.getElementById('totalFinal');
     const elEnvio = document.getElementById('totalEnvio');
-    if (el)      el.textContent      = fmt(subtotal + costoEnvio + costoInst);
+    const elInstTotal = document.getElementById('costoInstalacionTotal');
+    const elInstLabel = document.getElementById('labelInstalacionQty');
+    const elInstPrecio = document.getElementById('precioInstalacionLabel');
+    const elNota  = document.getElementById('notaInstalacion');
+
+    if (el)      el.textContent = fmt(subtotal + costoEnvio + costoInst);
     if (elEnvio) elEnvio.textContent = costoEnvio > 0 ? fmt(costoEnvio) : 'Gratis';
+
+    // Actualizar resumen de instalación con desglose por cantidad
+    if (elInstTotal) elInstTotal.textContent = fmt(costoInst);
+    if (elInstLabel && totalMuebles > 1) {
+        elInstLabel.textContent = `× ${totalMuebles} muebles`;
+    } else if (elInstLabel) {
+        elInstLabel.textContent = '';
+    }
+    // Precio en la tarjeta de opción
+    if (elInstPrecio) {
+        elInstPrecio.textContent = totalMuebles > 1
+            ? `+ ${fmt(costoInstUnit)} × ${totalMuebles} = ${fmt(costoInst)}`
+            : `+ ${fmt(costoInstUnit)}`;
+    }
+    if (elNota) {
+        elNota.innerHTML = totalMuebles > 1
+            ? `<i class="fa-solid fa-circle-info"></i> ${fmt(costoInstUnit)} por mueble · ${totalMuebles} muebles = <strong style="color:#8b7355;">${fmt(costoInst)}</strong>`
+            : `<i class="fa-solid fa-circle-info"></i> ${fmt(costoInstUnit)} por mueble`;
+    }
 }
 
 // ── Fechas disponibles (API) ──────────────────────────────────────
@@ -254,8 +282,13 @@ async function cargarFechasDisponibles() {
     grid.innerHTML = '<div class="fecha-loading"><i class="fa-solid fa-spinner fa-spin"></i> Consultando disponibilidad...</div>';
 
     try {
-        const cp     = document.getElementById('clienteCP')?.value.trim() || '';
-        const params = new URLSearchParams({ tipo_entrega: estado.tipoEntrega || 'envio', cp });
+        const cp          = document.getElementById('clienteCP')?.value.trim() || '';
+        const totalMuebles = estado.items.reduce((s, i) => s + i.cantidad, 0);
+        const params = new URLSearchParams({
+            tipo_entrega: estado.tipoEntrega || 'envio',
+            cp,
+            cantidad: totalMuebles || 1, // cuántos lugares necesita este pedido
+        });
         const res    = await fetch('/api/disponibilidad.php?' + params.toString());
         const data   = await res.json();
 
@@ -277,11 +310,16 @@ async function cargarFechasDisponibles() {
 function renderizarDias(dias, fechaSugerida) {
     const grid = document.getElementById('semanasGrid');
     grid.innerHTML = dias.map(d => {
+        const necesarios = d.lugares_necesarios || 1;
         if (!d.disponible) {
-            return `<div class="semana-card agotada" title="Taller lleno este día">
+            // Distinguir entre "sin lugares" y "no alcanza para este pedido"
+            const msg = d.lugares_libres === 0
+                ? 'Taller lleno'
+                : `Solo ${d.lugares_libres} lugar${d.lugares_libres===1?'':'es'} libre${d.lugares_libres===1?'':'s'} (necesitas ${necesarios})`;
+            return `<div class="semana-card agotada" title="${msg}">
                 <div class="semana-etiqueta">${d.etiqueta}</div>
-                <span class="semana-badge" style="background:rgba(192,57,43,0.12);color:#c0392b;">Sin lugares</span>
-                <div class="semana-slots" style="color:#666;">0 de ${d.lugares_total} lugares</div>
+                <span class="semana-badge" style="background:rgba(192,57,43,0.12);color:#c0392b;">No disponible</span>
+                <div class="semana-slots" style="color:#666;">${d.lugares_libres} de ${d.lugares_total} libres</div>
             </div>`;
         }
         const color = d.nivel === 'lleno' ? '#c0392b' : d.nivel === 'medio' ? '#e67e22' : '#27ae60';

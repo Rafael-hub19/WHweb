@@ -299,10 +299,9 @@ async function trackOrder() {
   const btn            = document.querySelector('.btn-track');
 
   if (!trackingNumber) {
-    showAlert('Por favor ingresa un número de pedido o cotización', 'error'); return;
+    showAlert('Por favor ingresa un número de seguimiento', 'error'); return;
   }
 
-  // Acepta WH-YYYY-NNNNNN (pedido) o CIT-YYYY-NNNNNN (cita) o COT-YYYY-NNNNNN (cotización)
   const regexPedido = /^WH-\d{4}-\d{6}$/;
   const regexCit    = /^CIT-\d{4}-\d{6}$/;
   const regexCot    = /^COT-\d{4,}-\d+$/i;
@@ -311,126 +310,150 @@ async function trackOrder() {
   const esCot       = regexCot.test(trackingNumber);
 
   if (!esPedido && !esCita && !esCot) {
-    showAlert('Formato inválido. Usa: WH-2026-000001 (pedido) o CIT-2026-000001 (cita) o COT-2026-000001 (cotización)', 'error');
+    showAlert('Formato inválido. Usa: WH-2026-000001 (pedido) · CIT-2026-000001 (cita) · COT-2026-000001 (cotización)', 'error');
     return;
   }
 
-  if (btn) { btn.disabled = true; btn.textContent = 'Buscando...'; }
-  if (resultBox) resultBox.style.display = 'none';
+  if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Buscando...'; }
+  if (resultBox) resultBox.innerHTML = '';
 
   try {
-    // Usar endpoint de seguimiento público — sin auth requerida
-    const endpoint = `${API_URL}/seguimiento.php?numero=${encodeURIComponent(trackingNumber)}`;
+    let endpoint = '';
+    if (esPedido) endpoint = `${API_URL}/pedidos.php?numero=${encodeURIComponent(trackingNumber)}`;
+    else if (esCita) endpoint = `${API_URL}/citas.php?numero_cita=${encodeURIComponent(trackingNumber)}`;
+    else endpoint = `${API_URL}/cotizaciones.php?numero=${encodeURIComponent(trackingNumber)}`;
 
     const res  = await fetch(endpoint);
     const data = await res.json().catch(() => ({}));
 
     if (!data.success || (!data.pedido && !data.cotizacion && !data.cita)) {
-      if (resultBox) resultBox.style.display = 'none';
-      showAlert('No se encontró ninguna solicitud con ese número. Verifica e intenta de nuevo.', 'error');
+      if (resultBox) resultBox.innerHTML = '';
+      showAlert('No se encontró ninguna solicitud con ese número.', 'error');
       return;
     }
 
     const item = data.pedido || data.cotizacion || data.cita;
     const tipo = data.pedido ? 'Pedido' : data.cita ? 'Cita' : 'Cotización';
+    const folio = item.numero_pedido || item.numero_cita || item.numero_cotizacion || trackingNumber;
 
     const estadoLabels = {
-      nueva:'Nueva 🆕', pendiente:'Pendiente ⏳', pagado:'Pagado ✓', en_produccion:'En Producción 🔨',
-      listo:'Listo para entrega 📦', entregado:'Entregado ✅', cancelado:'Cancelado ❌',
-      en_revision:'En Revisión 📋', respondida:'Respondida ✅', cerrada:'Cerrada 🔒',
-      confirmada:'Confirmada ✅', completada:'Completada 🏁'
+      nueva:'Nueva', pendiente:'Pendiente', pagado:'Pago confirmado',
+      en_produccion:'En producción', listo:'Listo para entrega',
+      entregado:'Entregado', cancelado:'Cancelado',
+      en_revision:'En revisión', respondida:'Respondida', cerrada:'Cerrada',
+      confirmada:'Confirmada', completada:'Completada'
     };
     const estadoColors = {
-      nueva:'#1565C0', pendiente:'#F57F17', pagado:'#1565C0', en_produccion:'#6A1B9A',
-      listo:'#00695C', entregado:'#2E7D32', cancelado:'#B71C1C',
-      en_revision:'#E65100', respondida:'#2E7D32', cerrada:'#757575',
-      confirmada:'#2E7D32', completada:'#5C3D11'
+      nueva:'#4a7c8b', pendiente:'#8b7355', pagado:'#4a7c8b',
+      en_produccion:'#6d5a8b', listo:'#3d7a5a', entregado:'#4a8b5a',
+      cancelado:'#8b4a4a', en_revision:'#8b7355', respondida:'#4a8b5a',
+      cerrada:'#555', confirmada:'#4a8b5a', completada:'#3d7a5a'
     };
-    const estado      = item.estado || 'nueva';
-    const label       = estadoLabels[estado] || estado;
-    const color       = estadoColors[estado] || '#8b7355';
-    const folio       = item.numero_pedido || item.numero_cotizacion || item.numero_cita || '—';
+    const est   = item.estado || 'nueva';
+    const label = estadoLabels[est] || est;
+    const color = estadoColors[est] || '#8b7355';
     const fechaCreada = (item.fecha_creacion || '').substring(0, 10);
 
-    // Línea de tiempo según tipo
+    // Timeline para pedidos
     let timelineHtml = '';
-    if (data.pedido) {
-      const stages = ['pendiente','pagado','en_produccion','listo','entregado'];
-      const stageIdx = stages.indexOf(estado);
-      const stageLabels = ['Pedido recibido','Pago confirmado','En producción','Listo','Entregado'];
+    if (data.pedido && est !== 'cancelado') {
+      const stages     = ['pendiente','pagado','en_produccion','listo','entregado'];
+      const stageLabels = ['Recibido','Pagado','En fab.','Listo','Entregado'];
+      const stageIdx   = stages.indexOf(est);
       timelineHtml = `
-        <div style="margin:20px 0 0;">
-          <p style="font-size:12px;font-weight:700;color:#8b7355;text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px;">Progreso del pedido</p>
-          <div style="display:flex;gap:0;align-items:flex-start;">
-            ${stages.map((s, i) => {
-              const done    = i <= stageIdx && estado !== 'cancelado';
-              const current = i === stageIdx && estado !== 'cancelado';
-              const dotColor = done ? '#2E7D32' : '#ddd';
-              const textColor = current ? '#8b7355' : (done ? '#555' : '#aaa');
-              return `<div style="flex:1;text-align:center;position:relative;">
-                ${i > 0 ? `<div style="position:absolute;top:10px;left:-50%;width:100%;height:2px;background:${i <= stageIdx && estado !== 'cancelado' ? '#2E7D32' : '#ddd'};z-index:0;"></div>` : ''}
-                <div style="width:20px;height:20px;border-radius:50%;background:${dotColor};margin:0 auto 6px;position:relative;z-index:1;display:flex;align-items:center;justify-content:center;">
-                  ${done ? '<span style="color:#fff;font-size:10px;">✓</span>' : ''}
+        <div class="track-timeline">
+          <div class="track-timeline-label">Progreso del pedido</div>
+          <div class="track-timeline-steps">
+            ${stages.map((s,i) => {
+              const done    = i < stageIdx;
+              const current = i === stageIdx;
+              return `<div class="track-step">
+                ${i>0?`<div class="track-step-connector${done||current?' done':''}"></div>`:''}
+                <div class="track-step-dot${current?' current':done?' done':''}">
+                  ${done?'✓':current?'●':''}
                 </div>
-                <p style="font-size:10px;color:${textColor};font-weight:${current?'700':'400'};margin:0;line-height:1.3;">${stageLabels[i]}</p>
+                <div class="track-step-name${current||done?' active':''}">${stageLabels[i]}</div>
               </div>`;
             }).join('')}
           </div>
         </div>`;
     }
 
-    // Detalles extra según tipo
-    let extrasHtml = '';
-    if (data.pedido && item.fecha_estimada) {
-      extrasHtml += `<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #f0e8d8;"><span style="color:#888;font-size:13px;">Entrega estimada</span><strong style="font-size:13px;">${item.fecha_estimada}</strong></div>`;
+    // Info extra
+    let infoItems = `
+      <div class="track-info-item">
+        <div class="track-info-label">Cliente</div>
+        <div class="track-info-value">${item.nombre_cliente || '—'}</div>
+      </div>
+      <div class="track-info-item">
+        <div class="track-info-label">Registrado</div>
+        <div class="track-info-value">${fechaCreada}</div>
+      </div>`;
+
+    if (data.pedido) {
+      if (item.fecha_estimada) infoItems += `
+        <div class="track-info-item">
+          <div class="track-info-label">Entrega estimada</div>
+          <div class="track-info-value">${item.fecha_estimada}</div>
+        </div>`;
+      if (item.total) infoItems += `
+        <div class="track-info-item">
+          <div class="track-info-label">Total</div>
+          <div class="track-info-value" style="color:#8b7355;font-size:16px;">${new Intl.NumberFormat('es-MX',{style:'currency',currency:'MXN'}).format(item.total)}</div>
+        </div>`;
     }
-    if (data.pedido && item.total) {
-      extrasHtml += `<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #f0e8d8;"><span style="color:#888;font-size:13px;">Total</span><strong style="color:#8b7355;font-size:15px;">${new Intl.NumberFormat('es-MX',{style:'currency',currency:'MXN'}).format(item.total)}</strong></div>`;
+    if (data.cita) {
+      if (item.fecha_cita) infoItems += `
+        <div class="track-info-item">
+          <div class="track-info-label">Fecha de cita</div>
+          <div class="track-info-value">${item.fecha_cita}</div>
+        </div>`;
+      if (item.rango_horario) infoItems += `
+        <div class="track-info-item">
+          <div class="track-info-label">Horario</div>
+          <div class="track-info-value">${item.rango_horario}</div>
+        </div>`;
+      const tipoLabels = { medicion:'Medición 📐', instalacion:'Instalación 🔧', otro:'Otro' };
+      infoItems += `
+        <div class="track-info-item">
+          <div class="track-info-label">Tipo</div>
+          <div class="track-info-value">${tipoLabels[item.tipo]||item.tipo||'—'}</div>
+        </div>`;
     }
-    if (data.cita && item.fecha_cita) {
-      extrasHtml += `<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #f0e8d8;"><span style="color:#888;font-size:13px;">Fecha de cita</span><strong style="font-size:13px;">${item.fecha_cita}</strong></div>`;
-      if (item.rango_horario) extrasHtml += `<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #f0e8d8;"><span style="color:#888;font-size:13px;">Horario</span><strong style="font-size:13px;">${item.rango_horario}</strong></div>`;
-    }
-    if (data.cotizacion && item.tipo_mueble) {
-      extrasHtml += `<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #f0e8d8;"><span style="color:#888;font-size:13px;">Tipo de mueble</span><strong style="font-size:13px;">${item.tipo_mueble}</strong></div>`;
+    if (data.cotizacion) {
+      if (item.tipo_mueble) infoItems += `
+        <div class="track-info-item">
+          <div class="track-info-label">Tipo de mueble</div>
+          <div class="track-info-value">${item.tipo_mueble}</div>
+        </div>`;
     }
 
     if (resultBox) {
-      resultBox.style.display = 'block';
       resultBox.innerHTML = `
-        <div style="background:#fff;border:1px solid #e8dcc8;border-radius:12px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,.08);margin-top:16px;">
-          <!-- Header -->
-          <div style="background:#8b7355;padding:20px 24px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+        <div class="track-result-card">
+          <div class="track-result-header">
             <div>
-              <p style="margin:0;color:rgba(255,255,255,.75);font-size:11px;text-transform:uppercase;letter-spacing:1px;">${tipo}</p>
-              <h3 style="margin:4px 0 0;color:#fff;font-size:20px;font-family:Georgia,serif;">${folio}</h3>
+              <div class="track-tipo">${tipo}</div>
+              <div class="track-folio">${folio}</div>
             </div>
-            <span style="background:${color};color:#fff;padding:6px 16px;border-radius:20px;font-size:13px;font-weight:700;">${label}</span>
+            <span class="track-status-badge" style="background:${color}30;color:${color};border:1px solid ${color}50;">${label}</span>
           </div>
-          <!-- Body -->
-          <div style="padding:20px 24px;">
-            <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #f0e8d8;">
-              <span style="color:#888;font-size:13px;">Cliente</span>
-              <strong style="font-size:13px;">${item.nombre_cliente || '—'}</strong>
-            </div>
-            <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #f0e8d8;">
-              <span style="color:#888;font-size:13px;">Folio registrado</span>
-              <strong style="font-size:13px;">${fechaCreada}</strong>
-            </div>
-            ${extrasHtml}
+          <div class="track-result-body">
             ${timelineHtml}
+            <div class="track-info-grid">${infoItems}</div>
           </div>
-          <div style="background:#faf6f0;padding:14px 24px;text-align:center;border-top:1px solid #e8dcc8;">
-            <p style="margin:0;color:#888;font-size:12px;">¿Dudas? Contáctanos a <a href="mailto:ventas@muebleswh.com" style="color:#8b7355;">ventas@muebleswh.com</a></p>
+          <div class="track-result-footer">
+            <i class="fa-solid fa-envelope"></i>
+            ¿Dudas? Escríbenos a <a href="mailto:soporte@muebleswh.com">soporte@muebleswh.com</a>
           </div>
         </div>`;
       resultBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
   } catch (err) {
-    if (resultBox) resultBox.style.display = 'none';
+    if (resultBox) resultBox.innerHTML = '';
     showAlert('Error al consultar. Por favor intenta más tarde.', 'error');
   } finally {
-    if (btn) { btn.disabled = false; btn.textContent = 'Buscar'; }
+    if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-search"></i> Buscar'; }
   }
 }
 

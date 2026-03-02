@@ -19,6 +19,7 @@ Options -Indexes -ExecCGI
     RewriteRule ^carrito/?$                  carrito-checkout.php            [L,QSA]
     RewriteRule ^pago/?$                     pago.php                        [L,QSA]
     RewriteRule ^solicitudes/?$              solicitudes.php                 [L,QSA]
+    RewriteRule ^seguimiento/?$              solicitudes.php                 [L,QSA]
     RewriteRule ^detalle/([0-9]+)/?$         detalle_producto.php?id=$1      [L,QSA]
     RewriteRule ^admin/?$                    admin/panel_administrador.php   [L,QSA]
     RewriteRule ^empleado/?$                 empleado/panel_empleado.php     [L,QSA]

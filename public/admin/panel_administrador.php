@@ -84,6 +84,9 @@ unset($_usuario);
       <div class="sidebar-item" onclick="showSection('empleados', event)"><span class="icon"><i class="fa-solid fa-briefcase"></i></span><span>Gestionar Empleados</span></div>
       <div class="sidebar-item" onclick="showSection('reportes', event)"><span class="icon"><i class="fa-solid fa-chart-bar"></i></span><span>Reportes Avanzados</span></div>
       <div class="sidebar-item" onclick="showSection('financiero', event)"><span class="icon"><i class="fa-solid fa-tag"></i></span><span>Análisis Financiero</span></div>
+
+      <div class="sidebar-section">PRODUCCIÓN</div>
+      <div class="sidebar-item" onclick="showSection('capacidad', event)"><span class="icon"><i class="fa-solid fa-industry"></i></span><span>Capacidad del Taller</span></div>
     </aside>
 
     <main class="main-content">
@@ -737,10 +740,118 @@ unset($_usuario);
         </div>
       </div>
 
+      <!-- CAPACIDAD DEL TALLER -->
+      <div id="capacidad-section" class="content-section hidden">
+        <h1 class="page-title"><i class="fa-solid fa-industry"></i> Capacidad del Taller</h1>
+        <p class="page-subtitle">Demanda de producción en tiempo real · Gestión de días bloqueados</p>
+
+        <!-- KPIs de capacidad -->
+        <div class="stats-grid" style="margin-bottom:24px;">
+          <div class="stat-card">
+            <div class="stat-title">Capacidad diaria</div>
+            <div class="stat-value" id="capLimiteDia">—</div>
+            <div class="stat-subtitle">máx. productos por día</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-title">Días llenos próximos</div>
+            <div class="stat-value" id="capDiasLlenos" style="color:var(--danger);">—</div>
+            <div class="stat-subtitle">en los próximos 30 días</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-title">Días bloqueados</div>
+            <div class="stat-value" id="capDiasBloqueados" style="color:var(--warn);">—</div>
+            <div class="stat-subtitle">festivos o cierre de taller</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-title">Próxima fecha libre</div>
+            <div class="stat-value" id="capProximaLibre" style="font-size:16px;">—</div>
+            <div class="stat-subtitle">primer día con espacio</div>
+          </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 360px;gap:20px;align-items:flex-start;">
+
+          <!-- Mapa de carga por día -->
+          <div class="table-card">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px;">
+              <h3 style="color:var(--accent);font-size:15px;font-weight:800;">Carga del Taller — Próximos 30 días hábiles</h3>
+              <button class="btn btn-sm btn-secondary" onclick="cargarCapacidad()">
+                <i class="fa-solid fa-rotate-right"></i> Actualizar
+              </button>
+            </div>
+
+            <!-- Leyenda -->
+            <div style="display:flex;gap:14px;margin-bottom:16px;flex-wrap:wrap;">
+              <span style="font-size:11px;display:flex;align-items:center;gap:5px;color:var(--muted2);">
+                <span style="width:12px;height:12px;border-radius:3px;background:#4a8b5a;display:inline-block;"></span> Libre
+              </span>
+              <span style="font-size:11px;display:flex;align-items:center;gap:5px;color:var(--muted2);">
+                <span style="width:12px;height:12px;border-radius:3px;background:#8b7355;display:inline-block;"></span> Moderado (40-79%)
+              </span>
+              <span style="font-size:11px;display:flex;align-items:center;gap:5px;color:var(--muted2);">
+                <span style="width:12px;height:12px;border-radius:3px;background:#8b4a4a;display:inline-block;"></span> Lleno (≥80%)
+              </span>
+              <span style="font-size:11px;display:flex;align-items:center;gap:5px;color:var(--muted2);">
+                <span style="width:12px;height:12px;border-radius:3px;background:#3c3c3c;border:2px solid #555;display:inline-block;"></span> Bloqueado
+              </span>
+            </div>
+
+            <div id="capacidadGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px;">
+              <div style="color:var(--muted);text-align:center;padding:20px;grid-column:1/-1;">
+                <i class="fa-solid fa-spinner fa-spin"></i> Cargando...
+              </div>
+            </div>
+          </div>
+
+          <!-- Panel de bloquear/desbloquear días -->
+          <div class="table-card" style="position:sticky;top:20px;">
+            <h3 style="color:var(--accent);font-size:15px;font-weight:800;margin-bottom:16px;">
+              <i class="fa-solid fa-calendar-xmark"></i> Bloquear Día
+            </h3>
+            <p style="color:var(--muted);font-size:12px;margin-bottom:16px;line-height:1.5;">
+              Los días bloqueados no aparecen como disponibles para los clientes en el checkout.
+              Úsalos para festivos, vacaciones o cierre del taller.
+            </p>
+            <div style="display:flex;flex-direction:column;gap:12px;">
+              <div>
+                <label style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;display:block;margin-bottom:4px;">Fecha a bloquear</label>
+                <input type="date" id="capFechaBloquear" class="form-input"
+                  min="<?= date('Y-m-d', strtotime('tomorrow')) ?>"
+                  style="font-size:13px;">
+              </div>
+              <div>
+                <label style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;display:block;margin-bottom:4px;">Motivo</label>
+                <input type="text" id="capMotivoBloquear" class="form-input"
+                  placeholder="Ej: Día festivo, Vacaciones..."
+                  style="font-size:13px;" maxlength="100">
+              </div>
+              <button class="btn btn-danger" onclick="bloquearDia()" style="width:100%;">
+                <i class="fa-solid fa-lock"></i> Bloquear este día
+              </button>
+            </div>
+
+            <!-- Lista de días bloqueados próximos -->
+            <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--border);">
+              <h4 style="color:var(--muted2);font-size:12px;text-transform:uppercase;letter-spacing:.6px;margin-bottom:12px;">
+                Días bloqueados próximos
+              </h4>
+              <div id="listaBloqueados" style="display:flex;flex-direction:column;gap:6px;">
+                <span style="color:var(--muted);font-size:12px;">Cargando...</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
     </main>
   </div>
 
   
+  <!-- jsPDF: generación de reportes en PDF -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" 
+          integrity="sha512-qZvrmS2ekKPF2mSznTQsxqPgnpkI4DNTlrdUmTzrDgektczlKNRRhy5X5AAOnx5S09ydFYWWNSfcEqDTTHgtNA==" 
+          crossorigin="anonymous" referrerpolicy="no-referrer"></script>
   <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>

@@ -85,7 +85,8 @@
       if(section === 'dashboard') setTimeout(refreshKPIsFromAPI, 100);
       if(section === 'pedidos')      cargarPedidosAPI();
       if(section === 'cotizaciones')  cargarCotizacionesAPI();
-      if(section === 'empleados') cargarEmpleadosAPI();
+      if(section === 'empleados')  cargarEmpleadosAPI();
+      if(section === 'capacidad')  cargarCapacidad();
       refreshKPIs();
     }
 
@@ -1107,11 +1108,112 @@
     }
 
     function printReportPDF(){
-      showSection('reportes');
-      setTimeout(() => {
+      try {
+        if (typeof window.jspdf !== 'undefined' || typeof window.jsPDF !== 'undefined') {
+          const { jsPDF } = window.jspdf || window;
+          const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+          const hoy = new Date().toLocaleDateString('es-MX', { year:'numeric', month:'long', day:'numeric' });
+          const W = doc.internal.pageSize.getWidth();
+
+          // Encabezado
+          doc.setFillColor(26, 26, 26);
+          doc.rect(0, 0, W, 28, 'F');
+          doc.setTextColor(139, 115, 85);
+          doc.setFontSize(18); doc.setFont('helvetica', 'bold');
+          doc.text('Wooden House', 14, 12);
+          doc.setTextColor(180, 180, 180);
+          doc.setFontSize(10); doc.setFont('helvetica', 'normal');
+          doc.text('Reporte de Ventas y Actividad', 14, 20);
+          doc.setTextColor(120, 120, 120);
+          doc.text('Generado: ' + hoy, W - 14, 20, { align: 'right' });
+
+          let y = 36;
+
+          // KPIs principales
+          const kpis = [
+            { label: 'Ventas del Mes',   id: 'kpiVentasMes'    },
+            { label: 'Pedidos del Mes',  id: 'kpiPedidosMes'   },
+            { label: 'Ticket Promedio',  id: 'kpiTicketProm'   },
+            { label: 'Cotizaciones',     id: 'kpiCotizaciones' },
+          ];
+          doc.setFontSize(13); doc.setFont('helvetica', 'bold');
+          doc.setTextColor(139, 115, 85);
+          doc.text('Resumen del Periodo', 14, y); y += 6;
+          doc.setDrawColor(139, 115, 85); doc.setLineWidth(0.4);
+          doc.line(14, y, W - 14, y); y += 8;
+
+          const colW = (W - 32) / 2;
+          kpis.forEach((k, i) => {
+            const x   = 14 + (i % 2) * (colW + 4);
+            const val = document.getElementById(k.id)?.textContent?.trim() || '-';
+            doc.setFillColor(42, 42, 42);
+            doc.roundedRect(x, y, colW, 16, 2, 2, 'F');
+            doc.setFontSize(8); doc.setFont('helvetica', 'normal');
+            doc.setTextColor(160, 160, 160);
+            doc.text(k.label.toUpperCase(), x + 4, y + 5);
+            doc.setFontSize(13); doc.setFont('helvetica', 'bold');
+            doc.setTextColor(224, 224, 224);
+            doc.text(val, x + 4, y + 13);
+            if (i % 2 === 1) y += 20;
+          });
+          if (kpis.length % 2 !== 0) y += 20;
+          y += 6;
+
+          // Tabla pedidos recientes
+          const rows = document.querySelectorAll('#tablaPedidos tbody tr');
+          if (rows.length > 0) {
+            doc.setFontSize(13); doc.setFont('helvetica', 'bold');
+            doc.setTextColor(139, 115, 85);
+            doc.text('Pedidos Recientes', 14, y); y += 6;
+            doc.line(14, y, W - 14, y); y += 7;
+
+            const cols   = ['Folio', 'Cliente', 'Total', 'Estado', 'Fecha'];
+            const widths = [28, 68, 24, 30, 28];
+            let x = 14;
+            doc.setFillColor(50, 50, 50);
+            doc.rect(14, y - 4, W - 28, 8, 'F');
+            doc.setFontSize(8); doc.setFont('helvetica', 'bold');
+            doc.setTextColor(139, 115, 85);
+            cols.forEach((col, i) => { doc.text(col, x + 2, y + 1); x += widths[i]; });
+            y += 8;
+
+            let count = 0;
+            rows.forEach(row => {
+              if (count >= 20) return;
+              const cells = row.querySelectorAll('td');
+              if (cells.length < 5) return;
+              const data = [
+                (cells[0]?.textContent?.trim() || '').slice(0,12),
+                (cells[1]?.textContent?.trim() || '').slice(0,28),
+                (cells[2]?.textContent?.trim() || '').slice(0,12),
+                (cells[3]?.textContent?.trim() || '').slice(0,14),
+                (cells[4]?.textContent?.trim() || '').slice(0,12),
+              ];
+              if (count % 2 === 0) { doc.setFillColor(34,34,34); doc.rect(14, y-4, W-28, 7, 'F'); }
+              doc.setFont('helvetica','normal'); doc.setFontSize(7.5);
+              doc.setTextColor(200, 200, 200);
+              x = 14;
+              data.forEach((cell, i) => { doc.text(cell, x+2, y+1); x += widths[i]; });
+              y += 7; count++;
+              if (y > 270) { doc.addPage(); y = 20; }
+            });
+          }
+
+          // Pie de pagina
+          doc.setFontSize(8); doc.setTextColor(100, 100, 100);
+          doc.text('Wooden House - muebleswh.com', 14, 290);
+          doc.text('Pagina 1', W - 14, 290, { align: 'right' });
+
+          doc.save('reporte-wooden-house-' + new Date().toISOString().slice(0,10) + '.pdf');
+          showNotification('<i class="fa-solid fa-file-pdf"></i> PDF generado correctamente', 'success');
+        } else {
+          window.print();
+          showNotification('Tip: en imprimir elige Guardar como PDF', 'info');
+        }
+      } catch(e) {
+        console.error('Error generando PDF:', e);
         window.print();
-        showNotification('Tip: en imprimir elige “Guardar como PDF”', 'info');
-      }, 250);
+      }
     }
 
     /* =========================
@@ -2032,7 +2134,166 @@ window.guardarEmpleado          = guardarEmpleado;
 window.abrirEditarEmpleado      = abrirEditarEmpleado;
 window.abrirNuevoEmpleado       = abrirNuevoEmpleado;
 
-// ── AUTO-POLLING cada 30 segundos ──────────────────────────────────
+// ── CAPACIDAD DEL TALLER ─────────────────────────────────────────
+const API_DISP = `${API_BASE}/disponibilidad.php`;
+const API_BLOQ = `${API_BASE}/dias_bloqueados.php`;
+
+async function cargarCapacidad() {
+  const grid = document.getElementById('capacidadGrid');
+  if (!grid) return;
+
+  grid.innerHTML = '<div style="color:var(--muted);text-align:center;padding:20px;grid-column:1/-1;"><i class="fa-solid fa-spinner fa-spin"></i> Cargando carga del taller...</div>';
+
+  try {
+    // Llamar a dias_bloqueados para obtener carga + bloqueados en un solo request
+    const desde = new Date().toISOString().slice(0, 10);
+    const hasta = new Date(Date.now() + 45 * 86400000).toISOString().slice(0, 10);
+    const data  = await apiFetch(`${API_BLOQ}?desde=${desde}&hasta=${hasta}`);
+    if (!data.success) throw new Error(data.error || 'Error');
+
+    const bloqueadosSet = new Set((data.bloqueados || []).map(b => b.fecha));
+    const carga         = data.carga_por_dia || {};
+    const limite        = data.limite_dia || 10;
+
+    // Actualizar KPIs
+    document.getElementById('capLimiteDia').textContent = limite;
+
+    let diasLlenos = 0, proximaLibre = null;
+    const hoy = new Date();
+
+    // Generar los próximos 30 días hábiles
+    const dias = [];
+    let d = new Date(hoy); d.setDate(d.getDate() + 1);
+    while (dias.length < 30) {
+      const dow = d.getDay(); // 0=dom, 6=sab
+      if (dow !== 0 && dow !== 6) {
+        const ymd = d.toISOString().slice(0, 10);
+        const bloqueado = bloqueadosSet.has(ymd);
+        const c = carga[ymd] || { total_productos: 0, num_pedidos: 0, porcentaje: 0, lleno: false };
+        const pct = bloqueado ? 100 : Math.round((c.total_productos / limite) * 100);
+        const lleno = bloqueado || c.total_productos >= limite;
+
+        if (lleno && !bloqueado) diasLlenos++;
+        if (!lleno && !bloqueado && proximaLibre === null) proximaLibre = ymd;
+
+        dias.push({ ymd, bloqueado, pct, lleno, productos: c.total_productos, pedidos: c.num_pedidos, limite });
+      }
+      d.setDate(d.getDate() + 1);
+    }
+
+    document.getElementById('capDiasLlenos').textContent    = diasLlenos;
+    document.getElementById('capDiasBloqueados').textContent = data.bloqueados.length;
+    document.getElementById('capProximaLibre').textContent   = proximaLibre
+      ? new Date(proximaLibre + 'T12:00:00').toLocaleDateString('es-MX', { weekday:'short', day:'numeric', month:'short' })
+      : 'Sin disponibilidad';
+
+    // Renderizar grid
+    grid.innerHTML = dias.map(d => {
+      const colorBg = d.bloqueado
+        ? 'background:#242424;border:2px solid #444;'
+        : d.pct >= 80 ? 'background:rgba(139,74,74,.25);border:1px solid rgba(139,74,74,.5);'
+        : d.pct >= 40 ? 'background:rgba(139,115,85,.2);border:1px solid rgba(139,115,85,.4);'
+        : 'background:rgba(74,139,90,.15);border:1px solid rgba(74,139,90,.35);';
+
+      const colorText = d.bloqueado ? '#555'
+        : d.pct >= 80 ? '#c07070' : d.pct >= 40 ? '#b09060' : '#70a880';
+
+      const fecha = new Date(d.ymd + 'T12:00:00');
+      const label = fecha.toLocaleDateString('es-MX', { weekday:'short', day:'numeric', month:'short' });
+
+      // Barra de progreso
+      const barColor = d.bloqueado ? '#333' : d.pct >= 80 ? '#8b4a4a' : d.pct >= 40 ? '#8b7355' : '#4a8b5a';
+
+      return `<div style="padding:10px 12px;border-radius:10px;${colorBg}cursor:pointer;transition:opacity .2s;"
+               title="${d.bloqueado ? '🔒 Día bloqueado' : d.productos + ' de ' + d.limite + ' productos · ' + d.pedidos + ' pedido(s)'}"
+               onclick="toggleBloqueoDia('${d.ymd}', ${d.bloqueado})">
+        <div style="font-size:11px;color:${colorText};font-weight:700;margin-bottom:4px;">${label}</div>
+        ${d.bloqueado
+          ? '<div style="font-size:10px;color:#555;"><i class="fa-solid fa-lock"></i> Bloqueado</div>'
+          : `<div style="height:4px;background:#333;border-radius:2px;margin-bottom:4px;overflow:hidden;">
+               <div style="height:100%;width:${d.pct}%;background:${barColor};transition:width .5s;border-radius:2px;"></div>
+             </div>
+             <div style="font-size:10px;color:${colorText};">${d.productos}/${d.limite} prod.</div>`
+        }
+      </div>`;
+    }).join('');
+
+    // Actualizar lista de bloqueados próximos
+    renderListaBloqueados(data.bloqueados);
+
+  } catch(e) {
+    grid.innerHTML = `<div style="color:var(--danger);text-align:center;padding:20px;grid-column:1/-1;">
+      <i class="fa-solid fa-circle-exclamation"></i> Error: ${e.message}</div>`;
+  }
+}
+
+function renderListaBloqueados(bloqueados) {
+  const cont = document.getElementById('listaBloqueados');
+  if (!cont) return;
+  const proximos = bloqueados.filter(b => b.fecha >= new Date().toISOString().slice(0, 10)).slice(0, 8);
+  if (!proximos.length) {
+    cont.innerHTML = '<span style="color:var(--muted);font-size:12px;">Ningún día bloqueado próximo</span>';
+    return;
+  }
+  cont.innerHTML = proximos.map(b => {
+    const fecha = new Date(b.fecha + 'T12:00:00').toLocaleDateString('es-MX', { weekday:'short', day:'numeric', month:'short' });
+    const warn  = b.tiene_pedidos ? ' <i class="fa-solid fa-triangle-exclamation" style="color:var(--warn);" title="Tiene pedidos asignados"></i>' : '';
+    return `<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 8px;background:var(--bg);border-radius:8px;font-size:12px;">
+      <div>
+        <strong style="color:var(--muted2);">${fecha}</strong>${warn}
+        <div style="color:var(--muted);font-size:11px;">${b.motivo}</div>
+      </div>
+      <button onclick="desbloquearDia('${b.fecha}')"
+        style="background:transparent;border:1px solid var(--danger);color:var(--danger);padding:2px 8px;border-radius:6px;font-size:10px;cursor:pointer;">
+        <i class="fa-solid fa-lock-open"></i>
+      </button>
+    </div>`;
+  }).join('');
+}
+
+async function bloquearDia() {
+  const fecha  = document.getElementById('capFechaBloquear')?.value;
+  const motivo = document.getElementById('capMotivoBloquear')?.value.trim() || 'Día no hábil';
+  if (!fecha) { showNotification('Selecciona una fecha', 'warning'); return; }
+
+  try {
+    const data = await apiFetch(API_BLOQ, 'POST', { fecha, motivo });
+    if (!data.success) throw new Error(data.error);
+    if (data.advertencia) showNotification(data.advertencia, 'warning');
+    else showNotification(`<i class="fa-solid fa-lock"></i> Día ${fecha} bloqueado`, 'success');
+    document.getElementById('capFechaBloquear').value = '';
+    document.getElementById('capMotivoBloquear').value = '';
+    cargarCapacidad();
+  } catch(e) {
+    showNotification(`Error: ${e.message}`, 'error');
+  }
+}
+
+async function desbloquearDia(fecha) {
+  if (!confirm(`¿Desbloquear el día ${fecha}?`)) return;
+  try {
+    const data = await apiFetch(`${API_BLOQ}?fecha=${fecha}`, 'DELETE');
+    if (!data.success) throw new Error(data.error);
+    showNotification(`<i class="fa-solid fa-lock-open"></i> Día ${fecha} desbloqueado`, 'success');
+    cargarCapacidad();
+  } catch(e) {
+    showNotification(`Error: ${e.message}`, 'error');
+  }
+}
+
+async function toggleBloqueoDia(fecha, estaBloqueado) {
+  if (estaBloqueado) {
+    await desbloquearDia(fecha);
+  } else {
+    // Pre-llenar la fecha en el formulario y hacer scroll
+    const inp = document.getElementById('capFechaBloquear');
+    if (inp) { inp.value = fecha; inp.focus(); }
+    showNotification('Fecha seleccionada. Agrega un motivo y haz clic en Bloquear.', 'info');
+  }
+}
+
+// Cargar capacidad cuando se activa la sección
+// ── AUTO-POLLING cada 30 segundos ──────────────────────────────────────
 // Refresca la sección visible automáticamente, igual que el panel empleado.
 // Sin necesidad de que el administrador recargue la página manualmente.
 function _autoRefreshAdmin() {

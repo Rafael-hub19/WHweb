@@ -174,9 +174,11 @@ function firestoreEscribir(string $coleccion, string $docId, array $datos): bool
 // ---- Fechas inteligentes por tipo de entrega ----
 
 function calcularFechaInteligente(string $tipoEntrega, string $cp, int $numProductos): string {
-    $LIMITE     = 5;    // máx productos por día
-    $MARGEN     = 2;    // días hábiles mínimos desde hoy
-    $MAX_BUSCAR = 60;   // límite de días a revisar
+    // Usar las constantes globales de config.php para que todo el sistema
+    // use el mismo límite de capacidad diaria
+    $LIMITE     = defined('LIMITE_DIA')    ? LIMITE_DIA    : 10;  // máx productos por día
+    $MARGEN     = defined('MARGEN_HABILES') ? MARGEN_HABILES : 2;  // días hábiles mínimos desde hoy
+    $MAX_BUSCAR = 60;   // límite de días a revisar hacia adelante
 
     // Fecha mínima = hoy + MARGEN días hábiles
     $hoy    = new DateTime();

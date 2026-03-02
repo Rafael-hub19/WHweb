@@ -107,10 +107,13 @@
                         <div class="option-content">
                             <div class="option-header">
                                 <span class="option-title">Instalación profesional</span>
-                                <span class="option-price">+ $1,500</span>
+                                <span class="option-price" id="precioInstalacionLabel">+ $1,500</span>
                             </div>
                             <div class="option-description">
                                 Instalación por expertos, incluye conexión de lavabo y ajustes finales.
+                                <span id="notaInstalacion" style="display:block;margin-top:6px;color:#8b7355;font-size:12px;font-weight:600;">
+                                    <i class="fa-solid fa-circle-info"></i> $1,500 por mueble
+                                </span>
                             </div>
                         </div>
                     </div>
@@ -212,8 +215,8 @@
                 <span id="totalEnvio">$500</span>
             </div>
             <div class="summary-item" id="lineaInstalacion" style="display:none">
-                <span>Instalación profesional</span>
-                <span>$1,500</span>
+                <span>Instalación profesional <span id="labelInstalacionQty" style="color:#a0a0a0;font-size:12px;"></span></span>
+                <span id="costoInstalacionTotal">$1,500</span>
             </div>
             <div class="summary-total">
                 <span>Total a pagar</span>

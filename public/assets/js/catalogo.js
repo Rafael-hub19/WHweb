@@ -11,6 +11,8 @@ let state = {
     categoria: null,
     busqueda: '',
     orden: 'recientes',
+    precio_min: null,
+    precio_max: null,
   },
   loading: false,
 };
@@ -85,8 +87,10 @@ async function cargarProductos(resetPage = false) {
   grid.innerHTML = `<div class="loading-state"><div class="spinner"></div><p>Cargando productos...</p></div>`;
 
   let url = `${API_BASE}/productos.php?page=${state.page}&limit=${state.limit}&orden=${state.filtro.orden}`;
-  if (state.filtro.categoria) url += `&categoria_id=${state.filtro.categoria}`;
-  if (state.filtro.busqueda)  url += `&busqueda=${encodeURIComponent(state.filtro.busqueda)}`;
+  if (state.filtro.categoria)  url += `&categoria_id=${state.filtro.categoria}`;
+  if (state.filtro.busqueda)   url += `&busqueda=${encodeURIComponent(state.filtro.busqueda)}`;
+  if (state.filtro.precio_min !== null && state.filtro.precio_min !== '') url += `&precio_min=${state.filtro.precio_min}`;
+  if (state.filtro.precio_max !== null && state.filtro.precio_max !== '') url += `&precio_max=${state.filtro.precio_max}`;
 
   try {
     const res  = await fetch(url);
@@ -225,6 +229,31 @@ function limpiarFiltros() {
   if (input) input.value = '';
   if (sel)   sel.value   = 'recientes';
   document.querySelectorAll('.filter-btn').forEach((b, i) => b.classList.toggle('active', i === 0));
+  cargarProductos(true);
+}
+
+// ---- Filtro por rango de precios ----
+const _debouncePrecio = debounce(() => cargarProductos(true), 500);
+
+function aplicarFiltroPrecio() {
+  const minVal = document.getElementById('precio-min')?.value.trim();
+  const maxVal = document.getElementById('precio-max')?.value.trim();
+  state.filtro.precio_min = minVal !== '' ? parseFloat(minVal) : null;
+  state.filtro.precio_max = maxVal !== '' ? parseFloat(maxVal) : null;
+  const btnLP = document.getElementById('btn-limpiar-precio');
+  if (btnLP) btnLP.style.display = (minVal !== '' || maxVal !== '') ? 'inline-flex' : 'none';
+  _debouncePrecio();
+}
+
+function limpiarFiltroPrecio() {
+  state.filtro.precio_min = null;
+  state.filtro.precio_max = null;
+  const pMin = document.getElementById('precio-min');
+  const pMax = document.getElementById('precio-max');
+  if (pMin) pMin.value = '';
+  if (pMax) pMax.value = '';
+  const btnLP = document.getElementById('btn-limpiar-precio');
+  if (btnLP) btnLP.style.display = 'none';
   cargarProductos(true);
 }
 

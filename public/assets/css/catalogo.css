@@ -597,3 +597,97 @@
       .product-grid { grid-template-columns: 1fr; }
       .container { padding: 30px 14px; }
     }
+
+
+/* ── Filtro por rango de precios ──────────────────────────────── */
+.precio-rango {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--bg-card, #2a2a2a);
+  border: 1px solid var(--border, #3a3a3a);
+  border-radius: 10px;
+  padding: 6px 12px;
+  flex-wrap: wrap;
+}
+
+.precio-rango-label {
+  font-size: 12px;
+  color: var(--accent, #8b7355);
+  font-weight: 700;
+  white-space: nowrap;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+}
+
+.precio-inputs {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.precio-prefix {
+  font-size: 12px;
+  color: var(--muted, #888);
+  font-weight: 600;
+}
+
+.precio-input {
+  width: 80px;
+  background: var(--bg, #1a1a1a);
+  border: 1px solid var(--border, #3a3a3a);
+  border-radius: 6px;
+  padding: 4px 8px;
+  font-size: 13px;
+  color: var(--text, #e0e0e0);
+  text-align: right;
+  transition: border-color .2s;
+  -moz-appearance: textfield;
+}
+
+.precio-input::-webkit-outer-spin-button,
+.precio-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.precio-input:focus {
+  outline: none;
+  border-color: var(--accent, #8b7355);
+}
+
+.precio-sep {
+  font-size: 12px;
+  color: var(--muted, #888);
+}
+
+.precio-clear {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: 1px solid var(--danger, #c0392b);
+  color: var(--danger, #c0392b);
+  border-radius: 6px;
+  width: 24px;
+  height: 24px;
+  cursor: pointer;
+  font-size: 11px;
+  transition: background .2s, color .2s;
+  padding: 0;
+}
+
+.precio-clear:hover {
+  background: var(--danger, #c0392b);
+  color: #fff;
+}
+
+@media (max-width: 600px) {
+  .precio-rango {
+    width: 100%;
+    justify-content: center;
+  }
+  .precio-input {
+    width: 70px;
+  }
+}
