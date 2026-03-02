@@ -681,47 +681,94 @@ HTML;
 // ================================================================
 
 function notificarNuevoPedido(array $pedido): void {
-    emailPedidoConfirmado($pedido);
-    emailAdminNuevoEvento('pedido', $pedido);
+    // Cloud Function en Firebase maneja los correos automáticamente
+    // al detectar el nuevo documento en Firestore con tipo='nuevo_pedido'
     crearNotificacionFirestore(
         'nuevo_pedido',
         '🛒 Nuevo pedido recibido',
         "Pedido {$pedido['numero_pedido']} de {$pedido['nombre_cliente']} por " . formatMoney($pedido['total']),
-        ['pedido_id' => (int)($pedido['id'] ?? 0), 'numero_pedido' => $pedido['numero_pedido'], 'total' => (float)$pedido['total']]
+        [
+            'pedido_id'         => (int)($pedido['id'] ?? 0),
+            'numero_pedido'     => $pedido['numero_pedido'],
+            'total'             => (float)$pedido['total'],
+            // datos_pedido: objeto completo para que la Cloud Function genere el correo
+            'datos_pedido'      => json_encode([
+                'id'                => (int)($pedido['id'] ?? 0),
+                'numero_pedido'     => $pedido['numero_pedido'],
+                'token_seguimiento' => $pedido['token_seguimiento'] ?? '',
+                'nombre_cliente'    => $pedido['nombre_cliente'],
+                'correo_cliente'    => $pedido['correo_cliente'],
+                'total'             => (float)$pedido['total'],
+                'tipo_entrega'      => $pedido['tipo_entrega'] ?? 'envio',
+                'fecha_estimada'    => $pedido['fecha_estimada'] ?? '',
+                'items'             => $pedido['items'] ?? [],
+            ]),
+        ]
     );
 }
 
 function notificarCambioPedido(array $pedido, string $estadoAnterior): void {
-    emailEstadoPedido($pedido, $estadoAnterior);
+    // Cloud Function envía el correo de actualización de estado al cliente
     crearNotificacionFirestore(
         'estado_pedido',
         '📦 Estado de pedido actualizado',
         "Pedido {$pedido['numero_pedido']}: {$estadoAnterior} → {$pedido['estado']}",
-        ['pedido_id' => (int)($pedido['id'] ?? 0), 'numero_pedido' => $pedido['numero_pedido'], 'estado_nuevo' => $pedido['estado'], 'estado_anterior' => $estadoAnterior]
+        [
+            'pedido_id'      => (int)($pedido['id'] ?? 0),
+            'numero_pedido'  => $pedido['numero_pedido'],
+            'estado_anterior'=> $estadoAnterior,
+            'datos_pedido'   => json_encode([
+                'numero_pedido'  => $pedido['numero_pedido'],
+                'nombre_cliente' => $pedido['nombre_cliente'],
+                'correo_cliente' => $pedido['correo_cliente'],
+                'estado_nuevo'   => $pedido['estado'],
+                'estado_anterior'=> $estadoAnterior,
+            ]),
+        ]
     );
 }
 
 function notificarNuevaCotizacion(array $cot): void {
-    emailCotizacionRecibida($cot);
-    emailAdminNuevoEvento('cotizacion', $cot);
+    // Cloud Function envía correos al cliente y al admin
     crearNotificacionFirestore(
         'nueva_cotizacion',
         '📋 Nueva cotización recibida',
         "Cotización {$cot['numero_cotizacion']} de {$cot['nombre_cliente']}",
-        ['cotizacion_id' => (int)($cot['id'] ?? 0), 'numero_cotizacion' => $cot['numero_cotizacion']]
+        [
+            'cotizacion_id'      => (int)($cot['id'] ?? 0),
+            'numero_cotizacion'  => $cot['numero_cotizacion'],
+            'datos_cotizacion'   => json_encode([
+                'id'                 => (int)($cot['id'] ?? 0),
+                'numero_cotizacion'  => $cot['numero_cotizacion'],
+                'nombre_cliente'     => $cot['nombre_cliente'],
+                'correo_cliente'     => $cot['correo_cliente'],
+                'telefono_cliente'   => $cot['telefono_cliente'] ?? '',
+                'descripcion'        => $cot['descripcion'] ?? '',
+            ]),
+        ]
     );
 }
 
 function notificarNuevaCita(array $cita): void {
-    // Email de confirmación al cliente
-    emailCitaConfirmada($cita);
-    // Email de alerta al administrador
-    emailAdminNuevoEvento('cita', $cita);
-    // Notificación interna Firestore para el panel
+    // Cloud Function envía correos al cliente y al admin
     crearNotificacionFirestore(
         'nueva_cita',
         '📅 Nueva cita agendada',
         "Cita {$cita['numero_cita']} de {$cita['nombre_cliente']} para el {$cita['fecha_cita']}",
-        ['cita_id' => (int)($cita['id'] ?? 0), 'numero_cita' => $cita['numero_cita'], 'fecha_cita' => $cita['fecha_cita']]
+        [
+            'cita_id'       => (int)($cita['id'] ?? 0),
+            'numero_cita'   => $cita['numero_cita'],
+            'fecha_cita'    => $cita['fecha_cita'],
+            'datos_cita'    => json_encode([
+                'id'               => (int)($cita['id'] ?? 0),
+                'numero_cita'      => $cita['numero_cita'],
+                'nombre_cliente'   => $cita['nombre_cliente'],
+                'correo_cliente'   => $cita['correo_cliente'],
+                'telefono_cliente' => $cita['telefono_cliente'] ?? '',
+                'fecha_cita'       => $cita['fecha_cita'],
+                'rango_horario'    => $cita['rango_horario'] ?? '',
+                'tipo'             => $cita['tipo'] ?? 'medicion',
+            ]),
+        ]
     );
 }

@@ -43,22 +43,6 @@
         <div id="categorias-filtro" class="filters">
           <button class="filter-btn active" onclick="filtrarPorCategoria(null, this)">Todos</button>
         </div>
-        <div class="precio-rango" id="precio-rango-filtro">
-          <label class="precio-rango-label"><i class="fa-solid fa-tag"></i> Precio:</label>
-          <div class="precio-inputs">
-            <span class="precio-prefix">$</span>
-            <input type="number" id="precio-min" placeholder="Mín" min="0" step="100"
-              class="precio-input" oninput="aplicarFiltroPrecio()">
-            <span class="precio-sep">—</span>
-            <span class="precio-prefix">$</span>
-            <input type="number" id="precio-max" placeholder="Máx" min="0" step="100"
-              class="precio-input" oninput="aplicarFiltroPrecio()">
-          </div>
-          <button class="precio-clear" id="btn-limpiar-precio" onclick="limpiarFiltroPrecio()"
-            style="display:none;" title="Quitar filtro de precio">
-            <i class="fa-solid fa-xmark"></i>
-          </button>
-        </div>
         <select id="ordenar-por" class="select-ordenar">
           <option value="recientes">Más recientes</option>
           <option value="precio-asc">Precio: menor a mayor</option>

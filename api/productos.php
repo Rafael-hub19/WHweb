@@ -45,8 +45,6 @@ switch ($method) {
         $catId     = sanitizeInt($_GET['categoria_id'] ?? 0);
         $etiqueta  = trim($_GET['etiqueta'] ?? '');
         $orden     = $_GET['orden'] ?? 'recientes';
-        $precioMin = isset($_GET['precio_min']) && $_GET['precio_min'] !== '' ? (float)$_GET['precio_min'] : null;
-        $precioMax = isset($_GET['precio_max']) && $_GET['precio_max'] !== '' ? (float)$_GET['precio_max'] : null;
         $activoRaw = trim($_GET['activo'] ?? '1');
         $mostrarTodos = (strtolower($activoRaw) === 'todos' || $activoRaw === '');
         $activo   = $mostrarTodos ? null : sanitizeInt($activoRaw, 1);
@@ -62,14 +60,6 @@ switch ($method) {
             $where[]  = '(p.nombre LIKE ? OR p.descripcion LIKE ?)';
             $params[] = "%$busqueda%";
             $params[] = "%$busqueda%";
-        }
-        if ($precioMin !== null) {
-            $where[]  = 'p.precio_base >= ?';
-            $params[] = $precioMin;
-        }
-        if ($precioMax !== null) {
-            $where[]  = 'p.precio_base <= ?';
-            $params[] = $precioMax;
         }
         if ($catId) {
             $where[]  = 'p.categoria_id = ?';
