@@ -14,30 +14,17 @@ const { onCall, HttpsError }  = require('firebase-functions/v2/https');
 const { onSchedule }          = require('firebase-functions/v2/scheduler');
 const { initializeApp }       = require('firebase-admin/app');
 const { getFirestore }        = require('firebase-admin/firestore');
-const nodemailer              = require('nodemailer');
+const https                   = require('https');
 
 initializeApp();
 const db = getFirestore();
 
 // ── Secrets compartidos por todas las funciones ───────────────────
 const SECRETS = [
-  'SMTP_HOST', 'SMTP_PORT', 'SMTP_USER', 'SMTP_PASS',
+  'BREVO_API_KEY',
   'EMAIL_PEDIDOS', 'EMAIL_VENTAS', 'EMAIL_SOPORTE',
   'EMAIL_FROM', 'ADMIN_EMAIL',
 ];
-
-// ── Config SMTP (Brevo) ───────────────────────────────────────────
-function getTransporter() {
-  return nodemailer.createTransport({
-    host:   process.env.SMTP_HOST || 'smtp-relay.brevo.com',
-    port:   parseInt(process.env.SMTP_PORT || '587'),
-    secure: false,
-    auth: {
-      user: process.env.SMTP_USER,
-      pass: process.env.SMTP_PASS,
-    },
-  });
-}
 
 // ── Remitentes por tipo de correo (leídos en tiempo de ejecución) ─
 function getEmails() {
@@ -48,6 +35,52 @@ function getEmails() {
     from:    process.env.EMAIL_FROM    || 'noreply@muebleswh.com',
     admin:   process.env.ADMIN_EMAIL   || 'ventas@muebleswh.com',
   };
+}
+
+// ── Enviar email via Brevo HTTP API ───────────────────────────────
+function sendEmail({ from, fromName, to, subject, html, text }) {
+  return new Promise((resolve, reject) => {
+    const apiKey = process.env.BREVO_API_KEY;
+    if (!apiKey) {
+      reject(new Error('BREVO_API_KEY no configurado'));
+      return;
+    }
+
+    const body = JSON.stringify({
+      sender:      { name: fromName, email: from },
+      to:          [{ email: to }],
+      subject,
+      htmlContent: html,
+      textContent: text || '',
+    });
+
+    const options = {
+      hostname: 'api.brevo.com',
+      path:     '/v3/smtp/email',
+      method:   'POST',
+      headers:  {
+        'Content-Type':  'application/json',
+        'api-key':       apiKey,
+        'Content-Length': Buffer.byteLength(body),
+      },
+    };
+
+    const req = https.request(options, (res) => {
+      let data = '';
+      res.on('data', chunk => data += chunk);
+      res.on('end', () => {
+        if (res.statusCode >= 200 && res.statusCode < 300) {
+          resolve({ statusCode: res.statusCode, data });
+        } else {
+          reject(new Error(`Brevo API error ${res.statusCode}: ${data}`));
+        }
+      });
+    });
+
+    req.on('error', reject);
+    req.write(body);
+    req.end();
+  });
 }
 
 // ── Plantilla base de email ───────────────────────────────────────
@@ -135,12 +168,13 @@ exports.onNuevaNotificacion = onDocumentCreated(
     );
 
     try {
-      await getTransporter().sendMail({
-        from:    `"Wooden House Pedidos" <${emails.pedidos}>`,
-        to:      emails.admin,
-        subject: `${icono} ${data.titulo} — Wooden House`,
+      await sendEmail({
+        from:     emails.pedidos,
+        fromName: 'Wooden House Pedidos',
+        to:       emails.admin,
+        subject:  `${icono} ${data.titulo} — Wooden House`,
         html,
-        text:    `${data.titulo}\n\n${data.mensaje}\n\nReferencia: ${data.referencia || 'N/A'}`,
+        text:     `${data.titulo}\n\n${data.mensaje}\n\nReferencia: ${data.referencia || 'N/A'}`,
       });
       console.log(`[Cloud Function] Email admin enviado: ${data.tipo} - ${data.referencia}`);
     } catch (err) {
@@ -217,12 +251,13 @@ exports.enviarConfirmacionPedido = onCall(
     );
 
     try {
-      await getTransporter().sendMail({
-        from:    `"Wooden House Pedidos" <${emails.pedidos}>`,
-        to:      cliente.correo,
-        subject: `✅ Pedido confirmado ${pedido.numero_pedido} — Wooden House`,
+      await sendEmail({
+        from:     emails.pedidos,
+        fromName: 'Wooden House Pedidos',
+        to:       cliente.correo,
+        subject:  `✅ Pedido confirmado ${pedido.numero_pedido} — Wooden House`,
         html,
-        text:    `Pedido ${pedido.numero_pedido} confirmado. Total: $${pedido.total} MXN. Fecha estimada: ${pedido.fecha_estimada || 'Por confirmar'}.`,
+        text:     `Pedido ${pedido.numero_pedido} confirmado. Total: $${pedido.total} MXN.`,
       });
       return { success: true };
     } catch (err) {
@@ -276,12 +311,13 @@ exports.enviarConfirmacionCotizacion = onCall(
     );
 
     try {
-      await getTransporter().sendMail({
-        from:    `"Wooden House Ventas" <${emails.ventas}>`,
-        to:      cliente.correo,
-        subject: `📋 Cotización ${cotizacion.numero_cotizacion} recibida — Wooden House`,
+      await sendEmail({
+        from:     emails.ventas,
+        fromName: 'Wooden House Ventas',
+        to:       cliente.correo,
+        subject:  `📋 Cotización ${cotizacion.numero_cotizacion} recibida — Wooden House`,
         html,
-        text:    `Cotización ${cotizacion.numero_cotizacion} recibida. Te contactaremos en 24-48 horas hábiles.`,
+        text:     `Cotización ${cotizacion.numero_cotizacion} recibida. Te contactaremos en 24-48 horas hábiles.`,
       });
       return { success: true };
     } catch (err) {
@@ -338,12 +374,13 @@ exports.enviarConfirmacionCita = onCall(
     );
 
     try {
-      await getTransporter().sendMail({
-        from:    `"Wooden House Soporte" <${emails.soporte}>`,
-        to:      cliente.correo,
-        subject: `📅 Cita confirmada — Wooden House`,
+      await sendEmail({
+        from:     emails.soporte,
+        fromName: 'Wooden House Soporte',
+        to:       cliente.correo,
+        subject:  `📅 Cita confirmada — Wooden House`,
         html,
-        text:    `Cita ${cita.numero_cita} agendada para ${cita.fecha_cita}. Tipo: ${cita.tipo_cita}.`,
+        text:     `Cita ${cita.numero_cita} agendada para ${cita.fecha_cita}. Tipo: ${cita.tipo_cita}.`,
       });
       return { success: true };
     } catch (err) {
