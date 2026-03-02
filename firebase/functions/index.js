@@ -92,13 +92,13 @@ exports.onNuevaNotificacion = onDocumentCreated(
     const data = event.data?.data();
     if (!data) return;
 
-    const tiposImportantes = ['pedido_nuevo', 'cotizacion_nueva', 'cita_nueva', 'pago_recibido'];
+    const tiposImportantes = ['nuevo_pedido', 'nueva_cita', 'nueva_cotizacion', 'pago_recibido'];
     if (!tiposImportantes.includes(data.tipo)) return;
 
     const iconos = {
-      pedido_nuevo:     '🛒',
-      cotizacion_nueva: '📋',
-      cita_nueva:       '📅',
+      nuevo_pedido:     '🛒',
+      nueva_cotizacion: '📋',
+      nueva_cita:       '📅',
       pago_recibido:    '💳',
     };
 
