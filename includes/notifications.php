@@ -535,8 +535,8 @@ function crearNotificacionFirestore(string $tipo, string $titulo, string $mensaj
         CURLOPT_HTTPHEADER     => ['Content-Type: application/json'],
         CURLOPT_TIMEOUT        => 5,
     ]);
-    $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
     curl_exec($ch);
+    $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);   
     curl_close($ch);
     return $code === 200;
 }
