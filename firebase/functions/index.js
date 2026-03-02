@@ -19,6 +19,13 @@ const nodemailer              = require('nodemailer');
 initializeApp();
 const db = getFirestore();
 
+// ── Secrets compartidos por todas las funciones ───────────────────
+const SECRETS = [
+  'SMTP_HOST', 'SMTP_PORT', 'SMTP_USER', 'SMTP_PASS',
+  'EMAIL_PEDIDOS', 'EMAIL_VENTAS', 'EMAIL_SOPORTE',
+  'EMAIL_FROM', 'ADMIN_EMAIL',
+];
+
 // ── Config SMTP (Brevo) ───────────────────────────────────────────
 function getTransporter() {
   return nodemailer.createTransport({
@@ -32,13 +39,16 @@ function getTransporter() {
   });
 }
 
-// ── Remitentes por tipo de correo ─────────────────────────────────
-const EMAIL_PEDIDOS = process.env.EMAIL_PEDIDOS || 'pedidos@muebleswh.com';
-const EMAIL_VENTAS  = process.env.EMAIL_VENTAS  || 'ventas@muebleswh.com';
-const EMAIL_SOPORTE = process.env.EMAIL_SOPORTE || 'soporte@muebleswh.com';
-const EMAIL_FROM    = process.env.EMAIL_FROM    || 'noreply@muebleswh.com'; // fallback global
-
-const ADMIN_EMAIL   = process.env.ADMIN_EMAIL   || 'ventas@muebleswh.com';
+// ── Remitentes por tipo de correo (leídos en tiempo de ejecución) ─
+function getEmails() {
+  return {
+    pedidos: process.env.EMAIL_PEDIDOS || 'pedidos@muebleswh.com',
+    ventas:  process.env.EMAIL_VENTAS  || 'ventas@muebleswh.com',
+    soporte: process.env.EMAIL_SOPORTE || 'soporte@muebleswh.com',
+    from:    process.env.EMAIL_FROM    || 'noreply@muebleswh.com',
+    admin:   process.env.ADMIN_EMAIL   || 'ventas@muebleswh.com',
+  };
+}
 
 // ── Plantilla base de email ───────────────────────────────────────
 function emailBase(titulo, contenido) {
@@ -87,13 +97,18 @@ function emailBase(titulo, contenido) {
 // 1. TRIGGER: Nuevo documento en /notificaciones → notificar admin
 // ================================================================
 exports.onNuevaNotificacion = onDocumentCreated(
-  'notificaciones/{notifId}',
+  {
+    document: 'notificaciones/{notifId}',
+    secrets: SECRETS,
+  },
   async (event) => {
     const data = event.data?.data();
     if (!data) return;
 
     const tiposImportantes = ['nuevo_pedido', 'nueva_cita', 'nueva_cotizacion', 'pago_recibido'];
     if (!tiposImportantes.includes(data.tipo)) return;
+
+    const emails = getEmails();
 
     const iconos = {
       nuevo_pedido:     '🛒',
@@ -121,8 +136,8 @@ exports.onNuevaNotificacion = onDocumentCreated(
 
     try {
       await getTransporter().sendMail({
-        from:    `"Wooden House Pedidos" <${EMAIL_PEDIDOS}>`,
-        to:      ADMIN_EMAIL,
+        from:    `"Wooden House Pedidos" <${emails.pedidos}>`,
+        to:      emails.admin,
         subject: `${icono} ${data.titulo} — Wooden House`,
         html,
         text:    `${data.titulo}\n\n${data.mensaje}\n\nReferencia: ${data.referencia || 'N/A'}`,
@@ -138,199 +153,205 @@ exports.onNuevaNotificacion = onDocumentCreated(
 // 2. HTTP CALLABLE: Enviar confirmación de pedido al cliente
 //    Remitente: pedidos@muebleswh.com
 // ================================================================
-exports.enviarConfirmacionPedido = onCall(async (request) => {
-  const { pedido, cliente } = request.data;
+exports.enviarConfirmacionPedido = onCall(
+  { secrets: SECRETS },
+  async (request) => {
+    const { pedido, cliente } = request.data;
+    const emails = getEmails();
 
-  if (!pedido?.numero_pedido || !cliente?.correo) {
-    throw new HttpsError('invalid-argument', 'Datos de pedido o cliente incompletos');
+    if (!pedido?.numero_pedido || !cliente?.correo) {
+      throw new HttpsError('invalid-argument', 'Datos de pedido o cliente incompletos');
+    }
+
+    const itemsHtml = (pedido.items || []).map(item => `
+      <tr>
+        <td style="padding:10px 12px;color:#ccc;border-bottom:1px solid #3d3d3d;">${item.nombre_producto}</td>
+        <td style="padding:10px 12px;color:#ccc;border-bottom:1px solid #3d3d3d;text-align:center;">${item.cantidad}</td>
+        <td style="padding:10px 12px;color:#8b7355;border-bottom:1px solid #3d3d3d;text-align:right;">
+          $${Number(item.precio_unitario * item.cantidad).toLocaleString('es-MX', { minimumFractionDigits: 2 })}
+        </td>
+      </tr>`).join('');
+
+    const html = emailBase(
+      `Confirmación de Pedido ${pedido.numero_pedido}`,
+      `
+      <h2 style="color:#8b7355;margin:0 0 8px;">¡Tu pedido fue confirmado! ✅</h2>
+      <p style="color:#aaa;margin:0 0 24px;font-size:14px;">Hola <strong style="color:#e0e0e0;">${cliente.nombre}</strong>, recibimos tu pedido correctamente.</p>
+
+      <div style="background:#3d3d3d;border-radius:8px;padding:20px 24px;margin:0 0 24px;">
+        <p style="margin:0 0 8px;color:#aaa;font-size:13px;">Número de pedido</p>
+        <p style="margin:0;color:#8b7355;font-size:22px;font-weight:bold;letter-spacing:1px;">${pedido.numero_pedido}</p>
+      </div>
+
+      <table width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 20px;">
+        <thead>
+          <tr style="background:#3d3d3d;">
+            <th style="padding:10px 12px;color:#8b7355;text-align:left;font-size:13px;">Producto</th>
+            <th style="padding:10px 12px;color:#8b7355;text-align:center;font-size:13px;">Cant.</th>
+            <th style="padding:10px 12px;color:#8b7355;text-align:right;font-size:13px;">Total</th>
+          </tr>
+        </thead>
+        <tbody>${itemsHtml}</tbody>
+        <tfoot>
+          <tr>
+            <td colspan="2" style="padding:14px 12px;color:#aaa;text-align:right;font-size:13px;">Total pagado:</td>
+            <td style="padding:14px 12px;color:#8b7355;font-size:18px;font-weight:bold;text-align:right;">
+              $${Number(pedido.total).toLocaleString('es-MX', { minimumFractionDigits: 2 })} MXN
+            </td>
+          </tr>
+        </tfoot>
+      </table>
+
+      <div style="background:#3d3d3d;border-radius:8px;padding:16px 20px;margin:0 0 24px;">
+        <p style="margin:0 0 6px;color:#aaa;font-size:13px;">📦 Fecha estimada de entrega</p>
+        <p style="margin:0;color:#e0e0e0;font-weight:bold;">${pedido.fecha_estimada || 'Se confirmará pronto'}</p>
+      </div>
+
+      <div style="text-align:center;">
+        <a href="https://muebleswh.com/solicitudes?pedido=${pedido.numero_pedido}"
+           style="background:#8b7355;color:#fff;padding:12px 28px;border-radius:8px;text-decoration:none;font-weight:bold;display:inline-block;">
+          Ver estado de mi pedido
+        </a>
+      </div>
+      `
+    );
+
+    try {
+      await getTransporter().sendMail({
+        from:    `"Wooden House Pedidos" <${emails.pedidos}>`,
+        to:      cliente.correo,
+        subject: `✅ Pedido confirmado ${pedido.numero_pedido} — Wooden House`,
+        html,
+        text:    `Pedido ${pedido.numero_pedido} confirmado. Total: $${pedido.total} MXN. Fecha estimada: ${pedido.fecha_estimada || 'Por confirmar'}.`,
+      });
+      return { success: true };
+    } catch (err) {
+      console.error('[Cloud Function] Error enviando confirmación pedido:', err.message);
+      throw new HttpsError('internal', 'Error al enviar correo de confirmación');
+    }
   }
-
-  const itemsHtml = (pedido.items || []).map(item => `
-    <tr>
-      <td style="padding:10px 12px;color:#ccc;border-bottom:1px solid #3d3d3d;">${item.nombre_producto}</td>
-      <td style="padding:10px 12px;color:#ccc;border-bottom:1px solid #3d3d3d;text-align:center;">${item.cantidad}</td>
-      <td style="padding:10px 12px;color:#8b7355;border-bottom:1px solid #3d3d3d;text-align:right;">
-        $${Number(item.precio_unitario * item.cantidad).toLocaleString('es-MX', { minimumFractionDigits: 2 })}
-      </td>
-    </tr>`).join('');
-
-  const html = emailBase(
-    `Confirmación de Pedido ${pedido.numero_pedido}`,
-    `
-    <h2 style="color:#8b7355;margin:0 0 8px;">¡Tu pedido fue confirmado! ✅</h2>
-    <p style="color:#aaa;margin:0 0 24px;font-size:14px;">Hola <strong style="color:#e0e0e0;">${cliente.nombre}</strong>, recibimos tu pedido correctamente.</p>
-
-    <div style="background:#3d3d3d;border-radius:8px;padding:20px 24px;margin:0 0 24px;">
-      <p style="margin:0 0 8px;color:#aaa;font-size:13px;">Número de pedido</p>
-      <p style="margin:0;color:#8b7355;font-size:22px;font-weight:bold;letter-spacing:1px;">${pedido.numero_pedido}</p>
-    </div>
-
-    <table width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 20px;">
-      <thead>
-        <tr style="background:#3d3d3d;">
-          <th style="padding:10px 12px;color:#8b7355;text-align:left;font-size:13px;">Producto</th>
-          <th style="padding:10px 12px;color:#8b7355;text-align:center;font-size:13px;">Cant.</th>
-          <th style="padding:10px 12px;color:#8b7355;text-align:right;font-size:13px;">Total</th>
-        </tr>
-      </thead>
-      <tbody>${itemsHtml}</tbody>
-      <tfoot>
-        <tr>
-          <td colspan="2" style="padding:14px 12px;color:#aaa;text-align:right;font-size:13px;">Total pagado:</td>
-          <td style="padding:14px 12px;color:#8b7355;font-size:18px;font-weight:bold;text-align:right;">
-            $${Number(pedido.total).toLocaleString('es-MX', { minimumFractionDigits: 2 })} MXN
-          </td>
-        </tr>
-      </tfoot>
-    </table>
-
-    <div style="background:#3d3d3d;border-radius:8px;padding:16px 20px;margin:0 0 24px;">
-      <p style="margin:0 0 6px;color:#aaa;font-size:13px;">📦 Fecha estimada de entrega</p>
-      <p style="margin:0;color:#e0e0e0;font-weight:bold;">${pedido.fecha_estimada || 'Se confirmará pronto'}</p>
-    </div>
-
-    <p style="color:#aaa;font-size:13px;margin:0 0 20px;">
-      Puedes consultar el estado de tu pedido en cualquier momento usando tu número de seguimiento:
-    </p>
-    <div style="text-align:center;">
-      <a href="https://muebleswh.com/solicitudes?pedido=${pedido.numero_pedido}"
-         style="background:#8b7355;color:#fff;padding:12px 28px;border-radius:8px;text-decoration:none;font-weight:bold;display:inline-block;">
-        Ver estado de mi pedido
-      </a>
-    </div>
-    `
-  );
-
-  try {
-    await getTransporter().sendMail({
-      from:    `"Wooden House Pedidos" <${EMAIL_PEDIDOS}>`,
-      to:      cliente.correo,
-      subject: `✅ Pedido confirmado ${pedido.numero_pedido} — Wooden House`,
-      html,
-      text:    `Pedido ${pedido.numero_pedido} confirmado. Total: $${pedido.total} MXN. Fecha estimada: ${pedido.fecha_estimada || 'Por confirmar'}.`,
-    });
-    return { success: true };
-  } catch (err) {
-    console.error('[Cloud Function] Error enviando confirmación pedido:', err.message);
-    throw new HttpsError('internal', 'Error al enviar correo de confirmación');
-  }
-});
+);
 
 // ================================================================
 // 3. HTTP CALLABLE: Confirmación de cotización al cliente
 //    Remitente: ventas@muebleswh.com
 // ================================================================
-exports.enviarConfirmacionCotizacion = onCall(async (request) => {
-  const { cotizacion, cliente } = request.data;
+exports.enviarConfirmacionCotizacion = onCall(
+  { secrets: SECRETS },
+  async (request) => {
+    const { cotizacion, cliente } = request.data;
+    const emails = getEmails();
 
-  if (!cotizacion?.numero_cotizacion || !cliente?.correo) {
-    throw new HttpsError('invalid-argument', 'Datos incompletos');
+    if (!cotizacion?.numero_cotizacion || !cliente?.correo) {
+      throw new HttpsError('invalid-argument', 'Datos incompletos');
+    }
+
+    const html = emailBase(
+      `Cotización ${cotizacion.numero_cotizacion} Recibida`,
+      `
+      <h2 style="color:#8b7355;margin:0 0 8px;">¡Cotización recibida! 📋</h2>
+      <p style="color:#aaa;margin:0 0 24px;font-size:14px;">
+        Hola <strong style="color:#e0e0e0;">${cliente.nombre}</strong>, recibimos tu solicitud de cotización.
+        La revisaremos y te contactaremos en un plazo de <strong style="color:#e0e0e0;">24-48 horas hábiles</strong>.
+      </p>
+
+      <div style="background:#3d3d3d;border-radius:8px;padding:20px 24px;margin:0 0 24px;">
+        <p style="margin:0 0 8px;color:#aaa;font-size:13px;">Número de cotización</p>
+        <p style="margin:0;color:#8b7355;font-size:22px;font-weight:bold;">${cotizacion.numero_cotizacion}</p>
+      </div>
+
+      ${cotizacion.descripcion ? `
+      <div style="background:#3d3d3d;border-radius:8px;padding:16px 20px;margin:0 0 24px;">
+        <p style="margin:0 0 6px;color:#aaa;font-size:13px;">Tu solicitud:</p>
+        <p style="margin:0;color:#e0e0e0;line-height:1.6;">${cotizacion.descripcion}</p>
+      </div>` : ''}
+
+      <div style="text-align:center;">
+        <a href="https://muebleswh.com/solicitudes?cotizacion=${cotizacion.numero_cotizacion}"
+           style="background:#8b7355;color:#fff;padding:12px 28px;border-radius:8px;text-decoration:none;font-weight:bold;display:inline-block;">
+          Ver estado de cotización
+        </a>
+      </div>
+      `
+    );
+
+    try {
+      await getTransporter().sendMail({
+        from:    `"Wooden House Ventas" <${emails.ventas}>`,
+        to:      cliente.correo,
+        subject: `📋 Cotización ${cotizacion.numero_cotizacion} recibida — Wooden House`,
+        html,
+        text:    `Cotización ${cotizacion.numero_cotizacion} recibida. Te contactaremos en 24-48 horas hábiles.`,
+      });
+      return { success: true };
+    } catch (err) {
+      console.error('[Cloud Function] Error enviando confirmación cotización:', err.message);
+      throw new HttpsError('internal', 'Error al enviar correo de cotización');
+    }
   }
-
-  const html = emailBase(
-    `Cotización ${cotizacion.numero_cotizacion} Recibida`,
-    `
-    <h2 style="color:#8b7355;margin:0 0 8px;">¡Cotización recibida! 📋</h2>
-    <p style="color:#aaa;margin:0 0 24px;font-size:14px;">
-      Hola <strong style="color:#e0e0e0;">${cliente.nombre}</strong>, recibimos tu solicitud de cotización.
-      La revisaremos y te contactaremos en un plazo de <strong style="color:#e0e0e0;">24-48 horas hábiles</strong>.
-    </p>
-
-    <div style="background:#3d3d3d;border-radius:8px;padding:20px 24px;margin:0 0 24px;">
-      <p style="margin:0 0 8px;color:#aaa;font-size:13px;">Número de cotización</p>
-      <p style="margin:0;color:#8b7355;font-size:22px;font-weight:bold;">${cotizacion.numero_cotizacion}</p>
-    </div>
-
-    ${cotizacion.descripcion ? `
-    <div style="background:#3d3d3d;border-radius:8px;padding:16px 20px;margin:0 0 24px;">
-      <p style="margin:0 0 6px;color:#aaa;font-size:13px;">Tu solicitud:</p>
-      <p style="margin:0;color:#e0e0e0;line-height:1.6;">${cotizacion.descripcion}</p>
-    </div>` : ''}
-
-    <p style="color:#aaa;font-size:13px;margin:0 0 20px;">
-      Puedes hacer seguimiento de tu cotización usando el número de referencia.
-    </p>
-    <div style="text-align:center;">
-      <a href="https://muebleswh.com/solicitudes?cotizacion=${cotizacion.numero_cotizacion}"
-         style="background:#8b7355;color:#fff;padding:12px 28px;border-radius:8px;text-decoration:none;font-weight:bold;display:inline-block;">
-        Ver estado de cotización
-      </a>
-    </div>
-    `
-  );
-
-  try {
-    await getTransporter().sendMail({
-      from:    `"Wooden House Ventas" <${EMAIL_VENTAS}>`,
-      to:      cliente.correo,
-      subject: `📋 Cotización ${cotizacion.numero_cotizacion} recibida — Wooden House`,
-      html,
-      text:    `Cotización ${cotizacion.numero_cotizacion} recibida. Te contactaremos en 24-48 horas hábiles.`,
-    });
-    return { success: true };
-  } catch (err) {
-    console.error('[Cloud Function] Error enviando confirmación cotización:', err.message);
-    throw new HttpsError('internal', 'Error al enviar correo de cotización');
-  }
-});
+);
 
 // ================================================================
 // 4. HTTP CALLABLE: Confirmación de cita al cliente
 //    Remitente: soporte@muebleswh.com
 // ================================================================
-exports.enviarConfirmacionCita = onCall(async (request) => {
-  const { cita, cliente } = request.data;
+exports.enviarConfirmacionCita = onCall(
+  { secrets: SECRETS },
+  async (request) => {
+    const { cita, cliente } = request.data;
+    const emails = getEmails();
 
-  if (!cita?.numero_cita || !cliente?.correo) {
-    throw new HttpsError('invalid-argument', 'Datos incompletos');
+    if (!cita?.numero_cita || !cliente?.correo) {
+      throw new HttpsError('invalid-argument', 'Datos incompletos');
+    }
+
+    const html = emailBase(
+      `Cita ${cita.numero_cita} Confirmada`,
+      `
+      <h2 style="color:#8b7355;margin:0 0 8px;">¡Cita agendada! 📅</h2>
+      <p style="color:#aaa;margin:0 0 24px;font-size:14px;">
+        Hola <strong style="color:#e0e0e0;">${cliente.nombre}</strong>, tu cita ha sido agendada exitosamente.
+      </p>
+
+      <div style="background:#3d3d3d;border-radius:8px;padding:20px 24px;margin:0 0 16px;">
+        <table width="100%" cellpadding="0" cellspacing="0">
+          <tr>
+            <td style="color:#aaa;font-size:13px;padding-bottom:10px;">📅 Fecha y hora</td>
+            <td style="color:#e0e0e0;font-weight:bold;text-align:right;padding-bottom:10px;">${cita.fecha_cita || 'Por confirmar'}</td>
+          </tr>
+          <tr>
+            <td style="color:#aaa;font-size:13px;padding-bottom:10px;">📍 Tipo</td>
+            <td style="color:#e0e0e0;text-align:right;padding-bottom:10px;">${cita.tipo_cita === 'medicion' ? 'Medición en domicilio' : 'Instalación'}</td>
+          </tr>
+          <tr>
+            <td style="color:#aaa;font-size:13px;">🔖 Referencia</td>
+            <td style="color:#8b7355;font-weight:bold;text-align:right;">${cita.numero_cita}</td>
+          </tr>
+        </table>
+      </div>
+
+      <p style="color:#aaa;font-size:13px;margin:0 0 20px;line-height:1.6;">
+        Nuestro equipo llegará puntualmente. Si necesitas reagendar, contáctanos con al menos
+        <strong style="color:#e0e0e0;">24 horas de anticipación</strong>.
+      </p>
+      `
+    );
+
+    try {
+      await getTransporter().sendMail({
+        from:    `"Wooden House Soporte" <${emails.soporte}>`,
+        to:      cliente.correo,
+        subject: `📅 Cita confirmada — Wooden House`,
+        html,
+        text:    `Cita ${cita.numero_cita} agendada para ${cita.fecha_cita}. Tipo: ${cita.tipo_cita}.`,
+      });
+      return { success: true };
+    } catch (err) {
+      console.error('[Cloud Function] Error enviando confirmación cita:', err.message);
+      throw new HttpsError('internal', 'Error al enviar correo de cita');
+    }
   }
-
-  const html = emailBase(
-    `Cita ${cita.numero_cita} Confirmada`,
-    `
-    <h2 style="color:#8b7355;margin:0 0 8px;">¡Cita agendada! 📅</h2>
-    <p style="color:#aaa;margin:0 0 24px;font-size:14px;">
-      Hola <strong style="color:#e0e0e0;">${cliente.nombre}</strong>, tu cita ha sido agendada exitosamente.
-    </p>
-
-    <div style="background:#3d3d3d;border-radius:8px;padding:20px 24px;margin:0 0 16px;">
-      <table width="100%" cellpadding="0" cellspacing="0">
-        <tr>
-          <td style="color:#aaa;font-size:13px;padding-bottom:10px;">📅 Fecha y hora</td>
-          <td style="color:#e0e0e0;font-weight:bold;text-align:right;padding-bottom:10px;">${cita.fecha_cita || 'Por confirmar'}</td>
-        </tr>
-        <tr>
-          <td style="color:#aaa;font-size:13px;padding-bottom:10px;">📍 Tipo</td>
-          <td style="color:#e0e0e0;text-align:right;padding-bottom:10px;">${cita.tipo_cita === 'medicion' ? 'Medición en domicilio' : 'Instalación'}</td>
-        </tr>
-        <tr>
-          <td style="color:#aaa;font-size:13px;">🔖 Referencia</td>
-          <td style="color:#8b7355;font-weight:bold;text-align:right;">${cita.numero_cita}</td>
-        </tr>
-      </table>
-    </div>
-
-    <p style="color:#aaa;font-size:13px;margin:0 0 20px;line-height:1.6;">
-      Nuestro equipo llegará puntualmente. Si necesitas reagendar, contáctanos con al menos
-      <strong style="color:#e0e0e0;">24 horas de anticipación</strong>.
-    </p>
-    `
-  );
-
-  try {
-    await getTransporter().sendMail({
-      from:    `"Wooden House Soporte" <${EMAIL_SOPORTE}>`,
-      to:      cliente.correo,
-      subject: `📅 Cita confirmada — Wooden House`,
-      html,
-      text:    `Cita ${cita.numero_cita} agendada para ${cita.fecha_cita}. Tipo: ${cita.tipo_cita}.`,
-    });
-    return { success: true };
-  } catch (err) {
-    console.error('[Cloud Function] Error enviando confirmación cita:', err.message);
-    throw new HttpsError('internal', 'Error al enviar correo de cita');
-  }
-});
+);
 
 // ================================================================
 // 5. SCHEDULED: Limpiar notificaciones leídas de más de 30 días
