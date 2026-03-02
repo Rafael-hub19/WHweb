@@ -1,27 +1,14 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-
-    // ── Helpers ──────────────────────────────────────────────────
-    function estaAutenticado() {
-      return request.auth != null;
-    }
-
-    // ── Notificaciones ───────────────────────────────────────────
-    // Solo personal autenticado puede leer/escribir notificaciones
     match /notificaciones/{notifId} {
-      allow read:   if estaAutenticado();
-      allow create: if estaAutenticado()
-                    && request.resource.data.keys().hasAll(['tipo','titulo','mensaje','fecha'])
-                    && request.resource.data.titulo  is string
-                    && request.resource.data.mensaje  is string;
-      allow update: if estaAutenticado()
+      allow read:   if request.auth != null;
+      allow create: if true;  // PHP escribe sin auth
+      allow update: if request.auth != null
                     && request.resource.data.diff(resource.data).affectedKeys()
                          .hasOnly(['leida','fecha_leida']);
-      allow delete: if estaAutenticado();
+      allow delete: if request.auth != null;
     }
-
-    // ── Regla de cierre: bloquear todo lo demás ───────────────────
     match /{document=**} {
       allow read, write: if false;
     }
