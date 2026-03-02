@@ -1,5 +1,4 @@
 <?php
-// Capturar cualquier error fatal y devolverlo como JSON en vez de HTML
 set_exception_handler(function(Throwable $e) {
     if (!headers_sent()) {
         header('Content-Type: application/json; charset=utf-8');
@@ -12,15 +11,14 @@ set_exception_handler(function(Throwable $e) {
 require_once __DIR__ . '/_helpers.php';
 
 $method = requestMethod();
-$id     = isset($_GET['id'])    ? sanitizeInt($_GET['id'])    : null;
+$id     = isset($_GET['id'])     ? sanitizeInt($_GET['id'])    : null;
 $token  = isset($_GET['token'])  ? trim($_GET['token'])         : null;
 $numero = isset($_GET['numero']) ? trim($_GET['numero'])        : null;
 
 switch ($method) {
     case 'GET':
-        // Seguimiento público por número de pedido (sin autenticación)
+        // Seguimiento público por número de pedido
         if ($numero) {
-            // Validar formato WH-YYYY-NNNNNN
             if (!preg_match('/^WH-\d{4}-\d{6}$/', $numero)) {
                 jsonError('Formato de número inválido', 422);
             }
@@ -53,27 +51,20 @@ switch ($method) {
                 [$token]
             );
             if (!$pedido) jsonError('Pedido no encontrado', 404);
-
             $pedido['items'] = dbRows(
                 "SELECT dp.id, dp.producto_id, dp.cantidad, dp.precio_unitario, dp.total_linea AS subtotal, dp.nombre_producto AS producto_nombre
-                 FROM detalle_pedido dp
-                 WHERE dp.pedido_id = ?",
+                 FROM detalle_pedido dp WHERE dp.pedido_id = ?",
                 [$pedido['id']]
             );
             jsonSuccess(['pedido' => $pedido]);
         }
 
-        // Detalle por ID (requiere autenticación)
         if ($id) {
             requerirEmpleado();
-            $pedido = dbRow(
-                "SELECT p.*, p.estado, p.total FROM pedidos p WHERE p.id = ?",
-                [$id]
-            );
+            $pedido = dbRow("SELECT p.*, p.estado, p.total FROM pedidos p WHERE p.id = ?", [$id]);
             if (!$pedido) jsonError('Pedido no encontrado', 404);
             $pedido['items'] = dbRows(
-                "SELECT dp.*, dp.nombre_producto AS producto_nombre FROM detalle_pedido dp
-                 WHERE dp.pedido_id = ?",
+                "SELECT dp.*, dp.nombre_producto AS producto_nombre FROM detalle_pedido dp WHERE dp.pedido_id = ?",
                 [$id]
             );
             $pedido['pagos'] = dbRows(
@@ -83,7 +74,6 @@ switch ($method) {
             jsonSuccess(['pedido' => $pedido]);
         }
 
-        // Listado (requiere autenticación)
         requerirEmpleado();
         $page   = max(1, sanitizeInt($_GET['page'] ?? 1));
         $limit  = min(50, max(1, sanitizeInt($_GET['limit'] ?? 20)));
@@ -93,8 +83,7 @@ switch ($method) {
         $desde  = trim($_GET['fecha_desde'] ?? '');
         $hasta  = trim($_GET['fecha_hasta'] ?? '');
 
-        $where = ['1=1'];
-        $params = [];
+        $where = ['1=1']; $params = [];
         if ($estado) { $where[] = 'estado = ?'; $params[] = $estado; }
         if ($busq)   { $where[] = '(numero_pedido LIKE ? OR nombre_cliente LIKE ? OR correo_cliente LIKE ?)'; $params = array_merge($params, ["%$busq%", "%$busq%", "%$busq%"]); }
         if ($desde)  { $where[] = 'DATE(fecha_creacion) >= ?'; $params[] = $desde; }
@@ -113,102 +102,80 @@ switch ($method) {
         break;
 
     case 'POST':
-        // Crear pedido (público - sin auth)
         $body = getJsonBody();
         requireFields($body, ['nombre_cliente', 'correo_cliente', 'items']);
-
         if (!isValidEmail($body['correo_cliente'])) jsonError('correo_cliente inválido', 422);
         if (empty($body['items']) || !is_array($body['items'])) jsonError('items requerido', 422);
 
         $tipoEntrega = $body['tipo_entrega'] ?? 'envio';
-        if (!in_array($tipoEntrega, ['recoger', 'envio'])) {
-            $tipoEntrega = 'envio'; // valor por defecto seguro
-        }
-
+        if (!in_array($tipoEntrega, ['recoger', 'envio'])) $tipoEntrega = 'envio';
         if ($tipoEntrega === 'envio' && empty($body['direccion_envio'])) {
             jsonError('direccion_envio requerida para entrega a domicilio', 422);
         }
+
         $cpEnvio     = sanitize($body['cp_envio']     ?? '');
         $ciudadEnvio = sanitize($body['ciudad_envio'] ?? '');
 
-        // Calcular totales
         $subtotal = 0;
         $itemsData = [];
         foreach ($body['items'] as $item) {
-            $prodId  = sanitizeInt($item['producto_id'] ?? 0);
-            $cant    = max(1, sanitizeInt($item['cantidad'] ?? 1));
-            $prod    = dbRow("SELECT id, nombre, precio_base, stock_disponible FROM productos WHERE id = ? AND activo = 1", [$prodId]);
+            $prodId = sanitizeInt($item['producto_id'] ?? 0);
+            $cant   = max(1, sanitizeInt($item['cantidad'] ?? 1));
+            $prod   = dbRow("SELECT id, nombre, precio_base, stock_disponible FROM productos WHERE id = ? AND activo = 1", [$prodId]);
             if (!$prod) jsonError("Producto ID $prodId no encontrado o inactivo", 422);
-            // Sin validación de stock — fabricación bajo pedido
-
             $precioUnit = (float)$prod['precio_base'];
             $subProd    = $precioUnit * $cant;
             $subtotal  += $subProd;
             $itemsData[] = ['producto' => $prod, 'cantidad' => $cant, 'precio' => $precioUnit, 'subtotal' => $subProd];
         }
 
-        $costoEnvio        = $tipoEntrega === 'envio' ? COSTO_ENVIO : 0;
-        $costoInstalacion  = !empty($body['incluye_instalacion']) ? COSTO_INSTALACION : 0;
-        $descuento         = sanitizeFloat($body['descuento'] ?? 0);
-        $total             = $subtotal + $costoEnvio + $costoInstalacion - $descuento;
+        $costoEnvio       = $tipoEntrega === 'envio' ? COSTO_ENVIO : 0;
+        $costoInstalacion = !empty($body['incluye_instalacion']) ? COSTO_INSTALACION : 0;
+        $descuento        = sanitizeFloat($body['descuento'] ?? 0);
+        $total            = $subtotal + $costoEnvio + $costoInstalacion - $descuento;
 
         $numeroPedido = generarNumeroPedido();
         $tokenSeg     = generarTokenSeguimiento();
-        // Calcular fecha inteligente según tipo de entrega y zona
         $totalProductos = array_sum(array_column(array_map(fn($i) => ['c' => $i['cantidad']], $itemsData), 'c'));
-        // Si el cliente seleccionó una fecha específica en el checkout, validarla y respetarla.
-        // Si no, o si ya no hay espacio, calcular automáticamente.
+
         $fechaClienteRaw = trim($body['fecha_estimada'] ?? '');
         $fechaEst        = calcularFechaInteligente($tipoEntrega, $cpEnvio, $totalProductos);
 
         if (!empty($fechaClienteRaw) && preg_match('/^\d{4}-\d{2}-\d{2}$/', $fechaClienteRaw)) {
-            // Verificar que la fecha del cliente todavía tiene capacidad (race condition guard)
-            $limite     = defined('LIMITE_DIA') ? LIMITE_DIA : 10;
-            $cargaDia   = (int)(dbRow(
+            $limite   = defined('LIMITE_DIA') ? LIMITE_DIA : 10;
+            $cargaDia = (int)(dbRow(
                 "SELECT COALESCE(SUM(dp.cantidad),0) AS total
                   FROM pedidos p
                   INNER JOIN detalle_pedido dp ON dp.pedido_id = p.id
-                  WHERE p.fecha_estimada = ?
-                    AND p.estado NOT IN ('cancelado','entregado')",
+                  WHERE p.fecha_estimada = ? AND p.estado NOT IN ('cancelado','entregado')",
                 [$fechaClienteRaw]
             )['total'] ?? 0);
-            // Si hay espacio suficiente para este pedido en esa fecha, usarla
-            if (($limite - $cargaDia) >= $totalProductos) {
-                $fechaEst = $fechaClienteRaw;
-            }
-            // Si no hay espacio, $fechaEst ya tiene la siguiente fecha disponible calculada
+            if (($limite - $cargaDia) >= $totalProductos) $fechaEst = $fechaClienteRaw;
         }
 
         try {
             db()->beginTransaction();
 
-            // Verificar si las columnas cp_envio/ciudad_envio existen en la BD
-            // Si no, omitirlas (migración pendiente en servidor)
             $tieneColumnasZona = false;
-            try {
-                dbRows("SELECT cp_envio FROM pedidos LIMIT 0");
-                $tieneColumnasZona = true;
-            } catch (Exception $e) {
-                // Columnas no existen aún — ignorar silenciosamente
-            }
+            try { dbRows("SELECT cp_envio FROM pedidos LIMIT 0"); $tieneColumnasZona = true; } catch (Exception $e) {}
 
             $datosPedido = [
-                'numero_pedido'      => $numeroPedido,
-                'token_seguimiento'  => $tokenSeg,
-                'nombre_cliente'     => sanitize($body['nombre_cliente']),
-                'correo_cliente'     => strtolower(trim($body['correo_cliente'])),
-                'telefono_cliente'   => sanitize($body['telefono_cliente'] ?? ''),
-                'tipo_entrega'       => $tipoEntrega,
-                'direccion_envio'    => sanitize($body['direccion_envio'] ?? ''),
-                'incluye_instalacion'=> !empty($body['incluye_instalacion']) ? 1 : 0,
-                'estado'             => 'pendiente',
-                'subtotal'           => $subtotal,
-                'costo_envio'        => $costoEnvio,
-                'costo_instalacion'  => $costoInstalacion,
-                'descuento'          => $descuento,
-                'total'              => $total,
-                'fecha_estimada'     => $fechaEst,
-                'notas'              => sanitize($body['notas'] ?? ''),
+                'numero_pedido'       => $numeroPedido,
+                'token_seguimiento'   => $tokenSeg,
+                'nombre_cliente'      => sanitize($body['nombre_cliente']),
+                'correo_cliente'      => strtolower(trim($body['correo_cliente'])),
+                'telefono_cliente'    => sanitize($body['telefono_cliente'] ?? ''),
+                'tipo_entrega'        => $tipoEntrega,
+                'direccion_envio'     => sanitize($body['direccion_envio'] ?? ''),
+                'incluye_instalacion' => !empty($body['incluye_instalacion']) ? 1 : 0,
+                'estado'              => 'pendiente',
+                'subtotal'            => $subtotal,
+                'costo_envio'         => $costoEnvio,
+                'costo_instalacion'   => $costoInstalacion,
+                'descuento'           => $descuento,
+                'total'               => $total,
+                'fecha_estimada'      => $fechaEst,
+                'notas'               => sanitize($body['notas'] ?? ''),
             ];
 
             if ($tieneColumnasZona) {
@@ -219,8 +186,6 @@ switch ($method) {
             $pedidoId = dbInsert('pedidos', $datosPedido);
 
             foreach ($itemsData as $item) {
-                //   nombre_producto (NOT NULL, requerido)
-                //   total_linea     (en lugar de 'subtotal' que no existe)
                 dbInsert('detalle_pedido', [
                     'pedido_id'       => $pedidoId,
                     'producto_id'     => $item['producto']['id'],
@@ -229,7 +194,6 @@ switch ($method) {
                     'precio_unitario' => $item['precio'],
                     'total_linea'     => $item['subtotal'],
                 ]);
-                // Sin reducción de stock — fabricación bajo pedido
             }
 
             db()->commit();
@@ -239,40 +203,15 @@ switch ($method) {
             jsonError('Error interno al crear el pedido', 500);
         }
 
-        // Notificaciones (no críticas - no bloquean la respuesta)
-        try {
-            // Armar items para el email
-            $itemsEmail = array_map(fn($it) => [
-                'nombre'        => $it['producto']['nombre'] ?? '',
-                'cantidad'      => $it['cantidad'],
-                'precio_unitario' => $it['precio'],
-            ], $itemsData);
-
-            notificarNuevoPedido([
-                'id'                => $pedidoId,
-                'numero_pedido'     => $numeroPedido,
-                'nombre_cliente'    => $body['nombre_cliente'],
-                'correo_cliente'    => $body['correo_cliente'],
-                'token_seguimiento' => $tokenSeg,
-                'total'             => $total,
-                'fecha_estimada'    => $fechaEst,
-                'items'             => $itemsEmail,
-            ]);
-            crearNotificacionFirestore(
-                'pedido_nuevo', "Nuevo Pedido: $numeroPedido",
-                "Cliente: {$body['nombre_cliente']} | Total: $" . number_format($total, 2),
-                ['numero_pedido' => $numeroPedido, 'destinatarios' => ['admin']]
-            );
-        } catch (Exception $e) {
-            appLog('warning', 'Notificación falló', ['error' => $e->getMessage()]);
-        }
+        // El correo de confirmación se envía solo cuando se confirma el pago
+        // en pagos.php (stripe_confirm, stripe_webhook, paypal_capturar, paypal_webhook)
 
         jsonSuccess([
-            'pedido_id'          => $pedidoId,
-            'numero_pedido'      => $numeroPedido,
-            'token_seguimiento'  => $tokenSeg,
-            'total'              => $total,
-            'fecha_estimada'     => $fechaEst,
+            'pedido_id'         => $pedidoId,
+            'numero_pedido'     => $numeroPedido,
+            'token_seguimiento' => $tokenSeg,
+            'total'             => $total,
+            'fecha_estimada'    => $fechaEst,
         ], 201);
         break;
 
@@ -295,7 +234,7 @@ switch ($method) {
 
         if ($update) dbUpdate('pedidos', $update, 'id = ?', [$id]);
 
-        // Notificar cambio de estado
+        // Notificar cambio de estado al cliente via Firebase
         if (!empty($update['estado']) && $update['estado'] !== $pedido['estado']) {
             try {
                 notificarCambioPedido(array_merge($pedido, $update), $pedido['estado']);

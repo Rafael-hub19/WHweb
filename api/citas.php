@@ -6,8 +6,6 @@ $id     = isset($_GET['id']) ? sanitizeInt($_GET['id']) : null;
 
 switch ($method) {
     case 'GET':
-        // Consulta pública de disponibilidad por fecha (para el formulario de citas)
-        // Solo devuelve rango_horario y estado — sin datos personales
         // Búsqueda pública por número de cita (para seguimiento)
         if (!empty($_GET['numero_cita']) && !$id) {
             $num = trim($_GET['numero_cita']);
@@ -29,8 +27,7 @@ switch ($method) {
             if (!$cita) jsonError('Cita no encontrada', 404);
             jsonSuccess(['cita' => $cita]);
         }
-        
-        // Si es consulta pública, solo devolver horarios y estados (sin datos personales)
+
         if ($consultaPublica) {
             $fecha = $_GET['fecha'];
             if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $fecha)) jsonError('Fecha inválida', 422);
@@ -40,6 +37,7 @@ switch ($method) {
             );
             jsonSuccess(['citas' => $citas]);
         }
+
         $page  = max(1, sanitizeInt($_GET['page'] ?? 1));
         $limit = min(50, max(1, sanitizeInt($_GET['limit'] ?? 20)));
         $offset = ($page - 1) * $limit;
@@ -63,7 +61,6 @@ switch ($method) {
         $tiposValidos = ['medicion', 'instalacion', 'otro'];
         if (!in_array($body['tipo'], $tiposValidos)) jsonError('tipo inválido. Usa: medicion, instalacion, otro', 422);
 
-        // Extraer solo la parte DATE (el frontend puede enviar 'YYYY-MM-DD HH:MM:SS')
         $fechaCita = trim($body['fecha_cita']);
         if (strlen($fechaCita) > 10) $fechaCita = substr($fechaCita, 0, 10);
         if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $fechaCita)) {
@@ -72,27 +69,32 @@ switch ($method) {
 
         $numeroCita = generarNumeroCita();
         $citaId = dbInsert('citas', [
-            'numero_cita'     => $numeroCita,
-            'nombre_cliente'  => sanitize($body['nombre_cliente']),
-            'correo_cliente'  => strtolower(trim($body['correo_cliente'])),
-            'telefono_cliente'=> sanitize($body['telefono_cliente']),
-            'direccion'       => sanitize($body['direccion'] ?? '') ?: 'Sin especificar',
-            'fecha_cita'      => $fechaCita,
-            'rango_horario'   => sanitize($body['rango_horario'] ?? 'Por confirmar'),
-            'tipo'            => $body['tipo'],
-            'estado'          => 'nueva',
+            'numero_cita'      => $numeroCita,
+            'nombre_cliente'   => sanitize($body['nombre_cliente']),
+            'correo_cliente'   => strtolower(trim($body['correo_cliente'])),
+            'telefono_cliente' => sanitize($body['telefono_cliente']),
+            'direccion'        => sanitize($body['direccion'] ?? '') ?: 'Sin especificar',
+            'fecha_cita'       => $fechaCita,
+            'rango_horario'    => sanitize($body['rango_horario'] ?? 'Por confirmar'),
+            'tipo'             => $body['tipo'],
+            'estado'           => 'nueva',
         ]);
 
         try {
+            // Firebase Cloud Function enviará correos al cliente y al admin
             notificarNuevaCita([
-                'numero_cita'     => $numeroCita,
-                'nombre_cliente'  => $body['nombre_cliente'],
-                'correo_cliente'  => $body['correo_cliente'],
-                'fecha_cita'      => $body['fecha_cita'],
-                'rango_horario'   => $body['rango_horario'] ?? '',
+                'id'               => $citaId,
+                'numero_cita'      => $numeroCita,
+                'nombre_cliente'   => $body['nombre_cliente'],
+                'correo_cliente'   => $body['correo_cliente'],
+                'telefono_cliente' => $body['telefono_cliente'],
+                'fecha_cita'       => $fechaCita,
+                'rango_horario'    => $body['rango_horario'] ?? '',
+                'tipo'             => $body['tipo'],
             ]);
-            crearNotificacionFirestore('cita_nueva', "Nueva Cita: $numeroCita", "Cliente: {$body['nombre_cliente']} | Fecha: {$body['fecha_cita']}", ['numero_cita' => $numeroCita, 'destino' => 'empleado']);
-        } catch (Throwable $e) { appLog('warning', 'Notif cita falló', ['e' => $e->getMessage()]); }
+        } catch (Throwable $e) {
+            appLog('warning', 'Notif cita falló', ['e' => $e->getMessage()]);
+        }
 
         jsonSuccess(['cita_id' => $citaId, 'numero_cita' => $numeroCita], 201);
         break;
@@ -108,7 +110,7 @@ switch ($method) {
             if (!in_array($body['estado'], $estadosValidos)) jsonError('Estado inválido', 422);
             $update['estado'] = $body['estado'];
         }
-        if (isset($body['fecha_cita']))   $update['fecha_cita']   = $body['fecha_cita'];
+        if (isset($body['fecha_cita']))    $update['fecha_cita']    = $body['fecha_cita'];
         if (isset($body['rango_horario'])) $update['rango_horario'] = sanitize($body['rango_horario']);
         if (isset($body['notas']))         $update['notas']         = sanitize($body['notas']);
         if ($update) dbUpdate('citas', $update, 'id = ?', [$id]);

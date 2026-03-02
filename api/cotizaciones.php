@@ -51,7 +51,7 @@ switch ($method) {
         if (!isValidEmail($body['correo_cliente'])) jsonError('correo_cliente inválido', 422);
 
         $numCot = generarNumeroCotizacion();
-        // Enriquecer descripción con campos extra del formulario web
+
         $descripcionCompleta = sanitize($body['descripcion_solicitud']);
         $extra = [];
         if (!empty($body['urgencia']))   $extra[] = 'Urgencia: ' . sanitize($body['urgencia']);
@@ -76,14 +76,19 @@ switch ($method) {
         ]);
 
         try {
+            // Firebase Cloud Function enviará correos al cliente y al admin
             notificarNuevaCotizacion([
+                'id'               => $cotId,
                 'numero_cotizacion' => $numCot,
-                'nombre_cliente'    => $body['nombre_cliente'],
-                'correo_cliente'    => $body['correo_cliente'],
-                'tipo_mueble'       => $body['tipo_mueble'] ?? 'Mueble personalizado',
+                'nombre_cliente'   => $body['nombre_cliente'],
+                'correo_cliente'   => $body['correo_cliente'],
+                'telefono_cliente' => $body['telefono_cliente'],
+                'tipo_mueble'      => $body['tipo_mueble'] ?? '',
+                'descripcion'      => $descripcionCompleta,
             ]);
-            crearNotificacionFirestore('cotizacion_nueva', "Nueva Cotización: $numCot", "Cliente: {$body['nombre_cliente']}", ['numero_cotizacion' => $numCot, 'destino' => 'admin']);
-        } catch (Exception $e) {}
+        } catch (Exception $e) {
+            appLog('warning', 'Notif cotizacion falló', ['e' => $e->getMessage()]);
+        }
 
         jsonSuccess(['cotizacion_id' => $cotId, 'numero_cotizacion' => $numCot], 201);
         break;
