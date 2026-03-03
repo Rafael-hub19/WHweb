@@ -46,9 +46,24 @@ switch ($method) {
         break;
 
     case 'POST':
+        checkRateLimit('cotizaciones_post', 5, 60); // máx 5 cotizaciones por minuto por IP
         $body = getJsonBody();
         requireFields($body, ['nombre_cliente', 'correo_cliente', 'telefono_cliente', 'descripcion_solicitud']);
+
+        // ── ANTI-BOT: Honeypot field ─────────────────────────────
+        // Si el campo trampa viene con valor, es un bot
+        if (!empty($body['_hp']) || !empty($body['website']) || !empty($body['url'])) {
+            // Responder con éxito falso para no delatar la trampa
+            jsonSuccess(['numero_cotizacion' => 'COT-' . date('Y') . '-000000', 'mensaje' => 'Enviado']);
+        }
+
+        // ── Validaciones de formato ────────────────────────────────
         if (!isValidEmail($body['correo_cliente'])) jsonError('correo_cliente inválido', 422);
+        if (!isValidPhone($body['telefono_cliente'])) jsonError('telefono_cliente inválido', 422);
+
+        // Longitud máxima en campos de texto
+        if (mb_strlen($body['nombre_cliente']) > 150) jsonError('nombre_cliente demasiado largo', 422);
+        if (mb_strlen($body['descripcion_solicitud']) > 2000) jsonError('descripcion_solicitud demasiado larga', 422);
 
         $numCot = generarNumeroCotizacion();
 

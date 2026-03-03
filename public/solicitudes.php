@@ -71,21 +71,25 @@
       </div>
 
       <form id="formCotizacion" autocomplete="off">
+        <!-- ANTI-BOT: Campo trampa oculto - los bots llenarán esto, los humanos no -->
+        <div style="position:absolute;left:-9999px;top:-9999px;opacity:0;height:0;overflow:hidden;" aria-hidden="true">
+          <label>No llenar este campo <input type="text" name="website" tabindex="-1" autocomplete="off"></label>
+        </div>
         <div class="form-section">
           <h3 class="section-title"><i class="fa-solid fa-phone"></i> Información de Contacto</h3>
           <div class="form-grid">
             <div class="form-group full-width">
               <label>Nombre Completo <span class="required">*</span></label>
-              <input type="text" name="nombre" placeholder="Ej: Juan Pérez López" required>
+              <input type="text" name="nombre" placeholder="Ej: Juan Pérez López" required maxlength="100" pattern="[a-zA-ZáéíóúüñÁÉÍÓÚÜÑ0-9 .,'\-]{2,100}">
             </div>
             <div class="form-group">
               <label>Teléfono <span class="required">*</span></label>
-              <input type="tel" name="telefono" placeholder="33 1234 5678" required>
+              <input type="tel" name="telefono" placeholder="33 1234 5678" required maxlength="20" pattern="[0-9 +\-().]{10,20}">
               <div class="help-text">Usaremos este número para contactarte</div>
             </div>
             <div class="form-group">
               <label>Correo Electrónico <span class="required">*</span></label>
-              <input type="email" name="email" placeholder="correo@ejemplo.com" required>
+              <input type="email" name="email" placeholder="correo@ejemplo.com" required maxlength="150">
               <div class="help-text">Te enviaremos la cotización detallada aquí</div>
             </div>
             <div class="form-group full-width">
@@ -137,7 +141,7 @@
 
             <div class="form-group full-width">
               <label>Descripción y Características Deseadas <span class="required">*</span></label>
-              <textarea name="descripcion" placeholder="Describe tu proyecto: estilo, colores, materiales, funcionalidades (cajones, puertas, iluminación), etc." required></textarea>
+              <textarea name="descripcion" placeholder="Describe tu proyecto: estilo, colores, materiales, funcionalidades (cajones, puertas, iluminación), etc." required maxlength="1000"></textarea>
               <div class="help-text">Entre más detalles proporciones, más precisa será la cotización</div>
             </div>
 
@@ -215,20 +219,24 @@
       </div>
 
       <form id="formCita" autocomplete="off">
+        <!-- ANTI-BOT: Campo trampa oculto - los bots llenarán esto, los humanos no -->
+        <div style="position:absolute;left:-9999px;top:-9999px;opacity:0;height:0;overflow:hidden;" aria-hidden="true">
+          <label>No llenar este campo <input type="text" name="website" tabindex="-1" autocomplete="off"></label>
+        </div>
         <div class="form-section">
           <h3 class="section-title"><i class="fa-solid fa-user"></i> Información de Contacto</h3>
           <div class="form-grid">
             <div class="form-group">
               <label>Nombre Completo <span class="required">*</span></label>
-              <input type="text" name="nombre" placeholder="Ej: Juan Pérez" required>
+              <input type="text" name="nombre" placeholder="Ej: Juan Pérez" required maxlength="100" pattern="[a-zA-ZáéíóúüñÁÉÍÓÚÜÑ0-9 .,'\-]{2,100}">
             </div>
             <div class="form-group">
               <label>Teléfono <span class="required">*</span></label>
-              <input type="tel" name="telefono" placeholder="33 1234 5678" required>
+              <input type="tel" name="telefono" placeholder="33 1234 5678" required maxlength="20" pattern="[0-9 +\-().]{10,20}">
             </div>
             <div class="form-group full-width">
               <label>Correo Electrónico <span class="required">*</span></label>
-              <input type="email" name="email" placeholder="correo@ejemplo.com" required>
+              <input type="email" name="email" placeholder="correo@ejemplo.com" required maxlength="150">
             </div>
 
             <div class="form-group full-width">

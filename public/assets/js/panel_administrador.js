@@ -139,9 +139,11 @@
 
     async function logout(){
       if(!confirm('¿Cerrar sesión?')) return;
-      try { if(typeof firebaseAuth !== 'undefined') await firebaseAuth.signOut(); } catch(e) {}
+      // SECURITY: set flag first so login.js won't auto-redirect
+      sessionStorage.setItem('wh_just_logged_out', '1');
       sessionStorage.removeItem('wh_firebase_token');
       sessionStorage.removeItem('wh_usuario');
+      try { if(typeof firebaseAuth !== 'undefined') await firebaseAuth.signOut(); } catch(e) {}
       await fetch('/api/auth.php?action=logout', { method: 'POST', credentials: 'same-origin' }).catch(()=>{});
       window.location.replace('/login?logout=1');
     }
@@ -793,6 +795,22 @@
 
       for (let i = 0; i < files.length; i++) {
         const file = files[i];
+
+        // ── SEGURIDAD: Validar que es imagen real por magic bytes ──
+        const ALLOWED_MIME = ['image/jpeg','image/png','image/webp','image/gif'];
+        if (!ALLOWED_MIME.includes(file.type)) {
+          throw new Error(`Archivo "${file.name}" no es una imagen válida. Solo se permiten JPEG, PNG, WEBP o GIF.`);
+        }
+        const headerBuf = await file.slice(0, 12).arrayBuffer();
+        const hdr = new Uint8Array(headerBuf);
+        const isJpeg = hdr[0]===0xFF && hdr[1]===0xD8 && hdr[2]===0xFF;
+        const isPng  = hdr[0]===0x89 && hdr[1]===0x50 && hdr[2]===0x4E && hdr[3]===0x47;
+        const isWebp = hdr[8]===0x57 && hdr[9]===0x45 && hdr[10]===0x42 && hdr[11]===0x50;
+        const isGif  = hdr[0]===0x47 && hdr[1]===0x49 && hdr[2]===0x46;
+        if (!isJpeg && !isPng && !isWebp && !isGif) {
+          throw new Error(`Archivo "${file.name}" no pasó la validación de imagen real. Asegúrate de subir imágenes auténticas.`);
+        }
+
         const pctVal = Math.round((i / files.length) * 100);
         if (bar)   bar.style.width = pctVal + '%';
         if (pct)   pct.textContent = pctVal + '%';
@@ -823,7 +841,15 @@
 
     function handleImgSelect(files) {
       if (!window._imgFilesPending) window._imgFilesPending = [];
-      window._imgFilesPending = [...window._imgFilesPending, ...Array.from(files)];
+      const ALLOWED_IMG_TYPES = ['image/jpeg','image/png','image/webp','image/gif'];
+      const valid = Array.from(files).filter(f => {
+        if (!ALLOWED_IMG_TYPES.includes(f.type)) {
+          showNotification(`"${f.name}" no es imagen válida y fue omitido (solo JPEG/PNG/WEBP/GIF).`, 'warning');
+          return false;
+        }
+        return true;
+      });
+      window._imgFilesPending = [...window._imgFilesPending, ...valid];
       renderImgPreviews();
     }
 
@@ -2298,12 +2324,17 @@ async function toggleBloqueoDia(fecha, estaBloqueado) {
 // Sin necesidad de que el administrador recargue la página manualmente.
 function _autoRefreshAdmin() {
   const section = window._currentSection || 'dashboard';
-  if      (section === 'pedidos')    cargarPedidosAPI();
-  else if (section === 'catalogo')   cargarProductosAPI().then(() => renderCatalogo());
-  else if (section === 'empleados')  cargarEmpleadosAPI();
-  else if (section === 'reportes')   cargarReportesAPI();
-  else if (section === 'citas')      renderCalendar();
-  else if (section === 'dashboard')  { refreshKPIsFromAPI(); refreshKPIs(); }
+  try {
+    if      (section === 'pedidos'   && typeof cargarPedidosAPI === 'function')   cargarPedidosAPI();
+    else if (section === 'catalogo'  && typeof cargarProductosAPI === 'function') cargarProductosAPI().then(() => { if(typeof renderCatalogo==='function') renderCatalogo(); });
+    else if (section === 'empleados' && typeof cargarEmpleadosAPI === 'function') cargarEmpleadosAPI();
+    else if (section === 'reportes'  && typeof cargarReportesAPI === 'function')  cargarReportesAPI();
+    else if (section === 'citas'     && typeof renderCalendar === 'function')     renderCalendar();
+    else if (section === 'dashboard') {
+      if(typeof refreshKPIsFromAPI === 'function') refreshKPIsFromAPI();
+      if(typeof refreshKPIs === 'function') refreshKPIs();
+    }
+  } catch(e) { console.warn('[autoRefresh] Error en sección', section, e); }
 }
 
 document.addEventListener('DOMContentLoaded', () => {

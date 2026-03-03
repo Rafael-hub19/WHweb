@@ -1,3 +1,19 @@
+<?php
+// Iniciar sesión y destruir cualquier sesión anterior al cargar el login
+// Esto previene que sesiones viejas permitan acceso sin credenciales
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+// Si viene con ?logout=1 o flag de logout, destruir sesión PHP activa
+if (!empty($_GET['logout']) || !empty($_SESSION['_just_logged_out'])) {
+    $_SESSION = [];
+    if (ini_get('session.use_cookies')) {
+        $p = session_get_cookie_params();
+        setcookie(session_name(), '', time() - 86400, $p['path'], $p['domain'], $p['secure'], $p['httponly']);
+    }
+    session_destroy();
+}
+?>
 <!DOCTYPE html>
 <html lang="es">
 <head>

@@ -180,8 +180,21 @@ function obtenerUsuarioPorFirebaseUid(string $uid): ?array {
 // ── Middlewares de autenticación ──────────────────────────────────
 
 function requerirAutenticacion(): array {
-    // 1. ¿Hay sesión PHP válida?
+    // 1. ¿Hay sesión PHP válida? Verificar también que no haya expirado
     if (!empty($_SESSION['usuario_id']) && !empty($_SESSION['_csrf'])) {
+        $now = time();
+        // Timeout absoluto: 8 horas desde login
+        if (!empty($_SESSION['_login_time']) && ($now - $_SESSION['_login_time']) > 28800) {
+            _destruirSesion();
+            jsonError('Sesión expirada. Por favor inicia sesión nuevamente.', 401);
+        }
+        // Timeout de inactividad: 2 horas
+        if (!empty($_SESSION['_last_activity']) && ($now - $_SESSION['_last_activity']) > 7200) {
+            _destruirSesion();
+            jsonError('Sesión expirada por inactividad.', 401);
+        }
+        $_SESSION['_last_activity'] = $now;
+
         $usuario = dbRow(
             "SELECT id, firebase_uid, nombre_completo, correo, rol
              FROM usuarios_personal
@@ -247,11 +260,20 @@ function sesionActiva(): ?array {
 // ── Helpers de sesión ─────────────────────────────────────────────
 
 function _crearSesion(array $usuario): void {
-    session_regenerate_id(true);  
-    $_SESSION['usuario_id']  = $usuario['id'];
-    $_SESSION['usuario_rol'] = $usuario['rol'];
-    $_SESSION['_csrf']       = bin2hex(random_bytes(32));
-    $_SESSION['_login_time'] = time();
+    session_regenerate_id(true);
+    $_SESSION['usuario_id']     = $usuario['id'];
+    $_SESSION['usuario_rol']    = $usuario['rol'];
+    $_SESSION['_csrf']          = bin2hex(random_bytes(32));
+    $_SESSION['_login_time']    = time();
+    $_SESSION['_last_activity'] = time();
+    // Renovar CSRF en cada sesión nueva
+    setcookie('XSRF-TOKEN', $_SESSION['_csrf'], [
+        'expires'  => 0,
+        'path'     => '/',
+        'secure'   => true,
+        'httponly' => false,   // JS necesita leerla para enviarla en headers
+        'samesite' => 'Strict',
+    ]);
 }
 
 function _destruirSesion(): void {
@@ -260,7 +282,13 @@ function _destruirSesion(): void {
         $p = session_get_cookie_params();
         setcookie(session_name(), '', time() - 86400,
             $p['path'], $p['domain'], $p['secure'], $p['httponly']);
+        // Eliminar también la cookie CSRF
+        setcookie('XSRF-TOKEN', '', time() - 86400, '/', $p['domain'], true, false);
     }
+    session_destroy();
+    // Regenerar ID para que la sesión anterior quede inválida
+    if (session_status() === PHP_SESSION_NONE) session_start();
+    session_regenerate_id(true);
     session_destroy();
 }
 

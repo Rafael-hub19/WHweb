@@ -321,6 +321,42 @@ service apache2 restart
 
 ---
 
+## Correcciones de Seguridad aplicadas (v2)
+
+> Las siguientes vulnerabilidades fueron identificadas por auditoría de infraestructura y corregidas:
+
+### 1. Validación de imágenes reales en el panel administrador
+**Vulnerabilidad:** Se podía subir cualquier archivo renombrándolo como `.jpg`.  
+**Corrección (`panel_administrador.js`):**
+- Verificación del tipo MIME antes de subir (`image/jpeg`, `image/png`, `image/webp`, `image/gif` únicamente).
+- Lectura de los **primeros 12 bytes (magic numbers)** del archivo para confirmar que es una imagen auténtica (JPEG = `FF D8 FF`, PNG = `89 50 4E 47`, WebP, GIF).
+- Filtrado en `handleImgSelect()` antes de añadir al array de pendientes.
+
+### 2. Sanitización de todos los campos de usuario
+**Vulnerabilidad:** Los campos de texto no filtraban caracteres especiales permitiendo inyección SQL potencial.  
+**Corrección (`solicitudes.js`, `api/cotizaciones.php`, `api/citas.php`):**
+- Funciones JS: `sanitizeName()`, `sanitizeText()`, `sanitizePhone()`, `sanitizeDescription()` que limpian etiquetas HTML, caracteres de control y comillas peligrosas antes de enviar.
+- Validación de longitud máxima en todos los campos (nombre: 150 chars, descripción: 2 000 chars, etc.).
+- Validación de formato de teléfono en backend (`isValidPhone()`).
+- Atributos `maxlength` y `pattern` añadidos a los `<input>` HTML.
+
+### 3. CSRF Token y sesiones fantasma
+**Vulnerabilidad:** Al cerrar sesión la cookie de sesión PHP quedaba activa permitiendo re-acceso.  
+**Corrección (`includes/auth.php`, `login.php`, `panel_administrador.js`):**
+- **Timeout absoluto de 8 horas** desde el login y **timeout de inactividad de 2 horas**.
+- `_destruirSesion()` ahora elimina también la cookie `XSRF-TOKEN` y regenera el ID de sesión.
+- `login.php` destruye cualquier sesión PHP activa al cargar (especialmente con `?logout=1`).
+- El logout en el panel establece el flag `wh_just_logged_out` en `sessionStorage` **antes** de hacer `signOut()` para que `login.js` no auto-redirija.
+
+### 4. Verificación de usuarios reales (Anti-bot)
+**Vulnerabilidad:** Bots podían llenar cotizaciones y citas de forma masiva.  
+**Corrección (`solicitudes.php`, `api/cotizaciones.php`, `api/citas.php`):**
+- **Campo honeypot** oculto con CSS (no visible para humanos, los bots lo llenan) — si el campo tiene valor, el backend responde con éxito falso sin guardar nada.
+- **Rate limiting** en los endpoints POST: máximo 5 cotizaciones / 5 citas por minuto por IP.
+- El honeypot usa `position:absolute; left:-9999px` para que lectores de pantalla y humanos no lo vean ni lo activen.
+
+---
+
 ## Seguridad — .htaccess
 
 ### `/public/.htaccess` — Content Security Policy completa
@@ -388,12 +424,17 @@ Todos los servicios externos están explícitamente permitidos. Si ves errores C
 
 ### Seguridad
 - Tokens JWT de Firebase verificados en cada llamada a la API PHP
-- Rate limiting en endpoints críticos
+- Rate limiting en endpoints críticos y en formularios públicos (5 req/min por IP)
 - Headers de seguridad HTTP completos (CSP, HSTS, X-Frame-Options, etc.)
 - CORS configurado en `/api/.htaccess`
 - Archivos sensibles bloqueados en los tres niveles de `.htaccess`
 - Firestore Rules: solo personal autenticado puede leer/escribir notificaciones
 - Storage Rules: solo usuarios autenticados pueden subir imágenes
+- **Validación de imágenes reales** por magic bytes en el panel administrador
+- **Sanitización completa** de todos los campos de usuario (JS + PHP)
+- **Campo honeypot** anti-bot en formularios de cotización y cita
+- **Session timeout** absoluto (8h) y por inactividad (2h) con destrucción completa de cookies
+- **CSRF fix:** sesión PHP destruida correctamente en logout
 
 ---
 

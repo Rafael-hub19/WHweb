@@ -55,9 +55,18 @@ switch ($method) {
         break;
 
     case 'POST':
+        checkRateLimit('citas_post', 5, 60); // máx 5 citas por minuto por IP
         $body = getJsonBody();
         requireFields($body, ['nombre_cliente', 'correo_cliente', 'telefono_cliente', 'fecha_cita', 'tipo']);
+
+        // ── ANTI-BOT: Honeypot ────────────────────────────────────
+        if (!empty($body['_hp']) || !empty($body['website']) || !empty($body['url'])) {
+            jsonSuccess(['numero_cita' => 'CIT-' . date('Y') . '-000000', 'mensaje' => 'Agendado']);
+        }
+
         if (!isValidEmail($body['correo_cliente'])) jsonError('correo_cliente inválido', 422);
+        if (!isValidPhone($body['telefono_cliente'])) jsonError('telefono_cliente inválido', 422);
+        if (mb_strlen($body['nombre_cliente']) > 150) jsonError('nombre_cliente demasiado largo', 422);
         $tiposValidos = ['medicion', 'instalacion', 'otro'];
         if (!in_array($body['tipo'], $tiposValidos)) jsonError('tipo inválido. Usa: medicion, instalacion, otro', 422);
 

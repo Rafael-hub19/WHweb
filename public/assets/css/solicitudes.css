@@ -2,14 +2,14 @@
 
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: #1a1a1a;
-      color: #e0e0e0;
+      background: var(--color-bg-main, #1a1a1a);
+      color: var(--color-text-main, #e0e0e0);
       line-height: 1.6;
     }
 
     /* ========== HEADER NAVIGATION (UNIFICADO) ========== */
     .header-nav {
-      background: #2d2d2d;
+      background: var(--color-bg-panel, #2d2d2d);
       padding: 20px 40px;
       display: flex;
       justify-content: space-between;
@@ -24,7 +24,7 @@
     .logo {
       font-size: 28px;
       font-weight: bold;
-      color: #8b7355;
+      color: var(--color-primary, #8b7355);
       text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
     }
 
@@ -500,7 +500,7 @@
       font-size: 22px;
       font-weight: 800;
       color: #fff;
-      font-family: Georgia, serif;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       letter-spacing: .5px;
     }
     .track-status-badge {

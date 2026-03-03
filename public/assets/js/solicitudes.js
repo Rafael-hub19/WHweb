@@ -94,14 +94,14 @@ function initFormCotizacion() {
     const fd = new FormData(form);
 
     const datos = {
-      nombre_cliente:       fd.get('nombre')?.trim(),
-      correo_cliente:       fd.get('email')?.trim().toLowerCase(),
-      telefono_cliente:     fd.get('telefono')?.trim(),
-      tipo_mueble:          fd.get('tipoMueble') || '',
-      descripcion_solicitud: fd.get('descripcion')?.trim(),
+      nombre_cliente:       sanitizeName(fd.get('nombre') || ''),
+      correo_cliente:       (fd.get('email') || '').trim().toLowerCase(),
+      telefono_cliente:     sanitizePhone(fd.get('telefono') || ''),
+      tipo_mueble:          sanitizeText(fd.get('tipoMueble') || '', 100),
+      descripcion_solicitud: sanitizeDescription(fd.get('descripcion') || ''),
       tiene_medidas:        fd.get('tieneMedidas') === 'si' ? 1 : 0,
-      medidas:              fd.get('medidas') || '',
-      rango_presupuesto:    fd.get('presupuesto') || '',
+      medidas:              sanitizeDescription(fd.get('medidas') || '', 500),
+      rango_presupuesto:    sanitizeText(fd.get('presupuesto') || '', 50),
       requiere_instalacion: fd.get('instalacion') === 'si' ? 1 : 0,
     };
 
@@ -111,7 +111,7 @@ function initFormCotizacion() {
     if (!isValidEmail(datos.correo_cliente)) {
       showAlert('Ingresa un correo electrónico válido', 'error'); return;
     }
-    if (datos.telefono_cliente.replace(/\D/g,'').length < 10) {
+    if (!isValidPhone(datos.telefono_cliente)) {
       showAlert('Ingresa un teléfono válido de 10 dígitos', 'error'); return;
     }
 
@@ -167,14 +167,14 @@ function initFormCita() {
     }
 
     const datos = {
-      nombre_cliente:    fd.get('nombre')?.trim(),
-      correo_cliente:    fd.get('email')?.trim().toLowerCase(),
-      telefono_cliente:  fd.get('telefono')?.trim(),
-      direccion:         fd.get('direccion')?.trim() || '',
-      fecha_cita:        fechaSeleccionada,  // Solo YYYY-MM-DD — el horario va en rango_horario
+      nombre_cliente:    sanitizeName(fd.get('nombre') || ''),
+      correo_cliente:    (fd.get('email') || '').trim().toLowerCase(),
+      telefono_cliente:  sanitizePhone(fd.get('telefono') || ''),
+      direccion:         sanitizeText(fd.get('direccion') || '', 200),
+      fecha_cita:        fechaSeleccionada,
       rango_horario:     selectedTime,
       tipo:              'medicion',
-      notas:             fd.get('notas') || '',
+      notas:             sanitizeDescription(fd.get('notas') || '', 500),
     };
 
     if (!datos.nombre_cliente || !datos.correo_cliente || !datos.telefono_cliente) {
@@ -182,6 +182,9 @@ function initFormCita() {
     }
     if (!isValidEmail(datos.correo_cliente)) {
       showAlert('Ingresa un correo electrónico válido', 'error'); return;
+    }
+    if (!isValidPhone(datos.telefono_cliente)) {
+      showAlert('Ingresa un teléfono válido de 10 dígitos', 'error'); return;
     }
 
     const btn = form.querySelector('button[type="submit"]');
@@ -289,7 +292,17 @@ function selectTime(element) {
 // ── Seguimiento ──────────────────────────────────
 function initSeguimiento() {
   const trackingResult = document.getElementById('trackingResult');
-  if (trackingResult) trackingResult.style.display = 'none';
+  if (trackingResult) {
+    trackingResult.style.display = 'none';
+    trackingResult.innerHTML = '';
+  }
+  // Allow pressing Enter in tracking input
+  const input = document.getElementById('trackingNumber');
+  if (input) {
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') { e.preventDefault(); trackOrder(); }
+    });
+  }
 }
 
 async function trackOrder() {
@@ -327,7 +340,7 @@ async function trackOrder() {
     const data = await res.json().catch(() => ({}));
 
     if (!data.success || (!data.pedido && !data.cotizacion && !data.cita)) {
-      if (resultBox) resultBox.innerHTML = '';
+      if (resultBox) { resultBox.innerHTML = ''; resultBox.style.display = 'none'; }
       showAlert('No se encontró ninguna solicitud con ese número.', 'error');
       return;
     }
@@ -429,6 +442,7 @@ async function trackOrder() {
     }
 
     if (resultBox) {
+      resultBox.style.display = 'block';
       resultBox.innerHTML = `
         <div class="track-result-card">
           <div class="track-result-header">
@@ -517,9 +531,53 @@ function showAlert(message, type = 'info') {
   setTimeout(() => toast.remove(), 6000);
 }
 
-// ── Validaciones ──────────────────────────────────
+// ── Validaciones y sanitización ───────────────────
+
+/** Sanitiza texto plano: elimina HTML y caracteres de inyección, permite letras, números, espacios, acentos y puntuación básica */
+function sanitizeText(val, maxLen = 300) {
+  if (typeof val !== 'string') return '';
+  return val
+    .replace(/<[^>]*>/g, '')                          // quitar etiquetas HTML
+    .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '')  // quitar chars de control
+    .replace(/['";`\\]/g, '')                           // quitar chars SQL peligrosos
+    .substring(0, maxLen)
+    .trim();
+}
+
+/** Sanitiza nombre: solo letras, números, espacios y acentos */
+function sanitizeName(val, maxLen = 100) {
+  if (typeof val !== 'string') return '';
+  return val
+    .replace(/<[^>]*>/g, '')
+    .replace(/[^a-zA-ZáéíóúüñÁÉÍÓÚÜÑ0-9 .,'\-]/g, '')
+    .substring(0, maxLen)
+    .trim();
+}
+
+/** Sanitiza teléfono: solo números, espacios, +, -, () */
+function sanitizePhone(val) {
+  if (typeof val !== 'string') return '';
+  return val.replace(/[^0-9\s+\-().]/g, '').substring(0, 20).trim();
+}
+
+/** Sanitiza texto largo (descripción): permite más caracteres pero bloquea inyección */
+function sanitizeDescription(val, maxLen = 1000) {
+  if (typeof val !== 'string') return '';
+  return val
+    .replace(/<[^>]*>/g, '')
+    .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '')
+    .replace(/['";`]/g, (c) => c === "'" ? "'" : '')  // quitar solo peligrosos SQL
+    .substring(0, maxLen)
+    .trim();
+}
+
 function isValidEmail(email) {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  // RFC 5322 simple + no SQL chars
+  return /^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$/.test(email.trim());
+}
+
+function isValidPhone(phone) {
+  return phone.replace(/\D/g,'').length >= 10;
 }
 
 window.selectTime  = selectTime;
