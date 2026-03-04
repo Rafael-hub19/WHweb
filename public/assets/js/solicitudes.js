@@ -1,12 +1,12 @@
-// ================================================
-// Wooden House - Solicitudes
-// ================================================
+// =====================================================
+// Wooden House — Solicitudes
+// Cotización · Cita · Seguimiento
+// =====================================================
 const API_URL = '/api';
 
 let selectedTime = null;
 
-document.addEventListener('DOMContentLoaded', function() {
-  // Limpiar formularios al cargar para evitar que el navegador restaure datos
+document.addEventListener('DOMContentLoaded', function () {
   document.getElementById('formCotizacion')?.reset();
   document.getElementById('formCita')?.reset();
   selectedTime = null;
@@ -20,19 +20,20 @@ document.addEventListener('DOMContentLoaded', function() {
   initMedidasField();
   setMinDate();
   checkURLParams();
+  initRealTimeValidation();
 });
 
-// ── Menú hamburguesa ─────────────────────────────
+// ── Menú hamburguesa ──────────────────────────────────────────────
 function initMenuHamburguesa() {
   const menuToggle = document.getElementById('menuToggle');
   const navLinks   = document.getElementById('navLinks');
   if (!menuToggle || !navLinks) return;
-  menuToggle.addEventListener('click', function(e) {
+  menuToggle.addEventListener('click', function (e) {
     e.preventDefault(); e.stopPropagation();
     navLinks.classList.toggle('open');
     menuToggle.setAttribute('aria-expanded', navLinks.classList.contains('open'));
   });
-  document.addEventListener('click', function(e) {
+  document.addEventListener('click', function (e) {
     if (!menuToggle.contains(e.target) && !navLinks.contains(e.target)) {
       navLinks.classList.remove('open');
       menuToggle.setAttribute('aria-expanded', 'false');
@@ -40,19 +41,19 @@ function initMenuHamburguesa() {
   });
 }
 
-// ── Cart badge ───────────────────────────────────
+// ── Cart badge ────────────────────────────────────────────────────
 function initCartBadge() {
   const badge = document.getElementById('cartCount');
   if (!badge) return;
   try {
     const carrito = JSON.parse(sessionStorage.getItem('wh_carrito') || '[]');
     const total   = carrito.reduce((s, i) => s + (i.cantidad || 0), 0);
-    badge.textContent  = total;
+    badge.textContent   = total;
     badge.style.display = total > 0 ? 'inline-block' : 'none';
   } catch { badge.style.display = 'none'; }
 }
 
-// ── URL params: tab activo al llegar ─────────────
+// ── URL params: tab y seguimiento desde pago ──────────────────────
 function checkURLParams() {
   const params = new URLSearchParams(window.location.search);
   const tab    = params.get('tab');
@@ -60,7 +61,6 @@ function checkURLParams() {
     const btn = document.querySelector(`.tab-btn[data-tab="${tab}"]`);
     if (btn) btn.click();
   }
-  // Si viene de pago exitoso, mostrar seguimiento
   const token  = params.get('token');
   const pedido = params.get('pedido');
   if (token && pedido) {
@@ -71,10 +71,10 @@ function checkURLParams() {
   }
 }
 
-// ── Tabs ─────────────────────────────────────────
+// ── Tabs ──────────────────────────────────────────────────────────
 function initTabs() {
   document.querySelectorAll('.tab-btn').forEach(btn => {
-    btn.addEventListener('click', function() {
+    btn.addEventListener('click', function () {
       document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
       document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
       this.classList.add('active');
@@ -84,7 +84,85 @@ function initTabs() {
   });
 }
 
-// ── Formulario Cotización ────────────────────────
+// ── Validación en tiempo real (feedback visual por campo) ─────────
+function initRealTimeValidation() {
+  // Email: mostrar feedback al salir del campo
+  document.querySelectorAll('input[type="email"]').forEach(input => {
+    input.addEventListener('blur', function () {
+      const val = this.value.trim();
+      if (!val) return;
+      if (!isValidEmail(val)) {
+        this.style.borderColor = '#8b4a4a';
+        showFieldError(this, 'Correo electrónico inválido. Ejemplo: nombre@dominio.com');
+      } else {
+        this.style.borderColor = '#3d6b47';
+        clearFieldError(this);
+      }
+    });
+    input.addEventListener('input', function () {
+      // Limpiar error mientras escribe
+      clearFieldError(this);
+      this.style.borderColor = '';
+    });
+  });
+
+  // Teléfono: solo permitir caracteres válidos mientras escribe
+  document.querySelectorAll('input[type="tel"]').forEach(input => {
+    input.addEventListener('input', function () {
+      // Eliminar caracteres no permitidos en tiempo real
+      this.value = this.value.replace(/[^0-9\s+\-().]/g, '');
+    });
+    input.addEventListener('blur', function () {
+      const val = this.value.trim();
+      if (!val) return;
+      if (!isValidPhone(val)) {
+        this.style.borderColor = '#8b4a4a';
+        showFieldError(this, 'Ingresa al menos 10 dígitos');
+      } else {
+        this.style.borderColor = '#3d6b47';
+        clearFieldError(this);
+      }
+    });
+  });
+
+  // Nombre: bloquear caracteres de inyección mientras escribe
+  document.querySelectorAll('input[name="nombre"]').forEach(input => {
+    input.addEventListener('input', function () {
+      // Eliminar caracteres peligrosos en tiempo real (SQL, HTML, scripts)
+      this.value = this.value.replace(/[<>"'`;\\]/g, '');
+    });
+  });
+
+  // Dirección y ciudad: bloquear caracteres de inyección
+  document.querySelectorAll('input[name="direccion"], input[name="ciudad"]').forEach(input => {
+    input.addEventListener('input', function () {
+      this.value = this.value.replace(/[<>"'`;\\]/g, '');
+    });
+  });
+
+  // Textareas: bloquear inyección mientras escribe
+  document.querySelectorAll('textarea').forEach(area => {
+    area.addEventListener('input', function () {
+      this.value = this.value.replace(/<[^>]*>/g, '').replace(/[`\\]/g, '');
+    });
+  });
+}
+
+function showFieldError(input, msg) {
+  clearFieldError(input);
+  const err = document.createElement('div');
+  err.className = 'field-error-msg';
+  err.style.cssText = 'color:#e74c3c;font-size:12px;margin-top:5px;font-weight:500;';
+  err.textContent = msg;
+  input.parentNode.appendChild(err);
+}
+
+function clearFieldError(input) {
+  const prev = input.parentNode.querySelector('.field-error-msg');
+  if (prev) prev.remove();
+}
+
+// ── Formulario Cotización ─────────────────────────────────────────
 function initFormCotizacion() {
   const form = document.getElementById('formCotizacion');
   if (!form) return;
@@ -93,37 +171,52 @@ function initFormCotizacion() {
     e.preventDefault();
     const fd = new FormData(form);
 
+    // Recoger y sanitizar TODOS los campos
     const datos = {
-      nombre_cliente:       sanitizeName(fd.get('nombre') || ''),
-      correo_cliente:       (fd.get('email') || '').trim().toLowerCase(),
-      telefono_cliente:     sanitizePhone(fd.get('telefono') || ''),
-      tipo_mueble:          sanitizeText(fd.get('tipoMueble') || '', 100),
+      nombre_cliente:        sanitizeName(fd.get('nombre') || ''),
+      correo_cliente:        sanitizeEmail(fd.get('email') || ''),
+      telefono_cliente:      sanitizePhone(fd.get('telefono') || ''),
+      tipo_mueble:           sanitizeText(fd.get('tipoMueble') || '', 100),
       descripcion_solicitud: sanitizeDescription(fd.get('descripcion') || ''),
-      tiene_medidas:        fd.get('tieneMedidas') === 'si' ? 1 : 0,
-      medidas:              sanitizeDescription(fd.get('medidas') || '', 500),
-      rango_presupuesto:    sanitizeText(fd.get('presupuesto') || '', 50),
-      requiere_instalacion: fd.get('instalacion') === 'si' ? 1 : 0,
+      tiene_medidas:         fd.get('tieneMedidas') === 'si' ? 1 : 0,
+      medidas:               sanitizeDescription(fd.get('medidas') || '', 500),
+      rango_presupuesto:     sanitizeText(fd.get('presupuesto') || '', 50),
+      requiere_instalacion:  fd.get('instalacion') === 'si' ? 1 : 0,
+      ciudad:                sanitizeText(fd.get('ciudad') || '', 100),
+      urgencia:              sanitizeText(fd.get('urgencia') || '', 50),
+      referencia:            sanitizeText(fd.get('referencia') || '', 50),
+      instalacion:           sanitizeText(fd.get('instalacion') || '', 30),
     };
 
-    if (!datos.nombre_cliente || !datos.correo_cliente || !datos.telefono_cliente || !datos.descripcion_solicitud) {
-      showAlert('Por favor completa todos los campos requeridos', 'error'); return;
+    // Validaciones obligatorias
+    if (!datos.nombre_cliente) {
+      showAlert('Por favor ingresa tu nombre completo', 'error'); return;
+    }
+    if (!datos.correo_cliente) {
+      showAlert('Por favor ingresa tu correo electrónico', 'error'); return;
     }
     if (!isValidEmail(datos.correo_cliente)) {
-      showAlert('Ingresa un correo electrónico válido', 'error'); return;
+      showAlert('El correo electrónico no es válido. Ejemplo: nombre@dominio.com', 'error'); return;
+    }
+    if (!datos.telefono_cliente) {
+      showAlert('Por favor ingresa tu teléfono', 'error'); return;
     }
     if (!isValidPhone(datos.telefono_cliente)) {
-      showAlert('Ingresa un teléfono válido de 10 dígitos', 'error'); return;
+      showAlert('El teléfono debe tener al menos 10 dígitos', 'error'); return;
+    }
+    if (!datos.descripcion_solicitud) {
+      showAlert('Por favor describe tu proyecto', 'error'); return;
     }
 
     const btn = form.querySelector('button[type="submit"]');
-    btn.disabled = true;
-    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Enviando...';
+    btn.disabled    = true;
+    btn.innerHTML   = '<i class="fa-solid fa-spinner fa-spin"></i> Enviando...';
 
     try {
       const res  = await fetch(`${API_URL}/cotizaciones.php`, {
-        method: 'POST',
+        method:  'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(datos),
+        body:    JSON.stringify(datos),
       });
       const ct = res.headers.get('content-type') || '';
       if (!ct.includes('application/json')) throw new Error('Error de servidor. Intenta nuevamente.');
@@ -137,17 +230,16 @@ function initFormCotizacion() {
       form.reset();
       document.getElementById('medidasField')?.setAttribute('style', 'display:none');
       window.scrollTo({ top: 0, behavior: 'smooth' });
-
     } catch (err) {
       showAlert(err.message || 'Error al enviar cotización. Intenta nuevamente.', 'error');
     } finally {
-      btn.disabled = false;
+      btn.disabled  = false;
       btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Enviar Solicitud de Cotización';
     }
   });
 }
 
-// ── Formulario Cita ──────────────────────────────
+// ── Formulario Cita ───────────────────────────────────────────────
 function initFormCita() {
   const form = document.getElementById('formCita');
   if (!form) return;
@@ -166,36 +258,44 @@ function initFormCita() {
       showAlert('Por favor selecciona una fecha', 'error'); return;
     }
 
+    // Recoger y sanitizar TODOS los campos
     const datos = {
-      nombre_cliente:    sanitizeName(fd.get('nombre') || ''),
-      correo_cliente:    (fd.get('email') || '').trim().toLowerCase(),
-      telefono_cliente:  sanitizePhone(fd.get('telefono') || ''),
-      direccion:         sanitizeText(fd.get('direccion') || '', 200),
-      fecha_cita:        fechaSeleccionada,
-      rango_horario:     selectedTime,
-      tipo:              'medicion',
-      notas:             sanitizeDescription(fd.get('notas') || '', 500),
+      nombre_cliente:   sanitizeName(fd.get('nombre') || ''),
+      correo_cliente:   sanitizeEmail(fd.get('email') || ''),
+      telefono_cliente: sanitizePhone(fd.get('telefono') || ''),
+      direccion:        sanitizeText(fd.get('direccion') || '', 200),
+      fecha_cita:       fechaSeleccionada,
+      rango_horario:    selectedTime,
+      tipo:             'medicion',
+      notas:            sanitizeDescription(fd.get('notas') || '', 500),
     };
 
-    if (!datos.nombre_cliente || !datos.correo_cliente || !datos.telefono_cliente) {
-      showAlert('Por favor completa todos los campos requeridos', 'error'); return;
+    // Validaciones obligatorias
+    if (!datos.nombre_cliente) {
+      showAlert('Por favor ingresa tu nombre completo', 'error'); return;
+    }
+    if (!datos.correo_cliente) {
+      showAlert('Por favor ingresa tu correo electrónico', 'error'); return;
     }
     if (!isValidEmail(datos.correo_cliente)) {
-      showAlert('Ingresa un correo electrónico válido', 'error'); return;
+      showAlert('El correo electrónico no es válido. Ejemplo: nombre@dominio.com', 'error'); return;
+    }
+    if (!datos.telefono_cliente) {
+      showAlert('Por favor ingresa tu teléfono', 'error'); return;
     }
     if (!isValidPhone(datos.telefono_cliente)) {
-      showAlert('Ingresa un teléfono válido de 10 dígitos', 'error'); return;
+      showAlert('El teléfono debe tener al menos 10 dígitos', 'error'); return;
     }
 
     const btn = form.querySelector('button[type="submit"]');
-    btn.disabled = true;
-    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Agendando...';
+    btn.disabled    = true;
+    btn.innerHTML   = '<i class="fa-solid fa-spinner fa-spin"></i> Agendando...';
 
     try {
       const res  = await fetch(`${API_URL}/citas.php`, {
-        method: 'POST',
+        method:  'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(datos),
+        body:    JSON.stringify(datos),
       });
       const ct = res.headers.get('content-type') || '';
       if (!ct.includes('application/json')) throw new Error('Error de servidor. Intenta nuevamente.');
@@ -210,18 +310,16 @@ function initFormCita() {
       selectedTime = null;
       document.querySelectorAll('.time-slot').forEach(s => s.classList.remove('selected'));
       window.scrollTo({ top: 0, behavior: 'smooth' });
-
     } catch (err) {
       showAlert(err.message || 'Error al agendar. Intenta nuevamente.', 'error');
     } finally {
-      btn.disabled = false;
+      btn.disabled  = false;
       btn.innerHTML = '<i class="fa-solid fa-calendar-check"></i> Confirmar Cita';
     }
   });
 }
 
-// ── Selección de hora (global para onclick) ──────
-// ── Horarios disponibles por fecha (consulta BD real) ──────────
+// ── Slots de horario ──────────────────────────────────────────────
 const HORARIOS_NEGOCIO = [
   '9:00 AM','10:00 AM','11:00 AM','12:00 PM',
   '2:00 PM','3:00 PM','4:00 PM','5:00 PM'
@@ -232,23 +330,20 @@ async function cargarSlotsDisponibles(fecha) {
   if (!container || !fecha) return;
 
   selectedTime = null;
-  container.innerHTML = '<div style="color:var(--muted,#888);font-size:14px;padding:12px;grid-column:1/-1;"><i class="fa-solid fa-spinner fa-spin"></i> Verificando disponibilidad...</div>';
+  container.innerHTML = '<div style="color:#888;font-size:14px;padding:12px;grid-column:1/-1;"><i class="fa-solid fa-spinner fa-spin"></i> Verificando disponibilidad...</div>';
 
   try {
-    // Obtener citas ya agendadas para esa fecha
-    const res  = await fetch(`${API_URL}/citas.php?fecha=${fecha}&limit=50`);
-    const data = await res.json();
-    // Horarios ya ocupados ese día
+    const res   = await fetch(`${API_URL}/citas.php?fecha=${encodeURIComponent(fecha)}&limit=50`);
+    const data  = await res.json();
     const ocupados = new Set(
       (data.citas || [])
         .filter(c => c.estado !== 'cancelada')
         .map(c => c.rango_horario)
     );
 
-    // Verificar si el día es válido (no pasado, no domingo/sábado)
-    const fechaObj = new Date(fecha + 'T12:00:00'); // noon para evitar timezone issues
-    const diaSemana = fechaObj.getDay(); // 0=dom, 6=sab
-    const hoy = new Date(); hoy.setHours(0,0,0,0);
+    const fechaObj   = new Date(fecha + 'T12:00:00');
+    const diaSemana  = fechaObj.getDay();
+    const hoy        = new Date(); hoy.setHours(0, 0, 0, 0);
     const fechaSelec = new Date(fecha + 'T00:00:00');
 
     if (fechaSelec < hoy) {
@@ -256,26 +351,20 @@ async function cargarSlotsDisponibles(fecha) {
       return;
     }
     if (diaSemana === 0 || diaSemana === 6) {
-      container.innerHTML = '<div style="color:#c62828;font-size:14px;padding:12px;grid-column:1/-1;">Solo atendemos de lunes a viernes. Selecciona otro día.</div>';
+      container.innerHTML = '<div style="color:#c62828;font-size:14px;padding:12px;grid-column:1/-1;">Solo atendemos de lunes a viernes.</div>';
       return;
     }
 
-    // Renderizar slots
-    const slots = HORARIOS_NEGOCIO.map(hora => {
+    container.innerHTML = HORARIOS_NEGOCIO.map(hora => {
       const ocupado = ocupados.has(hora);
-      return `<div class="time-slot${ocupado ? ' unavailable' : ''}"${!ocupado ? ` onclick="selectTime(this)"` : ''} title="${ocupado ? 'Horario no disponible' : 'Seleccionar este horario'}">${hora}</div>`;
-    });
+      return `<div class="time-slot${ocupado ? ' unavailable' : ''}"${!ocupado ? ` onclick="selectTime(this)"` : ''} title="${ocupado ? 'Horario no disponible' : 'Seleccionar'}">${hora}</div>`;
+    }).join('');
 
-    container.innerHTML = slots.join('');
-
-    const libres = HORARIOS_NEGOCIO.length - ocupados.size;
-    if (libres === 0) {
-      container.innerHTML += '<div style="color:#c62828;font-size:13px;padding:6px;grid-column:1/-1;"><i class="fa-solid fa-circle-exclamation"></i> No hay horarios disponibles para este día. Selecciona otra fecha.</div>';
+    if (HORARIOS_NEGOCIO.length === ocupados.size) {
+      container.innerHTML += '<div style="color:#c62828;font-size:13px;padding:6px;grid-column:1/-1;"><i class="fa-solid fa-circle-exclamation"></i> Sin horarios para este día.</div>';
     }
-
-  } catch(e) {
+  } catch (e) {
     console.warn('Error cargando slots:', e);
-    // Fallback: mostrar todos los horarios sin verificación
     container.innerHTML = HORARIOS_NEGOCIO.map(hora =>
       `<div class="time-slot" onclick="selectTime(this)">${hora}</div>`
     ).join('');
@@ -289,18 +378,23 @@ function selectTime(element) {
   selectedTime = element.textContent.trim().split('\n')[0].trim();
 }
 
-// ── Seguimiento ──────────────────────────────────
+// ── Seguimiento ───────────────────────────────────────────────────
 function initSeguimiento() {
-  const trackingResult = document.getElementById('trackingResult');
-  if (trackingResult) {
-    trackingResult.style.display = 'none';
-    trackingResult.innerHTML = '';
+  const resultBox = document.getElementById('trackingResult');
+  if (resultBox) {
+    resultBox.style.display = 'none';
+    resultBox.innerHTML = '';
   }
-  // Allow pressing Enter in tracking input
+
   const input = document.getElementById('trackingNumber');
   if (input) {
+    // Enter lanza la búsqueda
     input.addEventListener('keydown', (e) => {
       if (e.key === 'Enter') { e.preventDefault(); trackOrder(); }
+    });
+    // Convertir a mayúsculas mientras se escribe y bloquear caracteres raros
+    input.addEventListener('input', function () {
+      this.value = this.value.toUpperCase().replace(/[^A-Z0-9\-]/g, '');
     });
   }
 }
@@ -316,37 +410,50 @@ async function trackOrder() {
   }
 
   const regexPedido = /^WH-\d{4}-\d{6}$/;
-  const regexCit    = /^CIT-\d{4}-\d{6}$/;
-  const regexCot    = /^COT-\d{4,}-\d+$/i;
+  const regexCita   = /^CIT-\d{4}-\d{6}$/;
+  const regexCot    = /^COT-\d{4,}-\d+$/;
   const esPedido    = regexPedido.test(trackingNumber);
-  const esCita      = regexCit.test(trackingNumber);
+  const esCita      = regexCita.test(trackingNumber);
   const esCot       = regexCot.test(trackingNumber);
 
   if (!esPedido && !esCita && !esCot) {
-    showAlert('Formato inválido. Usa: WH-2026-000001 (pedido) · CIT-2026-000001 (cita) · COT-2026-000001 (cotización)', 'error');
+    showAlert('Formato inválido. Ejemplos: WH-2026-000001 · CIT-2026-000001 · COT-2026-1', 'error');
     return;
   }
 
-  if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Buscando...'; }
-  if (resultBox) resultBox.innerHTML = '';
+  // Estado: buscando
+  if (btn) {
+    btn.disabled  = true;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Buscando...';
+  }
+  if (resultBox) {
+    resultBox.style.display = 'none';
+    resultBox.innerHTML = '';
+  }
 
   try {
     let endpoint = '';
-    if (esPedido) endpoint = `${API_URL}/pedidos.php?numero=${encodeURIComponent(trackingNumber)}`;
+    if (esPedido)    endpoint = `${API_URL}/pedidos.php?numero=${encodeURIComponent(trackingNumber)}`;
     else if (esCita) endpoint = `${API_URL}/citas.php?numero_cita=${encodeURIComponent(trackingNumber)}`;
-    else endpoint = `${API_URL}/cotizaciones.php?numero=${encodeURIComponent(trackingNumber)}`;
+    else             endpoint = `${API_URL}/cotizaciones.php?numero=${encodeURIComponent(trackingNumber)}`;
 
     const res  = await fetch(endpoint);
-    const data = await res.json().catch(() => ({}));
+
+    // Verificar que la respuesta sea JSON antes de parsear
+    const ct = res.headers.get('content-type') || '';
+    if (!ct.includes('application/json')) {
+      throw new Error('El servidor no respondió correctamente. Intenta más tarde.');
+    }
+
+    const data = await res.json();
 
     if (!data.success || (!data.pedido && !data.cotizacion && !data.cita)) {
-      if (resultBox) { resultBox.innerHTML = ''; resultBox.style.display = 'none'; }
-      showAlert('No se encontró ninguna solicitud con ese número.', 'error');
+      showAlert('No se encontró ninguna solicitud con ese número. Verifica que esté escrito correctamente.', 'error');
       return;
     }
 
-    const item = data.pedido || data.cotizacion || data.cita;
-    const tipo = data.pedido ? 'Pedido' : data.cita ? 'Cita' : 'Cotización';
+    const item  = data.pedido || data.cotizacion || data.cita;
+    const tipo  = data.pedido ? 'Pedido' : data.cita ? 'Cita' : 'Cotización';
     const folio = item.numero_pedido || item.numero_cita || item.numero_cotizacion || trackingNumber;
 
     const estadoLabels = {
@@ -362,41 +469,42 @@ async function trackOrder() {
       cancelado:'#8b4a4a', en_revision:'#8b7355', respondida:'#4a8b5a',
       cerrada:'#555', confirmada:'#4a8b5a', completada:'#3d7a5a'
     };
-    const est   = item.estado || 'nueva';
-    const label = estadoLabels[est] || est;
-    const color = estadoColors[est] || '#8b7355';
+
+    const est         = item.estado || 'nueva';
+    const label       = estadoLabels[est] || est;
+    const color       = estadoColors[est] || '#8b7355';
     const fechaCreada = (item.fecha_creacion || '').substring(0, 10);
 
     // Timeline para pedidos
     let timelineHtml = '';
     if (data.pedido && est !== 'cancelado') {
-      const stages     = ['pendiente','pagado','en_produccion','listo','entregado'];
+      const stages      = ['pendiente','pagado','en_produccion','listo','entregado'];
       const stageLabels = ['Recibido','Pagado','En fab.','Listo','Entregado'];
-      const stageIdx   = stages.indexOf(est);
+      const stageIdx    = stages.indexOf(est);
       timelineHtml = `
         <div class="track-timeline">
           <div class="track-timeline-label">Progreso del pedido</div>
           <div class="track-timeline-steps">
-            ${stages.map((s,i) => {
+            ${stages.map((s, i) => {
               const done    = i < stageIdx;
               const current = i === stageIdx;
               return `<div class="track-step">
-                ${i>0?`<div class="track-step-connector${done||current?' done':''}"></div>`:''}
-                <div class="track-step-dot${current?' current':done?' done':''}">
-                  ${done?'✓':current?'●':''}
+                ${i > 0 ? `<div class="track-step-connector${done || current ? ' done' : ''}"></div>` : ''}
+                <div class="track-step-dot${current ? ' current' : done ? ' done' : ''}">
+                  ${done ? '✓' : current ? '●' : ''}
                 </div>
-                <div class="track-step-name${current||done?' active':''}">${stageLabels[i]}</div>
+                <div class="track-step-name${current || done ? ' active' : ''}">${stageLabels[i]}</div>
               </div>`;
             }).join('')}
           </div>
         </div>`;
     }
 
-    // Info extra
+    // Info grid
     let infoItems = `
       <div class="track-info-item">
         <div class="track-info-label">Cliente</div>
-        <div class="track-info-value">${item.nombre_cliente || '—'}</div>
+        <div class="track-info-value">${escapeHtml(item.nombre_cliente || '—')}</div>
       </div>
       <div class="track-info-item">
         <div class="track-info-label">Registrado</div>
@@ -412,9 +520,12 @@ async function trackOrder() {
       if (item.total) infoItems += `
         <div class="track-info-item">
           <div class="track-info-label">Total</div>
-          <div class="track-info-value" style="color:#8b7355;font-size:16px;">${new Intl.NumberFormat('es-MX',{style:'currency',currency:'MXN'}).format(item.total)}</div>
+          <div class="track-info-value" style="color:#8b7355;font-size:16px;">
+            ${new Intl.NumberFormat('es-MX', { style:'currency', currency:'MXN' }).format(item.total)}
+          </div>
         </div>`;
     }
+
     if (data.cita) {
       if (item.fecha_cita) infoItems += `
         <div class="track-info-item">
@@ -424,33 +535,36 @@ async function trackOrder() {
       if (item.rango_horario) infoItems += `
         <div class="track-info-item">
           <div class="track-info-label">Horario</div>
-          <div class="track-info-value">${item.rango_horario}</div>
+          <div class="track-info-value">${escapeHtml(item.rango_horario)}</div>
         </div>`;
-      const tipoLabels = { medicion:'Medición 📐', instalacion:'Instalación 🔧', otro:'Otro' };
+      const tipoLabels = { medicion:'Medición', instalacion:'Instalación', otro:'Otro' };
       infoItems += `
         <div class="track-info-item">
           <div class="track-info-label">Tipo</div>
-          <div class="track-info-value">${tipoLabels[item.tipo]||item.tipo||'—'}</div>
+          <div class="track-info-value">${tipoLabels[item.tipo] || escapeHtml(item.tipo) || '—'}</div>
         </div>`;
     }
+
     if (data.cotizacion) {
       if (item.tipo_mueble) infoItems += `
         <div class="track-info-item">
           <div class="track-info-label">Tipo de mueble</div>
-          <div class="track-info-value">${item.tipo_mueble}</div>
+          <div class="track-info-value">${escapeHtml(item.tipo_mueble)}</div>
         </div>`;
     }
 
+    // Mostrar resultado
     if (resultBox) {
-      resultBox.style.display = 'block';
       resultBox.innerHTML = `
         <div class="track-result-card">
           <div class="track-result-header">
             <div>
               <div class="track-tipo">${tipo}</div>
-              <div class="track-folio">${folio}</div>
+              <div class="track-folio">${escapeHtml(folio)}</div>
             </div>
-            <span class="track-status-badge" style="background:${color}30;color:${color};border:1px solid ${color}50;">${label}</span>
+            <span class="track-status-badge" style="background:${color}30;color:${color};border:1px solid ${color}50;">
+              ${escapeHtml(label)}
+            </span>
           </div>
           <div class="track-result-body">
             ${timelineHtml}
@@ -458,23 +572,29 @@ async function trackOrder() {
           </div>
           <div class="track-result-footer">
             <i class="fa-solid fa-envelope"></i>
-            ¿Dudas? Escríbenos a <a href="mailto:soporte@muebleswh.com">soporte@muebleswh.com</a>
+            ¿Dudas? Escríbenos a <a href="mailto:ventas@muebleswh.com">ventas@muebleswh.com</a>
           </div>
         </div>`;
+      resultBox.style.display = 'block';
       resultBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
+
   } catch (err) {
-    if (resultBox) resultBox.innerHTML = '';
-    showAlert('Error al consultar. Por favor intenta más tarde.', 'error');
+    console.error('[seguimiento]', err);
+    if (resultBox) { resultBox.innerHTML = ''; resultBox.style.display = 'none'; }
+    showAlert(err.message || 'Error al consultar. Por favor intenta más tarde.', 'error');
   } finally {
-    if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-search"></i> Buscar'; }
+    if (btn) {
+      btn.disabled  = false;
+      btn.innerHTML = '<i class="fa-solid fa-search"></i> Buscar';
+    }
   }
 }
 
-// ── Mostrar/Ocultar campo medidas ─────────────────
+// ── Mostrar/ocultar campo medidas ─────────────────────────────────
 function initMedidasField() {
-  const sel    = document.getElementById('tieneMedidas');
-  const campo  = document.getElementById('medidasField');
+  const sel   = document.getElementById('tieneMedidas');
+  const campo = document.getElementById('medidasField');
   if (!sel || !campo) return;
   campo.style.display = 'none';
   sel.addEventListener('change', (e) => {
@@ -485,7 +605,7 @@ function initMedidasField() {
   });
 }
 
-// ── Fecha mínima para cita (mañana) ──────────────
+// ── Fecha mínima cita: mañana ─────────────────────────────────────
 function setMinDate() {
   const fechaCita = document.getElementById('fechaCita');
   if (!fechaCita) return;
@@ -494,19 +614,14 @@ function setMinDate() {
   fechaCita.min = tomorrow.toISOString().split('T')[0];
 }
 
-// ── Alertas ───────────────────────────────────────
+// ── Alertas ───────────────────────────────────────────────────────
 function showAlert(message, type = 'info') {
   const alertDiv = document.getElementById('alertMessage');
-
   if (alertDiv) {
-    // Remover clases anteriores y aplicar la nueva
-    alertDiv.className = 'alert';
-    alertDiv.classList.add(type); // .alert.success / .alert.error / .alert.warning
-    alertDiv.classList.add('show');
-    alertDiv.style.display = 'block'; // asegurar visibilidad
+    alertDiv.className = 'alert ' + type + ' show';
+    alertDiv.style.display = 'block';
     alertDiv.innerHTML = message;
     alertDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    // Auto-ocultar éxito y advertencias
     if (type === 'success' || type === 'warning') {
       setTimeout(() => {
         alertDiv.classList.remove('show');
@@ -515,70 +630,123 @@ function showAlert(message, type = 'info') {
     }
     return;
   }
-
-  // Fallback: toast flotante
-  const colors = { success: '#27ae60', error: '#e74c3c', info: '#8b7355', warning: '#f39c12' };
-  const bg = colors[type] || colors.info;
+  // Fallback: toast
+  const colors = { success:'#27ae60', error:'#e74c3c', info:'#8b7355', warning:'#f39c12' };
   const toast = document.createElement('div');
   toast.innerHTML = message;
-  toast.style.cssText = [
-    'position:fixed', 'top:24px', 'right:24px', 'z-index:10000', 'padding:14px 22px',
-    `background:${bg}`, 'color:#fff', 'border-radius:10px', 'font-size:14px', 'font-weight:600',
-    'box-shadow:0 4px 20px rgba(0,0,0,.4)', 'max-width:380px', 'line-height:1.5',
-    'border-left:4px solid rgba(255,255,255,.4)'
-  ].join(';') + ';';
+  toast.style.cssText = `position:fixed;top:24px;right:24px;z-index:10000;padding:14px 22px;
+    background:${colors[type]||colors.info};color:#fff;border-radius:10px;font-size:14px;
+    font-weight:600;box-shadow:0 4px 20px rgba(0,0,0,.4);max-width:380px;line-height:1.5;
+    font-family:'Segoe UI',Tahoma,sans-serif;border-left:4px solid rgba(255,255,255,.4);`;
   document.body.appendChild(toast);
   setTimeout(() => toast.remove(), 6000);
 }
 
-// ── Validaciones y sanitización ───────────────────
+// =====================================================
+// SANITIZACIÓN Y VALIDACIÓN — aplica a TODOS los campos
+// =====================================================
 
-/** Sanitiza texto plano: elimina HTML y caracteres de inyección, permite letras, números, espacios, acentos y puntuación básica */
-function sanitizeText(val, maxLen = 300) {
-  if (typeof val !== 'string') return '';
-  return val
-    .replace(/<[^>]*>/g, '')                          // quitar etiquetas HTML
-    .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '')  // quitar chars de control
-    .replace(/['";`\\]/g, '')                           // quitar chars SQL peligrosos
-    .substring(0, maxLen)
-    .trim();
-}
-
-/** Sanitiza nombre: solo letras, números, espacios y acentos */
+/**
+ * Nombre: letras, números, espacios, acentos, puntuación básica.
+ * Bloquea: HTML, SQL injection, scripts.
+ */
 function sanitizeName(val, maxLen = 100) {
   if (typeof val !== 'string') return '';
   return val
-    .replace(/<[^>]*>/g, '')
-    .replace(/[^a-zA-ZáéíóúüñÁÉÍÓÚÜÑ0-9 .,'\-]/g, '')
+    .replace(/<[^>]*>/g, '')                            // quitar etiquetas HTML
+    .replace(/[^a-zA-ZáéíóúüñÁÉÍÓÚÜÑ0-9 .,'\-]/g, '') // solo caracteres válidos en nombres
     .substring(0, maxLen)
     .trim();
 }
 
-/** Sanitiza teléfono: solo números, espacios, +, -, () */
-function sanitizePhone(val) {
+/**
+ * Correo electrónico: normalizar y validar.
+ * No se eliminan caracteres especiales legítimos del email (@, ., +, -, _).
+ * Se elimina todo lo que no es parte de un email válido.
+ */
+function sanitizeEmail(val) {
   if (typeof val !== 'string') return '';
-  return val.replace(/[^0-9\s+\-().]/g, '').substring(0, 20).trim();
+  return val
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9._%+\-@]/g, '') // solo caracteres válidos en emails
+    .substring(0, 150);
 }
 
-/** Sanitiza texto largo (descripción): permite más caracteres pero bloquea inyección */
+/**
+ * Teléfono: solo números, espacios, +, -, paréntesis.
+ */
+function sanitizePhone(val) {
+  if (typeof val !== 'string') return '';
+  return val
+    .replace(/[^0-9\s+\-().]/g, '')
+    .substring(0, 20)
+    .trim();
+}
+
+/**
+ * Texto general (campo corto): bloquea HTML, control chars y caracteres SQL peligrosos.
+ * Permite puntuación normal, letras, números, acentos.
+ */
+function sanitizeText(val, maxLen = 300) {
+  if (typeof val !== 'string') return '';
+  return val
+    .replace(/<[^>]*>/g, '')                                    // quitar tags HTML
+    .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '')         // chars de control
+    .replace(/['";`\\]/g, '')                                   // chars SQL peligrosos
+    .substring(0, maxLen)
+    .trim();
+}
+
+/**
+ * Descripción / texto largo: permite más caracteres pero bloquea inyección.
+ * Conserva saltos de línea, comas, puntos, etc. — necesarios en descripciones.
+ */
 function sanitizeDescription(val, maxLen = 1000) {
   if (typeof val !== 'string') return '';
   return val
-    .replace(/<[^>]*>/g, '')
-    .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '')
-    .replace(/['";`]/g, (c) => c === "'" ? "'" : '')  // quitar solo peligrosos SQL
+    .replace(/<[^>]*>/g, '')                            // quitar tags HTML
+    .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '') // chars de control
+    .replace(/[`\\]/g, '')                              // backtick y backslash (peligrosos en SQL)
+    .replace(/;\s*(?:DROP|DELETE|INSERT|UPDATE|SELECT|CREATE|ALTER|EXEC)\b/gi, '') // bloquear SQL keywords en contexto de inyección
     .substring(0, maxLen)
     .trim();
 }
 
+/**
+ * Valida correo: formato RFC básico, sin SQL chars.
+ */
 function isValidEmail(email) {
-  // RFC 5322 simple + no SQL chars
-  return /^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$/.test(email.trim());
+  if (typeof email !== 'string') return false;
+  const clean = email.trim().toLowerCase();
+  // Verificar que no tiene caracteres SQL peligrosos
+  if (/['";`\\]/.test(clean)) return false;
+  // Formato básico: algo@algo.algo
+  return /^[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,}$/.test(clean);
 }
 
+/**
+ * Valida teléfono: mínimo 10 dígitos.
+ */
 function isValidPhone(phone) {
-  return phone.replace(/\D/g,'').length >= 10;
+  if (typeof phone !== 'string') return false;
+  return phone.replace(/\D/g, '').length >= 10;
 }
 
-window.selectTime  = selectTime;
-window.trackOrder  = trackOrder;
+/**
+ * Escapa HTML para insertar texto en el DOM de forma segura.
+ */
+function escapeHtml(str) {
+  if (typeof str !== 'string') return '';
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+// Exponer funciones globales requeridas por el HTML
+window.selectTime           = selectTime;
+window.trackOrder           = trackOrder;
+window.cargarSlotsDisponibles = cargarSlotsDisponibles;

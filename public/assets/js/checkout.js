@@ -9,6 +9,61 @@ const estado = {
 
 const FORM_KEY = 'wh_checkout_form';
 
+// ── Sanitización de campos de usuario ────────────────────────────
+/** Escapa HTML — inserta texto en DOM de forma segura */
+function escHtml(str) {
+  return String(str ?? '')
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+/** Nombre: solo letras, números, acentos y puntuación básica */
+function sanitizeName(val, max = 150) {
+  if (typeof val !== 'string') return '';
+  return val
+    .replace(/<[^>]*>/g, '')
+    .replace(/[^a-zA-ZáéíóúüñÁÉÍÓÚÜÑ0-9 .,'\-]/g, '')
+    .substring(0, max).trim();
+}
+
+/** Email: solo caracteres válidos de RFC, sin SQL injection */
+function sanitizeEmail(val) {
+  if (typeof val !== 'string') return '';
+  return val.trim().toLowerCase()
+    .replace(/[^a-z0-9._%+\-@]/g, '')
+    .substring(0, 150);
+}
+
+/** Teléfono: solo dígitos, espacios y separadores */
+function sanitizePhone(val) {
+  if (typeof val !== 'string') return '';
+  return val.replace(/[^0-9\s+\-().]/g, '').substring(0, 20).trim();
+}
+
+/** Texto general: bloquea HTML y caracteres SQL peligrosos */
+function sanitizeText(val, max = 300) {
+  if (typeof val !== 'string') return '';
+  return val
+    .replace(/<[^>]*>/g, '')
+    .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '')
+    .replace(/['";`\\]/g, '')
+    .substring(0, max).trim();
+}
+
+/** Código postal: solo dígitos */
+function sanitizeCP(val) {
+  if (typeof val !== 'string') return '';
+  return val.replace(/\D/g, '').substring(0, 6);
+}
+
+/** Email válido: formato RFC básico + sin SQL chars */
+function isEmailValido(email) {
+  if (typeof email !== 'string') return false;
+  const clean = email.trim().toLowerCase();
+  if (/['";`\\]/.test(clean)) return false;
+  return /^[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,}$/.test(clean);
+}
+
 // ── Init ──────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
     cargarItemsCarrito();
@@ -26,6 +81,9 @@ document.addEventListener('DOMContentLoaded', () => {
             if (el) { el.addEventListener('input', guardarFormulario); el.addEventListener('change', guardarFormulario); }
         });
 
+    // Validación visual en tiempo real
+    initValidacionCampos();
+
     const cpInput = document.getElementById('clienteCP');
     if (cpInput) {
         let debounceTimer;
@@ -36,16 +94,98 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
+
+// ── Validación visual en tiempo real ─────────────────────────────
+function initValidacionCampos() {
+    // Nombre: bloquear caracteres peligrosos mientras escribe
+    const nombre = document.getElementById('clienteNombre');
+    if (nombre) {
+        nombre.addEventListener('input', function () {
+            this.value = this.value.replace(/[<>"'`;\\]/g, '');
+        });
+    }
+
+    // Teléfono: solo caracteres válidos
+    const tel = document.getElementById('clienteTelefono');
+    if (tel) {
+        tel.addEventListener('input', function () {
+            this.value = this.value.replace(/[^0-9\s+\-().]/g, '');
+        });
+        tel.addEventListener('blur', function () {
+            const val = this.value.trim();
+            if (val && !isValidPhone(val)) {
+                this.style.borderColor = '#8b4a4a';
+                mostrarErrorCampo(this, 'Mínimo 10 dígitos');
+            } else if (val) {
+                this.style.borderColor = '#3d6b47';
+                limpiarErrorCampo(this);
+            }
+        });
+        tel.addEventListener('input', function () { limpiarErrorCampo(this); this.style.borderColor = ''; });
+    }
+
+    // Email: validar al salir del campo
+    const correo = document.getElementById('clienteCorreo');
+    if (correo) {
+        correo.addEventListener('blur', function () {
+            const val = this.value.trim();
+            if (val && !isEmailValido(sanitizeEmail(val))) {
+                this.style.borderColor = '#8b4a4a';
+                mostrarErrorCampo(this, 'Correo inválido. Ej: nombre@dominio.com');
+            } else if (val) {
+                this.style.borderColor = '#3d6b47';
+                limpiarErrorCampo(this);
+            }
+        });
+        correo.addEventListener('input', function () { limpiarErrorCampo(this); this.style.borderColor = ''; });
+    }
+
+    // Dirección y ciudad: bloquear inyección
+    ['clienteDireccion','clienteCiudad'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.addEventListener('input', function () {
+            this.value = this.value.replace(/[<>"'`;\\]/g, '');
+        });
+    });
+
+    // CP: solo dígitos
+    const cp = document.getElementById('clienteCP');
+    if (cp) cp.addEventListener('input', function () {
+        this.value = this.value.replace(/\D/g, '').substring(0, 6);
+    });
+
+    // Notas: bloquear tags HTML
+    const notas = document.getElementById('clienteNotas');
+    if (notas) notas.addEventListener('input', function () {
+        this.value = this.value.replace(/<[^>]*>/g, '').replace(/[`\\]/g, '');
+    });
+}
+
+function mostrarErrorCampo(input, msg) {
+    limpiarErrorCampo(input);
+    const err = document.createElement('div');
+    err.className = 'field-error-checkout';
+    err.style.cssText = 'color:#e74c3c;font-size:12px;margin-top:4px;font-weight:500;';
+    err.textContent = msg;
+    input.parentNode.appendChild(err);
+}
+
+function limpiarErrorCampo(input) {
+    const prev = input.parentNode?.querySelector('.field-error-checkout');
+    if (prev) prev.remove();
+}
+
 // ── Persistencia del formulario ───────────────────────────────────
 function guardarFormulario() {
+    // Guardar datos ya sanitizados en localStorage para prevenir XSS almacenado
     const datos = {
-        nombre:    document.getElementById('clienteNombre')?.value    || '',
-        telefono:  document.getElementById('clienteTelefono')?.value  || '',
-        correo:    document.getElementById('clienteCorreo')?.value    || '',
-        direccion: document.getElementById('clienteDireccion')?.value || '',
-        ciudad:    document.getElementById('clienteCiudad')?.value    || '',
-        cp:        document.getElementById('clienteCP')?.value        || '',
-        notas:     document.getElementById('clienteNotas')?.value     || '',
+        nombre:      sanitizeName(document.getElementById('clienteNombre')?.value    || ''),
+        telefono:    sanitizePhone(document.getElementById('clienteTelefono')?.value  || ''),
+        correo:      sanitizeEmail(document.getElementById('clienteCorreo')?.value    || ''),
+        direccion:   sanitizeText(document.getElementById('clienteDireccion')?.value || '', 250),
+        ciudad:      sanitizeText(document.getElementById('clienteCiudad')?.value    || '', 100),
+        cp:          sanitizeCP(document.getElementById('clienteCP')?.value           || ''),
+        notas:       sanitizeText(document.getElementById('clienteNotas')?.value      || '', 500),
         tipoEntrega: estado.tipoEntrega,
         instalacion: estado.instalacion,
     };
@@ -393,26 +533,32 @@ function procederAlPago() {
     if (estado.items.length === 0)   { showToast('Tu carrito está vacío', 'error'); return; }
     if (!estado.semana)              { showToast('Por favor selecciona una fecha de entrega', 'error'); document.getElementById('semanasGrid')?.scrollIntoView({ behavior:'smooth', block:'center' }); return; }
 
-    const nombre   = document.getElementById('clienteNombre')?.value.trim();
-    const telefono = document.getElementById('clienteTelefono')?.value.trim();
-    const correo   = document.getElementById('clienteCorreo')?.value.trim();
+    // Leer y sanitizar TODOS los campos antes de validar
+    const nombre   = sanitizeName(document.getElementById('clienteNombre')?.value    || '');
+    const telefono = sanitizePhone(document.getElementById('clienteTelefono')?.value  || '');
+    const correo   = sanitizeEmail(document.getElementById('clienteCorreo')?.value    || '');
 
-    if (!nombre   || nombre.length < 3)                 { showToast('Ingresa tu nombre completo', 'error');            document.getElementById('clienteNombre')?.focus();    return; }
-    if (!telefono || telefono.replace(/\D/g,'').length < 10) { showToast('Ingresa un teléfono válido (10 dígitos)', 'error'); document.getElementById('clienteTelefono')?.focus(); return; }
-    if (!correo   || !correo.includes('@'))              { showToast('Ingresa un correo electrónico válido', 'error');  document.getElementById('clienteCorreo')?.focus();    return; }
+    if (!nombre   || nombre.length < 3)      { showToast('Ingresa tu nombre completo (mínimo 3 caracteres)', 'error'); document.getElementById('clienteNombre')?.focus();    return; }
+    if (!telefono || !isValidPhone(telefono)) { showToast('Ingresa un teléfono válido de 10 dígitos', 'error');         document.getElementById('clienteTelefono')?.focus(); return; }
+    if (!correo   || !isEmailValido(correo))  { showToast('Ingresa un correo electrónico válido (ej: nombre@dominio.com)', 'error'); document.getElementById('clienteCorreo')?.focus(); return; }
 
     if (estado.tipoEntrega === 'envio') {
-        const dir = document.getElementById('clienteDireccion')?.value.trim();
-        const ciu = document.getElementById('clienteCiudad')?.value.trim();
-        const cp  = document.getElementById('clienteCP')?.value.trim();
-        if (!dir)           { showToast('Ingresa la dirección de entrega', 'error'); document.getElementById('clienteDireccion')?.focus(); return; }
-        if (!ciu)           { showToast('Ingresa la ciudad', 'error');               document.getElementById('clienteCiudad')?.focus();    return; }
-        if (!cp || cp.length < 4) { showToast('Ingresa el código postal', 'error'); document.getElementById('clienteCP')?.focus();        return; }
+        const dir = sanitizeText(document.getElementById('clienteDireccion')?.value || '', 250);
+        const ciu = sanitizeText(document.getElementById('clienteCiudad')?.value    || '', 100);
+        const cp  = sanitizeCP(document.getElementById('clienteCP')?.value           || '');
+        if (!dir)       { showToast('Ingresa la dirección de entrega',  'error'); document.getElementById('clienteDireccion')?.focus(); return; }
+        if (!ciu)       { showToast('Ingresa la ciudad',                'error'); document.getElementById('clienteCiudad')?.focus();    return; }
+        if (cp.length < 4) { showToast('Ingresa el código postal',     'error'); document.getElementById('clienteCP')?.focus();        return; }
     }
 
     const subtotal   = estado.items.reduce((s, i) => s + i.precio * i.cantidad, 0);
     const costoEnvio = estado.tipoEntrega === 'envio' ? estado.costos.envio : 0;
-    const costoInst  = estado.instalacion ? estado.costos.instalacion : 0;
+    const totalMuebles = estado.items.reduce((s, i) => s + i.cantidad, 0);
+    const costoInst  = estado.instalacion ? estado.costos.instalacion * totalMuebles : 0;
+
+    const dirEnvio = estado.tipoEntrega === 'envio'
+        ? sanitizeText(`${document.getElementById('clienteDireccion')?.value.trim()}, ${document.getElementById('clienteCiudad')?.value.trim()}, Jal. CP ${document.getElementById('clienteCP')?.value.trim()}`, 400)
+        : null;
 
     const payload = {
         items:               estado.items,
@@ -423,12 +569,10 @@ function procederAlPago() {
         incluye_instalacion: estado.instalacion ? 1 : 0,
         fecha_estimada:      estado.semana.fecha_sugerida,
         semana_etiqueta:     estado.semana.etiqueta,
-        direccion_envio:     estado.tipoEntrega === 'envio'
-            ? `${document.getElementById('clienteDireccion')?.value.trim()}, ${document.getElementById('clienteCiudad')?.value.trim()}, Jal. CP ${document.getElementById('clienteCP')?.value.trim()}`
-            : null,
-        cp_envio:     estado.tipoEntrega === 'envio' ? (document.getElementById('clienteCP')?.value.trim()    || '') : '',
-        ciudad_envio: estado.tipoEntrega === 'envio' ? (document.getElementById('clienteCiudad')?.value.trim() || '') : '',
-        notas:        document.getElementById('clienteNotas')?.value.trim() || null,
+        direccion_envio:     dirEnvio,
+        cp_envio:     estado.tipoEntrega === 'envio' ? sanitizeCP(document.getElementById('clienteCP')?.value    || '') : '',
+        ciudad_envio: estado.tipoEntrega === 'envio' ? sanitizeText(document.getElementById('clienteCiudad')?.value || '', 100) : '',
+        notas:        sanitizeText(document.getElementById('clienteNotas')?.value || '', 500) || null,
         subtotal, costo_envio: costoEnvio, costo_instalacion: costoInst,
         total: subtotal + costoEnvio + costoInst,
     };

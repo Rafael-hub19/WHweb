@@ -21,7 +21,9 @@ document.addEventListener('DOMContentLoaded', () => {
 function cargarCarrito() {
   try {
     const raw = sessionStorage.getItem('wh_carrito');
-    carritoItems = raw ? JSON.parse(raw) : [];
+    const parsed = raw ? JSON.parse(raw) : [];
+    // Sanitizar cada item al cargar — previene XSS almacenado en sessionStorage
+    carritoItems = Array.isArray(parsed) ? parsed.map(sanitizarItem) : [];
   } catch { carritoItems = []; }
 }
 
@@ -32,6 +34,46 @@ function guardarCarrito() {
       updateCartBadge(carritoItems.reduce((t, i) => t + i.cantidad, 0));
     }
   } catch { /* silent */ }
+}
+
+// ── Sanitización ──────────────────────────────────────────────────
+/** Escapa HTML para insertar texto en el DOM de forma segura */
+function esc(str) {
+  return String(str ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+/** Sanitiza un item del carrito al cargarlo — previene XSS almacenado en sessionStorage */
+function sanitizarItem(item) {
+  const precio   = parseFloat(item.precio);
+  const cantidad = parseInt(item.cantidad);
+  const id       = parseInt(item.id);
+  return {
+    id:       isNaN(id)       ? 0 : id,
+    nombre:   String(item.nombre   ?? 'Producto').replace(/<[^>]*>/g, '').substring(0, 150).trim(),
+    precio:   isNaN(precio)   ? 0 : Math.max(0, precio),
+    cantidad: isNaN(cantidad) ? 1 : Math.min(Math.max(1, cantidad), 99),
+    imagen:   sanitizarUrl(item.imagen),
+    categoria: String(item.categoria ?? '').replace(/<[^>]*>/g, '').substring(0, 80).trim(),
+    material:  String(item.material  ?? '').replace(/<[^>]*>/g, '').substring(0, 80).trim(),
+  };
+}
+
+/** Permite solo rutas relativas seguras; rechaza javascript:, data:, etc. */
+function sanitizarUrl(url) {
+  if (!url || typeof url !== 'string') return '';
+  const limpia = url.trim();
+  if (/^(javascript|data|vbscript):/i.test(limpia)) return '';
+  if (limpia.startsWith('/') || limpia.startsWith('./')) return limpia;
+  try {
+    const parsed = new URL(limpia);
+    if (parsed.origin === window.location.origin) return limpia;
+  } catch { /* URL inválida */ }
+  return '';
 }
 
 // ── Render ────────────────────────────────────────────────────────
@@ -61,11 +103,11 @@ function renderizarCarrito() {
     <div class="carrito-item" data-producto-id="${item.id}">
       <div class="item-imagen">
         ${item.imagen
-          ? `<img src="${item.imagen}" alt="${item.nombre}">`
+          ? `<img src="${item.imagen}" alt="${esc(item.nombre)}">`
           : '<div class="placeholder-imagen"><i class="fa-solid fa-box"></i></div>'}
       </div>
       <div class="item-info">
-        <h3>${item.nombre}</h3>
+        <h3>${esc(item.nombre)}</h3>
         <p class="item-precio">${formatCurrency(item.precio)} c/u</p>
       </div>
       <div class="item-cantidad">
@@ -151,12 +193,39 @@ function eliminarItem(productoId) {
 
 function confirmarVaciarCarrito() {
   if (carritoItems.length === 0) { showNotification('El carrito ya está vacío', 'info'); return; }
-  if (confirm('¿Vaciar el carrito? Esta acción no se puede deshacer.')) {
+  if (confirm('¿Vaciar el carrito? Se eliminarán los productos y los datos del formulario.')) {
     carritoItems = [];
-    guardarCarrito();
+
+    // Limpiar sessionStorage
+    sessionStorage.removeItem('wh_carrito');
     sessionStorage.removeItem('wh_checkout');
-    renderizarCarrito(); actualizarResumen();
-    showNotification('<i class="fa-solid fa-trash"></i> Carrito vaciado', 'success');
+
+    // Limpiar localStorage (formulario de contacto y opciones de entrega)
+    ['wh_checkout_form', 'wh_delivery', 'wh_cliente', 'wh_descuento'].forEach(k => localStorage.removeItem(k));
+
+    // Limpiar campos del formulario de contacto si están presentes en el DOM
+    ['clienteNombre','clienteTelefono','clienteCorreo',
+     'clienteDireccion','clienteCiudad','clienteCP','clienteNotas']
+      .forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+
+    // Resetear selección de fecha
+    const semanaSelec = document.getElementById('semanaSeleccionada');
+    const fechaSuger  = document.getElementById('fechaSugerida');
+    const fechaBox    = document.getElementById('fechaResumenBox');
+    if (semanaSelec) semanaSelec.value = '';
+    if (fechaSuger)  fechaSuger.value  = '';
+    if (fechaBox)    fechaBox.style.display = 'none';
+    document.querySelectorAll('.semana-card.seleccionada, .dia-card.seleccionada')
+      .forEach(c => c.classList.remove('seleccionada'));
+
+    // Resetear opciones visuales de entrega e instalación a su estado por defecto
+    if (typeof seleccionarEntrega    === 'function') seleccionarEntrega('recoger', false);
+    if (typeof seleccionarInstalacion === 'function') seleccionarInstalacion(false);
+
+    guardarCarrito();
+    renderizarCarrito();
+    actualizarResumen();
+    showNotification('<i class="fa-solid fa-trash"></i> Carrito y datos vaciados', 'success');
   }
 }
 
