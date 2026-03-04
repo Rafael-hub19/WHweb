@@ -70,7 +70,11 @@ loginForm?.addEventListener('submit', async (e) => {
     const res = await fetch('/api/auth.php?action=login', {
       method:  'POST',
       headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify({ firebase_token: idToken }),
+      body:    JSON.stringify({
+        firebase_token: idToken,
+        _hp:     document.querySelector('[name="_hp"]')?.value     || '',
+        website: document.querySelector('[name="website"]')?.value || '',
+      }),
     });
 
     const contentType = res.headers.get('content-type') || '';

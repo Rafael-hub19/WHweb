@@ -191,6 +191,7 @@ CREATE TABLE pedidos (
     NOT NULL DEFAULT 'pendiente',
 
   notas VARCHAR(255) NULL,
+  notificacion_enviada TINYINT(1) NOT NULL DEFAULT 0,  -- Evita enviar emails duplicados
 
   fecha_creacion TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   fecha_actualizacion TIMESTAMP NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,

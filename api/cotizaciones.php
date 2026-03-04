@@ -59,7 +59,7 @@ switch ($method) {
         // Email: formato estricto + sin caracteres SQL
         $emailCot = strtolower(trim($body['correo_cliente']));
         if (!isValidEmail($emailCot)) jsonError('Correo electrónico inválido', 422);
-        if (preg_match("/['\";`\\\\]/", $emailCot)) jsonError('Correo electrónico contiene caracteres no permitidos', 422);
+        if (strpbrk($emailCot, "'\"`;\\\n\r") !== false) jsonError('Correo electrónico contiene caracteres no permitidos', 422);
 
         // Teléfono
         if (!isValidPhone($body['telefono_cliente'])) jsonError('Teléfono inválido (mínimo 10 dígitos)', 422);

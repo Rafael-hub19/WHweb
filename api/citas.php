@@ -64,9 +64,19 @@ switch ($method) {
             jsonSuccess(['numero_cita' => 'CIT-' . date('Y') . '-000000', 'mensaje' => 'Agendado']);
         }
 
-        if (!isValidEmail($body['correo_cliente'])) jsonError('correo_cliente inválido', 422);
-        if (!isValidPhone($body['telefono_cliente'])) jsonError('telefono_cliente inválido', 422);
-        if (mb_strlen($body['nombre_cliente']) > 150) jsonError('nombre_cliente demasiado largo', 422);
+        // ── Validaciones de formato (TODOS los campos) ────────────
+        // Email: formato estricto + sin SQL chars
+        $emailCita = strtolower(trim($body['correo_cliente']));
+        if (!isValidEmail($emailCita)) jsonError('Correo electrónico inválido', 422);
+        if (strpbrk($emailCita, "'\"`;\\\n\r") !== false) jsonError('Correo electrónico contiene caracteres no permitidos', 422);
+
+        // Teléfono
+        if (!isValidPhone($body['telefono_cliente'])) jsonError('Teléfono inválido (mínimo 10 dígitos)', 422);
+
+        // Longitudes máximas
+        if (mb_strlen($body['nombre_cliente']) > 150) jsonError('Nombre demasiado largo', 422);
+        if (mb_strlen($body['direccion'] ?? '') > 250) jsonError('Dirección demasiado larga', 422);
+        if (mb_strlen($body['notas']     ?? '') > 600) jsonError('Notas demasiado largas', 422);
         $tiposValidos = ['medicion', 'instalacion', 'otro'];
         if (!in_array($body['tipo'], $tiposValidos)) jsonError('tipo inválido. Usa: medicion, instalacion, otro', 422);
 
@@ -80,12 +90,13 @@ switch ($method) {
         $citaId = dbInsert('citas', [
             'numero_cita'      => $numeroCita,
             'nombre_cliente'   => sanitize($body['nombre_cliente']),
-            'correo_cliente'   => strtolower(trim($body['correo_cliente'])),
+            'correo_cliente'   => $emailCita,
             'telefono_cliente' => sanitize($body['telefono_cliente']),
             'direccion'        => sanitize($body['direccion'] ?? '') ?: 'Sin especificar',
             'fecha_cita'       => $fechaCita,
             'rango_horario'    => sanitize($body['rango_horario'] ?? 'Por confirmar'),
             'tipo'             => $body['tipo'],
+            'notas'            => sanitize($body['notas'] ?? ''),
             'estado'           => 'nueva',
         ]);
 

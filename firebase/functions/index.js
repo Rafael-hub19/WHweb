@@ -19,31 +19,46 @@ const db = getFirestore();
 
 const SECRETS = [
   'BREVO_API_KEY',
-  'EMAIL_PEDIDOS', 'EMAIL_VENTAS', 'EMAIL_SOPORTE', 'ADMIN_EMAIL',
+  'EMAIL_PEDIDOS', 'EMAIL_CITAS', 'EMAIL_COTIZACIONES', 'EMAIL_VENTAS', 'ADMIN_EMAIL',
+  'APP_URL',
 ];
 
 function getEmails() {
   return {
-    pedidos: process.env.EMAIL_PEDIDOS || 'pedidos@muebleswh.com',
-    ventas:  process.env.EMAIL_VENTAS  || 'ventas@muebleswh.com',
-    soporte: process.env.EMAIL_SOPORTE || 'soporte@muebleswh.com',
-    admin:   process.env.ADMIN_EMAIL   || 'woodenhouse250@gmail.com',
+    pedidos:       process.env.EMAIL_PEDIDOS       || 'pedidos@muebleswh.com',
+    citas:         process.env.EMAIL_CITAS         || 'citas@muebleswh.com',
+    cotizaciones:  process.env.EMAIL_COTIZACIONES  || 'cotizaciones@muebleswh.com',
+    ventas:        process.env.EMAIL_VENTAS        || 'ventas@muebleswh.com',
+    admin:         process.env.ADMIN_EMAIL         || 'woodenhouse250@gmail.com',
   };
 }
 
+function getPanelUrl() {
+  const base = (process.env.APP_URL || 'https://muebleswh.com').replace(/\/$/, '');
+  return base + '/admin';
+}
+
 // ── Brevo HTTP API ────────────────────────────────────────────────
-function sendEmail({ from, fromName, to, subject, html, text }) {
+function sendEmail({ from, fromName, to, subject, html, text, replyTo, bcc }) {
   return new Promise((resolve, reject) => {
     const apiKey = process.env.BREVO_API_KEY;
     if (!apiKey) { reject(new Error('BREVO_API_KEY no configurado')); return; }
 
-    const body = JSON.stringify({
+    const payload = {
       sender:      { name: fromName, email: from },
       to:          [{ email: to }],
       subject,
       htmlContent: html,
       textContent: text || '',
-    });
+    };
+
+    // BCC: copia oculta al administrador (todos los correos llegan a la cuenta real)
+    if (bcc) payload.bcc = Array.isArray(bcc) ? bcc.map(e => ({ email: e })) : [{ email: bcc }];
+
+    // Reply-To: el cliente puede responder directamente al remitente correcto
+    if (replyTo) payload.replyTo = { email: replyTo };
+
+    const body = JSON.stringify(payload);
 
     const options = {
       hostname: 'api.brevo.com',
@@ -309,7 +324,7 @@ function emailAdminNuevoEvento(tipo, datos) {
   <p style="margin:4px 0;"><strong>Total:</strong> ${total}</p>
   <p style="margin:4px 0;"><strong>Entrega:</strong> ${datos.tipo_entrega || ''}</p>
 </div>
-<p><a href="https://muebleswh.com/admin" style="background:#8B6914;color:#fff;text-decoration:none;padding:12px 24px;border-radius:6px;display:inline-block;">Ver en el panel →</a></p>`;
+<p><a href="${getPanelUrl()}" style="background:#8B6914;color:#fff;text-decoration:none;padding:12px 24px;border-radius:6px;display:inline-block;">Ver en el panel →</a></p>`;
 
   } else if (tipo === 'cotizacion') {
     const folio   = datos.numero_cotizacion || '';
@@ -324,7 +339,7 @@ function emailAdminNuevoEvento(tipo, datos) {
   <p style="margin:4px 0;"><strong>Email:</strong> ${datos.correo_cliente || ''}</p>
   <p style="margin:4px 0;"><strong>Teléfono:</strong> ${datos.telefono_cliente || ''}</p>
 </div>
-<p><a href="https://muebleswh.com/admin" style="background:#8B6914;color:#fff;text-decoration:none;padding:12px 24px;border-radius:6px;display:inline-block;">Ver en el panel →</a></p>`;
+<p><a href="${getPanelUrl()}" style="background:#8B6914;color:#fff;text-decoration:none;padding:12px 24px;border-radius:6px;display:inline-block;">Ver en el panel →</a></p>`;
 
   } else if (tipo === 'cita') {
     const folio   = datos.numero_cita    || '';
@@ -341,7 +356,7 @@ function emailAdminNuevoEvento(tipo, datos) {
   <p style="margin:4px 0;"><strong>Fecha:</strong> ${fecha}</p>
   <p style="margin:4px 0;"><strong>Horario:</strong> ${hora}</p>
 </div>
-<p><a href="https://muebleswh.com/admin" style="background:#8B6914;color:#fff;text-decoration:none;padding:12px 24px;border-radius:6px;display:inline-block;">Ver en el panel →</a></p>`;
+<p><a href="${getPanelUrl()}" style="background:#8B6914;color:#fff;text-decoration:none;padding:12px 24px;border-radius:6px;display:inline-block;">Ver en el panel →</a></p>`;
 
   } else {
     return null;
@@ -375,6 +390,8 @@ exports.onNuevaNotificacion = onDocumentCreated(
         sendEmail({
           from: emails.pedidos, fromName: 'Wooden House Pedidos',
           to:      pedido.correo_cliente,
+          replyTo: emails.pedidos,
+          bcc:     emails.admin,
           subject: `Pedido confirmado – ${pedido.numero_pedido} | Wooden House`,
           html:    emailPedidoConfirmado(pedido),
           text:    `Pedido ${pedido.numero_pedido} confirmado. Total: $${pedido.total} MXN. Entrega: ${pedido.fecha_estimada || 'Por confirmar'}.`,
@@ -385,6 +402,7 @@ exports.onNuevaNotificacion = onDocumentCreated(
         sendEmail({
           from: emails.pedidos, fromName: 'Wooden House Sistema',
           to:      emails.admin,
+          replyTo: pedido.correo_cliente || emails.pedidos,
           subject: adminEmail.subject,
           html:    adminEmail.html,
           text:    `Nuevo pedido ${pedido.numero_pedido} de ${pedido.nombre_cliente}.`,
@@ -403,6 +421,8 @@ exports.onNuevaNotificacion = onDocumentCreated(
       await sendEmail({
         from: emails.pedidos, fromName: 'Wooden House Pedidos',
         to:      pedido.correo_cliente,
+        replyTo: emails.pedidos,
+        bcc:     emails.admin,
         subject: `Pedido ${pedido.numero_pedido} — ${pedido.estado} | Wooden House`,
         html:    emailEstadoPedido(pedido, pedido.estado_anterior || ''),
         text:    `El estado de tu pedido ${pedido.numero_pedido} cambió a: ${pedido.estado}.`,
@@ -422,8 +442,10 @@ exports.onNuevaNotificacion = onDocumentCreated(
       await Promise.allSettled([
         // Cliente
         sendEmail({
-          from: emails.ventas, fromName: 'Wooden House Ventas',
+          from: emails.cotizaciones, fromName: 'Wooden House Cotizaciones',
           to:      cot.correo_cliente,
+          replyTo: emails.cotizaciones,
+          bcc:     emails.admin,
           subject: `Cotización ${cot.numero_cotizacion} recibida | Wooden House`,
           html:    emailCotizacionRecibida(cot),
           text:    `Cotización ${cot.numero_cotizacion} recibida. Te contactaremos en 2-3 días hábiles.`,
@@ -432,8 +454,9 @@ exports.onNuevaNotificacion = onDocumentCreated(
 
         // Admin
         sendEmail({
-          from: emails.ventas, fromName: 'Wooden House Sistema',
+          from: emails.cotizaciones, fromName: 'Wooden House Sistema',
           to:      emails.admin,
+          replyTo: cot.correo_cliente || emails.cotizaciones,
           subject: adminEmail.subject,
           html:    adminEmail.html,
           text:    `Nueva cotización ${cot.numero_cotizacion} de ${cot.nombre_cliente}.`,
@@ -454,8 +477,10 @@ exports.onNuevaNotificacion = onDocumentCreated(
       await Promise.allSettled([
         // Cliente
         sendEmail({
-          from: emails.soporte, fromName: 'Wooden House Soporte',
+          from: emails.citas, fromName: 'Wooden House Citas',
           to:      cita.correo_cliente,
+          replyTo: emails.citas,
+          bcc:     emails.admin,
           subject: `Cita confirmada – ${cita.numero_cita} | Wooden House`,
           html:    emailCitaConfirmada(cita),
           text:    `Cita ${cita.numero_cita} confirmada para el ${cita.fecha_cita}.`,
@@ -464,8 +489,9 @@ exports.onNuevaNotificacion = onDocumentCreated(
 
         // Admin
         sendEmail({
-          from: emails.soporte, fromName: 'Wooden House Sistema',
+          from: emails.citas, fromName: 'Wooden House Sistema',
           to:      emails.admin,
+          replyTo: cita.correo_cliente || emails.citas,
           subject: adminEmail.subject,
           html:    adminEmail.html,
           text:    `Nueva cita ${cita.numero_cita} de ${cita.nombre_cliente} para ${cita.fecha_cita}.`,

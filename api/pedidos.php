@@ -102,8 +102,15 @@ switch ($method) {
         break;
 
     case 'POST':
+        checkRateLimit('pedidos_post', 10, 60); // max 10 pedidos/min por IP
         $body = getJsonBody();
         requireFields($body, ['nombre_cliente', 'correo_cliente', 'items']);
+
+        // ── ANTI-BOT: Honeypot ────────────────────────────────────
+        if (!empty($body['_hp']) || !empty($body['website']) || !empty($body['url'])) {
+            // Silently fake success — no revelar que fue detectado
+            jsonSuccess(['pedido_id' => 0, 'numero_pedido' => 'WH-' . date('Y') . '-000000', 'mensaje' => 'Pedido recibido']);
+        }
         if (!isValidEmail($body['correo_cliente'])) jsonError('correo_cliente inválido', 422);
         if (empty($body['items']) || !is_array($body['items'])) jsonError('items requerido', 422);
 
@@ -130,7 +137,12 @@ switch ($method) {
         }
 
         $costoEnvio       = $tipoEntrega === 'envio' ? COSTO_ENVIO : 0;
-        $costoInstalacion = !empty($body['incluye_instalacion']) ? COSTO_INSTALACION : 0;
+        // Instalación: COSTO_INSTALACION por mueble × cantidad total de muebles
+        // Coincide con la fórmula de checkout.js: costoInstUnit * totalMuebles
+        $totalMuebles     = array_sum(array_column($itemsData, 'cantidad'));
+        $costoInstalacion = !empty($body['incluye_instalacion'])
+            ? (COSTO_INSTALACION * $totalMuebles)
+            : 0;
         $descuento        = sanitizeFloat($body['descuento'] ?? 0);
         $total            = $subtotal + $costoEnvio + $costoInstalacion - $descuento;
 

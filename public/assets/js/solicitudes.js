@@ -188,6 +188,10 @@ function initFormCotizacion() {
       urgencia:              sanitizeText(fd.get('urgencia') || '', 50),
       referencia:            sanitizeText(fd.get('referencia') || '', 50),
       instalacion:           sanitizeText(fd.get('instalacion') || '', 30),
+      // Anti-bot honeypot fields (always empty for real users)
+      _hp:     fd.get('_hp')      || '',
+      website: fd.get('website')  || '',
+      url:     fd.get('url')      || '',
     };
 
     // Validaciones obligatorias
@@ -206,8 +210,10 @@ function initFormCotizacion() {
     if (!isValidPhone(datos.telefono_cliente)) {
       showAlert('El teléfono debe tener al menos 10 dígitos', 'error'); return;
     }
-    if (!datos.descripcion_solicitud) {
-      showAlert('Por favor describe tu proyecto', 'error'); return;
+    if (!datos.descripcion_solicitud || datos.descripcion_solicitud.length < 10) {
+      showAlert('Por favor describe tu proyecto con al menos 10 caracteres', 'error');
+      document.querySelector('[name="descripcion"]')?.focus();
+      return;
     }
 
     const btn = form.querySelector('button[type="submit"]');
@@ -270,6 +276,10 @@ function initFormCita() {
       rango_horario:    selectedTime,
       tipo:             'medicion',
       notas:            sanitizeDescription(fd.get('notas') || '', 500),
+      // Anti-bot honeypot fields
+      _hp:     fd.get('_hp')      || '',
+      website: fd.get('website')  || '',
+      url:     fd.get('url')      || '',
     };
 
     // Validaciones obligatorias

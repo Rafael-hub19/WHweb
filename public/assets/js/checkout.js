@@ -575,6 +575,10 @@ function procederAlPago() {
         notas:        sanitizeText(document.getElementById('clienteNotas')?.value || '', 500) || null,
         subtotal, costo_envio: costoEnvio, costo_instalacion: costoInst,
         total: subtotal + costoEnvio + costoInst,
+        // Anti-bot: honeypot — always empty for real users
+        _hp:     document.querySelector('[name="_hp"]')?.value      || '',
+        website: document.querySelector('[name="website"]')?.value  || '',
+        url:     document.querySelector('[name="url"]')?.value      || '',
     };
 
     sessionStorage.setItem('wh_checkout', JSON.stringify(payload));

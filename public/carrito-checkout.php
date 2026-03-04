@@ -160,6 +160,12 @@
             <div class="section-card">
                 <h3 class="section-title"><span class="section-icon"><i class="fa-solid fa-user"></i></span> Datos de contacto</h3>
                 <form id="formularioCliente" novalidate>
+                  <!-- Anti-bot honeypot: invisible para humanos, bots lo llenan -->
+                  <div style="position:absolute;left:-9999px;top:-9999px;opacity:0;height:0;overflow:hidden;" aria-hidden="true">
+                    <label>No llenar este campo <input type="text" name="website" tabindex="-1" autocomplete="off"></label>
+                    <label>URL <input type="text" name="url" tabindex="-1" autocomplete="off"></label>
+                    <input type="text" name="_hp" tabindex="-1" autocomplete="off">
+                  </div>
                     <div class="form-group">
                         <label>Nombre completo <span class="required">*</span></label>
                         <input type="text" id="clienteNombre" placeholder="Juan Pérez López" required>
@@ -249,7 +255,7 @@
 <div class="footer">
     <p>© 2026 Wooden House · Guadalajara, Jalisco</p>
     <p style="margin-top:8px;font-size:14px;">
-        <a href="mailto:contacto@woodenhouse.com.mx" style="color:#8b7355">contacto@woodenhouse.com.mx</a> |
+        <a href="mailto:ventas@muebleswh.com" style="color:#8b7355">ventas@muebleswh.com</a> |
         <a href="tel:3317054017" style="color:#8b7355">33 1705 4017</a>
     </p>
 </div>

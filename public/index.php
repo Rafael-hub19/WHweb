@@ -266,7 +266,7 @@
         <div class="contact-card">
           <div class="contact-icon"><i class="fa-solid fa-envelope"></i></div>
           <h4>Email</h4>
-          <p><a href="mailto:contacto@muebleswh.com">contacto@muebleswh.com</a></p>
+          <p><a href="mailto:ventas@muebleswh.com">ventas@muebleswh.com</a></p>
           <small>Respuesta en 24 hrs</small>
         </div>
         <div class="contact-card">
@@ -328,7 +328,7 @@
     <p>&copy; 2025 Wooden House. Todos los derechos reservados.</p>
     <p style="margin-top:10px;">Muebles de madera a medida en Guadalajara, Jalisco</p>
     <p style="margin-top:10px; font-size:14px;">
-      <a href="mailto:contacto@muebleswh.com" style="color:#8b7355; text-decoration:none;">contacto@muebleswh.com</a>
+      <a href="mailto:ventas@muebleswh.com" style="color:#8b7355; text-decoration:none;">ventas@muebleswh.com</a>
     </p>
   </div>
 

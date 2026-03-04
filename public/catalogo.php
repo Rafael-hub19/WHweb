@@ -73,7 +73,7 @@
     <p>&copy; 2026 Wooden House. Todos los derechos reservados.</p>
     <p style="margin-top:10px;">Muebles de madera a medida en Guadalajara, Jalisco</p>
     <p style="margin-top:10px; font-size:14px;">
-      <a href="mailto:contacto@woodenhouse.com" style="color:#8b7355;">contacto@woodenhouse.com</a> |
+      <a href="mailto:ventas@muebleswh.com" style="color:#8b7355;">ventas@muebleswh.com</a> |
       <a href="tel:3317054017" style="color:#8b7355;">33 1705 4017</a>
     </p>
   </div>

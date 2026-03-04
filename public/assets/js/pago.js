@@ -253,7 +253,7 @@ async function crearPedidoEnBD() {
     showError(msg);
     throw new Error(msg);
   }
-  if (!clienteData.correo || !clienteData.correo.includes('@')) {
+  if (!clienteData.correo || !isValidEmailPago(clienteData.correo)) {
     const msg = 'Por favor ingresa un correo electrónico válido en el carrito antes de pagar.';
     showError(msg);
     throw new Error(msg);
@@ -311,12 +311,14 @@ function initMetodosPago() {
 // ── Confirmación ──────────────────────────────────────────────────
 function irAConfirmacion() {
   const pedido = JSON.parse(localStorage.getItem('wh_pedido_creado') || 'null') || pedidoCreado;
+  // Limpiar TODO el storage — carrito, checkout, datos de formulario
   sessionStorage.removeItem('wh_checkout');
   sessionStorage.removeItem('wh_carrito');
   localStorage.removeItem('wh_delivery');
   localStorage.removeItem('wh_cliente');
   localStorage.removeItem('wh_descuento');
   localStorage.removeItem('wh_pedido_creado');
+  localStorage.removeItem('wh_checkout_form');
 
   if (pedido?.token_seguimiento) {
     window.location.href = `solicitudes.php?token=${pedido.token_seguimiento}&pedido=${pedido.numero_pedido}`;
@@ -351,6 +353,15 @@ function showError(msg, type = 'error') {
     globalErr.style.display = msg ? 'block' : 'none';
   }
   if (!errEl && !globalErr) alert(msg);
+}
+
+
+// ── Validación de email RFC (igual que solicitudes.js y checkout.js) ─
+function isValidEmailPago(email) {
+  if (typeof email !== 'string') return false;
+  const clean = email.trim().toLowerCase();
+  if (/['"`;\\]/.test(clean)) return false;
+  return /^[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,}$/.test(clean);
 }
 
 // ── Menú hamburguesa ─────────────────────────────────────────────

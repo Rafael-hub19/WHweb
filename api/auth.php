@@ -24,6 +24,11 @@ switch ($action) {
 
         $body = getJsonBody();
 
+        // ── ANTI-BOT: Honeypot ────────────────────────────────────
+        if (!empty($body['_hp']) || !empty($body['website'])) {
+            jsonError('Credenciales inválidas', 401);
+        }
+
         $firebaseToken = trim($body['firebase_token'] ?? '');
         if (empty($firebaseToken)) {
             jsonError('firebase_token requerido', 422);

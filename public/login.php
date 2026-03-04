@@ -42,6 +42,11 @@ if (!empty($_GET['logout']) || !empty($_SESSION['_just_logged_out'])) {
     <div id="alertBox" class="alert" style="display:none;"></div>
 
     <form id="loginForm" autocomplete="on">
+      <!-- Anti-bot honeypot -->
+      <div style="position:absolute;left:-9999px;top:-9999px;opacity:0;height:0;overflow:hidden;" aria-hidden="true">
+        <input type="text" name="_hp" tabindex="-1" autocomplete="off">
+        <input type="text" name="website" tabindex="-1" autocomplete="off">
+      </div>
       <div class="form-group">
         <label for="email">Correo Electrónico</label>
         <input id="email" name="email" type="email" placeholder="correo@woodenhouse.com" required autocomplete="username">
