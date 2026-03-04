@@ -72,7 +72,7 @@ try {
     // ── Cotización ────────────────────────────────────────────────
     if (preg_match('/^COT-\d{4,}-\d+$/i', $numero)) {
         $cot = dbRow(
-            "SELECT numero_cotizacion, nombre_cliente, tipo_mueble,
+            "SELECT numero_cotizacion, nombre_cliente, modelo_mueble,
                     descripcion_solicitud, estado, fecha_creacion
              FROM cotizaciones WHERE numero_cotizacion = ?",
             [$numero]

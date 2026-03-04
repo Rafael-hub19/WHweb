@@ -349,7 +349,7 @@ unset($_usuario);
                     <th>Folio</th>
                     <th>Cliente</th>
                     <th>Correo</th>
-                    <th>Tipo de Mueble</th>
+                    <th>Modelo de Mueble</th>
                     <th>Fecha</th>
                     <th>Estado</th>
                     <th>Acciones</th>

@@ -250,8 +250,8 @@ function emailCotizacionRecibida(cot) {
     'recamara':      'Mueble de recámara',
     'estudio':       'Mueble de estudio',
   };
-  const tipoRaw = cot.tipo_mueble || '';
-  const tipo    = tipoMap[tipoRaw] || tipoRaw || 'Mueble personalizado';
+  const modeloRaw = cot.modelo_mueble || '';
+  const tipo    = tipoMap[modeloRaw] || modeloRaw || 'Mueble personalizado';
 
   const contenido = `
 <h2 style="color:#8B6914;margin-top:0;">Cotización recibida ✓</h2>

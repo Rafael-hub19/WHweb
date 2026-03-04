@@ -6,8 +6,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Solicitudes - Wooden House</title>
   
+  <link rel="stylesheet" href="./assets/css/variables.css">
   <link rel="stylesheet" href="./assets/css/solicitudes.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <!-- Bootstrap 5 JS - Solo componentes interactivos (modales, dropdowns). CSS propio de Wooden House tiene prioridad -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous" defer></script>
 </head>
@@ -80,21 +81,21 @@
           <div class="form-grid">
             <div class="form-group full-width">
               <label>Nombre Completo <span class="required">*</span></label>
-              <input type="text" name="nombre" placeholder="Ej: Juan Pérez López" required maxlength="100" pattern="[a-zA-ZáéíóúüñÁÉÍÓÚÜÑ0-9 .,'\-]{2,100}">
+              <input type="text" name="nombre" placeholder="Ej: Juan Pérez López" required maxlength="100" autocomplete="name" spellcheck="false">
             </div>
             <div class="form-group">
               <label>Teléfono <span class="required">*</span></label>
-              <input type="tel" name="telefono" placeholder="33 1234 5678" required maxlength="20" pattern="[0-9 +\-().]{10,20}">
+              <input type="tel" name="telefono" placeholder="33 1234 5678" autocomplete="tel" required maxlength="20" >
               <div class="help-text">Usaremos este número para contactarte</div>
             </div>
             <div class="form-group">
               <label>Correo Electrónico <span class="required">*</span></label>
-              <input type="email" name="email" placeholder="correo@ejemplo.com" required maxlength="150">
+              <input type="email" name="email" placeholder="correo@ejemplo.com" autocomplete="email" required maxlength="150">
               <div class="help-text">Te enviaremos la cotización detallada aquí</div>
             </div>
             <div class="form-group full-width">
               <label>Ciudad o Zona</label>
-              <input type="text" name="ciudad" placeholder="Ej: Guadalajara, Zapopan, Tlaquepaque">
+              <input type="text" name="ciudad" placeholder="Ej: Guadalajara, Zapopan, Tlaquepaque" maxlength="100" autocomplete="address-level2">
               <div class="help-text">Opcional: Nos ayuda a calcular costos de envío/instalación</div>
             </div>
           </div>
@@ -104,8 +105,8 @@
           <h3 class="section-title"><i class="fa-solid fa-ruler-combined"></i> Especificaciones del Proyecto</h3>
           <div class="form-grid">
             <div class="form-group">
-              <label>Tipo de Mueble <span class="required">*</span></label>
-              <select name="tipoMueble" required>
+              <label>Modelo de Mueble <span class="required">*</span></label>
+              <select name="modeloMueble" required>
                 <option value="">Selecciona una opción</option>
                 <option value="baño">Modelo Sevilla</option>
                 <option value="baño">Modelo Roma</option>
@@ -129,13 +130,12 @@
               <select name="tieneMedidas" id="tieneMedidas">
                 <option value="si">Sí, tengo las medidas</option>
                 <option value="aproximadas">Tengo medidas aproximadas</option>
-                <option value="no">No tengo medidas aún</option>
               </select>
             </div>
 
             <div class="form-group full-width" id="medidasField">
               <label>Medidas del Mueble</label>
-              <input type="text" name="medidas" placeholder="Ej: Ancho 2.5m x Alto 2.4m x Profundidad 0.6m">
+              <input type="text" name="medidas" placeholder="Ej: Ancho 2.5m x Alto 2.4m x Profundidad 0.6m" maxlength="300">
               <div class="help-text">Proporciona las medidas disponibles (alto, ancho, profundidad)</div>
             </div>
 
@@ -228,20 +228,20 @@
           <div class="form-grid">
             <div class="form-group">
               <label>Nombre Completo <span class="required">*</span></label>
-              <input type="text" name="nombre" placeholder="Ej: Juan Pérez" required maxlength="100" pattern="[a-zA-ZáéíóúüñÁÉÍÓÚÜÑ0-9 .,'\-]{2,100}">
+              <input type="text" name="nombre" placeholder="Ej: Juan Pérez" required maxlength="100" autocomplete="name" spellcheck="false">
             </div>
             <div class="form-group">
               <label>Teléfono <span class="required">*</span></label>
-              <input type="tel" name="telefono" placeholder="33 1234 5678" required maxlength="20" pattern="[0-9 +\-().]{10,20}">
+              <input type="tel" name="telefono" placeholder="33 1234 5678" autocomplete="tel" required maxlength="20" >
             </div>
             <div class="form-group full-width">
               <label>Correo Electrónico <span class="required">*</span></label>
-              <input type="email" name="email" placeholder="correo@ejemplo.com" required maxlength="150">
+              <input type="email" name="email" placeholder="correo@ejemplo.com" autocomplete="email" required maxlength="150">
             </div>
 
             <div class="form-group full-width">
               <label>Dirección Completa <span class="required">*</span></label>
-              <input type="text" name="direccion" placeholder="Calle, Número, Colonia, Ciudad">
+              <input type="text" name="direccion" placeholder="Calle, Número, Colonia, Ciudad" maxlength="200" autocomplete="street-address">
               <div class="help-text">Solo para visitas a domicilio</div>
             </div>
           </div>

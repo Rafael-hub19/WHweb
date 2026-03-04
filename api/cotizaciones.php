@@ -13,7 +13,7 @@ switch ($method) {
                 jsonError('Formato de número inválido', 422);
             }
             $cot = dbRow(
-                "SELECT numero_cotizacion, nombre_cliente, tipo_mueble,
+                "SELECT numero_cotizacion, nombre_cliente, modelo_mueble,
                         descripcion_solicitud, estado, fecha_creacion
                  FROM cotizaciones WHERE numero_cotizacion = ?",
                 [$numero]
@@ -50,42 +50,60 @@ switch ($method) {
         $body = getJsonBody();
         requireFields($body, ['nombre_cliente', 'correo_cliente', 'telefono_cliente', 'descripcion_solicitud']);
 
-        // ── ANTI-BOT: Honeypot field ─────────────────────────────
-        // Si el campo trampa viene con valor, es un bot
+        // ── ANTI-BOT: Honeypot ────────────────────────────────────
         if (!empty($body['_hp']) || !empty($body['website']) || !empty($body['url'])) {
-            // Responder con éxito falso para no delatar la trampa
             jsonSuccess(['numero_cotizacion' => 'COT-' . date('Y') . '-000000', 'mensaje' => 'Enviado']);
         }
 
-        // ── Validaciones de formato ────────────────────────────────
-        if (!isValidEmail($body['correo_cliente'])) jsonError('correo_cliente inválido', 422);
-        if (!isValidPhone($body['telefono_cliente'])) jsonError('telefono_cliente inválido', 422);
+        // ── Validaciones de formato (TODOS los campos) ────────────
+        // Email: formato estricto + sin caracteres SQL
+        $emailCot = strtolower(trim($body['correo_cliente']));
+        if (!isValidEmail($emailCot)) jsonError('Correo electrónico inválido', 422);
+        if (preg_match("/['\";`\\\\]/", $emailCot)) jsonError('Correo electrónico contiene caracteres no permitidos', 422);
 
-        // Longitud máxima en campos de texto
-        if (mb_strlen($body['nombre_cliente']) > 150) jsonError('nombre_cliente demasiado largo', 422);
-        if (mb_strlen($body['descripcion_solicitud']) > 2000) jsonError('descripcion_solicitud demasiado larga', 422);
+        // Teléfono
+        if (!isValidPhone($body['telefono_cliente'])) jsonError('Teléfono inválido (mínimo 10 dígitos)', 422);
+
+        // Longitudes máximas
+        if (mb_strlen($body['nombre_cliente'])        > 150)  jsonError('Nombre demasiado largo', 422);
+        if (mb_strlen($body['descripcion_solicitud']) > 2000) jsonError('Descripción demasiado larga', 422);
+        if (mb_strlen($body['medidas']              ?? '') > 600)  jsonError('Medidas demasiado largas', 422);
+        if (mb_strlen($body['ciudad']               ?? '') > 120)  jsonError('Ciudad demasiado larga', 422);
+
+        // Campos de selección: validar contra lista permitida
+        $tiposValidos = ['baño','sala','recamara','estudio','personalizado',''];
+        $modeloMueble   = $body['modelo_mueble'] ?? '';
+        if (!in_array($modeloMueble, $tiposValidos, true) && mb_strlen($modeloMueble) > 100) {
+            $modeloMueble = sanitize(mb_substr($modeloMueble, 0, 100));
+        }
+
+        $presupuestosValidos = ['5-10','10-20','20-30','30-50','50+','flexible',''];
+        $presupuesto = in_array($body['rango_presupuesto'] ?? '', $presupuestosValidos, true)
+            ? ($body['rango_presupuesto'] ?? '')
+            : '';
 
         $numCot = generarNumeroCotizacion();
 
         $descripcionCompleta = sanitize($body['descripcion_solicitud']);
         $extra = [];
-        if (!empty($body['urgencia']))   $extra[] = 'Urgencia: ' . sanitize($body['urgencia']);
+        if (!empty($body['urgencia']))   $extra[] = 'Urgencia: '        . sanitize($body['urgencia']);
         if (!empty($body['referencia'])) $extra[] = 'Nos conoció por: ' . sanitize($body['referencia']);
         if (!empty($body['instalacion']) && $body['instalacion'] !== 'nose') {
             $extra[] = 'Instalación: ' . sanitize($body['instalacion']);
         }
+        if (!empty($body['ciudad'])) $extra[] = 'Ciudad: ' . sanitize($body['ciudad']);
         if ($extra) $descripcionCompleta .= ' | ' . implode(' | ', $extra);
 
         $cotId = dbInsert('cotizaciones', [
             'numero_cotizacion'     => $numCot,
             'nombre_cliente'        => sanitize($body['nombre_cliente']),
-            'correo_cliente'        => strtolower(trim($body['correo_cliente'])),
+            'correo_cliente'        => $emailCot,
             'telefono_cliente'      => sanitize($body['telefono_cliente']),
-            'tipo_mueble'           => sanitize($body['tipo_mueble'] ?? ''),
+            'modelo_mueble'           => sanitize($modeloMueble),
             'descripcion_solicitud' => $descripcionCompleta,
             'tiene_medidas'         => !empty($body['tiene_medidas']) ? 1 : 0,
             'medidas'               => sanitize($body['medidas'] ?? ''),
-            'rango_presupuesto'     => sanitize($body['rango_presupuesto'] ?? ''),
+            'rango_presupuesto'     => $presupuesto,
             'requiere_instalacion'  => !empty($body['requiere_instalacion']) ? 1 : 0,
             'estado'                => 'nueva',
         ]);
@@ -98,7 +116,7 @@ switch ($method) {
                 'nombre_cliente'   => $body['nombre_cliente'],
                 'correo_cliente'   => $body['correo_cliente'],
                 'telefono_cliente' => $body['telefono_cliente'],
-                'tipo_mueble'      => $body['tipo_mueble'] ?? '',
+                'modelo_mueble'      => $body['modelo_mueble'] ?? '',
                 'descripcion'      => $descripcionCompleta,
             ]);
         } catch (Exception $e) {

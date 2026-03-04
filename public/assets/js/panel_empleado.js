@@ -849,7 +849,7 @@ async function saveCotizacion() {
       method: 'POST',
       body: JSON.stringify({
         nombre_cliente: nombre, correo_cliente: correo, telefono_cliente: telefono || 'N/A',
-        tipo_mueble: tipo, descripcion_solicitud: descripcion
+        modelo_mueble: tipo, descripcion_solicitud: descripcion
       })
     });
     if (data.success) {
@@ -1053,7 +1053,7 @@ async function cargarCotizacionesAPI() {
       <tr>
         <td>${c.numero_cotizacion}</td>
         <td>${escapeHtml(c.nombre_cliente)}</td>
-        <td>${escapeHtml(c.tipo_mueble || '—')}</td>
+        <td>${escapeHtml(c.modelo_mueble || '—')}</td>
         <td>${c.rango_presupuesto || '—'}</td>
         <td><span class="status-badge ${clsMap[c.estado]||''}">${c.estado}</span></td>
         <td>
@@ -1237,7 +1237,7 @@ async function verDetalleCotEmp(id) {
     const estColors = { nueva:'#1565C0', en_revision:'#F57F17', respondida:'#2E7D32', cerrada:'#757575' };
     const tipoMap   = { baño:'Mueble de baño', personalizado:'Diseño Personalizado' };
     const est = cot.estado || 'nueva';
-    const tipoLabel = tipoMap[cot.tipo_mueble] || (cot.tipo_mueble || 'No especificado');
+    const tipoLabel = tipoMap[cot.modelo_mueble] || (cot.modelo_mueble || 'No especificado');
 
     body.innerHTML = `
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:8px;">
@@ -1300,10 +1300,12 @@ async function refreshKpisAPI() {
 // Refresca la sección visible automáticamente sin que el empleado tenga que hacerlo manual
 function _autoRefresh() {
   const section = window._currentSection || 'dashboard';
-  if (section === 'pedidos')           cargarPedidosEmpleadoAPI();
-  else if (section === 'citas')        cargarCitasAPI();
-  else if (section === 'cotizaciones') cargarCotizacionesAPI();
-  else if (section === 'dashboard')    refreshKpisAPI();
+  try {
+    if      (section === 'pedidos'       && typeof cargarPedidosEmpleadoAPI === 'function') cargarPedidosEmpleadoAPI();
+    else if (section === 'citas'         && typeof cargarCitasAPI === 'function')           cargarCitasAPI();
+    else if (section === 'cotizaciones'  && typeof cargarCotizacionesAPI === 'function')    cargarCotizacionesAPI();
+    else if (section === 'dashboard'     && typeof refreshKpisAPI === 'function')           refreshKpisAPI();
+  } catch(e) { console.warn('[autoRefresh] Error en sección', section, e); }
 }
 
 // ── INIT (segundo DOMContentLoaded - API layer) ───────────────

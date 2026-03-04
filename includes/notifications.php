@@ -182,7 +182,7 @@ function notificarNuevaCotizacion(array $cot): void {
                 'nombre_cliente'    => $cot['nombre_cliente'],
                 'correo_cliente'    => $cot['correo_cliente'],
                 'telefono_cliente'  => $cot['telefono_cliente'] ?? '',
-                'tipo_mueble'       => $cot['tipo_mueble'] ?? '',
+                'modelo_mueble'       => $cot['modelo_mueble'] ?? '',
                 'descripcion'       => $cot['descripcion'] ?? '',
             ]),
         ]

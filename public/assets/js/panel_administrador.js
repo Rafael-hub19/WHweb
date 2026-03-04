@@ -1859,7 +1859,7 @@ async function verDetalleCotAdmin(id) {
       <div style="background:var(--bg);border-left:3px solid var(--ok);border-radius:6px;padding:12px;">
         <div style="font-weight:700;color:var(--ok);margin-bottom:8px;font-size:11px;text-transform:uppercase;letter-spacing:.8px;">Especificaciones</div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:12px;color:var(--muted2);">
-          <div><span style="color:var(--muted);display:block;font-size:10px;">Tipo de mueble</span><strong>${escapeHtml(cot.tipo_mueble||'No especificado')}</strong></div>
+          <div><span style="color:var(--muted);display:block;font-size:10px;">Modelo de mueble</span><strong>${escapeHtml(cot.modelo_mueble||'No especificado')}</strong></div>
           <div><span style="color:var(--muted);display:block;font-size:10px;">Presupuesto</span><strong>${escapeHtml(cot.rango_presupuesto||'No especificado')}</strong></div>
           <div><span style="color:var(--muted);display:block;font-size:10px;">Tiene medidas</span><strong>${parseInt(cot.tiene_medidas)?'✅ Sí':'❌ No'}</strong></div>
           <div><span style="color:var(--muted);display:block;font-size:10px;">Requiere instalación</span><strong>${parseInt(cot.requiere_instalacion)?'✅ Sí':'❌ No'}</strong></div>
@@ -1909,7 +1909,7 @@ async function cargarCotizacionesAPI() {
           'cocina':'Milano','closet':'Venecia','bano':'Toscana',
           'sala':'Oslo','recamara':'Paris','estudio':'Tokio',
           'personalizado':'Personalizado'
-        }[c.tipo_mueble] || (c.tipo_mueble || 'Sin tipo');
+        }[c.modelo_mueble] || (c.modelo_mueble || 'Sin modelo');
         return `<tr>
           <td><strong>${escapeHtml(c.numero_cotizacion || '')}</strong></td>
           <td>${escapeHtml(c.nombre_cliente || '')}</td>

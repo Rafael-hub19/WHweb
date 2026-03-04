@@ -140,10 +140,12 @@ function initRealTimeValidation() {
     });
   });
 
-  // Textareas: bloquear inyección mientras escribe
+  // Textareas: bloquear inyección y caracteres SQL mientras escribe
   document.querySelectorAll('textarea').forEach(area => {
     area.addEventListener('input', function () {
-      this.value = this.value.replace(/<[^>]*>/g, '').replace(/[`\\]/g, '');
+      this.value = this.value
+        .replace(/<[^>]*>/g, '')         // quitar HTML tags
+        .replace(/['"`;\\\\]/g, '');    // quitar chars SQL peligrosos
     });
   });
 }
@@ -176,7 +178,7 @@ function initFormCotizacion() {
       nombre_cliente:        sanitizeName(fd.get('nombre') || ''),
       correo_cliente:        sanitizeEmail(fd.get('email') || ''),
       telefono_cliente:      sanitizePhone(fd.get('telefono') || ''),
-      tipo_mueble:           sanitizeText(fd.get('tipoMueble') || '', 100),
+      modelo_mueble:           sanitizeText(fd.get('modeloMueble') || '', 100),
       descripcion_solicitud: sanitizeDescription(fd.get('descripcion') || ''),
       tiene_medidas:         fd.get('tieneMedidas') === 'si' ? 1 : 0,
       medidas:               sanitizeDescription(fd.get('medidas') || '', 500),
@@ -546,10 +548,10 @@ async function trackOrder() {
     }
 
     if (data.cotizacion) {
-      if (item.tipo_mueble) infoItems += `
+      if (item.modelo_mueble) infoItems += `
         <div class="track-info-item">
           <div class="track-info-label">Tipo de mueble</div>
-          <div class="track-info-value">${escapeHtml(item.tipo_mueble)}</div>
+          <div class="track-info-value">${escapeHtml(item.modelo_mueble)}</div>
         </div>`;
     }
 
@@ -707,8 +709,8 @@ function sanitizeDescription(val, maxLen = 1000) {
   return val
     .replace(/<[^>]*>/g, '')                            // quitar tags HTML
     .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '') // chars de control
-    .replace(/[`\\]/g, '')                              // backtick y backslash (peligrosos en SQL)
-    .replace(/;\s*(?:DROP|DELETE|INSERT|UPDATE|SELECT|CREATE|ALTER|EXEC)\b/gi, '') // bloquear SQL keywords en contexto de inyección
+    .replace(/['";`\\\\]/g, '')                          // chars SQL peligrosos (comillas, backtick, backslash)
+    .replace(/;\s*(?:DROP|DELETE|INSERT|UPDATE|SELECT|CREATE|ALTER|EXEC)\b/gi, '') // SQL keywords en inyección
     .substring(0, maxLen)
     .trim();
 }
