@@ -184,7 +184,7 @@ INSERT INTO especificaciones_producto (producto_id, clave, valor) VALUES
 -- ================================================================
 INSERT INTO cotizaciones
   (numero_cotizacion, nombre_cliente, correo_cliente, telefono_cliente,
-   tipo_mueble, descripcion_solicitud, tiene_medidas, rango_presupuesto,
+   modelo_mueble, descripcion_solicitud, tiene_medidas, rango_presupuesto,
    requiere_instalacion, estado)
 VALUES
 ('COT-2026-000001','Ana Maria Lopez','ana.lopez@email.com','33-1234-5678',

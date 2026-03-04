@@ -122,7 +122,7 @@ CREATE TABLE cotizaciones (
   correo_cliente VARCHAR(150) NOT NULL,
   telefono_cliente VARCHAR(30) NULL,
 
-  tipo_mueble VARCHAR(80) NULL,
+  modelo_mueble VARCHAR(80) NULL,
   descripcion_solicitud TEXT NOT NULL,
   tiene_medidas TINYINT(1) NOT NULL DEFAULT 0,
   medidas TEXT NULL,
