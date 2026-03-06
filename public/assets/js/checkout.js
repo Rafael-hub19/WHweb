@@ -124,20 +124,25 @@ function initValidacionCampos() {
         tel.addEventListener('input', function () { limpiarErrorCampo(this); this.style.borderColor = ''; });
     }
 
-    // Email: validar al salir del campo
+    // Email: validar al salir del campo + bloquear caracteres inválidos mientras escribe
     const correo = document.getElementById('clienteCorreo');
     if (correo) {
+        correo.addEventListener('input', function () {
+            // Bloquear caracteres que nunca pueden ser parte de un email válido
+            this.value = this.value.replace(/[^a-zA-Z0-9._%+\-@]/g, '');
+            limpiarErrorCampo(this);
+            this.style.borderColor = '';
+        });
         correo.addEventListener('blur', function () {
             const val = this.value.trim();
             if (val && !isEmailValido(sanitizeEmail(val))) {
                 this.style.borderColor = '#8b4a4a';
-                mostrarErrorCampo(this, 'Correo inválido. Ej: nombre@dominio.com');
+                mostrarErrorCampo(this, 'Correo electrónico inválido. Ejemplo: nombre@dominio.com');
             } else if (val) {
                 this.style.borderColor = '#3d6b47';
                 limpiarErrorCampo(this);
             }
         });
-        correo.addEventListener('input', function () { limpiarErrorCampo(this); this.style.borderColor = ''; });
     }
 
     // Dirección y ciudad: bloquear inyección

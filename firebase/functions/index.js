@@ -147,17 +147,51 @@ function emailWrapper(titulo, contenido) {
 function emailPedidoConfirmado(pedido) {
   const folio    = pedido.numero_pedido  || '';
   const nombre   = pedido.nombre_cliente || '';
-  const total    = `$${Number(pedido.total || 0).toLocaleString('es-MX', { minimumFractionDigits: 2 })}`;
   const fecha    = pedido.fecha_estimada || 'Por confirmar';
   const tracking = pedido.token_seguimiento || '';
   const trackUrl = `https://muebleswh.com/seguimiento?token=${tracking}&pedido=${folio}`;
 
+  const fmt = (n) => `$${Number(n || 0).toLocaleString('es-MX', { minimumFractionDigits: 2 })}`;
+
+  // Tipo de entrega
+  const tipoEntrega     = pedido.tipo_entrega || 'envio';
+  const costoEnvio      = Number(pedido.costo_envio || 0);
+  const etiquetaEntrega = tipoEntrega === 'recoger' ? '🏠 Recoger en tienda' : '🚚 Envío a domicilio';
+  const direccion       = pedido.direccion_envio || '';
+  const entregaDetalle  = tipoEntrega === 'envio' && direccion
+    ? `<p style="margin:4px 0 0;font-size:13px;color:#777;">📍 Dirección: ${direccion}</p>` : '';
+  const entregaCosto    = tipoEntrega === 'recoger'
+    ? `<span style="color:#3d8b3d;font-weight:600;">Sin costo</span>`
+    : `<span style="font-weight:600;">${fmt(costoEnvio)}</span>`;
+
+  // Instalación
+  const incluyeInstalacion = pedido.incluye_instalacion;
+  const costoInstalacion   = Number(pedido.costo_instalacion || 0);
+  const instalacionRow     = incluyeInstalacion
+    ? `<tr>
+        <td style="padding:10px 12px;border-bottom:1px solid #f0e8d8;">🔧 Instalación profesional</td>
+        <td style="padding:10px 12px;border-bottom:1px solid #f0e8d8;text-align:right;font-weight:600;">${fmt(costoInstalacion)}</td>
+       </tr>`
+    : `<tr>
+        <td style="padding:10px 12px;border-bottom:1px solid #f0e8d8;color:#888;">🔧 Instalación</td>
+        <td style="padding:10px 12px;border-bottom:1px solid #f0e8d8;text-align:right;color:#888;">No incluida</td>
+       </tr>`;
+
+  // Subtotal / descuento
+  const subtotal  = Number(pedido.subtotal  || 0);
+  const descuento = Number(pedido.descuento || 0);
+  const total     = Number(pedido.total     || 0);
+
   const itemsHtml = (pedido.items || []).map(item => `
     <tr>
-      <td style="padding:8px;border-bottom:1px solid #f0e8d8;">${item.nombre_producto || item.nombre || ''}</td>
-      <td style="padding:8px;border-bottom:1px solid #f0e8d8;text-align:center;">${item.cantidad || 1}</td>
-      <td style="padding:8px;border-bottom:1px solid #f0e8d8;text-align:right;">$${Number(item.precio_unitario || item.precio || 0).toLocaleString('es-MX', { minimumFractionDigits: 2 })}</td>
+      <td style="padding:8px 12px;border-bottom:1px solid #f0e8d8;">${item.nombre_producto || item.nombre || ''}</td>
+      <td style="padding:8px 12px;border-bottom:1px solid #f0e8d8;text-align:center;">${item.cantidad || 1}</td>
+      <td style="padding:8px 12px;border-bottom:1px solid #f0e8d8;text-align:right;">${fmt(item.precio_unitario || item.precio || 0)}</td>
+      <td style="padding:8px 12px;border-bottom:1px solid #f0e8d8;text-align:right;font-weight:500;">${fmt((item.precio_unitario || item.precio || 0) * (item.cantidad || 1))}</td>
     </tr>`).join('');
+
+  const descuentoRow = descuento > 0
+    ? `<tr><td colspan="3" style="padding:8px 12px;text-align:right;color:#3d8b3d;">Descuento:</td><td style="padding:8px 12px;text-align:right;color:#3d8b3d;font-weight:600;">-${fmt(descuento)}</td></tr>` : '';
 
   const contenido = `
 <h2 style="color:#8B6914;margin-top:0;">¡Pedido confirmado, ${nombre}! 🎉</h2>
@@ -172,20 +206,52 @@ function emailPedidoConfirmado(pedido) {
   </tr>
 </table>
 
-<table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;margin:20px 0;">
+<!-- Productos -->
+<h3 style="color:#5C3D11;font-size:15px;margin:24px 0 8px;">📦 Productos</h3>
+<table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;margin-bottom:20px;">
   <tr style="background:#f0e8d8;">
-    <th style="padding:10px;text-align:left;color:#5C3D11;">Producto</th>
-    <th style="padding:10px;text-align:center;color:#5C3D11;">Cant.</th>
-    <th style="padding:10px;text-align:right;color:#5C3D11;">Precio</th>
+    <th style="padding:10px 12px;text-align:left;color:#5C3D11;">Producto</th>
+    <th style="padding:10px 12px;text-align:center;color:#5C3D11;">Cant.</th>
+    <th style="padding:10px 12px;text-align:right;color:#5C3D11;">Precio unit.</th>
+    <th style="padding:10px 12px;text-align:right;color:#5C3D11;">Subtotal</th>
   </tr>
   ${itemsHtml}
+</table>
+
+<!-- Entrega e Instalación -->
+<h3 style="color:#5C3D11;font-size:15px;margin:24px 0 8px;">🚚 Entrega e Instalación</h3>
+<table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;margin-bottom:20px;background:#faf6f0;border-radius:6px;">
   <tr>
-    <td colspan="2" style="padding:12px;text-align:right;font-weight:bold;color:#5C3D11;">Total:</td>
-    <td style="padding:12px;text-align:right;font-weight:bold;font-size:18px;color:#8B6914;">${total}</td>
+    <td style="padding:12px;border-bottom:1px solid #f0e8d8;">
+      <strong>${etiquetaEntrega}</strong>${entregaDetalle}
+    </td>
+    <td style="padding:12px;border-bottom:1px solid #f0e8d8;text-align:right;">${entregaCosto}</td>
+  </tr>
+  ${instalacionRow}
+</table>
+
+<!-- Resumen de costos -->
+<table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;margin:20px 0;">
+  <tr>
+    <td colspan="3" style="padding:8px 12px;text-align:right;color:#666;">Subtotal productos:</td>
+    <td style="padding:8px 12px;text-align:right;">${fmt(subtotal)}</td>
+  </tr>
+  <tr>
+    <td colspan="3" style="padding:8px 12px;text-align:right;color:#666;">Envío:</td>
+    <td style="padding:8px 12px;text-align:right;">${tipoEntrega === 'recoger' ? '<span style="color:#3d8b3d;">Sin costo</span>' : fmt(costoEnvio)}</td>
+  </tr>
+  <tr>
+    <td colspan="3" style="padding:8px 12px;text-align:right;color:#666;">Instalación:</td>
+    <td style="padding:8px 12px;text-align:right;">${incluyeInstalacion ? fmt(costoInstalacion) : '<span style="color:#888;">No incluida</span>'}</td>
+  </tr>
+  ${descuentoRow}
+  <tr style="background:#f0e8d8;">
+    <td colspan="3" style="padding:12px;text-align:right;font-weight:bold;color:#5C3D11;">TOTAL:</td>
+    <td style="padding:12px;text-align:right;font-weight:bold;font-size:20px;color:#8B6914;">${fmt(total)}</td>
   </tr>
 </table>
 
-<p style="color:#555;"><strong>Semana estimada de entrega:</strong> ${fecha}</p>
+<p style="color:#555;"><strong>📅 Semana estimada de entrega:</strong> ${fecha}</p>
 
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:30px 0;">
   <tr><td align="center">
@@ -313,18 +379,82 @@ function emailAdminNuevoEvento(tipo, datos) {
   if (tipo === 'pedido') {
     const folio   = datos.numero_pedido  || '';
     const cliente = datos.nombre_cliente || '';
-    const total   = `$${Number(datos.total || 0).toLocaleString('es-MX', { minimumFractionDigits: 2 })}`;
+    const fmt     = (n) => `$${Number(n || 0).toLocaleString('es-MX', { minimumFractionDigits: 2 })}`;
+    const total   = fmt(datos.total);
+
+    const tipoEntrega       = datos.tipo_entrega || 'envio';
+    const etiquetaEntrega   = tipoEntrega === 'recoger' ? '🏠 Recoger en tienda' : '🚚 Envío a domicilio';
+    const costoEnvio        = Number(datos.costo_envio || 0);
+    const direccion         = datos.direccion_envio || '';
+    const incluyeInstalacion = datos.incluye_instalacion;
+    const costoInstalacion  = Number(datos.costo_instalacion || 0);
+    const subtotal          = Number(datos.subtotal  || 0);
+    const descuento         = Number(datos.descuento || 0);
+
+    const itemsRows = (datos.items || []).map(item =>
+      `<tr>
+        <td style="padding:6px 10px;border-bottom:1px solid #e5ddd4;">${item.nombre_producto || item.nombre || ''}</td>
+        <td style="padding:6px 10px;border-bottom:1px solid #e5ddd4;text-align:center;">${item.cantidad || 1}</td>
+        <td style="padding:6px 10px;border-bottom:1px solid #e5ddd4;text-align:right;">${fmt(item.precio_unitario || item.precio || 0)}</td>
+        <td style="padding:6px 10px;border-bottom:1px solid #e5ddd4;text-align:right;">${fmt((item.precio_unitario || item.precio || 0) * (item.cantidad || 1))}</td>
+       </tr>`
+    ).join('');
+
     subject = `🛒 Nuevo pedido ${folio} — ${total}`;
     body = `
 <h2 style="color:#8B6914;margin-top:0;">Nuevo pedido recibido</h2>
 <p style="color:#555;">Se acaba de confirmar un pedido en tu tienda.</p>
+
 <div style="background:#faf6f0;border-left:4px solid #8B6914;padding:16px 20px;margin:20px 0;border-radius:4px;">
   <p style="margin:4px 0;"><strong>Folio:</strong> ${folio}</p>
   <p style="margin:4px 0;"><strong>Cliente:</strong> ${cliente}</p>
-  <p style="margin:4px 0;"><strong>Total:</strong> ${total}</p>
-  <p style="margin:4px 0;"><strong>Entrega:</strong> ${datos.tipo_entrega || ''}</p>
+  <p style="margin:4px 0;"><strong>Correo:</strong> ${datos.correo_cliente || ''}</p>
+  <p style="margin:4px 0;"><strong>Teléfono:</strong> ${datos.telefono_cliente || 'No proporcionado'}</p>
 </div>
-<p><a href="${getPanelUrl()}" style="background:#8B6914;color:#fff;text-decoration:none;padding:12px 24px;border-radius:6px;display:inline-block;">Ver en el panel →</a></p>`;
+
+<!-- Productos -->
+<h3 style="color:#5C3D11;font-size:14px;margin:20px 0 8px;">📦 Productos del pedido</h3>
+<table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;font-size:13px;margin-bottom:16px;">
+  <tr style="background:#f0e8d8;">
+    <th style="padding:8px 10px;text-align:left;color:#5C3D11;">Producto</th>
+    <th style="padding:8px 10px;text-align:center;color:#5C3D11;">Cant.</th>
+    <th style="padding:8px 10px;text-align:right;color:#5C3D11;">P. Unit.</th>
+    <th style="padding:8px 10px;text-align:right;color:#5C3D11;">Subtotal</th>
+  </tr>
+  ${itemsRows}
+</table>
+
+<!-- Entrega -->
+<h3 style="color:#5C3D11;font-size:14px;margin:20px 0 8px;">🚚 Tipo de entrega</h3>
+<div style="background:#faf6f0;border-left:4px solid #8B6914;padding:12px 16px;margin-bottom:16px;border-radius:4px;font-size:13px;">
+  <p style="margin:3px 0;"><strong>${etiquetaEntrega}</strong></p>
+  ${direccion ? `<p style="margin:3px 0;color:#666;">📍 Dirección: ${direccion}</p>` : ''}
+  <p style="margin:3px 0;">Costo de envío: <strong>${tipoEntrega === 'recoger' ? 'Sin costo' : fmt(costoEnvio)}</strong></p>
+</div>
+
+<!-- Instalación -->
+<h3 style="color:#5C3D11;font-size:14px;margin:20px 0 8px;">🔧 Instalación</h3>
+<div style="background:#faf6f0;border-left:4px solid ${incluyeInstalacion ? '#8B6914' : '#aaa'};padding:12px 16px;margin-bottom:16px;border-radius:4px;font-size:13px;">
+  ${incluyeInstalacion
+    ? `<p style="margin:3px 0;"><strong>✅ Incluye instalación profesional</strong></p><p style="margin:3px 0;">Costo: <strong>${fmt(costoInstalacion)}</strong></p>`
+    : `<p style="margin:3px 0;color:#888;">❌ No incluye instalación</p>`
+  }
+</div>
+
+<!-- Resumen -->
+<h3 style="color:#5C3D11;font-size:14px;margin:20px 0 8px;">💰 Resumen de costos</h3>
+<table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;font-size:13px;">
+  <tr><td style="padding:5px 10px;color:#666;">Subtotal productos:</td><td style="padding:5px 10px;text-align:right;">${fmt(subtotal)}</td></tr>
+  <tr><td style="padding:5px 10px;color:#666;">Envío (${etiquetaEntrega}):</td><td style="padding:5px 10px;text-align:right;">${tipoEntrega === 'recoger' ? 'Sin costo' : fmt(costoEnvio)}</td></tr>
+  <tr><td style="padding:5px 10px;color:#666;">Instalación:</td><td style="padding:5px 10px;text-align:right;">${incluyeInstalacion ? fmt(costoInstalacion) : 'No incluida'}</td></tr>
+  ${descuento > 0 ? `<tr><td style="padding:5px 10px;color:#3d8b3d;">Descuento:</td><td style="padding:5px 10px;text-align:right;color:#3d8b3d;">-${fmt(descuento)}</td></tr>` : ''}
+  <tr style="background:#f0e8d8;"><td style="padding:10px;font-weight:bold;color:#5C3D11;">TOTAL:</td><td style="padding:10px;text-align:right;font-weight:bold;font-size:18px;color:#8B6914;">${total}</td></tr>
+</table>
+
+<p style="margin:20px 0 8px;color:#555;">📅 <strong>Fecha estimada de entrega:</strong> ${datos.fecha_estimada || 'Por confirmar'}</p>
+${datos.notas ? `<p style="color:#555;">📝 <strong>Notas del cliente:</strong> ${datos.notas}</p>` : ''}
+
+<p style="margin-top:24px;"><a href="${getPanelUrl()}" style="background:#8B6914;color:#fff;text-decoration:none;padding:12px 24px;border-radius:6px;display:inline-block;">Ver en el panel →</a></p>`;
 
   } else if (tipo === 'cotizacion') {
     const folio   = datos.numero_cotizacion || '';

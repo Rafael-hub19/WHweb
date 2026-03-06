@@ -2022,6 +2022,32 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
   setTimeout(refreshKPIsFromAPI, 300);
+
+  // Email de empleado: bloquear caracteres inválidos mientras escribe + validar al blur
+  const empCorreo = document.getElementById('emp_correo');
+  if (empCorreo) {
+    empCorreo.addEventListener('input', function () {
+      this.value = this.value.replace(/[^a-zA-Z0-9._%+\-@]/g, '');
+    });
+    empCorreo.addEventListener('blur', function () {
+      const val = this.value.trim();
+      const errBox = document.getElementById('emp_error');
+      if (!val) return;
+      const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!re.test(val)) {
+        this.style.borderColor = '#8b4a4a';
+        if (errBox) { errBox.textContent = 'Correo electrónico inválido. Ejemplo: nombre@dominio.com'; errBox.style.display = 'block'; }
+      } else {
+        this.style.borderColor = '#3d6b47';
+        if (errBox) errBox.style.display = 'none';
+      }
+    });
+    empCorreo.addEventListener('focus', function () {
+      const errBox = document.getElementById('emp_error');
+      this.style.borderColor = '';
+      if (errBox) errBox.style.display = 'none';
+    });
+  }
 });
 
 window.logoutAdmin              = logoutAdmin;
@@ -2047,7 +2073,8 @@ async function guardarEmpleado() {
 
   // Validaciones
   if (!nombre) { showErr('Ingresa el nombre completo'); return; }
-  if (!correo || !correo.includes('@')) { showErr('Ingresa un correo válido'); return; }
+  const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!correo || !emailRe.test(correo)) { showErr('Correo electrónico inválido. Ejemplo: nombre@dominio.com'); return; }
   if (!isEdit && pass.length < 6) { showErr('La contraseña debe tener mínimo 6 caracteres'); return; }
 
   if (btn) { btn.disabled = true; btn.textContent = isEdit ? 'Guardando...' : 'Creando...'; }

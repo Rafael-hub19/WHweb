@@ -114,6 +114,13 @@ loginForm?.addEventListener('submit', async (e) => {
 
 // ── Verificar si ya está logueado al cargar ────────────────
 document.addEventListener('DOMContentLoaded', () => {
+  // Bloquear caracteres inválidos en el campo email del login
+  const emailInput = document.getElementById('email');
+  if (emailInput) {
+    emailInput.addEventListener('input', function () {
+      this.value = this.value.replace(/[^a-zA-Z0-9._%+\-@]/g, '');
+    });
+  }
   // ── FIX CRASH: Si venimos de un logout explícito, NO auto-redirigir ──
   // El panel de empleado/admin pone 'wh_just_logged_out' en sessionStorage antes de redirigir
   const justLoggedOut = sessionStorage.getItem('wh_just_logged_out');

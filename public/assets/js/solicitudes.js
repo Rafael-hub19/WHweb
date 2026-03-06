@@ -100,6 +100,8 @@ function initRealTimeValidation() {
       }
     });
     input.addEventListener('input', function () {
+      // Bloquear caracteres que no pueden estar en un email
+      this.value = this.value.replace(/[^a-zA-Z0-9._%+\-@]/g, '');
       // Limpiar error mientras escribe
       clearFieldError(this);
       this.style.borderColor = '';
