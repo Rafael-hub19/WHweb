@@ -121,6 +121,13 @@ document.addEventListener('DOMContentLoaded', () => {
       this.value = this.value.replace(/[^a-zA-Z0-9._%+\-@]/g, '');
     });
   }
+
+  // ── Mostrar mensajes de error por querystring ──────────────
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('error') === 'sesion') {
+    showAlert('<i class="fa-solid fa-lock"></i> Tu sesión ha expirado. Por favor inicia sesión nuevamente.', 'error');
+  }
+
   // ── FIX CRASH: Si venimos de un logout explícito, NO auto-redirigir ──
   // El panel de empleado/admin pone 'wh_just_logged_out' en sessionStorage antes de redirigir
   const justLoggedOut = sessionStorage.getItem('wh_just_logged_out');
@@ -150,9 +157,13 @@ document.addEventListener('DOMContentLoaded', () => {
       const data = await res.json();
       if (data.success && data.autenticado) {
         const rol = data.usuario?.rol || '';
-        window.location.href = rol === 'administrador'
-          ? '/admin/panel_administrador.php'
-          : '/empleado/panel_empleado.php';
+        // Use clean URLs defined in .htaccess
+        const redirectParam = params.get('redirect');
+        if (redirectParam === 'admin' || rol === 'administrador') {
+          window.location.href = '/admin';
+        } else {
+          window.location.href = '/empleado';
+        }
       }
     } catch (e) { /* error de red → continuar mostrando login */ }
   });
