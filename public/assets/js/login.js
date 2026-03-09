@@ -54,6 +54,12 @@ loginForm?.addEventListener('submit', async (e) => {
   btnLogin.textContent = 'Iniciando sesión...';
   alertBox.style.display = 'none';
 
+  // Cancelar el listener de auto-redirección para que no interfiera con el submit
+  if (typeof window._authUnsubscribe === 'function') {
+    window._authUnsubscribe();
+    window._authUnsubscribe = null;
+  }
+
   try {
     let auth = window.firebaseAuth;
     try { if (!auth && typeof firebaseAuth !== 'undefined') auth = firebaseAuth; } catch(e){}
@@ -142,7 +148,8 @@ document.addEventListener('DOMContentLoaded', () => {
   if (!auth) return;
 
   // Auto-redirigir solo si Firebase ya tiene sesión activa al cargar la página
-  auth.onAuthStateChanged(async (user) => {
+  // Guardamos el unsubscribe para poder cancelarlo antes del submit
+  window._authUnsubscribe = auth.onAuthStateChanged(async (user) => {
     if (!user) return;
     try {
       const token = await user.getIdToken();
