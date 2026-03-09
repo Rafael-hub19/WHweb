@@ -53,7 +53,6 @@ loginForm?.addEventListener('submit', async (e) => {
   btnLogin.disabled    = true;
   btnLogin.textContent = 'Iniciando sesión...';
   alertBox.style.display = 'none';
-  window._loginInProgress = true;
 
   try {
     let auth = window.firebaseAuth;
@@ -108,7 +107,6 @@ loginForm?.addEventListener('submit', async (e) => {
     showAlert('<i class="fa-solid fa-xmark"></i> ' + msg, 'error');
 
   } finally {
-    window._loginInProgress = false;
     btnLogin.disabled    = false;
     btnLogin.textContent = 'Iniciar Sesión';
   }
@@ -123,40 +121,25 @@ document.addEventListener('DOMContentLoaded', () => {
       this.value = this.value.replace(/[^a-zA-Z0-9._%+\-@]/g, '');
     });
   }
-
-  // ── Mostrar mensajes de error por querystring ──────────────
-  const params = new URLSearchParams(window.location.search);
-  if (params.get('error') === 'sesion') {
-    showAlert('<i class="fa-solid fa-lock"></i> Tu sesión ha expirado. Por favor inicia sesión nuevamente.', 'error');
-  }
-
   // ── FIX CRASH: Si venimos de un logout explícito, NO auto-redirigir ──
+  // El panel de empleado/admin pone 'wh_just_logged_out' en sessionStorage antes de redirigir
   const justLoggedOut = sessionStorage.getItem('wh_just_logged_out');
   if (justLoggedOut) {
     sessionStorage.removeItem('wh_just_logged_out');
+    // Limpiar Firebase también para que no quede sesión cacheada
     let auth = window.firebaseAuth;
     try { if (!auth && typeof firebaseAuth !== 'undefined') auth = firebaseAuth; } catch(e){}
     if (auth) auth.signOut().catch(() => {});
-    return;
+    return; // No registrar onAuthStateChanged → el usuario ve el formulario limpio
   }
 
   let auth = window.firebaseAuth;
   try { if (!auth && typeof firebaseAuth !== 'undefined') auth = firebaseAuth; } catch(e){}
   if (!auth) return;
 
-  // Auto-redirigir si ya hay sesión activa AL CARGAR LA PÁGINA (no durante el submit)
-  // _loginInProgress evita que onAuthStateChanged interfiera con el flujo del formulario
-  let firstCheck = true;
+  // Auto-redirigir solo si Firebase tiene sesión activa Y el backend la valida
   auth.onAuthStateChanged(async (user) => {
-    // Ignorar el primer disparo si el formulario ya está procesando un login
-    if (window._loginInProgress) return;
-    // El primer disparo es el estado inicial al cargar — solo redirigir si ya había sesión
-    if (firstCheck) {
-      firstCheck = false;
-      if (!user) return; // No había sesión, mostrar formulario normalmente
-    } else {
-      return; // Disparos posteriores los maneja el submit, no este listener
-    }
+    if (!user) return;
     try {
       const token = await user.getIdToken();
       const res   = await fetch('/api/auth.php?action=verificar', {
@@ -167,13 +150,10 @@ document.addEventListener('DOMContentLoaded', () => {
       const data = await res.json();
       if (data.success && data.autenticado) {
         const rol = data.usuario?.rol || '';
-        const redirectParam = params.get('redirect');
-        if (redirectParam === 'admin' || rol === 'administrador') {
-          window.location.href = '/admin';
-        } else {
-          window.location.href = '/empleado';
-        }
+        window.location.href = rol === 'administrador'
+          ? '/admin/panel_administrador.php'
+          : '/empleado/panel_empleado.php';
       }
-    } catch (e) { /* error de red → mostrar formulario */ }
+    } catch (e) { /* error de red → continuar mostrando login */ }
   });
 });
