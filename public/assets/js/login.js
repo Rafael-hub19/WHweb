@@ -8,7 +8,7 @@ const btnLogin   = document.getElementById('btnLogin');
 const togglePass = document.getElementById('togglePass');
 const forgotLink = document.getElementById('forgotLink');
 
-// ── Mostrar alerta ─────────────────────────────────────────
+// ── Mostrar alerta ──────────────────────────────────────────────────────────
 function showAlert(msg, type = 'error') {
   if (!alertBox) return;
   alertBox.innerHTML  = msg;
@@ -16,7 +16,7 @@ function showAlert(msg, type = 'error') {
   alertBox.style.display = 'block';
 }
 
-// ── Toggle ver/ocultar contraseña ──────────────────────────
+// ── Toggle ver/ocultar contraseña ──────────────────────────────────────────
 togglePass?.addEventListener('click', () => {
   const pwd = document.getElementById('password');
   const isVisible = pwd.type === 'text';
@@ -26,7 +26,7 @@ togglePass?.addEventListener('click', () => {
     : '<i class="fa-solid fa-eye-slash"></i>';
 });
 
-// ── Recuperar contraseña ───────────────────────────────────
+// ── Recuperar contraseña ───────────────────────────────────────────────────
 forgotLink?.addEventListener('click', (e) => {
   e.preventDefault();
   const email = document.getElementById('email').value.trim();
@@ -41,7 +41,7 @@ forgotLink?.addEventListener('click', (e) => {
     .catch(err => showAlert('Error: ' + err.message, 'error'));
 });
 
-// ── Submit del formulario ──────────────────────────────────
+// ── Submit del formulario ──────────────────────────────────────────────────
 loginForm?.addEventListener('submit', async (e) => {
   e.preventDefault();
 
@@ -87,11 +87,10 @@ loginForm?.addEventListener('submit', async (e) => {
     if (data.success) {
       sessionStorage.setItem('wh_firebase_token', idToken);
       sessionStorage.setItem('wh_usuario', JSON.stringify(data.usuario));
-      sessionStorage.removeItem('wh_just_logged_out'); // limpiar flag de logout previo
+      sessionStorage.removeItem('wh_just_logged_out');
       showAlert('<i class="fa-solid fa-circle-check"></i> Bienvenido, redirigiendo...', 'success');
       setTimeout(() => { window.location.href = data.redirect; }, 800);
     } else {
-      // Backend rechazó → también cerrar sesión Firebase para no quedar a medias
       try { await auth.signOut(); } catch(e) {}
       throw new Error(data.error || 'Usuario no autorizado');
     }
@@ -112,32 +111,37 @@ loginForm?.addEventListener('submit', async (e) => {
   }
 });
 
-// ── Verificar si ya está logueado al cargar ────────────────
+// ── Verificar si ya está logueado al cargar ────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
-  // Bloquear caracteres inválidos en el campo email del login
+  // Bloquear caracteres inválidos en el campo email
   const emailInput = document.getElementById('email');
   if (emailInput) {
     emailInput.addEventListener('input', function () {
       this.value = this.value.replace(/[^a-zA-Z0-9._%+\-@]/g, '');
     });
   }
-  // ── FIX CRASH: Si venimos de un logout explícito, NO auto-redirigir ──
-  // El panel de empleado/admin pone 'wh_just_logged_out' en sessionStorage antes de redirigir
+
+  // Mostrar mensajes de error por querystring
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('error') === 'sesion') {
+    showAlert('<i class="fa-solid fa-lock"></i> Tu sesión ha expirado. Por favor inicia sesión nuevamente.', 'error');
+  }
+
+  // FIX CRASH: Si venimos de un logout explícito, NO auto-redirigir
   const justLoggedOut = sessionStorage.getItem('wh_just_logged_out');
   if (justLoggedOut) {
     sessionStorage.removeItem('wh_just_logged_out');
-    // Limpiar Firebase también para que no quede sesión cacheada
     let auth = window.firebaseAuth;
     try { if (!auth && typeof firebaseAuth !== 'undefined') auth = firebaseAuth; } catch(e){}
     if (auth) auth.signOut().catch(() => {});
-    return; // No registrar onAuthStateChanged → el usuario ve el formulario limpio
+    return;
   }
 
   let auth = window.firebaseAuth;
   try { if (!auth && typeof firebaseAuth !== 'undefined') auth = firebaseAuth; } catch(e){}
   if (!auth) return;
 
-  // Auto-redirigir solo si Firebase tiene sesión activa Y el backend la valida
+  // Auto-redirigir solo si Firebase ya tiene sesión activa al cargar la página
   auth.onAuthStateChanged(async (user) => {
     if (!user) return;
     try {
@@ -150,9 +154,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const data = await res.json();
       if (data.success && data.autenticado) {
         const rol = data.usuario?.rol || '';
-        window.location.href = rol === 'administrador'
-          ? '/admin/panel_administrador.php'
-          : '/empleado/panel_empleado.php';
+        window.location.href = rol === 'administrador' ? '/admin' : '/empleado';
       }
     } catch (e) { /* error de red → continuar mostrando login */ }
   });
