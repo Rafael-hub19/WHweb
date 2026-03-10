@@ -62,7 +62,7 @@ switch ($tipo) {
     case 'productos':
         $productos = dbRows(
             "SELECT p.nombre AS nombre_producto, SUM(dp.cantidad) AS unidades_vendidas,
-                    SUM(dp.subtotal) AS ingresos_generados, COUNT(DISTINCT dp.pedido_id) AS num_pedidos
+                    SUM(dp.total_linea) AS ingresos_generados, COUNT(DISTINCT dp.pedido_id) AS num_pedidos
              FROM detalle_pedido dp
              INNER JOIN pedidos pe ON pe.id = dp.pedido_id
              INNER JOIN productos p ON p.id = dp.producto_id
@@ -115,6 +115,62 @@ switch ($tipo) {
         jsonSuccess(['clientes' => $clientes]);
         break;
 
+    case 'cotizaciones':
+        $funnel = dbRow(
+            "SELECT COUNT(*) AS total,
+                    SUM(CASE WHEN estado='nueva'       THEN 1 ELSE 0 END) AS nueva,
+                    SUM(CASE WHEN estado='en_revision' THEN 1 ELSE 0 END) AS en_revision,
+                    SUM(CASE WHEN estado='respondida'  THEN 1 ELSE 0 END) AS respondida,
+                    SUM(CASE WHEN estado='cerrada'     THEN 1 ELSE 0 END) AS cerrada
+             FROM cotizaciones WHERE DATE(fecha_creacion) BETWEEN ? AND ?",
+            [$desde, $hasta]
+        );
+        $totalCots = (int)(dbRow("SELECT COUNT(*) AS n FROM cotizaciones")['n'] ?? 0);
+        $respondidas = (int)(dbRow("SELECT COUNT(*) AS n FROM cotizaciones WHERE estado IN ('respondida','cerrada')")['n'] ?? 0);
+        $conversionPct = $totalCots > 0 ? round(($respondidas / $totalCots) * 100, 1) : 0;
+
+        $recientes = dbRows(
+            "SELECT id, numero_cotizacion, nombre_cliente, modelo_mueble, estado, fecha_creacion
+             FROM cotizaciones WHERE DATE(fecha_creacion) BETWEEN ? AND ?
+             ORDER BY fecha_creacion DESC LIMIT ?",
+            [$desde, $hasta, $limit]
+        );
+        jsonSuccess([
+            'funnel'          => $funnel,
+            'conversion_pct'  => $conversionPct,
+            'total_historico' => $totalCots,
+            'respondidas'     => $respondidas,
+            'recientes'       => $recientes,
+            'periodo'         => ['desde' => $desde, 'hasta' => $hasta],
+        ]);
+        break;
+
+    case 'citas':
+        $resumen = dbRow(
+            "SELECT COUNT(*) AS total,
+                    SUM(CASE WHEN tipo='medicion'     THEN 1 ELSE 0 END) AS mediciones,
+                    SUM(CASE WHEN tipo='instalacion'  THEN 1 ELSE 0 END) AS instalaciones,
+                    SUM(CASE WHEN tipo='otro'         THEN 1 ELSE 0 END) AS otros,
+                    SUM(CASE WHEN estado='nueva'      THEN 1 ELSE 0 END) AS nuevas,
+                    SUM(CASE WHEN estado='confirmada' THEN 1 ELSE 0 END) AS confirmadas,
+                    SUM(CASE WHEN estado='completada' THEN 1 ELSE 0 END) AS completadas,
+                    SUM(CASE WHEN estado='cancelada'  THEN 1 ELSE 0 END) AS canceladas
+             FROM citas WHERE DATE(fecha_cita) BETWEEN ? AND ?",
+            [$desde, $hasta]
+        );
+        $proximas = dbRows(
+            "SELECT id, numero_cita, nombre_cliente, fecha_cita, rango_horario, tipo, estado
+             FROM citas WHERE fecha_cita >= CURDATE() AND estado NOT IN ('cancelada','completada')
+             ORDER BY fecha_cita ASC, rango_horario ASC LIMIT ?",
+            [$limit]
+        );
+        jsonSuccess([
+            'resumen'  => $resumen,
+            'proximas' => $proximas,
+            'periodo'  => ['desde' => $desde, 'hasta' => $hasta],
+        ]);
+        break;
+
     default:
-        jsonError('tipo inválido. Usa: resumen, pedidos, productos, ingresos, clientes', 400);
+        jsonError('tipo inválido. Usa: resumen, pedidos, productos, ingresos, clientes, cotizaciones, citas', 400);
 }

@@ -203,45 +203,7 @@ unset($_usuario);
                   </tr>
                 </thead>
                 <tbody id="pedidosTable">
-                  <tr data-status="pending">
-                    <td>#001</td>
-                    <td>Juan Pérez Flores Ochoa</td>
-                    <td>Milano</td>
-                    <td>02/01/26</td>
-                    <td><span class="status-badge status-pending">Pendiente</span></td>
-                    <td style="color: var(--accent); font-weight:800;">$8,500</td>
-                    <td>
-                      <button class="btn btn-secondary btn-small" onclick="showNotification('Ver pedido #001 (demo)', 'info')">Ver</button>
-                      <button class="btn btn-secondary btn-small" onclick="showNotification('Actualizar pedido #001 (demo)', 'info')">Actualizar</button>
-                      <button class="btn btn-danger btn-small" onclick="confirmDelete('pedido-001')"><i class="fa-solid fa-trash"></i></button>
-                    </td>
-                  </tr>
-                  <tr data-status="progress">
-                    <td>#002</td>
-                    <td>Luz María Herrera García</td>
-                    <td>Venecia</td>
-                    <td>03/01/26</td>
-                    <td><span class="status-badge status-progress">En Proceso</span></td>
-                    <td style="color: var(--accent); font-weight:800;">$12,800</td>
-                    <td>
-                      <button class="btn btn-secondary btn-small" onclick="showNotification('Ver pedido #002 (demo)', 'info')">Ver</button>
-                      <button class="btn btn-secondary btn-small" onclick="showNotification('Actualizar pedido #002 (demo)', 'info')">Actualizar</button>
-                      <button class="btn btn-danger btn-small" onclick="confirmDelete('pedido-002')"><i class="fa-solid fa-trash"></i></button>
-                    </td>
-                  </tr>
-                  <tr data-status="completed">
-                    <td>#003</td>
-                    <td>Juan Carlos Lomeli López</td>
-                    <td>Toscana</td>
-                    <td>28/12/25</td>
-                    <td><span class="status-badge status-completed">Completado</span></td>
-                    <td style="color: var(--accent); font-weight:800;">$15,200</td>
-                    <td>
-                      <button class="btn btn-secondary btn-small" onclick="showNotification('Ver pedido #003 (demo)', 'info')">Ver</button>
-                      <button class="btn btn-secondary btn-small" onclick="showNotification('Actualizar pedido #003 (demo)', 'info')">Actualizar</button>
-                      <button class="btn btn-danger btn-small" onclick="confirmDelete('pedido-003')"><i class="fa-solid fa-trash"></i></button>
-                    </td>
-                  </tr>
+                  <tr><td colspan="7" style="text-align:center;color:var(--muted);padding:20px;"><i class="fa-solid fa-spinner fa-spin"></i> Cargando pedidos...</td></tr>
                 </tbody>
               </table>
             </div>
@@ -451,37 +413,36 @@ unset($_usuario);
           <div class="section-header">
             <h2 class="section-title">Controles</h2>
             <div style="display:flex; gap:8px; flex-wrap:wrap;">
-              <button class="btn btn-secondary" onclick="exportReportCSV()">Exportar Excel (CSV)</button>
-              <button class="btn btn-secondary" onclick="printReportPDF()">Exportar PDF (Imprimir)</button>
-              <button class="btn btn-ghost" onclick="seedDemoSales()">Generar datos demo</button>
+              <button class="btn btn-secondary" onclick="exportReportCSV()"><i class="fa-solid fa-file-csv"></i> Exportar Excel (CSV)</button>
+              <button class="btn btn-secondary" onclick="printReportPDF()"><i class="fa-solid fa-file-pdf"></i> Exportar PDF</button>
             </div>
           </div>
 
           <div class="report-grid">
             <div class="detail-side">
               <h4>Métricas</h4>
-              <div class="kv"><span>Ventas (MXN)</span><b id="repVentas">$0</b></div>
-              <div class="kv"><span>Órdenes</span><b id="repOrdenes">0</b></div>
-              <div class="kv"><span>Ticket promedio</span><b id="repTicket">$0</b></div>
-              <div class="kv"><span>Conversión cotizaciones</span><b id="repConv">0%</b></div>
-              <small>*Simulado con localStorage</small>
+              <div class="kv"><span>Ventas del mes (MXN)</span><b id="repVentas">—</b></div>
+              <div class="kv"><span>Pedidos del mes</span><b id="repOrdenes">—</b></div>
+              <div class="kv"><span>Ticket promedio</span><b id="repTicket">—</b></div>
+              <div class="kv"><span>Conversión cotizaciones</span><b id="repConv">—</b></div>
+              <div class="kv"><span>Total cotizaciones respondidas</span><b id="repCotRespondidas">—</b></div>
             </div>
 
             <div class="detail-side">
               <h4>Análisis de citas</h4>
               <div style="color:#ddd; font-size:12px;">
-                Instalación
+                Mediciones <b id="repCitasMedicion" style="float:right;color:var(--accent);">—</b>
                 <div class="bar"><span id="barInst"></span></div>
               </div>
               <div style="color:#ddd; font-size:12px; margin-top:10px;">
-                Cotización
+                Instalaciones <b id="repCitasInstalacion" style="float:right;color:var(--accent);">—</b>
                 <div class="bar"><span id="barCot"></span></div>
               </div>
               <div style="color:#ddd; font-size:12px; margin-top:10px;">
-                Cita
+                Otros <b id="repCitasOtros" style="float:right;color:var(--accent);">—</b>
                 <div class="bar"><span id="barCita"></span></div>
               </div>
-              <small>*Barras = proporción por tipo</small>
+              <small>Tipos de citas — datos reales de la base de datos</small>
             </div>
           </div>
         </div>
@@ -495,7 +456,7 @@ unset($_usuario);
             <div style="overflow:auto;">
               <table>
                 <thead>
-                  <tr><th>Producto</th><th>ID</th><th>Unidades</th><th>Ingresos</th></tr>
+                  <tr><th>Producto</th><th>Unidades vendidas</th><th>Ingresos generados</th><th># Pedidos</th></tr>
                 </thead>
                 <tbody id="repTopBody"></tbody>
               </table>

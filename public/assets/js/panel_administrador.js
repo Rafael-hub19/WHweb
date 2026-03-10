@@ -1097,40 +1097,97 @@
       });
     }
 
-    function exportReportCSV(){
-      const k = computeKpis();
-      const top = computeTopProducts();
+    async function exportReportCSV(){
+      showNotification('<i class="fa-solid fa-spinner fa-spin"></i> Generando reporte...', 'info');
+      try {
+        const hoy   = new Date().toISOString().slice(0, 10);
+        const desde = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().slice(0, 10);
 
-      const lines = [];
-      lines.push(['Reporte','Wooden House'].join(','));
-      lines.push(['Ventas', k.total].join(','));
-      lines.push(['Ordenes', k.orders].join(','));
-      lines.push(['TicketPromedio', k.ticket].join(','));
-      lines.push(['ConversionCotizaciones', k.conv.toFixed(2)+'%'].join(','));
-      lines.push('');
-      lines.push(['TopProductos','ID','Unidades','Ingresos'].join(','));
+        const [resResult, prodResult, cotResult, citasResult] = await Promise.allSettled([
+          apiFetch(`${API_BASE}/reportes.php?tipo=resumen`),
+          apiFetch(`${API_BASE}/reportes.php?tipo=productos&desde=${desde}&hasta=${hoy}&limit=50`),
+          apiFetch(`${API_BASE}/reportes.php?tipo=cotizaciones&desde=${desde}&hasta=${hoy}`),
+          apiFetch(`${API_BASE}/reportes.php?tipo=citas&desde=${desde}&hasta=${hoy}`),
+        ]);
 
-      top.forEach(t => {
-        lines.push([
-          `"${String(t.name).replaceAll('"','""')}"`,
-          `"${String(t.productId).replaceAll('"','""')}"`,
-          t.units,
-          t.revenue
-        ].join(','));
-      });
+        const lines = [];
+        const esc = s => `"${String(s ?? '').replaceAll('"','""')}"`;
+        const fecha = new Date().toLocaleDateString('es-MX');
 
-      const csv = lines.join('\n');
-      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `reporte_wooden_house_${new Date().toISOString().slice(0,10)}.csv`;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      URL.revokeObjectURL(url);
+        lines.push(esc('Reporte Wooden House') + ',' + esc(fecha));
+        lines.push('');
 
-      showNotification('<i class="fa-solid fa-check"></i> CSV exportado (Excel)', 'success');
+        // ── KPIs generales ────────────────────────────────────────
+        lines.push(esc('RESUMEN GENERAL') + ',Valor');
+        if (resResult.status === 'fulfilled' && resResult.value?.success) {
+          const r = resResult.value;
+          lines.push(esc('Ventas del mes (MXN)') + ',' + (r.ingresos_mes || 0));
+          lines.push(esc('Pedidos del mes')       + ',' + (r.pedidos_mes || 0));
+          lines.push(esc('Total pedidos histórico')+ ',' + (r.total_pedidos || 0));
+          lines.push(esc('Pedidos pendientes')     + ',' + (r.pedidos_pendientes || 0));
+          lines.push(esc('Cotizaciones nuevas')    + ',' + (r.cotizaciones_nuevas || 0));
+          lines.push(esc('Productos activos')      + ',' + (r.productos_activos || 0));
+          lines.push(esc('Citas hoy')              + ',' + (r.citas_hoy || 0));
+        }
+        lines.push('');
+
+        // ── Productos más vendidos ────────────────────────────────
+        lines.push(esc('PRODUCTOS MÁS VENDIDOS') + ',' + esc('Unidades') + ',' + esc('Ingresos MXN') + ',' + esc('# Pedidos'));
+        if (prodResult.status === 'fulfilled' && prodResult.value?.success) {
+          (prodResult.value.productos || []).forEach(p => {
+            lines.push([
+              esc(p.nombre_producto),
+              p.unidades_vendidas  || 0,
+              p.ingresos_generados || 0,
+              p.num_pedidos        || 0,
+            ].join(','));
+          });
+        }
+        lines.push('');
+
+        // ── Cotizaciones ──────────────────────────────────────────
+        lines.push(esc('ANÁLISIS COTIZACIONES') + ',Valor');
+        if (cotResult.status === 'fulfilled' && cotResult.value?.success) {
+          const c = cotResult.value;
+          lines.push(esc('Conversión histórica %') + ',' + (c.conversion_pct || 0) + '%');
+          lines.push(esc('Total histórico')         + ',' + (c.total_historico || 0));
+          lines.push(esc('Respondidas / cerradas')  + ',' + (c.respondidas || 0));
+          if (c.funnel) {
+            lines.push(esc('Nuevas (período)')      + ',' + (c.funnel.nueva || 0));
+            lines.push(esc('En revisión (período)') + ',' + (c.funnel.en_revision || 0));
+            lines.push(esc('Respondidas (período)') + ',' + (c.funnel.respondida || 0));
+            lines.push(esc('Cerradas (período)')    + ',' + (c.funnel.cerrada || 0));
+          }
+        }
+        lines.push('');
+
+        // ── Citas ─────────────────────────────────────────────────
+        lines.push(esc('ANÁLISIS CITAS') + ',Valor');
+        if (citasResult.status === 'fulfilled' && citasResult.value?.success) {
+          const s = citasResult.value.resumen || {};
+          lines.push(esc('Total citas (período)')   + ',' + (s.total || 0));
+          lines.push(esc('Mediciones')              + ',' + (s.mediciones || 0));
+          lines.push(esc('Instalaciones')           + ',' + (s.instalaciones || 0));
+          lines.push(esc('Confirmadas')             + ',' + (s.confirmadas || 0));
+          lines.push(esc('Completadas')             + ',' + (s.completadas || 0));
+          lines.push(esc('Canceladas')              + ',' + (s.canceladas || 0));
+        }
+
+        const csv = lines.join('\n');
+        const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `reporte_wooden_house_${new Date().toISOString().slice(0,10)}.csv`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+
+        showNotification('<i class="fa-solid fa-check"></i> CSV exportado correctamente (ábrelo con Excel)', 'success');
+      } catch(e) {
+        showNotification('Error al generar reporte: ' + e.message, 'error');
+      }
     }
 
     function printReportPDF(){
@@ -1256,8 +1313,7 @@
       $('#kpiVentasMes').textContent = money(k.total);
       $('#kpiVentasHint').textContent = k.orders ? `Órdenes: ${k.orders} • Ticket: ${money(k.ticket)}` : 'Sin ventas registradas';
 
-      $('#kpiPedidos').textContent = String(3);
-      $('#kpiClientes').textContent = String(21);
+      // kpiPedidos y kpiClientes se llenan desde refreshKPIsFromAPI()
     }
 
     // ── Charts (Canvas) - DEMO ────────────────────────────
@@ -1353,18 +1409,56 @@
       ctx.closePath();
     }
 
-    function drawDashboardCharts(){
-      const ventas = [1200, 1800, 900, 2100, 1500, 2600, 2300];
-      const labels = ['L','M','M','J','V','S','D'];
-      drawBars('chartVentas', ventas, labels);
-      const total = ventas.reduce((a,b)=>a+b,0);
-      const meta1 = document.getElementById('chartVentasMeta');
-      if(meta1) meta1.textContent = `Total semana: $${total.toLocaleString('es-MX')}`;
+    async function drawDashboardCharts(){
+      try {
+        const hoy   = new Date().toISOString().slice(0, 10);
+        const hace7 = new Date(Date.now() - 6 * 86400000).toISOString().slice(0, 10);
 
-      const estados = [6, 9, 4];
-      drawDonut('chartEstados', estados, ['Pendiente','En Proceso','Completado']);
-      const meta2 = document.getElementById('chartEstadosMeta');
-      if(meta2) meta2.textContent = `Pendientes: ${estados[0]} · Proceso: ${estados[1]} · Completados: ${estados[2]}`;
+        const [ingResult, resResult] = await Promise.allSettled([
+          apiFetch(`${API_BASE}/reportes.php?tipo=ingresos&agrupacion=dia&desde=${hace7}&hasta=${hoy}`),
+          apiFetch(`${API_BASE}/reportes.php?tipo=resumen`),
+        ]);
+
+        // ── Barras: ventas de los últimos 7 días ──────────────────
+        const ventas = [0,0,0,0,0,0,0];
+        const labels = [];
+        const diasMap = {};
+        for (let i = 0; i < 7; i++) {
+          const d   = new Date(Date.now() - (6 - i) * 86400000);
+          const ymd = d.toISOString().slice(0, 10);
+          const dow = ['D','L','M','M','J','V','S'][d.getDay()];
+          diasMap[ymd] = i;
+          labels.push(dow);
+        }
+        if (ingResult.status === 'fulfilled' && ingResult.value?.success) {
+          (ingResult.value.datos || []).forEach(d => {
+            const idx = diasMap[d.periodo];
+            if (idx !== undefined) ventas[idx] = parseFloat(d.ingresos) || 0;
+          });
+        }
+        drawBars('chartVentas', ventas, labels);
+        const totalSem = ventas.reduce((a,b)=>a+b,0);
+        const meta1 = document.getElementById('chartVentasMeta');
+        if (meta1) meta1.textContent = `Total semana: $${totalSem.toLocaleString('es-MX')}`;
+
+        // ── Dona: distribución de estados de pedidos ──────────────
+        let pendiente = 0, proceso = 0, completo = 0;
+        if (resResult.status === 'fulfilled' && resResult.value?.success) {
+          const ep = resResult.value.estados_pedidos || [];
+          ep.forEach(e => {
+            const n = parseInt(e.total) || 0;
+            if (['pendiente','pagado'].includes(e.estado))                 pendiente += n;
+            else if (['en_produccion','listo'].includes(e.estado))         proceso   += n;
+            else if (e.estado === 'entregado')                             completo  += n;
+          });
+        }
+        drawDonut('chartEstados', [pendiente, proceso, completo], ['Pendiente','En Proceso','Completado']);
+        const meta2 = document.getElementById('chartEstadosMeta');
+        if (meta2) meta2.textContent = `Pendientes: ${pendiente} · Proceso: ${proceso} · Completados: ${completo}`;
+
+      } catch(e) {
+        console.warn('Error en dashboard charts:', e);
+      }
     }
 
     window.addEventListener('resize', () => {
@@ -1948,10 +2042,15 @@ async function cambiarEstadoCotAdmin(id, estado) {
 
 async function cargarReportesAPI() {
   try {
+    const hoy   = new Date().toISOString().slice(0, 10);
+    const desde = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().slice(0, 10);
+
     // Promise.allSettled: si uno falla el otro sigue funcionando
-    const [resumenResult, productosResult] = await Promise.allSettled([
+    const [resumenResult, productosResult, cotResult, citasResult] = await Promise.allSettled([
       apiFetch(`${API_BASE}/reportes.php?tipo=resumen`),
-      apiFetch(`${API_BASE}/reportes.php?tipo=productos`),
+      apiFetch(`${API_BASE}/reportes.php?tipo=productos&desde=${desde}&hasta=${hoy}`),
+      apiFetch(`${API_BASE}/reportes.php?tipo=cotizaciones&desde=${desde}&hasta=${hoy}`),
+      apiFetch(`${API_BASE}/reportes.php?tipo=citas&desde=${desde}&hasta=${hoy}`),
     ]);
 
     // ── KPIs del resumen ─────────────────────────────────
@@ -1961,12 +2060,6 @@ async function cargarReportesAPI() {
       setText('repOrdenes', r.pedidos_mes || 0);
       const ticket = (r.pedidos_mes > 0) ? (r.ingresos_mes / r.pedidos_mes) : 0;
       setText('repTicket', money(ticket));
-
-      // Conversión: pedidos vs cotizaciones
-      const cotTotal = r.cotizaciones_nuevas || 0;
-      const pedTotal = r.pedidos_mes || 0;
-      const conv = (cotTotal + pedTotal) > 0 ? Math.round((pedTotal / (cotTotal + pedTotal)) * 100) : 0;
-      setText('repConv', conv + '%');
 
       // Actualizar KPIs del dashboard también
       const ventasEl = document.getElementById('kpiVentasMes');
@@ -1979,6 +2072,33 @@ async function cargarReportesAPI() {
       if (hintEl) hintEl.textContent = `${r.pedidos_mes || 0} pedidos este mes`;
       const stockEl = document.getElementById('kpiStockLow');
       if (stockEl) stockEl.textContent = `${r.pedidos_pendientes || 0} pendientes`;
+    }
+
+    // ── Conversión de cotizaciones ────────────────────────
+    if (cotResult.status === 'fulfilled' && cotResult.value?.success) {
+      const c = cotResult.value;
+      setText('repConv', (c.conversion_pct || 0) + '%');
+      setText('repCotRespondidas', (c.respondidas || 0) + ' / ' + (c.total_historico || 0));
+    }
+
+    // ── Análisis de citas (barras) ────────────────────────
+    if (citasResult.status === 'fulfilled' && citasResult.value?.success) {
+      const s = citasResult.value.resumen || {};
+      const total = Math.max(1, parseInt(s.total) || 0);
+      const med   = parseInt(s.mediciones)   || 0;
+      const inst  = parseInt(s.instalaciones)|| 0;
+      const otros = parseInt(s.otros)        || 0;
+
+      const barInst = document.getElementById('barInst');
+      const barCot  = document.getElementById('barCot');
+      const barCita = document.getElementById('barCita');
+      if (barInst) barInst.style.width = Math.round((med  / total) * 100) + '%';
+      if (barCot)  barCot.style.width  = Math.round((inst / total) * 100) + '%';
+      if (barCita) barCita.style.width = Math.round((otros/ total) * 100) + '%';
+
+      setText('repCitasMedicion',   med);
+      setText('repCitasInstalacion',inst);
+      setText('repCitasOtros',      otros);
     }
 
     // ── Top productos ─────────────────────────────────────
