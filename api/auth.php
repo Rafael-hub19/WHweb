@@ -58,8 +58,8 @@ switch ($action) {
         _crearSesion($usuario);
 
         $redirect = $usuario['rol'] === 'administrador'
-            ? '/admin'
-            : '/empleado';
+            ? '/admin/panel_administrador.php'
+            : '/empleado/panel_empleado.php';
 
         jsonSuccess([
             'usuario' => [

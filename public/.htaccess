@@ -7,11 +7,15 @@ Options -Indexes -ExecCGI
     RewriteEngine On
     RewriteBase /
 
+    # Rutas directas a paneles (sin condiciones para evitar conflicto con directorios reales)
+    RewriteRule ^admin/?$                    admin/panel_administrador.php   [L,QSA]
+    RewriteRule ^empleado/?$                 empleado/panel_empleado.php     [L,QSA]
+
     # No reescribir si el archivo o directorio ya existe
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteCond %{REQUEST_FILENAME} !-d
 
-    # Rutas limpias
+    # Rutas limpias (aplica solo cuando no es archivo/directorio existente)
     RewriteRule ^$                           index.php                       [L,QSA]
     RewriteRule ^inicio/?$                   index.php                       [L,QSA]
     RewriteRule ^catalogo/?$                 catalogo.php                    [L,QSA]
@@ -21,8 +25,6 @@ Options -Indexes -ExecCGI
     RewriteRule ^solicitudes/?$              solicitudes.php                 [L,QSA]
     RewriteRule ^seguimiento/?$              solicitudes.php                 [L,QSA]
     RewriteRule ^detalle/([0-9]+)/?$         detalle_producto.php?id=$1      [L,QSA]
-    RewriteRule ^admin/?$                    admin/panel_administrador.php   [L,QSA]
-    RewriteRule ^empleado/?$                 empleado/panel_empleado.php     [L,QSA]
 </IfModule>
 
 # Bloquear archivos sensibles
