@@ -142,12 +142,34 @@ function initRealTimeValidation() {
     });
   });
 
-  // Textareas: bloquear inyección y caracteres SQL mientras escribe
+  // Confirmar correo: bloquear pegar y verificar coincidencia
+  document.querySelectorAll('input[name="emailConfirm"]').forEach(input => {
+    input.addEventListener('paste', (e) => e.preventDefault());
+    input.addEventListener('input', function () {
+      this.value = this.value.replace(/[^a-zA-Z0-9._%+\-@]/g, '');
+      clearFieldError(this);
+      this.style.borderColor = '';
+    });
+    input.addEventListener('blur', function () {
+      const emailField = this.closest('form')?.querySelector('input[name="email"]');
+      const original = emailField?.value.trim().toLowerCase() || '';
+      const confirm  = this.value.trim().toLowerCase();
+      if (!confirm) return;
+      if (confirm !== original) {
+        this.style.borderColor = '#8b4a4a';
+        showFieldError(this, 'Los correos no coinciden');
+      } else {
+        this.style.borderColor = '#3d6b47';
+        clearFieldError(this);
+      }
+    });
+  });
+
+  // Textareas: solo permitir letras, números, acentos y puntuación básica
   document.querySelectorAll('textarea').forEach(area => {
     area.addEventListener('input', function () {
       this.value = this.value
-        .replace(/<[^>]*>/g, '')         // quitar HTML tags
-        .replace(/['"`;\\\\]/g, '');    // quitar chars SQL peligrosos
+        .replace(/[^a-zA-ZáéíóúüñÁÉÍÓÚÜÑ0-9 \n\r.,;:!?()\-\/°%@]/g, '');
     });
   });
 }
@@ -188,7 +210,6 @@ function initFormCotizacion() {
       requiere_instalacion:  fd.get('instalacion') === 'si' ? 1 : 0,
       ciudad:                sanitizeText(fd.get('ciudad') || '', 100),
       urgencia:              sanitizeText(fd.get('urgencia') || '', 50),
-      referencia:            sanitizeText(fd.get('referencia') || '', 50),
       instalacion:           sanitizeText(fd.get('instalacion') || '', 30),
       // Anti-bot honeypot fields (always empty for real users)
       _hp:     fd.get('_hp')      || '',
@@ -205,6 +226,12 @@ function initFormCotizacion() {
     }
     if (!isValidEmail(datos.correo_cliente)) {
       showAlert('El correo electrónico no es válido. Ejemplo: nombre@dominio.com', 'error'); return;
+    }
+    const emailConfirmCot = sanitizeEmail(fd.get('emailConfirm') || '');
+    if (!emailConfirmCot || emailConfirmCot !== datos.correo_cliente) {
+      showAlert('Los correos electrónicos no coinciden. Verifícalos e intenta nuevamente.', 'error');
+      document.querySelector('#formCotizacion [name="emailConfirm"]')?.focus();
+      return;
     }
     if (!datos.telefono_cliente) {
       showAlert('Por favor ingresa tu teléfono', 'error'); return;
@@ -293,6 +320,12 @@ function initFormCita() {
     }
     if (!isValidEmail(datos.correo_cliente)) {
       showAlert('El correo electrónico no es válido. Ejemplo: nombre@dominio.com', 'error'); return;
+    }
+    const emailConfirmCit = sanitizeEmail(fd.get('emailConfirm') || '');
+    if (!emailConfirmCit || emailConfirmCit !== datos.correo_cliente) {
+      showAlert('Los correos electrónicos no coinciden. Verifícalos e intenta nuevamente.', 'error');
+      document.querySelector('#formCita [name="emailConfirm"]')?.focus();
+      return;
     }
     if (!datos.telefono_cliente) {
       showAlert('Por favor ingresa tu teléfono', 'error'); return;
@@ -499,7 +532,7 @@ async function trackOrder() {
         <div class="track-timeline">
           <div class="track-timeline-label">Progreso del pedido</div>
           <div class="track-timeline-steps">
-            ${stages.map((s, i) => {
+            ${stages.map((_s, i) => {
               const done    = i < stageIdx;
               const current = i === stageIdx;
               return `<div class="track-step">

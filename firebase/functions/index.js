@@ -4,8 +4,9 @@
  * Flujos:
  *   nuevo_pedido     → emailPedidoConfirmado (cliente) + emailAdminNuevoEvento('pedido') (admin)
  *   estado_pedido    → emailEstadoPedido (cliente)
- *   nueva_cotizacion → emailCotizacionRecibida (cliente) + emailAdminNuevoEvento('cotizacion') (admin)
- *   nueva_cita       → emailCitaConfirmada (cliente) + emailAdminNuevoEvento('cita') (admin)
+ *   nueva_cotizacion     → emailCotizacionRecibida (cliente) + emailAdminNuevoEvento('cotizacion') (admin)
+ *   cotizacion_respondida→ emailCotizacionRespondida (cliente)
+ *   nueva_cita           → emailCitaConfirmada (cliente) + emailAdminNuevoEvento('cita') (admin)
  */
 
 const { onDocumentCreated } = require('firebase-functions/v2/firestore');
@@ -253,6 +254,24 @@ function emailPedidoConfirmado(pedido) {
 
 <p style="color:#555;"><strong>📅 Semana estimada de entrega:</strong> ${fecha}</p>
 
+<!-- Ticket de pago -->
+${pedido.referencia_pago ? `
+<h3 style="color:#5C3D11;font-size:15px;margin:24px 0 8px;">🧾 Comprobante de pago</h3>
+<table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;margin-bottom:20px;background:#faf6f0;border-radius:6px;">
+  <tr>
+    <td style="padding:10px 14px;border-bottom:1px solid #f0e8d8;color:#666;width:40%;">Método de pago</td>
+    <td style="padding:10px 14px;border-bottom:1px solid #f0e8d8;font-weight:600;">${pedido.metodo_pago || '—'}</td>
+  </tr>
+  <tr>
+    <td style="padding:10px 14px;border-bottom:1px solid #f0e8d8;color:#666;">ID de transacción</td>
+    <td style="padding:10px 14px;border-bottom:1px solid #f0e8d8;font-family:monospace;font-size:12px;word-break:break-all;">${pedido.referencia_pago}</td>
+  </tr>
+  <tr>
+    <td style="padding:10px 14px;color:#666;">Fecha de pago</td>
+    <td style="padding:10px 14px;font-weight:600;">${pedido.fecha_pago || '—'}</td>
+  </tr>
+</table>` : ''}
+
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:30px 0;">
   <tr><td align="center">
     <a href="${trackUrl}" style="background:#8B6914;color:#ffffff;text-decoration:none;padding:14px 32px;border-radius:6px;font-size:15px;font-weight:bold;display:inline-block;font-family:Georgia,serif;">
@@ -322,30 +341,69 @@ function emailCotizacionRecibida(cot) {
   const nombre = cot.nombre_cliente    || '';
 
   const tipoMap = {
-    'baño':          'Mueble de baño',
-    'personalizado': 'Diseño Personalizado',
-    'cocina':        'Mueble de cocina',
-    'closet':        'Mueble closet',
-    'bano':          'Mueble de baño',
-    'sala':          'Mueble de sala',
-    'recamara':      'Mueble de recámara',
-    'estudio':       'Mueble de estudio',
+    'baño': 'Mueble de baño', 'personalizado': 'Diseño Personalizado',
+    'cocina': 'Mueble de cocina', 'closet': 'Mueble closet',
+    'bano': 'Mueble de baño', 'sala': 'Mueble de sala',
+    'recamara': 'Mueble de recámara', 'estudio': 'Mueble de estudio',
   };
-  const modeloRaw = cot.modelo_mueble || '';
-  const tipo    = tipoMap[modeloRaw] || modeloRaw || 'Mueble personalizado';
+  const tipo = tipoMap[cot.modelo_mueble || ''] || cot.modelo_mueble || 'Mueble personalizado';
 
   const contenido = `
-<h2 style="color:#8B6914;margin-top:0;">Cotización recibida ✓</h2>
-<p style="color:#555;line-height:1.7;">Hola <strong>${nombre}</strong>, recibimos tu solicitud para <strong>${tipo}</strong>.</p>
+<h2 style="color:#8B6914;margin-top:0;">¡Solicitud de cotización recibida! ✓</h2>
+<p style="color:#555;line-height:1.7;">Hola <strong>${nombre}</strong>, hemos recibido correctamente tu solicitud para <strong>${tipo}</strong>.</p>
+
+<div style="background:#faf6f0;border-left:4px solid #8B6914;padding:20px;margin:25px 0;border-radius:4px;">
+  <strong style="font-size:18px;color:#5C3D11;">${folio}</strong><br>
+  <span style="color:#888;font-size:13px;">Número de cotización — guárdalo para dar seguimiento a tu solicitud</span>
+</div>
+
+<div style="background:#f0f7f0;border-left:4px solid #4a8b5a;padding:16px 20px;margin:20px 0;border-radius:4px;">
+  <p style="margin:0;color:#3a5a3a;font-size:14px;line-height:1.7;">
+    <strong>¿Qué sigue?</strong><br>
+    Nuestro equipo analizará tu solicitud y preparará una propuesta personalizada.<br>
+    Recibirás una respuesta en tu correo en <strong>2 a 3 días hábiles</strong>.
+  </p>
+</div>
+
+<p style="color:#777;font-size:13px;line-height:1.7;">
+  Si tienes alguna duda o deseas agregar información adicional, puedes responder a este correo o contactarnos directamente.
+</p>`;
+
+  return emailWrapper('Cotización Recibida', contenido);
+}
+
+// ── emailCotizacionRespondida ─────────────────────────────────────
+function emailCotizacionRespondida(cot) {
+  const folio    = cot.numero_cotizacion || '';
+  const nombre   = cot.nombre_cliente    || '';
+  const respuesta = cot.notas_admin      || '';
+
+  const contenido = `
+<h2 style="color:#8B6914;margin-top:0;">Tu cotización ha sido respondida 📋</h2>
+<p style="color:#555;line-height:1.7;">Hola <strong>${nombre}</strong>, hemos revisado tu solicitud de cotización y te enviamos nuestra propuesta.</p>
 
 <div style="background:#faf6f0;border-left:4px solid #8B6914;padding:20px;margin:25px 0;border-radius:4px;">
   <strong style="font-size:18px;color:#5C3D11;">${folio}</strong><br>
   <span style="color:#888;font-size:13px;">Número de cotización</span>
 </div>
 
-<p style="color:#555;line-height:1.7;">Nuestro equipo revisará tu solicitud y te contactará en <strong>2 a 3 días hábiles</strong>.</p>`;
+${respuesta ? `
+<h3 style="color:#5C3D11;font-size:15px;margin:24px 0 8px;">📝 Respuesta de nuestro equipo</h3>
+<div style="background:#fff8f0;border:1px solid #e5ddd4;border-radius:6px;padding:20px;line-height:1.8;color:#3a3a3a;">
+  ${respuesta.replace(/\n/g, '<br>')}
+</div>` : ''}
 
-  return emailWrapper('Cotización Recibida', contenido);
+<p style="color:#555;line-height:1.7;margin-top:24px;">
+  Si tienes preguntas sobre esta propuesta o deseas proceder, por favor contáctanos respondiendo este correo o llamándonos.
+</p>
+
+<div style="text-align:center;margin:30px 0;">
+  <a href="tel:3317054017" style="background:#8B6914;color:#ffffff;text-decoration:none;padding:14px 32px;border-radius:6px;font-size:15px;font-weight:bold;display:inline-block;font-family:Georgia,serif;">
+    Contactar ahora →
+  </a>
+</div>`;
+
+  return emailWrapper('Cotización Respondida', contenido);
 }
 
 // ── emailCitaConfirmada ───────────────────────────────────────────
@@ -593,6 +651,25 @@ exports.onNuevaNotificacion = onDocumentCreated(
         }).then(() => console.log(`[CF] emailAdminNuevoEvento(cotizacion) → ${emails.admin}`))
           .catch(e => console.error('[CF] Error admin cotizacion:', e.message)),
       ]);
+      return;
+    }
+
+    // ── cotizacion_respondida → emailCotizacionRespondida (cliente) ─────────────
+    if (tipo === 'cotizacion_respondida') {
+      let cot = {};
+      try { cot = JSON.parse(data.datos_cotizacion || '{}'); } catch (e) {}
+      if (!cot.correo_cliente) return;
+
+      await sendEmail({
+        from: emails.cotizaciones, fromName: 'Wooden House Cotizaciones',
+        to:      cot.correo_cliente,
+        replyTo: emails.cotizaciones,
+        bcc:     emails.admin,
+        subject: `Tu cotización ${cot.numero_cotizacion} ha sido respondida | Wooden House`,
+        html:    emailCotizacionRespondida(cot),
+        text:    `Tu cotización ${cot.numero_cotizacion} ha sido respondida. Revisa tu correo para ver la propuesta.`,
+      }).then(() => console.log(`[CF] emailCotizacionRespondida → ${cot.correo_cliente}`))
+        .catch(e => console.error('[CF] Error emailCotizacionRespondida:', e.message));
       return;
     }
 

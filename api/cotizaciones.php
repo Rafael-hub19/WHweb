@@ -77,7 +77,7 @@ switch ($method) {
             $modeloMueble = sanitize(mb_substr($modeloMueble, 0, 100));
         }
 
-        $presupuestosValidos = ['5-10','10-20','20-30','30-50','50+','flexible',''];
+        $presupuestosValidos = ['5-20','20-50','50+',''];
         $presupuesto = in_array($body['rango_presupuesto'] ?? '', $presupuestosValidos, true)
             ? ($body['rango_presupuesto'] ?? '')
             : '';
@@ -129,6 +129,8 @@ switch ($method) {
     case 'PUT':
         requerirEmpleado();
         if (!$id) jsonError('ID requerido', 400);
+        $cotActual = dbRow("SELECT * FROM cotizaciones WHERE id = ?", [$id]);
+        if (!$cotActual) jsonError('Cotización no encontrada', 404);
         $body = getJsonBody();
         $update = [];
         $estadosValidos = ['nueva', 'en_revision', 'respondida', 'cerrada'];
@@ -138,6 +140,17 @@ switch ($method) {
         }
         if (isset($body['notas_admin'])) $update['notas_admin'] = sanitize($body['notas_admin']);
         if ($update) dbUpdate('cotizaciones', $update, 'id = ?', [$id]);
+
+        // Notificar al cliente cuando el admin responde la cotización
+        if (!empty($update['estado']) && $update['estado'] === 'respondida'
+            && $cotActual['estado'] !== 'respondida') {
+            try {
+                notificarCotizacionRespondida(array_merge($cotActual, $update));
+            } catch (Exception $e) {
+                appLog('warning', 'Notif cotizacion respondida fallida', ['e' => $e->getMessage()]);
+            }
+        }
+
         jsonSuccess(['mensaje' => 'Cotización actualizada']);
         break;
 

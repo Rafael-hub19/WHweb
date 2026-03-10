@@ -145,6 +145,29 @@ function initValidacionCampos() {
         });
     }
 
+    // Confirmar correo: no pegar, verificar que coincida
+    const correoConfirm = document.getElementById('clienteCorreoConfirm');
+    if (correoConfirm) {
+        correoConfirm.addEventListener('paste', (e) => e.preventDefault());
+        correoConfirm.addEventListener('input', function () {
+            this.value = this.value.replace(/[^a-zA-Z0-9._%+\-@]/g, '');
+            limpiarErrorCampo(this);
+            this.style.borderColor = '';
+        });
+        correoConfirm.addEventListener('blur', function () {
+            const original = sanitizeEmail(document.getElementById('clienteCorreo')?.value || '');
+            const confirm  = sanitizeEmail(this.value);
+            if (!confirm) return;
+            if (confirm !== original) {
+                this.style.borderColor = '#8b4a4a';
+                mostrarErrorCampo(this, 'Los correos no coinciden');
+            } else {
+                this.style.borderColor = '#3d6b47';
+                limpiarErrorCampo(this);
+            }
+        });
+    }
+
     // Dirección y ciudad: bloquear inyección
     ['clienteDireccion','clienteCiudad'].forEach(id => {
         const el = document.getElementById(id);
@@ -543,9 +566,12 @@ function procederAlPago() {
     const telefono = sanitizePhone(document.getElementById('clienteTelefono')?.value  || '');
     const correo   = sanitizeEmail(document.getElementById('clienteCorreo')?.value    || '');
 
+    const correoConfirmVal = sanitizeEmail(document.getElementById('clienteCorreoConfirm')?.value || '');
+
     if (!nombre   || nombre.length < 3)      { showToast('Ingresa tu nombre completo (mínimo 3 caracteres)', 'error'); document.getElementById('clienteNombre')?.focus();    return; }
     if (!telefono || !isValidPhone(telefono)) { showToast('Ingresa un teléfono válido de 10 dígitos', 'error');         document.getElementById('clienteTelefono')?.focus(); return; }
     if (!correo   || !isEmailValido(correo))  { showToast('Ingresa un correo electrónico válido (ej: nombre@dominio.com)', 'error'); document.getElementById('clienteCorreo')?.focus(); return; }
+    if (!correoConfirmVal || correoConfirmVal !== correo) { showToast('Los correos electrónicos no coinciden. Verifícalos.', 'error'); document.getElementById('clienteCorreoConfirm')?.focus(); return; }
 
     if (estado.tipoEntrega === 'envio') {
         const dir = sanitizeText(document.getElementById('clienteDireccion')?.value || '', 250);

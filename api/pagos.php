@@ -65,7 +65,10 @@ if ($action === 'stripe_confirm') {
             // Esto cubre el caso donde los webhooks no están configurados (entorno local/test)
             if ($pedido && empty($pedido['notificacion_enviada'])) {
                 try {
-                    $pedido['items'] = dbRows("SELECT nombre_producto, cantidad, precio_unitario FROM detalle_pedido WHERE pedido_id = ?", [$pedidoId]);
+                    $pedido['items']          = dbRows("SELECT nombre_producto, cantidad, precio_unitario FROM detalle_pedido WHERE pedido_id = ?", [$pedidoId]);
+                    $pedido['metodo_pago']    = 'Stripe';
+                    $pedido['referencia_pago'] = $piId;
+                    $pedido['fecha_pago']      = date('d/m/Y H:i');
                     notificarNuevoPedido($pedido);
                     dbUpdate('pedidos', ['notificacion_enviada' => 1], 'id = ?', [$pedidoId]);
                 } catch (Exception $e) {
@@ -104,7 +107,10 @@ if ($action === 'stripe_webhook') {
                 $pedido = dbRow("SELECT * FROM pedidos WHERE id = ?", [$pago['pedido_id']]);
                 if ($pedido && empty($pedido['notificacion_enviada'])) {
                     try {
-                        $pedido['items'] = dbRows("SELECT nombre_producto, cantidad, precio_unitario FROM detalle_pedido WHERE pedido_id = ?", [$pago['pedido_id']]);
+                        $pedido['items']           = dbRows("SELECT nombre_producto, cantidad, precio_unitario FROM detalle_pedido WHERE pedido_id = ?", [$pago['pedido_id']]);
+                        $pedido['metodo_pago']     = 'Stripe';
+                        $pedido['referencia_pago'] = $piId;
+                        $pedido['fecha_pago']       = date('d/m/Y H:i');
                         notificarNuevoPedido($pedido);
                         // Marcar como notificado para evitar duplicados si el webhook se reintenta
                         dbUpdate('pedidos', ['notificacion_enviada' => 1], 'id = ?', [$pago['pedido_id']]);
@@ -153,7 +159,10 @@ if ($action === 'paypal_webhook') {
                     $pedido = dbRow("SELECT * FROM pedidos WHERE id = ?", [$pago['pedido_id']]);
                     if ($pedido && empty($pedido['notificacion_enviada'])) {
                         try {
-                            $pedido['items'] = dbRows("SELECT nombre_producto, cantidad, precio_unitario FROM detalle_pedido WHERE pedido_id = ?", [$pago['pedido_id']]);
+                            $pedido['items']           = dbRows("SELECT nombre_producto, cantidad, precio_unitario FROM detalle_pedido WHERE pedido_id = ?", [$pago['pedido_id']]);
+                            $pedido['metodo_pago']     = 'PayPal';
+                            $pedido['referencia_pago'] = $captureId ?: $orderId;
+                            $pedido['fecha_pago']       = date('d/m/Y H:i');
                             notificarNuevoPedido($pedido);
                             dbUpdate('pedidos', ['notificacion_enviada' => 1], 'id = ?', [$pago['pedido_id']]);
                         } catch (Exception $e) {

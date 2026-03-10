@@ -93,6 +93,11 @@
               <input type="email" name="email" placeholder="correo@ejemplo.com" autocomplete="email" required maxlength="150">
               <div class="help-text">Te enviaremos la cotización detallada aquí</div>
             </div>
+            <div class="form-group">
+              <label>Confirmar Correo Electrónico <span class="required">*</span></label>
+              <input type="email" name="emailConfirm" placeholder="correo@ejemplo.com" required maxlength="150" autocomplete="off" autocorrect="off" spellcheck="false">
+              <div class="help-text">Escribe tu correo nuevamente para confirmarlo</div>
+            </div>
             <div class="form-group full-width">
               <label>Ciudad o Zona</label>
               <input type="text" name="ciudad" placeholder="Ej: Guadalajara, Zapopan, Tlaquepaque" maxlength="100" autocomplete="address-level2">
@@ -149,12 +154,9 @@
               <label>Presupuesto Estimado</label>
               <select name="presupuesto">
                 <option value="">Selecciona un rango</option>
-                <option value="5-10">$5,000 - $10,000</option>
-                <option value="10-20">$10,000 - $20,000</option>
-                <option value="20-30">$20,000 - $30,000</option>
-                <option value="30-50">$30,000 - $50,000</option>
+                <option value="5-20">$5,000 - $20,000</option>
+                <option value="20-50">$20,000 - $50,000</option>
                 <option value="50+">Más de $50,000</option>
-                <option value="flexible">Presupuesto flexible</option>
               </select>
               <div class="help-text">Opcional: Nos ayuda a orientar mejor la propuesta</div>
             </div>
@@ -164,8 +166,7 @@
               <select name="urgencia">
                 <option value="">Selecciona un plazo</option>
                 <option value="urgente">Menos de 1 mes</option>
-                <option value="1-2meses">1-2 meses</option>
-                <option value="2-3meses">2-3 meses</option>
+                <option value="1-3meses">1 a 3 meses</option>
                 <option value="flexible">Sin prisa, evaluando opciones</option>
               </select>
             </div>
@@ -174,21 +175,8 @@
               <label>¿Necesitas instalación?</label>
               <select name="instalacion">
                 <option value="">Selecciona una opción</option>
-                <option value="si">Sí, incluir instalación</option>
-                <option value="no">No, solo el mueble</option>
-                <option value="nose">No estoy seguro</option>
-              </select>
-            </div>
-
-            <div class="form-group">
-              <label>¿Cómo nos conociste?</label>
-              <select name="referencia">
-                <option value="">Selecciona una opción</option>
-                <option value="facebook">Facebook / Instagram</option>
-                <option value="google">Búsqueda en Google</option>
-                <option value="referido">Recomendación de conocido</option>
-                <option value="sitio">Navegando el sitio web</option>
-                <option value="otro">Otro</option>
+                <option value="si">Sí, requiero instalación</option>
+                <option value="no">No requiero instalación</option>
               </select>
             </div>
           </div>
@@ -234,9 +222,14 @@
               <label>Teléfono <span class="required">*</span></label>
               <input type="tel" name="telefono" placeholder="33 1234 5678" autocomplete="tel" required maxlength="20" >
             </div>
-            <div class="form-group full-width">
+            <div class="form-group">
               <label>Correo Electrónico <span class="required">*</span></label>
               <input type="email" name="email" placeholder="correo@ejemplo.com" autocomplete="email" required maxlength="150">
+            </div>
+            <div class="form-group">
+              <label>Confirmar Correo Electrónico <span class="required">*</span></label>
+              <input type="email" name="emailConfirm" placeholder="correo@ejemplo.com" required maxlength="150" autocomplete="off" autocorrect="off" spellcheck="false">
+              <div class="help-text">Escribe tu correo nuevamente para confirmarlo</div>
             </div>
 
             <div class="form-group full-width">

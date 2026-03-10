@@ -144,6 +144,9 @@ function notificarNuevoPedido(array $pedido): void {
                 'fecha_estimada'    => $pedido['fecha_estimada'] ?? '',
                 'notas'             => $pedido['notas'] ?? '',
                 'items'             => $pedido['items'] ?? [],
+                'metodo_pago'       => $pedido['metodo_pago'] ?? '',
+                'referencia_pago'   => $pedido['referencia_pago'] ?? '',
+                'fecha_pago'        => $pedido['fecha_pago'] ?? '',
             ]),
         ]
     );
@@ -192,6 +195,29 @@ function notificarNuevaCotizacion(array $cot): void {
                 'telefono_cliente'  => $cot['telefono_cliente'] ?? '',
                 'modelo_mueble'       => $cot['modelo_mueble'] ?? '',
                 'descripcion'       => $cot['descripcion'] ?? '',
+            ]),
+        ]
+    );
+}
+
+/**
+ * Cotización respondida por el admin
+ * Firebase CF envía: emailCotizacionRespondida → cliente
+ */
+function notificarCotizacionRespondida(array $cot): void {
+    crearNotificacionFirestore(
+        'cotizacion_respondida',
+        '📋 Cotización respondida',
+        "Tu cotización {$cot['numero_cotizacion']} ha sido respondida",
+        [
+            'numero_cotizacion' => $cot['numero_cotizacion'],
+            'datos_cotizacion'  => json_encode([
+                'id'                => (int)($cot['id'] ?? 0),
+                'numero_cotizacion' => $cot['numero_cotizacion'],
+                'nombre_cliente'    => $cot['nombre_cliente'],
+                'correo_cliente'    => $cot['correo_cliente'],
+                'modelo_mueble'     => $cot['modelo_mueble'] ?? '',
+                'notas_admin'       => $cot['notas_admin'] ?? '',
             ]),
         ]
     );

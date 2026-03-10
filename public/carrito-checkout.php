@@ -180,6 +180,13 @@
                             <input type="email" id="clienteCorreo" placeholder="correo@ejemplo.com" required>
                         </div>
                     </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Confirmar correo electrónico <span class="required">*</span></label>
+                            <input type="email" id="clienteCorreoConfirm" placeholder="correo@ejemplo.com" required autocomplete="off" autocorrect="off" spellcheck="false">
+                            <div class="help-text">Escribe tu correo nuevamente para confirmarlo</div>
+                        </div>
+                    </div>
 
                     <!-- Dirección (solo si es envío) -->
                     <div id="seccionDireccion">
