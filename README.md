@@ -1,7 +1,7 @@
 # Wooden House — Sitio Web
 
-Plataforma web completa para la venta y gestión de muebles de baño a medida.  
-Incluye catálogo con carrito, proceso de pago, cotizaciones, panel de administrador y panel de empleado.
+Plataforma e-commerce completa para la venta y gestión de muebles de baño a medida.
+Incluye catálogo, carrito, cuentas de cliente, proceso de pago, cotizaciones, sistema de ofertas/marketing y paneles de administrador y empleado.
 
 ---
 
@@ -37,6 +37,7 @@ Wooden House/
 │   ├── carrito-checkout.php         # Carrito + selector de fecha de entrega
 │   ├── pago.php                     # Proceso de pago (Stripe + PayPal)
 │   ├── solicitudes.php              # Cotizaciones, citas y seguimiento
+│   ├── mi-cuenta.php                # Portal del cliente registrado (pedidos, perfil)
 │   ├── login.php                    # Autenticación de personal (Firebase)
 │   ├── robots.txt
 │   ├── sitemap.xml
@@ -47,7 +48,7 @@ Wooden House/
 │   │   └── panel_empleado.php       # Panel del empleado
 │   └── assets/
 │       ├── css/
-│       │   ├── variables.css        # Variables globales (colores, fuentes)
+│       │   ├── variables.css        # Variables globales — paleta ámbar premium
 │       │   ├── styles.css           # Estilos compartidos (header, footer, nav)
 │       │   ├── index.css
 │       │   ├── catalogo.css
@@ -57,7 +58,9 @@ Wooden House/
 │       │   ├── login.css
 │       │   ├── detalle_producto.css
 │       │   ├── panel_administrador.css
-│       │   └── panel_empleado.css
+│       │   ├── panel_empleado.css
+│       │   ├── modal-auth.css       # Modal de login/registro de clientes
+│       │   └── mi-cuenta.css        # Estilos del portal del cliente
 │       ├── js/
 │       │   ├── app.js               # Utilidades globales y carrito
 │       │   ├── utils.js             # Funciones compartidas
@@ -71,14 +74,18 @@ Wooden House/
 │       │   ├── solicitudes.js       # Cotizaciones, citas y seguimiento (tabs)
 │       │   ├── login.js             # Autenticación Firebase
 │       │   ├── panel_administrador.js  # Panel admin con auto-polling 30s
-│       │   └── panel_empleado.js    # Panel empleado con auto-polling 30s
+│       │   ├── panel_empleado.js    # Panel empleado con auto-polling 30s
+│       │   ├── modal-auth.js        # Modal de autenticación de clientes (Firebase)
+│       │   └── mi-cuenta.js         # Lógica del portal del cliente
 │       └── img/
 │           ├── logo-header.png
 │           └── logo-login.png
 │
 ├── api/                             # Endpoints REST (PHP)
 │   ├── _helpers.php                 # Funciones comunes de API (auth, sanitize, JSON)
-│   ├── auth.php                     # Verificación de tokens Firebase JWT
+│   ├── auth.php                     # Verificación tokens Firebase JWT (personal + clientes)
+│   ├── clientes.php                 # CRUD clientes registrados (e-commerce)
+│   ├── ofertas.php                  # CRUD ofertas, descuentos y códigos promo
 │   ├── productos.php                # CRUD productos + imágenes + especificaciones
 │   ├── categorias.php               # CRUD categorías
 │   ├── pedidos.php                  # CRUD pedidos + cambio de estado
@@ -103,7 +110,7 @@ Wooden House/
 │   └── paypal.php                   # Wrapper de la API de PayPal + verificación de webhooks
 │
 ├── database/
-│   ├── schema.sql                   # Estructura completa de tablas (12 tablas)
+│   ├── schema.sql                   # Estructura completa de tablas (14 tablas)
 │   └── seed.sql                     # Datos de prueba + festivos 2026
 │
 ├── firebase/
@@ -141,6 +148,7 @@ Wooden House/
 | `/pago` | `public/pago.php` |
 | `/solicitudes` | `public/solicitudes.php` |
 | `/login` | `public/login.php` |
+| `/mi-cuenta` | `public/mi-cuenta.php` |
 | `/admin/` | `public/admin/panel_administrador.php` |
 | `/empleado/` | `public/empleado/panel_empleado.php` |
 
@@ -153,6 +161,8 @@ Wooden House/
 | Tabla | Descripción |
 |-------|-------------|
 | `usuarios_personal` | Admins y empleados (espejo de Firebase Auth) |
+| `clientes` | Clientes registrados en la tienda (Firebase Auth) |
+| `ofertas` | Descuentos, cupones y promociones de marketing |
 | `categorias` | Categorías de productos |
 | `productos` | Productos con precio, stock y etiqueta |
 | `imagenes_producto` | Galería de imágenes por producto (URLs de Firebase Storage) |
@@ -394,11 +404,18 @@ Todos los servicios externos están explícitamente permitidos. Si ves errores C
 ### Frontend público
 - Página de inicio: hero, servicios, proceso de fabricación, proyectos y FAQ
 - Catálogo con filtro por categoría, búsqueda en tiempo real y ordenamiento
-- Detalle de producto con galería, especificaciones en tabs y selector de cantidad
+- Detalle de producto con galería, especificaciones en tabs, selector de cantidad y productos relacionados por categoría
 - Carrito con selector de semanas de entrega basado en disponibilidad real de la API
 - Proceso de pago completo: Stripe Elements (tarjeta) + PayPal Smart Buttons
 - Seguimiento de pedidos por número sin necesidad de login
 - Formularios de cotización y agendado de citas con tabs
+
+### Sistema de cuentas de cliente (nuevo)
+- Registro e inicio de sesión con Firebase Auth (mismo servicio que el personal interno)
+- Modal de autenticación contextual: aparece al hacer clic en "Proceder al pago" o "Enviar solicitud", no al entrar al sitio
+- El carrito se conserva durante el proceso de registro/login (sin interrupciones)
+- Portal "Mi Cuenta" (`/mi-cuenta`): historial de pedidos, perfil editable, estadísticas
+- Los pedidos, cotizaciones y citas quedan vinculados a la cuenta del cliente automáticamente
 
 ### Panel Administrador *(auto-polling 30s)*
 - Dashboard con KPIs en tiempo real y gráficas de ventas y estados
@@ -409,6 +426,8 @@ Todos los servicios externos están explícitamente permitidos. Si ves errores C
 - Reportes: resumen, pedidos por período, productos más vendidos, ingresos, clientes
 - Cotizaciones y calendario de citas
 - Análisis financiero
+- **Clientes Registrados:** lista completa con historial, total gastado, pedidos y cotizaciones por cliente
+- **Ofertas & Marketing:** CRUD de descuentos (porcentaje, monto fijo, envío gratis), códigos de cupón con vigencia y usos máximos
 
 ### Panel Empleado *(auto-polling 30s)*
 - Vista de pedidos asignados y actualización de estado
@@ -454,7 +473,9 @@ Todos los servicios externos están explícitamente permitidos. Si ves errores C
 | `/api/notificaciones.php` | GET POST PUT | empleado+ | Notificaciones Firestore |
 | `/api/empleados.php` | GET POST PUT DELETE | admin | Gestión de personal |
 | `/api/calendario.php` | GET | empleado+ | Disponibilidad de citas |
-| `/api/auth.php` | POST | — | Verificación de tokens |
+| `/api/auth.php` | POST GET | — | Verificación de tokens (personal + clientes) |
+| `/api/clientes.php` | GET PUT | cliente / admin | Perfil y pedidos del cliente |
+| `/api/ofertas.php` | GET POST PUT DELETE | público (GET activas) / admin | Ofertas y cupones |
 
 ---
 
@@ -474,6 +495,9 @@ Todos los servicios externos están explícitamente permitidos. Si ves errores C
 - **Bootstrap 5.3.3** se carga solo el JS (sin CSS) para no sobreescribir el tema oscuro personalizado
 - El carrito persiste en `localStorage` con la clave `wh_carrito`
 - Los paneles de admin y empleado requieren sesión activa de Firebase Auth
+- **Los clientes usan la misma Firebase Auth** pero se almacenan en tabla `clientes`, no en `usuarios_personal`
+- Las sesiones PHP distinguen entre personal (`usuario_id`, `usuario_rol`) y clientes (`cliente_id`, `cliente_rol`)
+- El modal de auth del cliente se activa con `AuthModal.open(callback)` desde cualquier página
 - La sección "Proyectos Realizados" del index está hardcodeada en `index.php`
 - Los logs del servidor se guardan en `logs/` (ignorado en `.gitignore`)
 - El `firebase/` completo está **fuera de `public/`** — no es accesible desde el navegador

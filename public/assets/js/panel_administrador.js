@@ -2501,3 +2501,357 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 });
+
+// ════════════════════════════════════════════════════════════════
+// MÓDULO: CLIENTES REGISTRADOS
+// ════════════════════════════════════════════════════════════════
+
+let _clientesOffset = 0;
+const _clientesLimit = 25;
+
+async function cargarClientesAdmin() {
+  const q    = document.getElementById('clientesSearch')?.value.trim() || '';
+  const body = document.getElementById('clientesAdminBody');
+  if (!body) return;
+
+  body.innerHTML = `<tr><td colspan="9" style="text-align:center;padding:30px;color:var(--muted);">
+    <i class="fa-solid fa-spinner fa-spin"></i> Cargando...
+  </td></tr>`;
+
+  try {
+    const url = `${API_BASE}/clientes.php?limit=${_clientesLimit}&offset=${_clientesOffset}${q ? '&q=' + encodeURIComponent(q) : ''}`;
+    const data = await apiFetch(url);
+    if (!data.success) throw new Error(data.message || 'Error');
+
+    const clientes = data.clientes || [];
+    const total    = data.total || 0;
+
+    // Stats
+    const conPedidos = clientes.filter(c => c.total_pedidos > 0).length;
+    const stTotal    = document.getElementById('statTotalClientes');
+    const stConPed   = document.getElementById('statClientesConPedidos');
+    if (stTotal)  stTotal.textContent  = total;
+    if (stConPed) stConPed.textContent = conPedidos + (total > _clientesLimit ? '+' : '');
+
+    if (!clientes.length) {
+      body.innerHTML = `<tr><td colspan="9" style="text-align:center;padding:30px;color:var(--muted);">
+        Sin clientes registrados aún
+      </td></tr>`;
+      return;
+    }
+
+    body.innerHTML = clientes.map(c => `
+      <tr>
+        <td style="color:var(--muted);font-size:12px;">#${c.id}</td>
+        <td style="font-weight:600;">${escapeHtml(c.nombre)}</td>
+        <td style="font-size:13px;">${escapeHtml(c.correo)}</td>
+        <td style="font-size:13px;">${escapeHtml(c.telefono || '—')}</td>
+        <td style="font-size:13px;">${escapeHtml(c.ciudad || '—')}</td>
+        <td style="text-align:center;font-weight:700;color:${c.total_pedidos > 0 ? 'var(--accent)' : 'var(--muted)'};">${c.total_pedidos}</td>
+        <td style="font-weight:700;color:var(--accent);">${money(c.total_gastado)}</td>
+        <td style="font-size:12px;color:var(--muted);">${(c.fecha_registro || '').substring(0, 10)}</td>
+        <td>
+          <button class="btn btn-secondary btn-small" onclick="verDetalleCliente(${c.id})" title="Ver historial">
+            <i class="fa-solid fa-eye"></i>
+          </button>
+        </td>
+      </tr>
+    `).join('');
+
+    // Paginacion
+    const pagDiv = document.getElementById('clientesPaginacion');
+    if (pagDiv) {
+      pagDiv.innerHTML = '';
+      if (_clientesOffset > 0) {
+        const btnPrev = document.createElement('button');
+        btnPrev.className = 'btn btn-secondary btn-small';
+        btnPrev.innerHTML = '<i class="fa-solid fa-chevron-left"></i> Anterior';
+        btnPrev.onclick = () => { _clientesOffset -= _clientesLimit; cargarClientesAdmin(); };
+        pagDiv.appendChild(btnPrev);
+      }
+      if ((_clientesOffset + _clientesLimit) < total) {
+        const btnNext = document.createElement('button');
+        btnNext.className = 'btn btn-secondary btn-small';
+        btnNext.innerHTML = 'Siguiente <i class="fa-solid fa-chevron-right"></i>';
+        btnNext.onclick = () => { _clientesOffset += _clientesLimit; cargarClientesAdmin(); };
+        pagDiv.appendChild(btnNext);
+      }
+      if (total > 0) {
+        const info = document.createElement('span');
+        info.style.cssText = 'font-size:12px;color:var(--muted);align-self:center;';
+        info.textContent = `${_clientesOffset + 1}–${Math.min(_clientesOffset + clientes.length, total)} de ${total}`;
+        pagDiv.appendChild(info);
+      }
+    }
+  } catch (e) {
+    body.innerHTML = `<tr><td colspan="9" style="text-align:center;padding:20px;color:#e05;">${escapeHtml(e.message)}</td></tr>`;
+  }
+}
+
+async function verDetalleCliente(id) {
+  openModal('clienteDetalleModal');
+  const body = document.getElementById('clienteDetalleBody');
+  body.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted);"><i class="fa-solid fa-spinner fa-spin fa-2x"></i></div>';
+
+  try {
+    const data = await apiFetch(`${API_BASE}/clientes.php?id=${id}`);
+    if (!data.success) throw new Error(data.message || 'Error');
+    const c = data.cliente;
+    const pedidos = data.pedidos || [];
+    const cots    = data.cotizaciones || [];
+
+    const estLabels = { pendiente:'Pendiente', pagado:'Pagado', en_produccion:'En producción',
+                        listo:'Listo', entregado:'Entregado', cancelado:'Cancelado' };
+    const estColors = { pendiente:'var(--warn)', pagado:'var(--accent)', en_produccion:'#4a7c8b',
+                        listo:'#3a9e6e', entregado:'var(--muted)', cancelado:'var(--danger)' };
+
+    body.innerHTML = `
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px;">
+        <div>
+          <div style="font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px;">Nombre</div>
+          <div style="font-weight:700;">${escapeHtml(c.nombre)}</div>
+        </div>
+        <div>
+          <div style="font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px;">Correo</div>
+          <div>${escapeHtml(c.correo)}</div>
+        </div>
+        <div>
+          <div style="font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px;">Teléfono</div>
+          <div>${escapeHtml(c.telefono || '—')}</div>
+        </div>
+        <div>
+          <div style="font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px;">Ciudad</div>
+          <div>${escapeHtml(c.ciudad || '—')}</div>
+        </div>
+        <div style="grid-column:span 2;">
+          <div style="font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px;">Dirección</div>
+          <div>${escapeHtml(c.direccion || '—')}</div>
+        </div>
+      </div>
+
+      <div style="border-top:1px solid var(--border);padding-top:16px;margin-bottom:8px;">
+        <h4 style="font-size:13px;color:var(--accent);text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px;">
+          <i class="fa-solid fa-box"></i> Pedidos (${pedidos.length})
+        </h4>
+        ${pedidos.length ? `<table style="width:100%;font-size:13px;">
+          <thead><tr style="color:var(--muted);">
+            <th style="text-align:left;padding:6px 8px;">Folio</th>
+            <th style="text-align:left;padding:6px 8px;">Estado</th>
+            <th style="text-align:right;padding:6px 8px;">Total</th>
+            <th style="text-align:left;padding:6px 8px;">Fecha</th>
+          </tr></thead>
+          <tbody>
+            ${pedidos.map(p => `<tr style="border-bottom:1px solid var(--border);">
+              <td style="padding:8px;font-weight:600;">${escapeHtml(p.numero_pedido)}</td>
+              <td style="padding:8px;"><span style="color:${estColors[p.estado]||'var(--muted)'};font-weight:600;font-size:12px;">${estLabels[p.estado]||p.estado}</span></td>
+              <td style="padding:8px;text-align:right;font-weight:700;color:var(--accent);">${money(p.total)}</td>
+              <td style="padding:8px;color:var(--muted);">${(p.fecha_creacion||'').substring(0,10)}</td>
+            </tr>`).join('')}
+          </tbody>
+        </table>` : '<p style="color:var(--muted);font-size:13px;">Sin pedidos registrados</p>'}
+      </div>
+
+      ${cots.length ? `<div style="border-top:1px solid var(--border);padding-top:16px;margin-top:8px;">
+        <h4 style="font-size:13px;color:var(--accent);text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px;">
+          <i class="fa-solid fa-briefcase"></i> Cotizaciones (${cots.length})
+        </h4>
+        ${cots.map(co => `<div style="padding:8px;border-bottom:1px solid var(--border);font-size:13px;">
+          <span style="font-weight:600;">${escapeHtml(co.numero_cotizacion)}</span>
+          <span style="margin:0 8px;color:var(--muted);">${escapeHtml(co.modelo_mueble||'—')}</span>
+          <span style="color:var(--accent);">${co.estado}</span>
+          <span style="float:right;color:var(--muted);">${(co.fecha_creacion||'').substring(0,10)}</span>
+        </div>`).join('')}
+      </div>` : ''}
+    `;
+  } catch (e) {
+    body.innerHTML = `<p style="color:#e05;padding:20px;">${escapeHtml(e.message)}</p>`;
+  }
+}
+
+// ════════════════════════════════════════════════════════════════
+// MÓDULO: OFERTAS & MARKETING
+// ════════════════════════════════════════════════════════════════
+
+async function cargarOfertasAdmin() {
+  const body = document.getElementById('ofertasAdminBody');
+  if (!body) return;
+
+  body.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:30px;color:var(--muted);">
+    <i class="fa-solid fa-spinner fa-spin"></i> Cargando...
+  </td></tr>`;
+
+  try {
+    const data = await apiFetch(`${API_BASE}/ofertas.php`);
+    if (!data.success) throw new Error(data.message || 'Error');
+
+    const ofertas = data.ofertas || [];
+
+    if (!ofertas.length) {
+      body.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:30px;color:var(--muted);">
+        Sin ofertas creadas. ¡Crea la primera!
+      </td></tr>`;
+      return;
+    }
+
+    const tipoLabels = { porcentaje: 'Porcentaje', monto_fijo: 'Monto fijo', envio_gratis: 'Envío gratis' };
+
+    body.innerHTML = ofertas.map(o => {
+      const vigente   = parseInt(o.vigente);
+      const estadoBadge = o.activo == 1
+        ? (vigente ? '<span class="status-badge status-completed">Activa</span>' : '<span class="status-badge status-pending">Inactiva (fuera de rango)</span>')
+        : '<span class="status-badge status-cancelled">Desactivada</span>';
+
+      const valorStr = o.tipo === 'porcentaje' ? `${o.valor}%`
+                     : o.tipo === 'monto_fijo' ? money(o.valor)
+                     : 'Sin costo envío';
+
+      const vigenciaStr = (o.fecha_inicio || o.fecha_fin)
+        ? `${o.fecha_inicio || '∞'} – ${o.fecha_fin || '∞'}`
+        : 'Sin límite';
+
+      const usosStr = o.usos_maximos
+        ? `${o.usos_actuales} / ${o.usos_maximos}`
+        : `${o.usos_actuales} (ilimitado)`;
+
+      return `<tr>
+        <td style="font-weight:600;">${escapeHtml(o.nombre)}</td>
+        <td style="font-size:13px;color:var(--muted);">${tipoLabels[o.tipo] || o.tipo}</td>
+        <td style="font-weight:700;color:var(--accent);">${valorStr}</td>
+        <td>${o.codigo ? `<code style="background:var(--bg);padding:3px 8px;border-radius:5px;font-size:12px;color:var(--accent);border:1px solid var(--border);">${escapeHtml(o.codigo)}</code>` : '<span style="color:var(--muted);font-size:12px;">Sin código</span>'}</td>
+        <td style="font-size:12px;color:var(--muted);">${vigenciaStr}</td>
+        <td style="font-size:13px;">${usosStr}</td>
+        <td>${estadoBadge}</td>
+        <td>
+          <button class="btn btn-secondary btn-small" onclick="abrirOfertaModal('edit', ${o.id})" title="Editar">
+            <i class="fa-solid fa-pen"></i>
+          </button>
+          <button class="btn btn-danger btn-small" onclick="eliminarOferta(${o.id})" title="Eliminar">
+            <i class="fa-solid fa-trash"></i>
+          </button>
+        </td>
+      </tr>`;
+    }).join('');
+
+  } catch (e) {
+    body.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:20px;color:#e05;">${escapeHtml(e.message)}</td></tr>`;
+  }
+}
+
+function actualizarValorLabel() {
+  const tipo  = document.getElementById('of_tipo')?.value;
+  const label = document.getElementById('of_valor_label');
+  const input = document.getElementById('of_valor');
+  if (!label || !input) return;
+  if (tipo === 'porcentaje') { label.textContent = 'Porcentaje (%) *'; input.placeholder = '20'; input.disabled = false; }
+  else if (tipo === 'monto_fijo') { label.textContent = 'Monto fijo ($) *'; input.placeholder = '500'; input.disabled = false; }
+  else { label.textContent = 'Valor (no aplica)'; input.value = '0'; input.disabled = true; }
+}
+
+async function abrirOfertaModal(mode, id = null) {
+  // Limpiar
+  document.getElementById('of_id').value     = '';
+  document.getElementById('of_mode').value   = mode;
+  document.getElementById('of_nombre').value = '';
+  document.getElementById('of_descripcion').value = '';
+  document.getElementById('of_tipo').value   = 'porcentaje';
+  document.getElementById('of_valor').value  = '';
+  document.getElementById('of_codigo').value = '';
+  document.getElementById('of_usos_max').value = '';
+  document.getElementById('of_fecha_inicio').value = '';
+  document.getElementById('of_fecha_fin').value = '';
+  document.getElementById('of_activo').checked = true;
+  document.getElementById('of_error').style.display = 'none';
+  actualizarValorLabel();
+
+  const title = document.getElementById('ofertaModalTitle');
+  if (mode === 'create') {
+    if (title) title.innerHTML = '<i class="fa-solid fa-tag"></i> Nueva Oferta';
+  } else if (mode === 'edit' && id) {
+    if (title) title.innerHTML = '<i class="fa-solid fa-pen"></i> Editar Oferta';
+    try {
+      const data = await apiFetch(`${API_BASE}/ofertas.php?id=${id}`);
+      if (!data.success) throw new Error();
+      const o = data.oferta;
+      document.getElementById('of_id').value     = o.id;
+      document.getElementById('of_nombre').value = o.nombre;
+      document.getElementById('of_descripcion').value = o.descripcion || '';
+      document.getElementById('of_tipo').value   = o.tipo;
+      document.getElementById('of_valor').value  = o.valor;
+      document.getElementById('of_codigo').value = o.codigo || '';
+      document.getElementById('of_usos_max').value = o.usos_maximos || '';
+      document.getElementById('of_fecha_inicio').value = o.fecha_inicio || '';
+      document.getElementById('of_fecha_fin').value    = o.fecha_fin    || '';
+      document.getElementById('of_activo').checked = o.activo == 1;
+      actualizarValorLabel();
+    } catch { showNotification('Error al cargar la oferta', 'error'); return; }
+  }
+
+  openModal('ofertaModal');
+}
+
+async function guardarOferta() {
+  const errEl = document.getElementById('of_error');
+  errEl.style.display = 'none';
+
+  const mode = document.getElementById('of_mode').value;
+  const id   = document.getElementById('of_id').value;
+  const body = {
+    nombre:       document.getElementById('of_nombre')?.value.trim(),
+    descripcion:  document.getElementById('of_descripcion')?.value.trim(),
+    tipo:         document.getElementById('of_tipo')?.value,
+    valor:        document.getElementById('of_valor')?.value,
+    codigo:       document.getElementById('of_codigo')?.value.trim().toUpperCase() || null,
+    usos_maximos: document.getElementById('of_usos_max')?.value || null,
+    fecha_inicio: document.getElementById('of_fecha_inicio')?.value || null,
+    fecha_fin:    document.getElementById('of_fecha_fin')?.value || null,
+    activo:       document.getElementById('of_activo')?.checked,
+  };
+
+  if (!body.nombre) { errEl.textContent = 'El nombre de la oferta es requerido.'; errEl.style.display = 'block'; return; }
+
+  const btn = document.getElementById('of_btn_guardar');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Guardando...';
+
+  try {
+    let data;
+    if (mode === 'create') {
+      data = await apiFetch(`${API_BASE}/ofertas.php`, { method: 'POST', body });
+    } else {
+      data = await apiFetch(`${API_BASE}/ofertas.php?id=${id}`, { method: 'PUT', body });
+    }
+
+    if (!data.success) throw new Error(data.message || 'Error');
+
+    closeModal('ofertaModal');
+    showNotification(data.mensaje || 'Oferta guardada', 'success');
+    cargarOfertasAdmin();
+
+  } catch (e) {
+    errEl.textContent = e.message;
+    errEl.style.display = 'block';
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Guardar Oferta';
+  }
+}
+
+async function eliminarOferta(id) {
+  if (!confirm('¿Eliminar esta oferta? Esta acción no se puede deshacer.')) return;
+  try {
+    const data = await apiFetch(`${API_BASE}/ofertas.php?id=${id}`, { method: 'DELETE' });
+    if (!data.success) throw new Error(data.message);
+    showNotification('Oferta eliminada', 'success');
+    cargarOfertasAdmin();
+  } catch (e) {
+    showNotification('Error: ' + e.message, 'error');
+  }
+}
+
+// ── Cargar módulos al mostrar sus secciones ────────────────────
+const _origShowSection = window.showSection;
+window.showSection = function(section, ev) {
+  _origShowSection?.(section, ev);
+  if (section === 'clientes') { _clientesOffset = 0; cargarClientesAdmin(); }
+  if (section === 'ofertas')  cargarOfertasAdmin();
+};

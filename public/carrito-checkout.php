@@ -6,7 +6,9 @@
     <link rel="icon" type="image/x-icon" href="/favicon.ico">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Carrito – Wooden House</title>
+    <link rel="stylesheet" href="./assets/css/variables.css">
     <link rel="stylesheet" href="./assets/css/carrito.css">
+    <link rel="stylesheet" href="./assets/css/modal-auth.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <!-- Bootstrap 5 JS - Solo componentes interactivos (modales, dropdowns). CSS propio de Wooden House tiene prioridad -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous" defer></script>
@@ -23,6 +25,9 @@
         <a href="/inicio">Inicio</a>
         <a href="/solicitudes">Solicitudes</a>
         <a href="/catalogo">Catálogo</a>
+        <button class="btn-cuenta-nav" onclick="AuthModal.open()">
+            <i class="fa-solid fa-user"></i> Mi cuenta
+        </button>
     </div>
 </div>
 
@@ -268,7 +273,27 @@
 </div>
 
 <script src="./assets/js/utils.js"></script>
+<script src="./assets/js/firebase-config.js"></script>
+<script src="./assets/js/modal-auth.js"></script>
 <script src="./assets/js/carrito.js"></script>
 <script src="./assets/js/checkout.js"></script>
+<script>
+// Interceptar procederAlPago para requerir autenticación primero
+(function () {
+  document.addEventListener('DOMContentLoaded', function () {
+    const _origProceder = window.procederAlPago;
+    if (typeof _origProceder !== 'function') return;
+    window.procederAlPago = function () {
+      if (AuthModal.isAuthenticated()) {
+        _origProceder();
+      } else {
+        AuthModal.requireAuth(function () {
+          _origProceder();
+        }, 'Inicia sesión para completar tu compra');
+      }
+    };
+  });
+})();
+</script>
 </body>
 </html>

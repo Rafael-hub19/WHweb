@@ -110,6 +110,89 @@ switch ($action) {
         jsonSuccess(['usuario' => $usuario]);
         break;
 
+    // ── Registro de cliente ───────────────────────────────────────
+    case 'cliente-registro':
+        if ($method !== 'POST') jsonError('Método no permitido', 405);
+        checkRateLimit('cliente_registro', 5, 60);
+        $body = getJsonBody();
+        if (!empty($body['_hp'])) jsonError('Error de validación', 422);
+        $firebaseToken = trim($body['firebase_token'] ?? '');
+        if (empty($firebaseToken)) jsonError('firebase_token requerido', 422);
+        $payload = verificarTokenFirebase($firebaseToken);
+        if (!$payload) jsonError('Token de Firebase inválido', 401);
+        $uid = $payload['uid'] ?? '';
+        if (empty($uid)) jsonError('Token sin UID', 401);
+        $nombre   = sanitize($body['nombre'] ?? '');
+        $correo   = sanitize($body['correo'] ?? '');
+        $telefono = sanitize($body['telefono'] ?? '');
+        if (empty($nombre) || strlen($nombre) < 2) jsonError('Nombre requerido (mín. 2 caracteres)', 422);
+        if (empty($correo) || !filter_var($correo, FILTER_VALIDATE_EMAIL)) jsonError('Correo electrónico inválido', 422);
+        $tokenEmail = $payload['email'] ?? '';
+        if (!empty($tokenEmail) && strtolower($tokenEmail) !== strtolower($correo)) {
+            jsonError('El correo no coincide con la cuenta de Firebase', 422);
+        }
+        $cliente = registrarCliente(['firebase_uid' => $uid, 'nombre' => $nombre, 'correo' => $correo, 'telefono' => $telefono]);
+        if (!$cliente) jsonError('No se pudo registrar la cuenta. Intenta nuevamente.', 500);
+        _crearSesionCliente($cliente);
+        jsonSuccess(['cliente' => ['id' => $cliente['id'], 'nombre' => $cliente['nombre'], 'correo' => $cliente['correo']], 'csrf' => getCsrfToken(), 'mensaje' => '¡Cuenta creada exitosamente!']);
+        break;
+
+    // ── Login de cliente ──────────────────────────────────────────
+    case 'cliente-login':
+        if ($method !== 'POST') jsonError('Método no permitido', 405);
+        checkRateLimit('cliente_login', 10, 60);
+        $body = getJsonBody();
+        if (!empty($body['_hp'])) jsonError('Error de validación', 422);
+        $firebaseToken = trim($body['firebase_token'] ?? '');
+        if (empty($firebaseToken)) jsonError('firebase_token requerido', 422);
+        $payload = verificarTokenFirebase($firebaseToken);
+        if (!$payload) jsonError('Token de Firebase inválido o expirado', 401);
+        $uid     = $payload['uid'] ?? '';
+        $cliente = $uid ? obtenerClientePorFirebaseUid($uid) : null;
+        // Auto-registrar si no existe pero tiene email en el token
+        if (!$cliente && !empty($uid) && !empty($payload['email'])) {
+            $cliente = registrarCliente([
+                'firebase_uid' => $uid,
+                'nombre'       => $payload['name'] ?? $payload['email'],
+                'correo'       => $payload['email'],
+            ]);
+        }
+        if (!$cliente) jsonError('No se pudo autenticar la cuenta', 403);
+        _crearSesionCliente($cliente);
+        jsonSuccess(['cliente' => ['id' => $cliente['id'], 'nombre' => $cliente['nombre'], 'correo' => $cliente['correo']], 'csrf' => getCsrfToken()]);
+        break;
+
+    // ── Verificar sesión de cliente ───────────────────────────────
+    case 'cliente-verificar':
+        $cliente = sesionClienteActiva();
+        if ($cliente) {
+            jsonSuccess(['autenticado' => true, 'cliente' => $cliente, 'csrf' => getCsrfToken()]);
+        }
+        $token = getBearerToken();
+        if ($token) {
+            $payload = verificarTokenFirebase($token);
+            if ($payload) {
+                $uid = $payload['uid'] ?? '';
+                $c   = $uid ? obtenerClientePorFirebaseUid($uid) : null;
+                if ($c) { _crearSesionCliente($c); jsonSuccess(['autenticado' => true, 'cliente' => $c, 'csrf' => getCsrfToken()]); }
+            }
+        }
+        jsonSuccess(['autenticado' => false]);
+        break;
+
+    // ── Logout de cliente ─────────────────────────────────────────
+    case 'cliente-logout':
+        if ($method !== 'POST') jsonError('Método no permitido', 405);
+        cerrarSesion();
+        jsonSuccess(['mensaje' => 'Sesión de cliente cerrada']);
+        break;
+
+    // ── Perfil de cliente ─────────────────────────────────────────
+    case 'cliente-perfil':
+        $cliente = requerirCliente();
+        jsonSuccess(['cliente' => $cliente]);
+        break;
+
     default:
-        jsonError('Acción no válida. Opciones: login, logout, verificar, perfil', 400);
+        jsonError('Acción no válida. Opciones: login, logout, verificar, perfil, cliente-login, cliente-registro, cliente-verificar, cliente-logout', 400);
 }

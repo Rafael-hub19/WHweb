@@ -1,0 +1,303 @@
+/**
+ * mi-cuenta.css — Página "Mi cuenta" del cliente
+ */
+
+.mc-container {
+  max-width: 820px;
+  margin: 0 auto;
+  padding: 40px 20px 80px;
+  min-height: 70vh;
+}
+
+/* ── Loading / no-auth ─────────────────────────────────────────── */
+.mc-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  padding: 80px 20px;
+  color: var(--color-text-muted);
+}
+
+.mc-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid var(--color-border);
+  border-top-color: var(--color-primary);
+  border-radius: 50%;
+  animation: mc-spin 0.8s linear infinite;
+}
+
+.mc-spinner-sm {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--color-border);
+  border-top-color: var(--color-primary);
+  border-radius: 50%;
+  animation: mc-spin 0.8s linear infinite;
+  vertical-align: middle;
+  margin-right: 6px;
+}
+
+@keyframes mc-spin { to { transform: rotate(360deg); } }
+
+.mc-noauth {
+  text-align: center;
+  padding: 80px 20px;
+}
+.mc-noauth-icon {
+  font-size: 56px;
+  color: var(--color-primary);
+  margin-bottom: 20px;
+  opacity: 0.7;
+}
+.mc-noauth h2 {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--color-text-main);
+  margin-bottom: 10px;
+}
+.mc-noauth p {
+  color: var(--color-text-muted);
+  margin-bottom: 28px;
+}
+
+/* ── Perfil header ─────────────────────────────────────────────── */
+.mc-profile-header {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius-lg);
+  padding: 28px;
+  margin-bottom: 28px;
+  box-shadow: var(--shadow-md);
+}
+
+.mc-avatar {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: var(--gradient-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  font-weight: 700;
+  color: #fff;
+  flex-shrink: 0;
+  box-shadow: var(--shadow-gold);
+}
+
+.mc-nombre {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--color-text-main);
+  margin-bottom: 4px;
+}
+
+.mc-correo {
+  font-size: 14px;
+  color: var(--color-text-muted);
+  margin-bottom: 8px;
+}
+
+.mc-badge {
+  display: inline-block;
+  background: var(--color-primary-light);
+  color: var(--color-primary);
+  border: 1px solid rgba(196,146,42,0.3);
+  border-radius: 20px;
+  padding: 3px 12px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* ── Tabs ──────────────────────────────────────────────────────── */
+.mc-tabs {
+  display: flex;
+  gap: 6px;
+  border-bottom: 1px solid var(--color-border);
+  margin-bottom: 28px;
+}
+
+.mc-tab {
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  padding: 10px 20px;
+  margin-bottom: -1px;
+  color: var(--color-text-muted);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: color var(--transition-fast), border-color var(--transition-fast);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.mc-tab:hover { color: var(--color-text-main); }
+
+.mc-tab.active {
+  color: var(--color-primary);
+  border-bottom-color: var(--color-primary);
+}
+
+/* ── Section title ─────────────────────────────────────────────── */
+.mc-section-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--color-text-main);
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.mc-section-title i { color: var(--color-primary); }
+
+/* ── Pedidos ───────────────────────────────────────────────────── */
+.mc-pedidos-lista { display: flex; flex-direction: column; gap: 12px; }
+
+.mc-pedido-card {
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius-md);
+  padding: 18px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  transition: border-color var(--transition-fast);
+}
+.mc-pedido-card:hover { border-color: var(--color-border-light); }
+
+.mc-pedido-numero {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--color-primary);
+  margin-bottom: 4px;
+}
+
+.mc-pedido-meta {
+  font-size: 12px;
+  color: var(--color-text-muted);
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.mc-pedido-total {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--color-text-main);
+  white-space: nowrap;
+}
+
+.mc-estado-badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.mc-estado-pendiente   { background: rgba(196,146,42,0.15); color: #c4922a; }
+.mc-estado-pagado      { background: rgba(74,155,95,0.15);  color: #4a9b5f; }
+.mc-estado-en_produccion { background: rgba(74,139,196,0.15); color: #4a8bc4; }
+.mc-estado-listo       { background: rgba(140,74,196,0.15); color: #8c4ac4; }
+.mc-estado-entregado   { background: rgba(74,155,95,0.2);   color: #70c080; }
+.mc-estado-cancelado   { background: rgba(196,74,74,0.15);  color: #c44a4a; }
+
+.mc-empty {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--color-text-muted);
+}
+.mc-empty i { font-size: 36px; display: block; margin-bottom: 12px; opacity: 0.4; }
+
+.mc-loading-inline {
+  padding: 24px;
+  color: var(--color-text-muted);
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+}
+
+/* ── Formulario de perfil ──────────────────────────────────────── */
+.mc-form {
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius-md);
+  padding: 24px;
+}
+
+.mc-form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+.mc-form-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; }
+
+.mc-form-group label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.mc-form-group input {
+  background: var(--color-bg-input, #221d14);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius-sm);
+  padding: 10px 14px;
+  color: var(--color-text-main);
+  font-size: 14px;
+  font-family: inherit;
+  outline: none;
+  transition: border-color var(--transition-fast);
+}
+.mc-form-group input:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(196,146,42,0.12);
+}
+
+.mc-req { color: var(--color-primary); }
+
+.mc-form-actions { margin-top: 8px; }
+
+.mc-alert {
+  border-radius: var(--border-radius-sm);
+  padding: 10px 14px;
+  font-size: 13px;
+  margin-bottom: 16px;
+  display: none;
+}
+.mc-alert.error   { background: var(--color-error-bg);   color: #e07070; border: 1px solid rgba(196,74,74,0.3); display: block; }
+.mc-alert.success { background: var(--color-success-bg); color: #70c080; border: 1px solid rgba(74,155,95,0.3); display: block; }
+
+/* ── Botones ───────────────────────────────────────────────────── */
+.btn-mc-primary {
+  background: var(--gradient-primary);
+  color: #fff;
+  border: none;
+  border-radius: var(--border-radius-sm);
+  padding: 12px 28px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity var(--transition-fast), transform var(--transition-fast);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.btn-mc-primary:hover:not(:disabled) { opacity: 0.88; transform: translateY(-1px); }
+.btn-mc-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+
+@media (max-width: 600px) {
+  .mc-profile-header { flex-direction: column; text-align: center; }
+  .mc-form-row { grid-template-columns: 1fr; }
+  .mc-pedido-card { flex-direction: column; }
+}

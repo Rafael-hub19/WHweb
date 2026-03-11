@@ -323,3 +323,73 @@ CREATE TABLE IF NOT EXISTS dias_bloqueados (
 
   INDEX idx_fecha (fecha)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ================================================================
+-- CLIENTES REGISTRADOS (e-commerce)
+-- Los clientes usan Firebase Auth pero se guardan aquí, separados
+-- del personal interno (usuarios_personal)
+-- ================================================================
+DROP TABLE IF EXISTS ofertas;
+DROP TABLE IF EXISTS clientes;
+
+CREATE TABLE clientes (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  firebase_uid VARCHAR(128) NOT NULL UNIQUE,
+  nombre VARCHAR(120) NOT NULL,
+  correo VARCHAR(150) NOT NULL UNIQUE,
+  telefono VARCHAR(30) NULL,
+  direccion VARCHAR(255) NULL,
+  ciudad VARCHAR(100) NULL,
+  cp VARCHAR(10) NULL,
+  activo TINYINT(1) NOT NULL DEFAULT 1,
+  fecha_registro TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  fecha_actualizacion TIMESTAMP NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
+
+  INDEX idx_correo (correo),
+  INDEX idx_activo (activo)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Vincular pedidos a clientes (nullable para pedidos históricos de invitados)
+ALTER TABLE pedidos ADD COLUMN IF NOT EXISTS cliente_id INT NULL AFTER token_seguimiento;
+ALTER TABLE pedidos ADD CONSTRAINT IF NOT EXISTS fk_pedidos_cliente
+  FOREIGN KEY (cliente_id) REFERENCES clientes(id)
+  ON DELETE SET NULL ON UPDATE CASCADE;
+CREATE INDEX IF NOT EXISTS idx_pedidos_cliente ON pedidos (cliente_id);
+
+-- Vincular cotizaciones a clientes
+ALTER TABLE cotizaciones ADD COLUMN IF NOT EXISTS cliente_id INT NULL AFTER numero_cotizacion;
+ALTER TABLE cotizaciones ADD CONSTRAINT IF NOT EXISTS fk_cotizaciones_cliente
+  FOREIGN KEY (cliente_id) REFERENCES clientes(id)
+  ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- Vincular citas a clientes
+ALTER TABLE citas ADD COLUMN IF NOT EXISTS cliente_id INT NULL AFTER numero_cita;
+ALTER TABLE citas ADD CONSTRAINT IF NOT EXISTS fk_citas_cliente
+  FOREIGN KEY (cliente_id) REFERENCES clientes(id)
+  ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- ================================================================
+-- OFERTAS Y PROMOCIONES (Marketing)
+-- Descuentos, cupones y campanhas de marketing
+-- ================================================================
+CREATE TABLE ofertas (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  nombre VARCHAR(120) NOT NULL,
+  descripcion TEXT NULL,
+  tipo ENUM('porcentaje','monto_fijo','envio_gratis') NOT NULL DEFAULT 'porcentaje',
+  valor DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+  codigo VARCHAR(30) NULL UNIQUE,
+  activo TINYINT(1) NOT NULL DEFAULT 1,
+  fecha_inicio DATE NULL,
+  fecha_fin DATE NULL,
+  usos_maximos INT NULL,
+  usos_actuales INT NOT NULL DEFAULT 0,
+  aplica_a ENUM('todos','categoria','producto') NOT NULL DEFAULT 'todos',
+  referencia_id INT NULL,
+  fecha_creacion TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  fecha_actualizacion TIMESTAMP NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
+
+  INDEX idx_activo (activo),
+  INDEX idx_codigo (codigo),
+  INDEX idx_fechas (fecha_inicio, fecha_fin)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

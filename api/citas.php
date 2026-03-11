@@ -87,7 +87,7 @@ switch ($method) {
         }
 
         $numeroCita = generarNumeroCita();
-        $citaId = dbInsert('citas', [
+        $datosCita = [
             'numero_cita'      => $numeroCita,
             'nombre_cliente'   => sanitize($body['nombre_cliente']),
             'correo_cliente'   => $emailCita,
@@ -98,7 +98,10 @@ switch ($method) {
             'tipo'             => $body['tipo'],
             'notas'            => sanitize($body['notas'] ?? ''),
             'estado'           => 'nueva',
-        ]);
+        ];
+        $clienteSession = sesionClienteActiva();
+        if ($clienteSession) $datosCita['cliente_id'] = $clienteSession['id'];
+        $citaId = dbInsert('citas', $datosCita);
 
         try {
             // Firebase Cloud Function enviará correos al cliente y al admin

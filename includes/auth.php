@@ -310,3 +310,83 @@ function verificarCsrfToken(string $token): bool {
     // hash_equals previene timing attacks
     return !empty($esperado) && hash_equals($esperado, $token);
 }
+
+// ════════════════════════════════════════════════════════════════
+// AUTENTICACIÓN DE CLIENTES (E-commerce)
+// Los clientes usan Firebase Auth pero se almacenan en 'clientes'
+// Claves de sesión distintas: cliente_id, cliente_rol
+// ════════════════════════════════════════════════════════════════
+
+function obtenerClientePorFirebaseUid(string $uid): ?array {
+    if (!preg_match('/^[a-zA-Z0-9]{20,128}$/', $uid)) return null;
+    return dbRow(
+        "SELECT id, firebase_uid, nombre, correo, telefono, direccion, ciudad, cp, activo
+         FROM clientes WHERE firebase_uid = ? AND activo = 1 LIMIT 1",
+        [$uid]
+    );
+}
+
+function registrarCliente(array $data): ?array {
+    $uid    = trim($data['firebase_uid'] ?? '');
+    $nombre = trim($data['nombre'] ?? '');
+    $correo = trim($data['correo'] ?? '');
+    if (empty($uid) || empty($nombre) || empty($correo)) return null;
+    if (!filter_var($correo, FILTER_VALIDATE_EMAIL)) return null;
+    try {
+        dbExecute(
+            "INSERT INTO clientes (firebase_uid, nombre, correo, telefono)
+             VALUES (?, ?, ?, ?)
+             ON DUPLICATE KEY UPDATE nombre=VALUES(nombre), correo=VALUES(correo), telefono=VALUES(telefono)",
+            [$uid, $nombre, $correo, $data['telefono'] ?? null]
+        );
+        return obtenerClientePorFirebaseUid($uid);
+    } catch (\Throwable $e) {
+        error_log('registrarCliente error: ' . $e->getMessage());
+        return null;
+    }
+}
+
+function _crearSesionCliente(array $cliente): void {
+    session_regenerate_id(true);
+    $_SESSION['cliente_id']     = $cliente['id'];
+    $_SESSION['cliente_uid']    = $cliente['firebase_uid'];
+    $_SESSION['cliente_rol']    = 'cliente';
+    $_SESSION['_csrf']          = bin2hex(random_bytes(32));
+    $_SESSION['_login_time']    = time();
+    $_SESSION['_last_activity'] = time();
+    setcookie('XSRF-TOKEN', $_SESSION['_csrf'], [
+        'expires' => 0, 'path' => '/', 'secure' => true,
+        'httponly' => false, 'samesite' => 'Strict',
+    ]);
+}
+
+function sesionClienteActiva(): ?array {
+    if (empty($_SESSION['cliente_id']) || ($_SESSION['cliente_rol'] ?? '') !== 'cliente') return null;
+    $now = time();
+    if (!empty($_SESSION['_login_time']) && ($now - $_SESSION['_login_time']) > 28800) { _destruirSesion(); return null; }
+    if (!empty($_SESSION['_last_activity']) && ($now - $_SESSION['_last_activity']) > 7200) { _destruirSesion(); return null; }
+    $_SESSION['_last_activity'] = $now;
+    return dbRow(
+        "SELECT id, firebase_uid, nombre, correo, telefono, direccion, ciudad, cp
+         FROM clientes WHERE id = ? AND activo = 1 LIMIT 1",
+        [$_SESSION['cliente_id']]
+    );
+}
+
+function requerirCliente(): array {
+    $cliente = sesionClienteActiva();
+    if ($cliente) return $cliente;
+    $token = getBearerToken();
+    if (!$token) jsonError('No autenticado como cliente', 401);
+    $payload = verificarTokenFirebase($token);
+    if (!$payload) jsonError('Token de cliente inválido', 401);
+    $uid     = $payload['uid'] ?? '';
+    $cliente = $uid ? obtenerClientePorFirebaseUid($uid) : null;
+    if (!$cliente) jsonError('Cliente no registrado en el sistema', 403);
+    _crearSesionCliente($cliente);
+    return $cliente;
+}
+
+function clienteAutenticado(): bool {
+    return !empty($_SESSION['cliente_id']) && ($_SESSION['cliente_rol'] ?? '') === 'cliente';
+}

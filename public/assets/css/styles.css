@@ -106,6 +106,28 @@ button {
   font-weight: var(--font-weight-bold, 600);
 }
 
+/* === BOTÓN CUENTA NAV (fallback si modal-auth.css no está cargado) === */
+.btn-cuenta-nav {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  background: transparent;
+  border: 1.5px solid var(--color-primary, #c4922a);
+  color: var(--color-primary, #c4922a);
+  padding: 7px 16px;
+  border-radius: var(--border-radius-sm, 8px);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background var(--transition-fast, 0.15s), color var(--transition-fast, 0.15s);
+  white-space: nowrap;
+  font-family: inherit;
+}
+.btn-cuenta-nav:hover, .btn-cuenta-nav.autenticado {
+  background: var(--color-primary, #c4922a);
+  color: #fff;
+}
+
 .menu-toggle {
   display: none;
   background: transparent;

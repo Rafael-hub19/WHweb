@@ -94,7 +94,7 @@ switch ($method) {
         if (!empty($body['ciudad'])) $extra[] = 'Ciudad: ' . sanitize($body['ciudad']);
         if ($extra) $descripcionCompleta .= ' | ' . implode(' | ', $extra);
 
-        $cotId = dbInsert('cotizaciones', [
+        $datosCot = [
             'numero_cotizacion'     => $numCot,
             'nombre_cliente'        => sanitize($body['nombre_cliente']),
             'correo_cliente'        => $emailCot,
@@ -106,7 +106,10 @@ switch ($method) {
             'rango_presupuesto'     => $presupuesto,
             'requiere_instalacion'  => !empty($body['requiere_instalacion']) ? 1 : 0,
             'estado'                => 'nueva',
-        ]);
+        ];
+        $clienteSession = sesionClienteActiva();
+        if ($clienteSession) $datosCot['cliente_id'] = $clienteSession['id'];
+        $cotId = dbInsert('cotizaciones', $datosCot);
 
         try {
             // Firebase Cloud Function enviará correos al cliente y al admin

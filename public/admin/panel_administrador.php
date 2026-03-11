@@ -66,6 +66,8 @@ unset($_usuario);
     <a href="#" data-section="empleados" onclick="showSection('empleados', event)"><span class="icon"><i class="fa-solid fa-briefcase"></i></span> Gestionar Empleados</a>
     <a href="#" data-section="reportes" onclick="showSection('reportes', event)"><span class="icon"><i class="fa-solid fa-chart-bar"></i></span> Reportes Avanzados</a>
     <a href="#" data-section="financiero" onclick="showSection('financiero', event)"><span class="icon"><i class="fa-solid fa-tag"></i></span> Análisis Financiero</a>
+    <a href="#" data-section="clientes" onclick="showSection('clientes', event)"><span class="icon"><i class="fa-solid fa-users"></i></span> Clientes Registrados</a>
+    <a href="#" data-section="ofertas" onclick="showSection('ofertas', event)"><span class="icon"><i class="fa-solid fa-tag"></i></span> Ofertas & Marketing</a>
   </div>
 
   <div class="container">
@@ -84,6 +86,10 @@ unset($_usuario);
       <div class="sidebar-item" onclick="showSection('empleados', event)"><span class="icon"><i class="fa-solid fa-briefcase"></i></span><span>Gestionar Empleados</span></div>
       <div class="sidebar-item" onclick="showSection('reportes', event)"><span class="icon"><i class="fa-solid fa-chart-bar"></i></span><span>Reportes Avanzados</span></div>
       <div class="sidebar-item" onclick="showSection('financiero', event)"><span class="icon"><i class="fa-solid fa-tag"></i></span><span>Análisis Financiero</span></div>
+
+      <div class="sidebar-section">CLIENTES & MARKETING</div>
+      <div class="sidebar-item" onclick="showSection('clientes', event)"><span class="icon"><i class="fa-solid fa-users"></i></span><span>Clientes Registrados</span></div>
+      <div class="sidebar-item" onclick="showSection('ofertas', event)"><span class="icon"><i class="fa-solid fa-tag"></i></span><span>Ofertas & Marketing</span></div>
 
       <div class="sidebar-section">PRODUCCIÓN</div>
       <div class="sidebar-item" onclick="showSection('capacidad', event)"><span class="icon"><i class="fa-solid fa-industry"></i></span><span>Capacidad del Taller</span></div>
@@ -805,10 +811,199 @@ unset($_usuario);
         </div>
       </div>
 
+      <!-- CLIENTES REGISTRADOS -->
+      <div id="clientes-section" class="content-section hidden">
+        <h1 class="page-title"><i class="fa-solid fa-users"></i> Clientes Registrados</h1>
+        <p class="page-subtitle">Clientes con cuenta en la tienda, su historial y datos de contacto</p>
+
+        <div class="section">
+          <div class="section-header">
+            <h2 class="section-title">Lista de clientes</h2>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+              <input class="form-input" id="clientesSearch" placeholder="Buscar nombre, correo, ciudad..." style="max-width:260px;font-size:13px;" oninput="cargarClientesAdmin()">
+              <button class="btn btn-secondary btn-small" onclick="cargarClientesAdmin()">
+                <i class="fa-solid fa-rotate-right"></i> Actualizar
+              </button>
+            </div>
+          </div>
+
+          <!-- Stats rápidas -->
+          <div class="stats-grid" style="margin-bottom:20px;" id="clientesStatsRow">
+            <div class="stat-card">
+              <div class="stat-title">Total clientes</div>
+              <div class="stat-value" id="statTotalClientes">—</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-title">Con pedidos</div>
+              <div class="stat-value" id="statClientesConPedidos">—</div>
+            </div>
+          </div>
+
+          <div class="table-container">
+            <div style="overflow:auto;">
+              <table>
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Nombre</th>
+                    <th>Correo</th>
+                    <th>Teléfono</th>
+                    <th>Ciudad</th>
+                    <th>Pedidos</th>
+                    <th>Total gastado</th>
+                    <th>Registro</th>
+                    <th>Acciones</th>
+                  </tr>
+                </thead>
+                <tbody id="clientesAdminBody">
+                  <tr><td colspan="9" style="text-align:center;padding:30px;color:var(--muted);">
+                    <i class="fa-solid fa-spinner fa-spin"></i> Cargando clientes...
+                  </td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div id="clientesPaginacion" style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px;flex-wrap:wrap;"></div>
+        </div>
+      </div>
+
+      <!-- MODAL: DETALLE CLIENTE -->
+      <div class="modal" id="clienteDetalleModal">
+        <div class="modal-content" style="max-width:700px;">
+          <div class="modal-header" style="background:var(--accent);color:#fff;border-radius:8px 8px 0 0;margin:-18px -18px 16px;padding:16px 18px;">
+            <h3 class="modal-title" style="color:#fff;"><i class="fa-solid fa-user-circle"></i> Perfil del Cliente</h3>
+            <button class="modal-close" onclick="closeModal('clienteDetalleModal')" style="color:#fff;">×</button>
+          </div>
+          <div id="clienteDetalleBody" style="max-height:70vh;overflow-y:auto;">
+            <div style="text-align:center;padding:40px;color:var(--muted);"><i class="fa-solid fa-spinner fa-spin fa-2x"></i></div>
+          </div>
+          <div style="display:flex;justify-content:flex-end;padding:12px 0 0;border-top:1px solid var(--border);">
+            <button class="btn btn-secondary" onclick="closeModal('clienteDetalleModal')">Cerrar</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- OFERTAS & MARKETING -->
+      <div id="ofertas-section" class="content-section hidden">
+        <h1 class="page-title"><i class="fa-solid fa-tag"></i> Ofertas & Marketing</h1>
+        <p class="page-subtitle">Descuentos, promociones y códigos de cupón para tus clientes</p>
+
+        <div class="section">
+          <div class="section-header">
+            <h2 class="section-title">Campañas activas</h2>
+            <button class="btn btn-primary" onclick="abrirOfertaModal('create')">
+              <i class="fa-solid fa-plus"></i> Nueva Oferta
+            </button>
+          </div>
+
+          <div class="table-container">
+            <div style="overflow:auto;">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Nombre</th>
+                    <th>Tipo</th>
+                    <th>Valor</th>
+                    <th>Código</th>
+                    <th>Vigencia</th>
+                    <th>Usos</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                  </tr>
+                </thead>
+                <tbody id="ofertasAdminBody">
+                  <tr><td colspan="8" style="text-align:center;padding:30px;color:var(--muted);">
+                    <i class="fa-solid fa-spinner fa-spin"></i> Cargando ofertas...
+                  </td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Nota informativa -->
+        <div class="section" style="margin-top:16px;">
+          <div class="section-header"><h2 class="section-title"><i class="fa-solid fa-lightbulb"></i> ¿Cómo funcionan los códigos?</h2></div>
+          <div style="color:var(--muted);font-size:13px;line-height:1.7;">
+            <p><strong style="color:var(--accent);">Porcentaje:</strong> Descuenta X% del total del pedido. Ej: VERANO20 = 20% off.</p>
+            <p style="margin-top:6px;"><strong style="color:var(--accent);">Monto fijo:</strong> Descuenta $X del total. Ej: PROMO500 = $500 off.</p>
+            <p style="margin-top:6px;"><strong style="color:var(--accent);">Envío gratis:</strong> Elimina el costo de envío ($500) en el checkout.</p>
+            <p style="margin-top:10px;">Los clientes ingresan el código en el checkout antes de pagar. El descuento se aplica automaticamente.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- MODAL: CREAR/EDITAR OFERTA -->
+      <div class="modal" id="ofertaModal">
+        <div class="modal-content" style="max-width:560px;">
+          <div class="modal-header">
+            <h3 class="modal-title" id="ofertaModalTitle"><i class="fa-solid fa-tag"></i> Nueva Oferta</h3>
+            <button class="modal-close" onclick="closeModal('ofertaModal')">×</button>
+          </div>
+
+          <input type="hidden" id="of_id" value="">
+          <input type="hidden" id="of_mode" value="create">
+
+          <div class="form-grid">
+            <div class="form-group" style="grid-column:span 2;">
+              <label class="form-label">Nombre de la oferta *</label>
+              <input type="text" class="form-input" id="of_nombre" placeholder="Ej: Promoción de Verano 20%">
+            </div>
+            <div class="form-group" style="grid-column:span 2;">
+              <label class="form-label">Descripción (visible al cliente)</label>
+              <input type="text" class="form-input" id="of_descripcion" placeholder="Ej: 20% de descuento en todos los muebles">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Tipo de descuento *</label>
+              <select class="form-select" id="of_tipo" onchange="actualizarValorLabel()">
+                <option value="porcentaje">Porcentaje (%)</option>
+                <option value="monto_fijo">Monto fijo ($)</option>
+                <option value="envio_gratis">Envío gratis</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label" id="of_valor_label">Valor (%) *</label>
+              <input type="number" class="form-input" id="of_valor" min="0" step="0.01" placeholder="20">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Código de cupón (opcional)</label>
+              <input type="text" class="form-input" id="of_codigo" placeholder="VERANO20" style="text-transform:uppercase;">
+              <div class="help">Si no escribes código, la oferta no requiere cupón</div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Usos máximos (dejar vacío = ilimitado)</label>
+              <input type="number" class="form-input" id="of_usos_max" min="1" placeholder="100">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Fecha inicio</label>
+              <input type="date" class="form-input" id="of_fecha_inicio">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Fecha fin</label>
+              <input type="date" class="form-input" id="of_fecha_fin">
+            </div>
+            <div class="form-group" style="grid-column:span 2;display:flex;align-items:center;gap:10px;">
+              <input type="checkbox" id="of_activo" checked style="width:18px;height:18px;accent-color:var(--accent);">
+              <label for="of_activo" class="form-label" style="margin:0;cursor:pointer;">Oferta activa (visible para clientes)</label>
+            </div>
+          </div>
+
+          <div id="of_error" style="display:none;color:#e05;font-size:13px;margin-bottom:12px;padding:10px;background:#2a0a0a;border-radius:6px;"></div>
+
+          <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end;margin-top:16px;">
+            <button class="btn btn-secondary" onclick="closeModal('ofertaModal')">Cancelar</button>
+            <button class="btn btn-primary" id="of_btn_guardar" onclick="guardarOferta()">
+              <i class="fa-solid fa-floppy-disk"></i> Guardar Oferta
+            </button>
+          </div>
+        </div>
+      </div>
+
     </main>
   </div>
 
-  
+
   <!-- jsPDF: generación de reportes en PDF -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" 
           integrity="sha512-qZvrmS2ekKPF2mSznTQsxqPgnpkI4DNTlrdUmTzrDgektczlKNRRhy5X5AAOnx5S09ydFYWWNSfcEqDTTHgtNA==" 

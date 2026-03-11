@@ -195,6 +195,12 @@ switch ($method) {
                 $datosPedido['ciudad_envio'] = $ciudadEnvio;
             }
 
+            // Vincular al cliente registrado si tiene sesión activa
+            $clienteSession = sesionClienteActiva();
+            if ($clienteSession) {
+                $datosPedido['cliente_id'] = $clienteSession['id'];
+            }
+
             $pedidoId = dbInsert('pedidos', $datosPedido);
 
             foreach ($itemsData as $item) {
