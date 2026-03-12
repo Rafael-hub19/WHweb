@@ -309,7 +309,7 @@
       const cred  = await signInWithEmailAndPassword(auth, email, password);
       const token = await cred.user.getIdToken();
       const data  = await _llamarBackend('cliente-login', token);
-      if (!data.ok) throw new Error(data.error || 'Error al iniciar sesión');
+      if (!data.success) throw new Error(data.error || 'Error al iniciar sesión');
       _onAutenticado(data.cliente);
     } catch (e) {
       const map = {
@@ -356,7 +356,7 @@
       const cred  = await createUserWithEmailAndPassword(auth, email, password);
       const token = await cred.user.getIdToken();
       const data  = await _llamarBackend('cliente-registro', token, { nombre, correo: email });
-      if (!data.ok) throw new Error(data.error || 'Error al registrarse');
+      if (!data.success) throw new Error(data.error || 'Error al registrarse');
       _onAutenticado(data.cliente);
     } catch (e) {
       const map = {
