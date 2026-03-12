@@ -350,21 +350,21 @@ CREATE TABLE clientes (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Vincular pedidos a clientes (nullable para pedidos históricos de invitados)
-ALTER TABLE pedidos ADD COLUMN IF NOT EXISTS cliente_id INT NULL AFTER token_seguimiento;
-ALTER TABLE pedidos ADD CONSTRAINT IF NOT EXISTS fk_pedidos_cliente
+ALTER TABLE pedidos ADD COLUMN cliente_id INT NULL AFTER token_seguimiento;
+ALTER TABLE pedidos ADD CONSTRAINT fk_pedidos_cliente
   FOREIGN KEY (cliente_id) REFERENCES clientes(id)
   ON DELETE SET NULL ON UPDATE CASCADE;
-CREATE INDEX IF NOT EXISTS idx_pedidos_cliente ON pedidos (cliente_id);
+CREATE INDEX idx_pedidos_cliente ON pedidos (cliente_id);
 
 -- Vincular cotizaciones a clientes
-ALTER TABLE cotizaciones ADD COLUMN IF NOT EXISTS cliente_id INT NULL AFTER numero_cotizacion;
-ALTER TABLE cotizaciones ADD CONSTRAINT IF NOT EXISTS fk_cotizaciones_cliente
+ALTER TABLE cotizaciones ADD COLUMN cliente_id INT NULL AFTER numero_cotizacion;
+ALTER TABLE cotizaciones ADD CONSTRAINT fk_cotizaciones_cliente
   FOREIGN KEY (cliente_id) REFERENCES clientes(id)
   ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- Vincular citas a clientes
-ALTER TABLE citas ADD COLUMN IF NOT EXISTS cliente_id INT NULL AFTER numero_cita;
-ALTER TABLE citas ADD CONSTRAINT IF NOT EXISTS fk_citas_cliente
+ALTER TABLE citas ADD COLUMN cliente_id INT NULL AFTER numero_cita;
+ALTER TABLE citas ADD CONSTRAINT fk_citas_cliente
   FOREIGN KEY (cliente_id) REFERENCES clientes(id)
   ON DELETE SET NULL ON UPDATE CASCADE;
 
