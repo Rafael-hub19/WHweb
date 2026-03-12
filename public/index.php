@@ -333,6 +333,7 @@
     <p style="margin-top:10px; font-size:14px;">
       <a href="mailto:ventas@muebleswh.com" style="color:#8b7355; text-decoration:none;">ventas@muebleswh.com</a>
     </p>
+    <p style="margin-top:14px;"><a href="/login" style="color:#3a3a3a;font-size:11px;opacity:.35;text-decoration:none;" title="Acceso personal">&#x1F512;</a></p>
   </div>
 
   <script src="./assets/js/firebase-config.js"></script>
