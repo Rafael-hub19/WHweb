@@ -333,7 +333,7 @@ function registrarCliente(array $data): ?array {
     if (empty($uid) || empty($nombre) || empty($correo)) return null;
     if (!filter_var($correo, FILTER_VALIDATE_EMAIL)) return null;
     try {
-        dbExecute(
+        dbQuery(
             "INSERT INTO clientes (firebase_uid, nombre, correo, telefono)
              VALUES (?, ?, ?, ?)
              ON DUPLICATE KEY UPDATE nombre=VALUES(nombre), correo=VALUES(correo), telefono=VALUES(telefono)",
