@@ -87,7 +87,7 @@
       </div>
 
       <div class="auth-modal-footer">
-        Al continuar aceptas nuestros <a onclick="AuthModal.close()">términos de servicio</a>
+        Al continuar aceptas nuestros <a href="/terminos" target="_blank" rel="noopener">términos de servicio</a>
       </div>
     </div>
 
