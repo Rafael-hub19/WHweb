@@ -331,8 +331,13 @@ function eliminarItemCarrito(idx) {
         localStorage.removeItem('wh_delivery');
         localStorage.removeItem('wh_cliente');
         localStorage.removeItem('wh_descuento');
-        ['clienteNombre','clienteTelefono','clienteCorreo','clienteDireccion','clienteCiudad','clienteCP','clienteNotas']
-            .forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+        ['clienteNombre','clienteTelefono','clienteCorreo','clienteCorreoConfirm','clienteDireccion','clienteCiudad','clienteCP','clienteNotas']
+            .forEach(id => {
+                const el = document.getElementById(id);
+                if (el) { el.value = ''; el.style.borderColor = ''; }
+                const err = el?.parentNode?.querySelector('.field-error-checkout');
+                if (err) err.remove();
+            });
     }
     renderizarItems();
     actualizarTotales();
@@ -352,9 +357,16 @@ function confirmarVaciarCarrito() {
     localStorage.removeItem('wh_delivery');
     localStorage.removeItem('wh_cliente');
     localStorage.removeItem('wh_descuento');
-    // Limpiar campos del formulario visibles en el DOM
-    ['clienteNombre','clienteTelefono','clienteCorreo','clienteDireccion','clienteCiudad','clienteCP','clienteNotas']
-        .forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+    localStorage.removeItem('wh_carrito_backup');
+    // Limpiar campos del formulario visibles en el DOM (incluyendo confirmación de correo)
+    ['clienteNombre','clienteTelefono','clienteCorreo','clienteCorreoConfirm','clienteDireccion','clienteCiudad','clienteCP','clienteNotas']
+        .forEach(id => {
+            const el = document.getElementById(id);
+            if (el) { el.value = ''; el.style.borderColor = ''; }
+            // Limpiar mensajes de error asociados al campo
+            const err = el?.parentNode?.querySelector('.field-error-checkout');
+            if (err) err.remove();
+        });
     renderizarItems();
     actualizarTotales();
     showToast('Carrito y datos del formulario vaciados', 'success');

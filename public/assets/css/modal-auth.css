@@ -165,45 +165,6 @@
 .btn-auth-primary:hover:not(:disabled) { opacity: 0.88; transform: translateY(-1px); }
 .btn-auth-primary:disabled { opacity: 0.5; cursor: not-allowed; }
 
-.btn-auth-google {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  background: var(--color-bg-input, #221d14);
-  color: var(--color-text-main, #f0e8da);
-  border: 1px solid var(--color-border-light, #4a3f28);
-  border-radius: var(--border-radius-sm, 8px);
-  padding: 11px;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: border-color var(--transition-fast), background var(--transition-fast);
-}
-.btn-auth-google:hover { border-color: var(--color-primary, #c4922a); background: var(--color-bg-card, #1c1710); }
-.btn-auth-google img { width: 18px; height: 18px; }
-
-/* ── Separador ───────────────────────────────────────────────────── */
-.auth-divider {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin: 4px 0;
-}
-.auth-divider::before,
-.auth-divider::after {
-  content: '';
-  flex: 1;
-  height: 1px;
-  background: var(--color-border, #3a3020);
-}
-.auth-divider span {
-  font-size: 11px;
-  color: var(--color-text-dark, #5a5048);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
 /* ── Alerta de error ─────────────────────────────────────────────── */
 .auth-alert {
   border-radius: var(--border-radius-sm, 8px);

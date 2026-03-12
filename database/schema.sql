@@ -393,3 +393,38 @@ CREATE TABLE ofertas (
   INDEX idx_codigo (codigo),
   INDEX idx_fechas (fecha_inicio, fecha_fin)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ================================================================
+-- CARRITOS GUARDADOS
+-- Persistencia del carrito para recuperación entre sesiones
+-- Permite restaurar el carrito cuando el cliente regresa al sitio
+-- ================================================================
+CREATE TABLE IF NOT EXISTS carritos_guardados (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+
+  -- Cliente registrado (NULL si es visitante anónimo)
+  cliente_id INT NULL,
+
+  -- Token único de sesión para identificar carritos de visitantes
+  session_token VARCHAR(64) NOT NULL UNIQUE,
+
+  -- Items del carrito en formato JSON
+  items JSON NOT NULL,
+
+  -- Total estimado (calculado al guardar, para referencia rápida)
+  total_estimado DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+
+  -- Número de productos en el carrito
+  num_productos INT NOT NULL DEFAULT 0,
+
+  fecha_guardado    TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  fecha_actualizacion TIMESTAMP NULL ON UPDATE CURRENT_TIMESTAMP,
+
+  CONSTRAINT fk_carrito_cliente
+    FOREIGN KEY (cliente_id) REFERENCES clientes(id)
+    ON DELETE CASCADE ON UPDATE CASCADE,
+
+  INDEX idx_cliente  (cliente_id),
+  INDEX idx_session  (session_token),
+  INDEX idx_fecha    (fecha_guardado)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

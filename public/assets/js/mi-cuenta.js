@@ -86,6 +86,50 @@
     }
   }
 
+  /* ── Sanitización de campos del perfil ─────────────────────── */
+  function _sanitizeName(val) {
+    if (typeof val !== 'string') return '';
+    return val.replace(/<[^>]*>/g, '').replace(/[^a-zA-ZáéíóúüñÁÉÍÓÚÜÑ0-9 .,'\-]/g, '').substring(0, 120).trim();
+  }
+  function _sanitizePhone(val) {
+    if (typeof val !== 'string') return '';
+    return val.replace(/[^0-9\s+\-().]/g, '').substring(0, 20).trim();
+  }
+  function _sanitizeText(val, max) {
+    if (typeof val !== 'string') return '';
+    return val.replace(/<[^>]*>/g, '').replace(/['";`\\]/g, '').replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '').substring(0, max || 255).trim();
+  }
+  function _sanitizeCP(val) {
+    if (typeof val !== 'string') return '';
+    return val.replace(/\D/g, '').substring(0, 6);
+  }
+
+  /* ── Validación en tiempo real del formulario de perfil ─────── */
+  function _initValidacionPerfil() {
+    // Nombre: solo letras, espacios y acentos
+    const pfNombre = document.getElementById('pfNombre');
+    if (pfNombre) pfNombre.addEventListener('input', function () {
+      this.value = this.value.replace(/[<>"'`;\\]/g, '');
+    });
+    // Teléfono: solo dígitos y separadores válidos
+    const pfTel = document.getElementById('pfTelefono');
+    if (pfTel) pfTel.addEventListener('input', function () {
+      this.value = this.value.replace(/[^0-9\s+\-().]/g, '');
+    });
+    // Dirección y ciudad: bloquear inyección
+    ['pfDireccion','pfCiudad'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.addEventListener('input', function () {
+        this.value = this.value.replace(/[<>"'`;\\]/g, '');
+      });
+    });
+    // CP: solo dígitos
+    const pfCP = document.getElementById('pfCP');
+    if (pfCP) pfCP.addEventListener('input', function () {
+      this.value = this.value.replace(/\D/g, '').substring(0, 6);
+    });
+  }
+
   /* ── Formulario de perfil ──────────────────────────────────── */
   function _rellenarFormPerfil(c) {
     const set = (id, val) => { const el = document.getElementById(id); if (el) el.value = val || ''; };
@@ -94,6 +138,7 @@
     set('pfDireccion',c.direccion);
     set('pfCiudad',   c.ciudad);
     set('pfCP',       c.cp);
+    _initValidacionPerfil();
   }
 
   window.mcGuardarPerfil = async function (e) {
@@ -109,16 +154,31 @@
     const cliente = AuthModal.getCliente();
     if (!cliente) { alert.textContent = 'No autenticado.'; alert.className = 'mc-alert error'; btn.innerHTML = btn._orig; btn.disabled = false; return; }
 
+    // Sanitizar todos los campos antes de enviar
+    const nombre    = _sanitizeName(document.getElementById('pfNombre')?.value    || '');
+    const telefono  = _sanitizePhone(document.getElementById('pfTelefono')?.value  || '');
+    const direccion = _sanitizeText(document.getElementById('pfDireccion')?.value  || '', 255);
+    const ciudad    = _sanitizeText(document.getElementById('pfCiudad')?.value     || '', 100);
+    const cp        = _sanitizeCP(document.getElementById('pfCP')?.value            || '');
+
+    // Validaciones básicas
+    if (!nombre || nombre.length < 2) {
+      alert.textContent = 'El nombre debe tener al menos 2 caracteres y solo puede contener letras.';
+      alert.className = 'mc-alert error';
+      btn.innerHTML = btn._orig; btn.disabled = false; return;
+    }
+    if (telefono && !/^\d/.test(telefono.replace(/\D/g, '')) || (telefono && telefono.replace(/\D/g, '').length < 10 && telefono.replace(/\D/g, '').length > 0)) {
+      if (telefono.replace(/\D/g, '').length > 0 && telefono.replace(/\D/g, '').length < 10) {
+        alert.textContent = 'El teléfono debe tener al menos 10 dígitos.';
+        alert.className = 'mc-alert error';
+        btn.innerHTML = btn._orig; btn.disabled = false; return;
+      }
+    }
+
     const csrf = document.cookie.split(';').map(c => c.trim()).find(c => c.startsWith('XSRF-TOKEN='));
     const csrfToken = csrf ? decodeURIComponent(csrf.split('=')[1]) : '';
 
-    const body = {
-      nombre:    document.getElementById('pfNombre').value.trim(),
-      telefono:  document.getElementById('pfTelefono').value.trim(),
-      direccion: document.getElementById('pfDireccion').value.trim(),
-      ciudad:    document.getElementById('pfCiudad').value.trim(),
-      cp:        document.getElementById('pfCP').value.trim(),
-    };
+    const body = { nombre, telefono, direccion, ciudad, cp };
 
     try {
       const res  = await fetch(`/api/clientes.php?id=${cliente.id}`, {

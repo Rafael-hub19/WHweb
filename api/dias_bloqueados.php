@@ -11,7 +11,7 @@
  */
 
 require_once __DIR__ . '/_helpers.php';
-requerirEmpleado(['administrador']);
+requerirAdmin(); // Solo administradores pueden bloquear/desbloquear días
 
 switch ($_SERVER['REQUEST_METHOD']) {
 

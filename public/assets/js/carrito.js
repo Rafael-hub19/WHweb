@@ -1,5 +1,6 @@
 let carritoItems = [];
 let carritoTotal = 0;
+let _carritoRecuperado = false; // flag para notificar recuperación de carrito
 
 // ── Init ──────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
@@ -7,6 +8,16 @@ document.addEventListener('DOMContentLoaded', () => {
   cargarCarrito();
   renderizarCarrito();
   actualizarResumen();
+
+  // Notificar si el carrito fue recuperado de la sesión anterior
+  if (_carritoRecuperado) {
+    _carritoRecuperado = false;
+    setTimeout(() => {
+      if (typeof showNotification === 'function') {
+        showNotification('<i class="fa-solid fa-rotate-left"></i> Carrito recuperado de tu visita anterior', 'info');
+      }
+    }, 600);
+  }
 
   const btnVaciar    = document.getElementById('btn-vaciar-carrito');
   const btnContinuar = document.getElementById('btn-continuar-comprando');
@@ -17,19 +28,43 @@ document.addEventListener('DOMContentLoaded', () => {
   if (btnProceder)  btnProceder.addEventListener('click', procederAlPago);
 });
 
-// ── Carrito (sessionStorage) ──────────────────────────────────────
+// ── Carrito (sessionStorage + localStorage backup) ────────────────
 function cargarCarrito() {
   try {
     const raw = sessionStorage.getItem('wh_carrito');
-    const parsed = raw ? JSON.parse(raw) : [];
-    // Sanitizar cada item al cargar — previene XSS almacenado en sessionStorage
-    carritoItems = Array.isArray(parsed) ? parsed.map(sanitizarItem) : [];
-  } catch { carritoItems = []; }
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      // Sanitizar cada item al cargar — previene XSS almacenado en sessionStorage
+      carritoItems = Array.isArray(parsed) ? parsed.map(sanitizarItem) : [];
+      return;
+    }
+    // Si sessionStorage está vacío (nueva sesión / se cerró el navegador),
+    // intentar recuperar desde el backup de localStorage
+    const backup = localStorage.getItem('wh_carrito_backup');
+    if (backup) {
+      const parsed = JSON.parse(backup);
+      const items  = Array.isArray(parsed) ? parsed.map(sanitizarItem) : [];
+      if (items.length > 0) {
+        carritoItems = items;
+        sessionStorage.setItem('wh_carrito', JSON.stringify(carritoItems));
+        _carritoRecuperado = true;
+        return;
+      }
+    }
+  } catch { /* silent */ }
+  carritoItems = [];
 }
 
 function guardarCarrito() {
   try {
-    sessionStorage.setItem('wh_carrito', JSON.stringify(carritoItems));
+    const data = JSON.stringify(carritoItems);
+    sessionStorage.setItem('wh_carrito', data);
+    // Respaldo en localStorage para recuperación del carrito en próxima sesión
+    if (carritoItems.length > 0) {
+      localStorage.setItem('wh_carrito_backup', data);
+    } else {
+      localStorage.removeItem('wh_carrito_backup');
+    }
     if (typeof updateCartBadge === 'function') {
       updateCartBadge(carritoItems.reduce((t, i) => t + i.cantidad, 0));
     }
@@ -200,8 +235,8 @@ function confirmarVaciarCarrito() {
     sessionStorage.removeItem('wh_carrito');
     sessionStorage.removeItem('wh_checkout');
 
-    // Limpiar localStorage (formulario de contacto y opciones de entrega)
-    ['wh_checkout_form', 'wh_delivery', 'wh_cliente', 'wh_descuento'].forEach(k => localStorage.removeItem(k));
+    // Limpiar localStorage (formulario de contacto, opciones de entrega y backup del carrito)
+    ['wh_checkout_form', 'wh_delivery', 'wh_cliente', 'wh_descuento', 'wh_carrito_backup'].forEach(k => localStorage.removeItem(k));
 
     // Limpiar campos del formulario de contacto si están presentes en el DOM
     ['clienteNombre','clienteTelefono','clienteCorreo',

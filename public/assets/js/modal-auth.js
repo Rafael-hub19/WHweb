@@ -46,11 +46,6 @@
 
       <!-- Formulario de login -->
       <div id="authFormLogin">
-        <button type="button" class="btn-auth-google" onclick="_authConGoogle()">
-          <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google">
-          Continuar con Google
-        </button>
-        <div class="auth-divider"><span>o</span></div>
         <form class="auth-form" onsubmit="_authLoginEmail(event)">
           <div class="auth-form-group">
             <label>Correo electrónico</label>
@@ -66,23 +61,26 @@
 
       <!-- Formulario de registro -->
       <div id="authFormRegistro" style="display:none;">
-        <button type="button" class="btn-auth-google" onclick="_authConGoogle()">
-          <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google">
-          Registrarse con Google
-        </button>
-        <div class="auth-divider"><span>o</span></div>
         <form class="auth-form" onsubmit="_authRegistroEmail(event)">
           <div class="auth-form-group">
             <label>Nombre completo</label>
-            <input type="text" id="regNombre" placeholder="Juan Pérez" autocomplete="name" required minlength="2" maxlength="120">
+            <input type="text" id="regNombre" placeholder="Juan Pérez" autocomplete="name" required minlength="2" maxlength="120" pattern="[a-zA-ZáéíóúÁÉÍÓÚüÜñÑ\s]{2,120}" title="Solo letras y espacios">
           </div>
           <div class="auth-form-group">
             <label>Correo electrónico</label>
             <input type="email" id="regEmail" placeholder="correo@ejemplo.com" autocomplete="email" required>
           </div>
           <div class="auth-form-group">
+            <label>Confirmar correo electrónico</label>
+            <input type="email" id="regConfirmEmail" placeholder="Repite tu correo" autocomplete="email" required>
+          </div>
+          <div class="auth-form-group">
             <label>Contraseña <span style="font-weight:400;font-size:11px;">(mín. 6 caracteres)</span></label>
             <input type="password" id="regPassword" placeholder="Crea una contraseña" autocomplete="new-password" required minlength="6">
+          </div>
+          <div class="auth-form-group">
+            <label>Confirmar contraseña</label>
+            <input type="password" id="regConfirmPassword" placeholder="Repite tu contraseña" autocomplete="new-password" required minlength="6">
           </div>
           <button type="submit" class="btn-auth-primary" id="btnRegSubmit">Crear cuenta</button>
         </form>
@@ -118,6 +116,57 @@
     document.getElementById('authModalOverlay').addEventListener('click', function (e) {
       if (e.target === this) AuthModal.close();
     });
+
+    // Sanitización y validación en tiempo real de todos los campos
+    _initCamposModal();
+  }
+
+  /* ── Sanitización en tiempo real del modal ───────────────────── */
+  function _initCamposModal() {
+    // Email de login: solo caracteres válidos de email
+    const loginEmail = document.getElementById('loginEmail');
+    if (loginEmail) loginEmail.addEventListener('input', function () {
+      this.value = this.value.replace(/[^a-zA-Z0-9._%+\-@]/g, '');
+    });
+
+    // Nombre de registro: solo letras, espacios y acentos
+    const regNombre = document.getElementById('regNombre');
+    if (regNombre) regNombre.addEventListener('input', function () {
+      this.value = this.value.replace(/[^a-zA-ZáéíóúüñÁÉÍÓÚÜÑ\s]/g, '');
+    });
+
+    // Email de registro: solo caracteres válidos de email
+    const regEmail = document.getElementById('regEmail');
+    if (regEmail) regEmail.addEventListener('input', function () {
+      this.value = this.value.replace(/[^a-zA-Z0-9._%+\-@]/g, '');
+    });
+
+    // Confirmar correo: bloquear pegar + solo chars de email + validar coincidencia
+    const regConfirmEmail = document.getElementById('regConfirmEmail');
+    if (regConfirmEmail) {
+      regConfirmEmail.addEventListener('paste', (e) => e.preventDefault());
+      regConfirmEmail.addEventListener('input', function () {
+        this.value = this.value.replace(/[^a-zA-Z0-9._%+\-@]/g, '');
+        _authClearAlert();
+      });
+      regConfirmEmail.addEventListener('blur', function () {
+        const orig = (document.getElementById('regEmail')?.value || '').trim().toLowerCase();
+        const conf = this.value.trim().toLowerCase();
+        if (conf && conf !== orig) _authShowAlert('Los correos no coinciden', 'error');
+        else _authClearAlert();
+      });
+    }
+
+    // Confirmar contraseña: bloquear pegar + validar coincidencia al salir
+    const regConfirmPassword = document.getElementById('regConfirmPassword');
+    if (regConfirmPassword) {
+      regConfirmPassword.addEventListener('paste', (e) => e.preventDefault());
+      regConfirmPassword.addEventListener('blur', function () {
+        const orig = document.getElementById('regPassword')?.value || '';
+        if (this.value && this.value !== orig) _authShowAlert('Las contraseñas no coinciden', 'error');
+        else _authClearAlert();
+      });
+    }
   }
 
   /* ── Helpers de UI ───────────────────────────────────────────── */
@@ -245,25 +294,6 @@
     }
   }
 
-  /* ── Login con Google ────────────────────────────────────────── */
-  window._authConGoogle = async function () {
-    _authClearAlert();
-    try {
-      const auth = await _getAuth();
-      const { GoogleAuthProvider, signInWithPopup } = await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js');
-      const provider = new GoogleAuthProvider();
-      const result   = await signInWithPopup(auth, provider);
-      const token    = await result.user.getIdToken();
-      const data     = await _llamarBackend('cliente-login', token);
-      if (!data.ok) throw new Error(data.error || 'Error al iniciar sesión');
-      _onAutenticado(data.cliente);
-    } catch (e) {
-      if (e.code !== 'auth/popup-closed-by-user') {
-        _authShowAlert(e.message || 'Error con Google', 'error');
-      }
-    }
-  };
-
   /* ── Login con email ─────────────────────────────────────────── */
   window._authLoginEmail = async function (e) {
     e.preventDefault();
@@ -299,10 +329,25 @@
   window._authRegistroEmail = async function (e) {
     e.preventDefault();
     _authClearAlert();
-    const nombre   = document.getElementById('regNombre').value.trim();
-    const email    = document.getElementById('regEmail').value.trim();
-    const password = document.getElementById('regPassword').value;
-    if (!nombre || !email || !password) return;
+    const nombre          = document.getElementById('regNombre').value.trim();
+    const email           = document.getElementById('regEmail').value.trim();
+    const confirmEmail    = document.getElementById('regConfirmEmail').value.trim();
+    const password        = document.getElementById('regPassword').value;
+    const confirmPassword = document.getElementById('regConfirmPassword').value;
+    if (!nombre || !email || !confirmEmail || !password || !confirmPassword) return;
+
+    // Validar nombre: solo letras, espacios y acentos — sin caracteres especiales
+    if (!/^[a-zA-ZáéíóúÁÉÍÓÚüÜñÑ\s]{2,120}$/.test(nombre)) {
+      _authShowAlert('El nombre solo puede contener letras y espacios', 'error'); return;
+    }
+    // Verificar que los correos coinciden
+    if (email.toLowerCase() !== confirmEmail.toLowerCase()) {
+      _authShowAlert('Los correos electrónicos no coinciden', 'error'); return;
+    }
+    // Verificar que las contraseñas coinciden
+    if (password !== confirmPassword) {
+      _authShowAlert('Las contraseñas no coinciden', 'error'); return;
+    }
 
     _authSetLoading('btnRegSubmit', true);
     try {
