@@ -113,8 +113,15 @@ if (session_status() === PHP_SESSION_NONE) {
     $appHost    = parse_url(APP_URL, PHP_URL_HOST) ?: '';
     // Quitar www si existe para obtener el dominio raíz
     $cookieDomain = preg_replace('/^www\./', '', $appHost);
-    // Prefijo punto = aplica a todos los subdominios
-    if ($cookieDomain) $cookieDomain = '.' . $cookieDomain;
+    // No usar dominio con punto para localhost o IPs: los navegadores rechazan
+    // cookies con domain=".localhost" o domain=".127.0.0.1", lo que causa que
+    // la sesión creada en /api no llegue al panel_empleado/panel_administrador.
+    if ($cookieDomain && $cookieDomain !== 'localhost'
+        && !preg_match('/^\d{1,3}(\.\d{1,3}){3}$/', $cookieDomain)) {
+        $cookieDomain = '.' . $cookieDomain;
+    } else {
+        $cookieDomain = ''; // Sin atributo domain → el navegador usa el hostname actual
+    }
 
     session_set_cookie_params([
         'lifetime' => 7200,

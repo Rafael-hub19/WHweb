@@ -60,7 +60,8 @@ Wooden House/
 │       │   ├── panel_administrador.css
 │       │   ├── panel_empleado.css
 │       │   ├── modal-auth.css       # Modal de login/registro de clientes
-│       │   └── mi-cuenta.css        # Estilos del portal del cliente
+│       │   ├── mi-cuenta.css        # Estilos del portal del cliente
+│       │   └── terminos.css         # Estilos de la página de términos y condiciones
 │       ├── js/
 │       │   ├── app.js               # Utilidades globales y carrito
 │       │   ├── utils.js             # Funciones compartidas
@@ -149,6 +150,7 @@ Wooden House/
 | `/solicitudes` | `public/solicitudes.php` |
 | `/login` | `public/login.php` |
 | `/mi-cuenta` | `public/mi-cuenta.php` |
+| `/terminos` | `public/terminos.php` |
 | `/admin/` | `public/admin/panel_administrador.php` |
 | `/empleado/` | `public/empleado/panel_empleado.php` |
 
@@ -331,6 +333,24 @@ service apache2 restart
 
 ---
 
+## Correcciones de bugs aplicadas (v3 — 2026-03-12)
+
+### Login empleado: 404 en primer intento
+
+**Causa:** PHP generaba la cookie de sesión con `domain=.localhost`. Los navegadores modernos rechazan cookies con ese dominio (tratado como TLD), por lo que la sesión creada en `/api/auth.php` no llegaba al panel del empleado.
+**Corrección (`includes/config.php`):** Si el host es `localhost` o una IP, la cookie de sesión se crea sin atributo `domain` (el navegador usa el hostname actual automáticamente).
+
+### Guard de paneles redirigía a 404
+
+**Causa:** Cuando la sesión falla, el guard de `panel_empleado.php` y `panel_administrador.php` hacía `Location: /public/login.php`, URL que no existe (la raíz web es `public/`).
+**Corrección:** Cambiado a `Location: /login` (URL limpia definida en `.htaccess`).
+
+### CSS/JS inline en `terminos.php` y `carrito-checkout.php`
+
+**Corrección:** Extraídas las 102 líneas de CSS inline de `terminos.php` al nuevo archivo `assets/css/terminos.css`. El script inline de auth en `carrito-checkout.php` fue movido al final de `assets/js/checkout.js`.
+
+---
+
 ## Correcciones de Seguridad aplicadas (v2)
 
 > Las siguientes vulnerabilidades fueron identificadas por auditoría de infraestructura y corregidas:
@@ -418,21 +438,25 @@ Todos los servicios externos están explícitamente permitidos. Si ves errores C
 - Los pedidos, cotizaciones y citas quedan vinculados a la cuenta del cliente automáticamente
 
 ### Panel Administrador *(auto-polling 30s)*
-- Dashboard con KPIs en tiempo real y gráficas de ventas y estados
-- Gestión completa de pedidos (listado, cambio de estado, detalle)
+- Dashboard con KPIs en tiempo real, gráficas de ventas/estados y **8 acciones rápidas**: Pedidos, Citas, Cotizaciones, Catálogo, Empleados, Clientes, Ofertas, Reportes
+- Gestión completa de pedidos (listado, filtros por estado, cambio de estado, detalle con timeline)
+- Calendario de citas con vista mensual y tabla lista
+- Gestión de cotizaciones con cambio de estado y detalle
 - Gestión de productos (CRUD + galería Firebase Storage + especificaciones)
-- Gestión de empleados (crear/editar en Firebase Auth + MySQL)
+- Gestión de empleados (crear/editar en Firebase Auth + MySQL, activar/desactivar)
 - Gestión de capacidad de producción por semana
-- Reportes: resumen, pedidos por período, productos más vendidos, ingresos, clientes
-- Cotizaciones y calendario de citas
+- Reportes avanzados: resumen, pedidos por período, productos más vendidos, ingresos, clientes (exportable CSV/PDF)
 - Análisis financiero
 - **Clientes Registrados:** lista completa con historial, total gastado, pedidos y cotizaciones por cliente
 - **Ofertas & Marketing:** CRUD de descuentos (porcentaje, monto fijo, envío gratis), códigos de cupón con vigencia y usos máximos
 
 ### Panel Empleado *(auto-polling 30s)*
-- Vista de pedidos asignados y actualización de estado
-- Calendario de citas del día/semana
-- Gestión de inventario
+- Vista de pedidos asignados con timeline de 4 etapas y actualización de estado
+- Citas programadas con carga real desde la API (confirmar / completar)
+- Cotizaciones activas con cambio de estado inline (nueva → en revisión → respondida)
+- Calendario interactivo sincronizado con citas de la API
+- Dashboard KPIs en tiempo real: pedidos pendientes, citas de hoy, cotizaciones nuevas
+- Crear citas y cotizaciones directamente desde el panel
 - Notificaciones en tiempo real desde Firestore
 
 ### Sistema de notificaciones

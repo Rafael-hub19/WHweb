@@ -657,4 +657,20 @@ window.procederAlPago         = procederAlPago;
 window.cambiarCantidadItem    = cambiarCantidadItem;
 window.eliminarItemCarrito    = eliminarItemCarrito;
 
+// ── Interceptor de autenticación ──────────────────────────────────
+// Requiere que el cliente esté autenticado antes de proceder al pago
+document.addEventListener('DOMContentLoaded', function () {
+    const _origProceder = window.procederAlPago;
+    if (typeof _origProceder !== 'function') return;
+    window.procederAlPago = function () {
+        if (AuthModal.isAuthenticated()) {
+            _origProceder();
+        } else {
+            AuthModal.requireAuth(function () {
+                _origProceder();
+            }, 'Inicia sesión para completar tu compra');
+        }
+    };
+});
+
 window.confirmarVaciarCarrito = confirmarVaciarCarrito;

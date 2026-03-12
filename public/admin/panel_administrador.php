@@ -9,7 +9,7 @@ require_once dirname(__DIR__, 2) . "/includes/auth.php";
 
 $_usuario = sesionActiva();
 if (!$_usuario || $_usuario["rol"] !== "administrador") {
-    header("Location: /public/login.php?redirect=admin&error=sesion");
+    header("Location: /login?redirect=admin&error=sesion");
     exit;
 }
 // No exponer datos de sesión en el HTML
@@ -148,20 +148,40 @@ unset($_usuario);
         <div class="section">
           <div class="section-header"><h2 class="section-title">Acciones Rápidas</h2></div>
           <div class="actions-grid">
-            <div class="action-card" onclick="showSection('catalogo', event)">
-              <div class="action-icon"><i class="fa-solid fa-box"></i></div>
-              <div class="action-title">Gestionar Catálogo</div>
-              <div class="action-subtitle">Productos y servicios</div>
-            </div>
             <div class="action-card" onclick="showSection('pedidos', event)">
               <div class="action-icon"><i class="fa-solid fa-cart-shopping"></i></div>
               <div class="action-title">Ver Pedidos</div>
               <div class="action-subtitle">Control total</div>
             </div>
+            <div class="action-card" onclick="showSection('citas', event)">
+              <div class="action-icon"><i class="fa-solid fa-calendar-days"></i></div>
+              <div class="action-title">Citas</div>
+              <div class="action-subtitle">Agenda y calendario</div>
+            </div>
+            <div class="action-card" onclick="showSection('cotizaciones', event)">
+              <div class="action-icon"><i class="fa-solid fa-file-invoice-dollar"></i></div>
+              <div class="action-title">Cotizaciones</div>
+              <div class="action-subtitle">Solicitudes recibidas</div>
+            </div>
+            <div class="action-card" onclick="showSection('catalogo', event)">
+              <div class="action-icon"><i class="fa-solid fa-box"></i></div>
+              <div class="action-title">Gestionar Catálogo</div>
+              <div class="action-subtitle">Productos y servicios</div>
+            </div>
             <div class="action-card" onclick="showSection('empleados', event)">
               <div class="action-icon"><i class="fa-solid fa-users"></i></div>
               <div class="action-title">Empleados</div>
               <div class="action-subtitle">Usuarios y permisos</div>
+            </div>
+            <div class="action-card" onclick="showSection('clientes', event)">
+              <div class="action-icon"><i class="fa-solid fa-user-group"></i></div>
+              <div class="action-title">Clientes</div>
+              <div class="action-subtitle">Cuentas registradas</div>
+            </div>
+            <div class="action-card" onclick="showSection('ofertas', event)">
+              <div class="action-icon"><i class="fa-solid fa-tag"></i></div>
+              <div class="action-title">Ofertas</div>
+              <div class="action-subtitle">Promociones activas</div>
             </div>
             <div class="action-card" onclick="showSection('reportes', event)">
               <div class="action-icon"><i class="fa-solid fa-chart-bar"></i></div>

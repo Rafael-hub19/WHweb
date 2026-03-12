@@ -277,23 +277,5 @@
 <script src="./assets/js/modal-auth.js"></script>
 <script src="./assets/js/carrito.js"></script>
 <script src="./assets/js/checkout.js"></script>
-<script>
-// Interceptar procederAlPago para requerir autenticación primero
-(function () {
-  document.addEventListener('DOMContentLoaded', function () {
-    const _origProceder = window.procederAlPago;
-    if (typeof _origProceder !== 'function') return;
-    window.procederAlPago = function () {
-      if (AuthModal.isAuthenticated()) {
-        _origProceder();
-      } else {
-        AuthModal.requireAuth(function () {
-          _origProceder();
-        }, 'Inicia sesión para completar tu compra');
-      }
-    };
-  });
-})();
-</script>
 </body>
 </html>

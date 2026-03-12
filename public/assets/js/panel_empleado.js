@@ -1291,8 +1291,12 @@ async function refreshKpisAPI() {
   try {
     const data = await apiFetch(`${API_BASE}/reportes.php?tipo=resumen`);
     if (!data.success) return;
-    const el = document.getElementById('kpiPendientes');
-    if (el) el.textContent = data.pedidos_pendientes || 0;
+    const kpiPend = document.getElementById('kpiPendientes');
+    if (kpiPend) kpiPend.textContent = data.pedidos_pendientes ?? 0;
+    const kpiCitas = document.getElementById('kpiCitasHoy');
+    if (kpiCitas) kpiCitas.textContent = data.citas_hoy ?? 0;
+    const kpiCot = document.getElementById('kpiCotNuevas');
+    if (kpiCot) kpiCot.textContent = data.cotizaciones_nuevas ?? 0;
   } catch(e) {}
 }
 

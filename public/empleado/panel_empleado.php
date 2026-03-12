@@ -7,7 +7,7 @@ require_once dirname(__DIR__, 2) . "/includes/auth.php";
 
 $_usuario = sesionActiva();
 if (!$_usuario || !in_array($_usuario["rol"], ["administrador", "empleado"], true)) {
-    header("Location: /public/login.php?redirect=admin&error=sesion");
+    header("Location: /login?redirect=admin&error=sesion");
     exit;
 }
 unset($_usuario);
@@ -123,14 +123,14 @@ unset($_usuario);
             <div class="stat-subtitle">Requieren atención</div>
           </div>
           <div class="stat-card">
-            <div class="stat-title">Citas Esta Semana</div>
-            <div class="stat-value">8</div>
-            <div class="stat-subtitle">5 confirmadas</div>
+            <div class="stat-title">Citas Hoy</div>
+            <div class="stat-value" id="kpiCitasHoy">—</div>
+            <div class="stat-subtitle">Programadas para hoy</div>
           </div>
           <div class="stat-card">
-            <div class="stat-title">Cotizaciones Activas</div>
-            <div class="stat-value">15</div>
-            <div class="stat-subtitle">En seguimiento</div>
+            <div class="stat-title">Cotizaciones Nuevas</div>
+            <div class="stat-value" id="kpiCotNuevas">—</div>
+            <div class="stat-subtitle">Sin atender</div>
           </div>
         </div>
 
@@ -206,6 +206,7 @@ unset($_usuario);
               <table>
                 <thead>
                   <tr>
+                    <th>Folio</th>
                     <th>Cliente</th>
                     <th>Fecha</th>
                     <th>Hora</th>
@@ -215,28 +216,7 @@ unset($_usuario);
                   </tr>
                 </thead>
                 <tbody>
-                  <tr>
-                    <td>Ana Maria Martínez Sanchez</td>
-                    <td>05/02/26</td>
-                    <td>10:00 AM</td>
-                    <td>Instalación</td>
-                    <td><span class="status-badge status-progress">Confirmada</span></td>
-                    <td>
-                      <button class="btn btn-secondary btn-small" onclick="showNotification('Ver cita', 'info')">Ver</button>
-                      <button class="btn btn-secondary btn-small" onclick="showNotification('Actualizar cita', 'info')">Actualizar</button>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td>Juan Pedro Herrera Sanchez</td>
-                    <td>06/02/26</td>
-                    <td>2:00 PM</td>
-                    <td>Visita</td>
-                    <td><span class="status-badge status-pending">Pendiente</span></td>
-                    <td>
-                      <button class="btn btn-secondary btn-small" onclick="showNotification('Ver cita', 'info')">Ver</button>
-                      <button class="btn btn-secondary btn-small" onclick="showNotification('Actualizar cita', 'info')">Actualizar</button>
-                    </td>
-                  </tr>
+                  <tr><td colspan="7" style="text-align:center;color:#888;padding:20px;"><i class="fa-solid fa-spinner fa-spin"></i> Cargando citas...</td></tr>
                 </tbody>
               </table>
             </div>
@@ -261,37 +241,16 @@ unset($_usuario);
               <table>
                 <thead>
                   <tr>
-                    <th>ID</th>
+                    <th>Folio</th>
                     <th>Cliente</th>
-                    <th>Producto</th>
-                    <th>Monto</th>
+                    <th>Modelo</th>
+                    <th>Presupuesto</th>
                     <th>Estado</th>
                     <th>Acciones</th>
                   </tr>
                 </thead>
                 <tbody>
-                  <tr>
-                    <td>COT-045</td>
-                    <td>Juan Pedro Herrera Sanchez</td>
-                    <td>Personalizado</td>
-                    <td style="color: var(--accent); font-weight:800;">$18,500</td>
-                    <td><span class="status-badge status-pending">Pendiente</span></td>
-                    <td>
-                      <button class="btn btn-secondary btn-small" onclick="showNotification('Ver cotización', 'info')">Ver</button>
-                      <button class="btn btn-secondary btn-small" onclick="showNotification('Actualizar cotización', 'info')">Actualizar</button>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td>COT-046</td>
-                    <td>Laura Torres</td>
-                    <td>Toscana</td>
-                    <td style="color: var(--accent); font-weight:800;">$15,200</td>
-                    <td><span class="status-badge status-progress">En Revisión</span></td>
-                    <td>
-                      <button class="btn btn-secondary btn-small" onclick="showNotification('Ver cotización', 'info')">Ver</button>
-                      <button class="btn btn-secondary btn-small" onclick="showNotification('Actualizar cotización', 'info')">Actualizar</button>
-                    </td>
-                  </tr>
+                  <tr><td colspan="6" style="text-align:center;color:#888;padding:20px;"><i class="fa-solid fa-spinner fa-spin"></i> Cargando cotizaciones...</td></tr>
                 </tbody>
               </table>
             </div>
