@@ -249,7 +249,16 @@ async function prefillSiLogueado() {
         if (!cliente && window.AuthModal && typeof AuthModal.verificar === 'function') {
             cliente = await AuthModal.verificar();
         }
-        if (!cliente) return;
+        if (!cliente) {
+            _mostrarSugerenciaLoginCheckout();
+            document.addEventListener('wh:autenticado', function onAuth() {
+                document.removeEventListener('wh:autenticado', onAuth);
+                const s = document.getElementById('loginSuggestCheckout');
+                if (s) s.remove();
+                prefillSiLogueado();
+            }, { once: true });
+            return;
+        }
 
         const set = (id, val) => {
             const el = document.getElementById(id);
@@ -678,6 +687,33 @@ function showToast(msg, tipo = 'info') {
     });
     document.body.appendChild(div);
     setTimeout(() => div.remove(), 3500);
+}
+
+// ── Sugerencia de login para usuarios no logueados ────────────────
+function _mostrarSugerenciaLoginCheckout() {
+    if (document.getElementById('loginSuggestCheckout')) return;
+    // Insertar antes del primer campo de datos del cliente
+    const ancla = document.getElementById('clienteNombre')?.closest('.form-group') ||
+                  document.getElementById('clienteNombre')?.closest('section') ||
+                  document.querySelector('.checkout-form, .checkout-section');
+    if (!ancla) return;
+    const div = document.createElement('div');
+    div.id = 'loginSuggestCheckout';
+    div.className = 'login-suggest-card';
+    div.innerHTML = `
+      <div class="login-suggest-icon"><i class="fa-solid fa-bolt"></i></div>
+      <div class="login-suggest-text">
+        <strong>¿Ya tienes cuenta?</strong>
+        Inicia sesión y llenamos tus datos automáticamente.
+      </div>
+      <button type="button" class="login-suggest-btn"
+              onclick="AuthModal.open()">Iniciar sesión</button>
+      <button type="button" class="login-suggest-close"
+              onclick="this.closest('.login-suggest-card').remove()"
+              aria-label="Cerrar sugerencia">
+        <i class="fa-solid fa-xmark"></i>
+      </button>`;
+    ancla.parentNode.insertBefore(div, ancla);
 }
 
 // ── Exports ───────────────────────────────────────────────────────

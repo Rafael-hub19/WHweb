@@ -90,6 +90,38 @@ function initMenu() {
       dropdownBtn.setAttribute('aria-expanded', 'false');
     }
   });
+
+  // ── Dropdown "Mi cuenta" ──────────────────────────────────────────
+  const cuentaDropdown    = document.getElementById('cuentaDropdown');
+  const cuentaDropdownBtn = document.getElementById('cuentaDropdownBtn');
+  if (!cuentaDropdown || !cuentaDropdownBtn) return;
+
+  cuentaDropdownBtn.addEventListener('click', function (e) {
+    e.stopPropagation();
+    const isMobile = window.matchMedia('(max-width: 900px)').matches;
+    if (isMobile) {
+      const isOpen = cuentaDropdown.classList.toggle('open');
+      cuentaDropdownBtn.setAttribute('aria-expanded', isOpen);
+    }
+    // En desktop el hover CSS ya lo abre
+  });
+
+  // Cerrar al hacer click en ítem
+  cuentaDropdown.querySelectorAll('.dropdown-item').forEach(item => {
+    item.addEventListener('click', function () {
+      cuentaDropdown.classList.remove('open');
+      cuentaDropdownBtn.setAttribute('aria-expanded', 'false');
+      closeNav();
+    });
+  });
+
+  // Cerrar al hacer click fuera
+  document.addEventListener('click', function (e) {
+    if (!cuentaDropdown.contains(e.target)) {
+      cuentaDropdown.classList.remove('open');
+      cuentaDropdownBtn.setAttribute('aria-expanded', 'false');
+    }
+  });
 }
 
 // ================================================

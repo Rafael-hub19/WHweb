@@ -382,6 +382,57 @@ img, video { max-width: 100%; height: auto; display: block; }
   .sesion-card-editar { width: 100%; text-align: center; justify-content: center; }
 }
 
+/* ── Sugerencia de login para no logueados ──────────────────────── */
+.login-suggest-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: rgba(139,115,85,0.1);
+  border: 1px solid rgba(139,115,85,0.3);
+  border-radius: 14px;
+  padding: 14px 16px;
+  margin-bottom: 18px;
+  flex-wrap: wrap;
+}
+.login-suggest-icon {
+  font-size: 20px;
+  color: #c9a96e;
+  flex-shrink: 0;
+}
+.login-suggest-text {
+  flex: 1;
+  min-width: 180px;
+  font-size: 14px;
+  color: #ccc;
+  line-height: 1.5;
+}
+.login-suggest-text strong { color: #e0e0e0; }
+.login-suggest-btn {
+  background: #8b7355;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 18px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.2s;
+  font-family: inherit;
+}
+.login-suggest-btn:hover { background: #a0865f; }
+.login-suggest-close {
+  background: none;
+  border: none;
+  color: #666;
+  font-size: 16px;
+  cursor: pointer;
+  padding: 4px;
+  transition: color 0.2s;
+  flex-shrink: 0;
+}
+.login-suggest-close:hover { color: #aaa; }
+
 /* ===================================================
    BOTÓN SUBMIT
    =================================================== */

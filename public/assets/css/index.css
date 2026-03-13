@@ -178,27 +178,27 @@ img, video { max-width: 100%; height: auto; }
 }
 .dropdown-item:hover i { color: #c9a96e; }
 
-/* ── Botón Mi Cuenta (desktop) ──────────────────────────────────── */
-.btn-cuenta-nav {
-  background: none;
-  border: 1px solid rgba(139,115,85,0.5);
-  color: #e0e0e0;
-  font-size: 15px;
-  font-weight: 500;
-  padding: 7px 16px;
-  border-radius: 8px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  transition: background 0.2s, border-color 0.2s, color 0.2s;
-  white-space: nowrap;
-  font-family: inherit;
+/* ── Separador dentro de dropdowns ─────────────────────────────── */
+.dropdown-divider {
+  height: 1px;
+  background: rgba(139,115,85,0.2);
+  margin: 4px 8px;
 }
-.btn-cuenta-nav:hover {
-  background: rgba(139,115,85,0.15);
-  border-color: #c9a96e;
-  color: #c9a96e;
+
+/* ── Dropdown "Mi cuenta" — alineado a la derecha en desktop ───── */
+@media (min-width: 901px) {
+  .cuenta-dropdown .dropdown-menu {
+    left: auto;
+    right: 0;
+    transform: translateY(-8px);
+  }
+  .cuenta-dropdown .dropdown-menu::before { left: auto; right: 18px; }
+  .cuenta-dropdown .dropdown-menu::after  { left: auto; right: 19px; }
+
+  .cuenta-dropdown:hover .dropdown-menu,
+  .cuenta-dropdown.open  .dropdown-menu {
+    transform: translateY(0);
+  }
 }
 
 .login-btn {
@@ -874,6 +874,7 @@ img, video { max-width: 100%; height: auto; }
 
   .nav-dropdown.open .dropdown-menu { display: block; }
   .nav-dropdown.open .nav-chevron    { transform: rotate(180deg); }
+  .dropdown-divider { margin: 4px 6px; }
 
   .dropdown-item {
     padding: 10px 14px;

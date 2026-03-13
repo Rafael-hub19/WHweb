@@ -56,9 +56,24 @@
         <span class="cart-badge" id="cartCount">0</span>
       </a>
 
-      <button class="btn-cuenta-nav" onclick="AuthModal.open()">
-        <i class="fa-solid fa-user"></i> Mi cuenta
-      </button>
+      <!-- Dropdown Mi cuenta: clientes + acceso personal -->
+      <div class="nav-item nav-dropdown cuenta-dropdown" id="cuentaDropdown">
+        <button class="nav-dropdown-btn" id="cuentaDropdownBtn"
+                aria-haspopup="true" aria-expanded="false">
+          <i class="fa-solid fa-user"></i> Mi cuenta
+          <i class="fa-solid fa-chevron-down nav-chevron"></i>
+        </button>
+        <div class="dropdown-menu cuenta-menu" id="cuentaDropdownMenu" role="menu">
+          <a href="#" class="dropdown-item" id="btnAbrirAuth"
+             onclick="AuthModal.open(); return false;">
+            <i class="fa-solid fa-user-circle"></i> Clientes
+          </a>
+          <div class="dropdown-divider"></div>
+          <a href="/login" class="dropdown-item">
+            <i class="fa-solid fa-id-badge"></i> Personal
+          </a>
+        </div>
+      </div>
 
     </nav>
   </div>

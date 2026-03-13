@@ -71,10 +71,6 @@
             <input type="email" id="regEmail" placeholder="correo@ejemplo.com" autocomplete="email" required>
           </div>
           <div class="auth-form-group">
-            <label>Confirmar correo electrónico</label>
-            <input type="email" id="regConfirmEmail" placeholder="Repite tu correo" autocomplete="email" required>
-          </div>
-          <div class="auth-form-group">
             <label>Contraseña <span style="font-weight:400;font-size:11px;">(mín. 6 caracteres)</span></label>
             <input type="password" id="regPassword" placeholder="Crea una contraseña" autocomplete="new-password" required minlength="6">
           </div>
@@ -88,6 +84,25 @@
 
       <div class="auth-modal-footer">
         Al continuar aceptas nuestros <a href="/terminos" target="_blank" rel="noopener">términos de servicio</a>
+      </div>
+    </div>
+
+    <!-- Vista: verificación de correo pendiente -->
+    <div id="authViewVerificacion" style="display:none;">
+      <div style="text-align:center; padding: 8px 0 20px;">
+        <div style="font-size:52px; margin-bottom:18px;">📧</div>
+        <h3 style="color:#c9a96e; font-size:20px; margin-bottom:10px;">¡Cuenta creada!</h3>
+        <p style="color:#ccc; font-size:14px; line-height:1.6;">
+          Te enviamos un enlace de verificación a<br>
+          <strong id="authVerifEmailLabel" style="color:#e0e0e0;">—</strong>
+        </p>
+        <p style="color:#888; font-size:12px; margin-top:10px; line-height:1.5;">
+          Haz clic en el enlace del correo para confirmar tu cuenta.<br>
+          Si no ves el correo, revisa tu carpeta de spam.
+        </p>
+        <button class="btn-auth-primary" style="margin-top:20px;" onclick="_authContinuarDespuesDeRegistro()">
+          Continuar a mi cuenta
+        </button>
       </div>
     </div>
 
@@ -141,21 +156,7 @@
       this.value = this.value.replace(/[^a-zA-Z0-9._%+\-@]/g, '');
     });
 
-    // Confirmar correo: bloquear pegar + solo chars de email + validar coincidencia
-    const regConfirmEmail = document.getElementById('regConfirmEmail');
-    if (regConfirmEmail) {
-      regConfirmEmail.addEventListener('paste', (e) => e.preventDefault());
-      regConfirmEmail.addEventListener('input', function () {
-        this.value = this.value.replace(/[^a-zA-Z0-9._%+\-@]/g, '');
-        _authClearAlert();
-      });
-      regConfirmEmail.addEventListener('blur', function () {
-        const orig = (document.getElementById('regEmail')?.value || '').trim().toLowerCase();
-        const conf = this.value.trim().toLowerCase();
-        if (conf && conf !== orig) _authShowAlert('Los correos no coinciden', 'error');
-        else _authClearAlert();
-      });
-    }
+
 
     // Confirmar contraseña: bloquear pegar + validar coincidencia al salir
     const regConfirmPassword = document.getElementById('regConfirmPassword');
@@ -260,9 +261,13 @@
 
   /* ── Actualizar vista del modal ──────────────────────────────── */
   function _actualizarVistaModal() {
-    const viewLogin = document.getElementById('authViewLogin');
-    const viewUser  = document.getElementById('authViewUser');
+    const viewLogin  = document.getElementById('authViewLogin');
+    const viewUser   = document.getElementById('authViewUser');
+    const viewVerif  = document.getElementById('authViewVerificacion');
     if (!viewLogin || !viewUser) return;
+
+    // Ocultar siempre la pantalla de verificación al cambiar de vista
+    if (viewVerif) viewVerif.style.display = 'none';
 
     if (_cliente) {
       viewLogin.style.display = 'none';
@@ -282,6 +287,8 @@
     _cliente = cliente;
     _actualizarNavBtn();
     _actualizarVistaModal();
+    // Notificar a otras partes de la página (solicitudes, checkout, etc.)
+    document.dispatchEvent(new CustomEvent('wh:autenticado', { detail: cliente }));
 
     if (typeof _callback === 'function') {
       const cb = _callback;
@@ -325,24 +332,30 @@
     }
   };
 
+  /* ── Continuar después del registro (botón en vista verificación) ── */
+  let _pendingCliente = null;
+  window._authContinuarDespuesDeRegistro = function () {
+    if (_pendingCliente) {
+      _onAutenticado(_pendingCliente);
+      _pendingCliente = null;
+    } else {
+      AuthModal.close();
+    }
+  };
+
   /* ── Registro con email ──────────────────────────────────────── */
   window._authRegistroEmail = async function (e) {
     e.preventDefault();
     _authClearAlert();
     const nombre          = document.getElementById('regNombre').value.trim();
     const email           = document.getElementById('regEmail').value.trim();
-    const confirmEmail    = document.getElementById('regConfirmEmail').value.trim();
     const password        = document.getElementById('regPassword').value;
     const confirmPassword = document.getElementById('regConfirmPassword').value;
-    if (!nombre || !email || !confirmEmail || !password || !confirmPassword) return;
+    if (!nombre || !email || !password || !confirmPassword) return;
 
-    // Validar nombre: solo letras, espacios y acentos — sin caracteres especiales
+    // Validar nombre: solo letras, espacios y acentos
     if (!/^[a-zA-ZáéíóúÁÉÍÓÚüÜñÑ\s]{2,120}$/.test(nombre)) {
       _authShowAlert('El nombre solo puede contener letras y espacios', 'error'); return;
-    }
-    // Verificar que los correos coinciden
-    if (email.toLowerCase() !== confirmEmail.toLowerCase()) {
-      _authShowAlert('Los correos electrónicos no coinciden', 'error'); return;
     }
     // Verificar que las contraseñas coinciden
     if (password !== confirmPassword) {
@@ -352,12 +365,25 @@
     _authSetLoading('btnRegSubmit', true);
     try {
       const auth = await _getAuth();
-      const { createUserWithEmailAndPassword } = await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js');
+      const { createUserWithEmailAndPassword, sendEmailVerification } =
+        await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js');
       const cred  = await createUserWithEmailAndPassword(auth, email, password);
+
+      // Enviar correo de verificación (no bloquea el flujo)
+      sendEmailVerification(cred.user).catch(() => {});
+
       const token = await cred.user.getIdToken();
       const data  = await _llamarBackend('cliente-registro', token, { nombre, correo: email });
       if (!data.success) throw new Error(data.error || 'Error al registrarse');
-      _onAutenticado(data.cliente);
+
+      // Guardar cliente pendiente y mostrar vista de verificación
+      _pendingCliente = data.cliente;
+      const labelEl = document.getElementById('authVerifEmailLabel');
+      if (labelEl) labelEl.textContent = email;
+
+      // Ocultar login y mostrar pantalla de verificación
+      document.getElementById('authViewLogin').style.display       = 'none';
+      document.getElementById('authViewVerificacion').style.display = 'block';
     } catch (e) {
       const map = {
         'auth/email-already-in-use': 'Ese correo ya tiene una cuenta. Inicia sesión.',

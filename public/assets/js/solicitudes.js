@@ -807,9 +807,20 @@ async function prefillContactoSiLogueado() {
 
   let cliente = AuthModal.getCliente();
   if (!cliente) {
-    try { cliente = await AuthModal.verificar(); } catch (_) { return; }
+    try { cliente = await AuthModal.verificar(); } catch (_) { /* continuar sin sesión */ }
   }
-  if (!cliente) return;
+
+  // Sin sesión: mostrar sugerencia de login (no bloqueante)
+  if (!cliente) {
+    _mostrarSugerenciaLogin();
+    // Cuando el usuario inicie sesión desde la sugerencia, actualizar el formulario
+    document.addEventListener('wh:autenticado', function onAuth(ev) {
+      document.removeEventListener('wh:autenticado', onAuth);
+      document.querySelectorAll('.login-suggest-card').forEach(c => c.remove());
+      prefillContactoSiLogueado();
+    }, { once: true });
+    return;
+  }
 
   const configs = [
     { formId: 'formCotizacion', sectionTitle: 'Información de Contacto' },
@@ -886,6 +897,32 @@ function mostrarCamposContacto(formId) {
     seccion.style.display = '';
     seccion.querySelectorAll('.form-group').forEach(g => { g.style.display = ''; });
   }
+}
+
+/** Muestra una tarjeta de sugerencia de inicio de sesión antes del primer .form-section */
+function _mostrarSugerenciaLogin() {
+  ['formCotizacion', 'formCita'].forEach(formId => {
+    const form = document.getElementById(formId);
+    if (!form) return;
+    const seccion = form.querySelector('.form-section');
+    if (!seccion || document.getElementById(`loginSuggest_${formId}`)) return;
+    const html = `
+      <div class="login-suggest-card" id="loginSuggest_${formId}">
+        <div class="login-suggest-icon"><i class="fa-solid fa-bolt"></i></div>
+        <div class="login-suggest-text">
+          <strong>¿Ya tienes cuenta?</strong>
+          Inicia sesión y llenamos tus datos automáticamente.
+        </div>
+        <button type="button" class="login-suggest-btn"
+                onclick="AuthModal.open()">Iniciar sesión</button>
+        <button type="button" class="login-suggest-close"
+                onclick="document.getElementById('loginSuggest_${formId}').remove()"
+                aria-label="Cerrar sugerencia">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>`;
+    seccion.insertAdjacentHTML('beforebegin', html);
+  });
 }
 
 // Exponer funciones globales requeridas por el HTML
