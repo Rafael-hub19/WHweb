@@ -85,6 +85,16 @@ img, video { max-width: 100%; height: auto; }
 
 /* Desktop: abrir con hover */
 @media (min-width: 901px) {
+  /* Puente invisible que cubre el gap entre el botón y el panel
+     para que el hover no se pierda al mover el cursor hacia abajo */
+  .nav-dropdown::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: -20px;
+    right: -20px;
+    height: 20px; /* debe ser >= gap del dropdown (top: calc(100% + 14px)) */
+  }
   .nav-dropdown:hover .nav-dropdown-btn { color: #c9a96e; }
   .nav-dropdown:hover .nav-chevron { transform: rotate(180deg); }
   .nav-dropdown:hover .dropdown-menu {

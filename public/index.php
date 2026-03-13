@@ -42,15 +42,13 @@
           <a href="#proyectos" class="dropdown-item" role="menuitem">
             <i class="fa-solid fa-images"></i> Proyectos
           </a>
-          <a href="/catalogo" class="dropdown-item" role="menuitem">
-            <i class="fa-solid fa-box-open"></i> Catálogo
-          </a>
           <a href="#contacto" class="dropdown-item" role="menuitem">
             <i class="fa-solid fa-phone"></i> Contacto
           </a>
         </div>
       </div>
 
+      <a href="/catalogo" class="nav-link-item">Catálogo</a>
       <a href="/solicitudes" class="nav-link-item">Solicitudes</a>
 
       <a href="/carrito" class="cart-icon" id="cartIcon" aria-label="Ver carrito">
