@@ -633,9 +633,12 @@
     }
     .cat-grid{
       display:grid;
-      grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
+      grid-template-columns:repeat(auto-fill,minmax(250px,1fr));
       gap:12px;
       margin-top:12px;
+    }
+    .cat-card{
+      max-width:340px;
     }
     .cat-card{
       background:#1a1a1a;

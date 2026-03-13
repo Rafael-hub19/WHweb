@@ -84,7 +84,7 @@ img, video { max-width: 100%; height: auto; }
 }
 
 /* Desktop: abrir con hover */
-@media (hover: hover) and (pointer: fine) {
+@media (min-width: 901px) {
   .nav-dropdown:hover .nav-dropdown-btn { color: #c9a96e; }
   .nav-dropdown:hover .nav-chevron { transform: rotate(180deg); }
   .nav-dropdown:hover .dropdown-menu {

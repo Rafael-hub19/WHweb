@@ -137,7 +137,6 @@ unset($_usuario);
         <div class="section">
           <div class="section-header">
             <h2 class="section-title">Actividad Reciente</h2>
-            <button class="btn btn-secondary btn-small" onclick="seedActivityDemo()">Demo</button>
           </div>
 
           <div class="activity-list" id="activityList">
@@ -173,7 +172,7 @@ unset($_usuario);
                   <tr>
                     <th>ID</th>
                     <th>Cliente</th>
-                    <th>Producto</th>
+                    <th>Correo</th>
                     <th>Fecha de Entrega</th>
                     <th>Estado</th>
                     <th>Total</th>
@@ -262,7 +261,7 @@ unset($_usuario);
       <!-- CALENDARIO -->
       <div id="calendario-section" class="content-section hidden">
         <h1 class="page-title">Mi Calendario</h1>
-        <p class="page-subtitle">Calendario interactivo (demo): selecciona un día y agrega eventos</p>
+        <p class="page-subtitle">Calendario interactivo: selecciona un día para ver citas</p>
 
         <div class="section">
           <div class="calendar-wrap">

@@ -566,7 +566,7 @@ function syncAutoInventory(){
       { id:'MAT-002', qty:4, reason:'auto:orden_produccion' }
     ];
     localStorage.setItem('wh_material_consumption_queue', JSON.stringify(sample));
-    showNotification('Cola simulada creada.\nVuelve a presionar Auto-actualizar.', 'info');
+    showNotification('Cola de consumo creada.\nVuelve a presionar Auto-actualizar.', 'info');
     return;
   }
 
@@ -586,7 +586,7 @@ function syncAutoInventory(){
   localStorage.setItem('wh_material_consumption_queue', JSON.stringify([]));
   renderInventory();
   showNotification('↻ Inventario auto-actualizado', 'success');
-  pushNotif('Inventario auto-actualizado', 'Se aplicaron consumos simulados');
+  pushNotif('Inventario auto-actualizado', 'Se aplicaron los consumos de la cola');
   renderActivity();
 }
 

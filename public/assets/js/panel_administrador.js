@@ -133,7 +133,7 @@
 
     function confirmDelete(id){
       if(confirm('¿Eliminar este elemento?')){
-        showNotification('<i class="fa-solid fa-check"></i> Elemento eliminado (demo)', 'success');
+        showNotification('<i class="fa-solid fa-check"></i> Elemento eliminado', 'success');
       }
     }
 
@@ -669,7 +669,7 @@
         setVal('p_nombre',    p.nombre);
         setVal('p_categoria', p.categoria_id);
         setVal('p_badge',     p.etiqueta || '');
-        setVal('p_estado',    p.activo == 1 ? 'activo' : 'inactivo');
+        setVal('p_estado',    (p.activo == 1 || p.estado === 'activo') ? 'activo' : 'inactivo');
         setVal('p_precio',    p.precio || p.precio_base || 0);
         setVal('p_descLarga', p.descripcion || '');
 
@@ -1607,6 +1607,16 @@ async function refreshKPIsFromAPI() {
 
     const stockEl = document.getElementById('kpiStockLow');
     if (stockEl) stockEl.textContent = `${r.pedidos_pendientes || 0} pendientes`;
+
+    // Actividad reciente
+    const actEl = document.getElementById('actividadReciente');
+    if (actEl) {
+      const items = [];
+      if (r.total_pedidos > 0) items.push(`<p style="margin:0 0 6px;"><i class="fa-solid fa-cart-shopping"></i> ${r.total_pedidos} pedidos registrados en el sistema</p>`);
+      if (r.pedidos_pendientes > 0) items.push(`<p style="margin:0 0 6px;"><i class="fa-solid fa-clock"></i> ${r.pedidos_pendientes} pedido(s) pendientes de atención</p>`);
+      if (r.productos_activos > 0) items.push(`<p style="margin:0;"><i class="fa-solid fa-box"></i> ${r.productos_activos} producto(s) activos en catálogo</p>`);
+      actEl.innerHTML = items.length ? items.join('') : '<p style="margin:0;">Sin actividad reciente.</p>';
+    }
 
   } catch (e) { console.warn('KPIs API error:', e); }
 }

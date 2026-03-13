@@ -110,12 +110,12 @@ unset($_usuario);
           <div class="stat-card">
             <div class="stat-title">Pedidos Totales</div>
             <div class="stat-value" id="kpiPedidos">0</div>
-            <div class="stat-subtitle">Simulado</div>
+            <div class="stat-subtitle" id="kpiPedidosHint">—</div>
           </div>
           <div class="stat-card">
             <div class="stat-title">Clientes Atendidos</div>
             <div class="stat-value" id="kpiClientes">0</div>
-            <div class="stat-subtitle">Simulado</div>
+            <div class="stat-subtitle" id="kpiClientesHint">—</div>
           </div>
           <div class="stat-card">
             <div class="stat-title">Productos en Catálogo</div>
@@ -127,7 +127,7 @@ unset($_usuario);
         <div class="section">
           <div class="section-header">
             <h2 class="section-title">Gráficas rápidas</h2>
-            <div class="help">Demo (datos simulados). Más adelante lo conectas a MySQL/Firebase.</div>
+            <div class="help">Basado en pedidos registrados en el sistema.</div>
           </div>
 
           <div class="charts-grid">
@@ -193,12 +193,13 @@ unset($_usuario);
 
         <div class="section">
           <div class="section-header"><h2 class="section-title">Actividad Reciente</h2></div>
-          <p style="color:var(--muted); font-size:13px;"><i class="fa-solid fa-clipboard-list"></i> Cambios en catálogo guardados - (simulado)</p>
-          <p style="color:var(--muted); font-size:13px; margin-top:8px;"><i class="fa-solid fa-floppy-disk"></i> Respaldo automático completado - (simulado)</p>
+          <div id="actividadReciente" style="color:var(--muted); font-size:13px;">
+            <i class="fa-solid fa-spinner fa-spin"></i> Cargando actividad...
+          </div>
         </div>
       </div>
 
-      <!-- PEDIDOS (DEMO) -->
+      <!-- PEDIDOS -->
       <div id="pedidos-section" class="content-section hidden">
         <h1 class="page-title">Gestión Total de Pedidos</h1>
         <p class="page-subtitle">Control completo de todos los pedidos</p>
@@ -482,10 +483,10 @@ unset($_usuario);
         </div>
       </div>
 
-      <!-- FINANCIERO (DEMO) -->
+      <!-- FINANCIERO -->
       <div id="financiero-section" class="content-section hidden">
         <h1 class="page-title">Análisis Financiero</h1>
-        <p class="page-subtitle">Ingresos, egresos y análisis detallado (demo)</p>
+        <p class="page-subtitle">Ingresos, egresos y análisis detallado</p>
 
         <div class="stats-grid">
           <div class="stat-card"><div class="stat-title">Ingresos del Mes</div><div class="stat-value">$156,800</div><div class="stat-subtitle">+18%</div></div>

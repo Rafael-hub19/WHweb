@@ -69,6 +69,7 @@ document.addEventListener('DOMContentLoaded', () => {
     cargarItemsCarrito();
     renderizarItems();
     restaurarFormulario();
+    prefillSiLogueado();
 
     if (!localStorage.getItem(FORM_KEY)) seleccionarEntrega('recoger', false);
 
@@ -236,6 +237,37 @@ function restaurarFormulario() {
         if (datos.tipoEntrega) seleccionarEntrega(datos.tipoEntrega, false);
         if (typeof datos.instalacion === 'boolean') seleccionarInstalacion(datos.instalacion);
     } catch { /* silent */ }
+}
+
+// ── Pre-llenado para usuarios logueados ───────────────────────────
+async function prefillSiLogueado() {
+    try {
+        let cliente = null;
+        if (window.AuthModal && typeof AuthModal.getCliente === 'function') {
+            cliente = AuthModal.getCliente();
+        }
+        if (!cliente && window.AuthModal && typeof AuthModal.verificar === 'function') {
+            cliente = await AuthModal.verificar();
+        }
+        if (!cliente) return;
+
+        const set = (id, val) => {
+            const el = document.getElementById(id);
+            if (el && val && !el.value) { el.value = val; el.setAttribute('data-prefilled', '1'); }
+        };
+        set('clienteNombre',   cliente.nombre   || cliente.displayName || '');
+        set('clienteCorreo',   cliente.email    || '');
+        set('clienteTelefono', cliente.telefono || '');
+        // Sync confirm email field if present
+        const correoEl   = document.getElementById('clienteCorreo');
+        const confirmEl  = document.getElementById('clienteCorreoConfirm');
+        if (confirmEl && correoEl && correoEl.value && !confirmEl.value) {
+            confirmEl.value = correoEl.value;
+            confirmEl.setAttribute('data-prefilled', '1');
+        }
+        // Persist to localStorage so guardarFormulario keeps it
+        guardarFormulario();
+    } catch (e) { /* silent */ }
 }
 
 // ── Carrito ───────────────────────────────────────────────────────
