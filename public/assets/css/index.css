@@ -83,35 +83,31 @@ img, video { max-width: 100%; height: auto; }
   margin-top: 1px;
 }
 
-/* Desktop: abrir con hover */
+/* Desktop: abrir con hover o con clase .open (teclado) */
 @media (min-width: 901px) {
-  /* Puente invisible que cubre el gap entre el botón y el panel
-     para que el hover no se pierda al mover el cursor hacia abajo */
+  /* Puente invisible que cubre el gap entre botón y panel
+     para que el hover no se corte al bajar el cursor */
   .nav-dropdown::after {
     content: '';
     position: absolute;
     top: 100%;
     left: -20px;
     right: -20px;
-    height: 20px; /* debe ser >= gap del dropdown (top: calc(100% + 14px)) */
+    height: 20px;
   }
-  .nav-dropdown:hover .nav-dropdown-btn { color: #c9a96e; }
-  .nav-dropdown:hover .nav-chevron { transform: rotate(180deg); }
-  .nav-dropdown:hover .dropdown-menu {
+  .nav-dropdown:hover .nav-dropdown-btn,
+  .nav-dropdown.open  .nav-dropdown-btn { color: #c9a96e; }
+
+  .nav-dropdown:hover .nav-chevron,
+  .nav-dropdown.open  .nav-chevron { transform: rotate(180deg); }
+
+  .nav-dropdown:hover .dropdown-menu,
+  .nav-dropdown.open  .dropdown-menu {
     opacity: 1;
     visibility: visible;
     pointer-events: auto;
     transform: translateX(-50%) translateY(0);
   }
-}
-
-/* También abrir con clase .open (teclado / móvil) */
-.nav-dropdown.open .nav-chevron { transform: rotate(180deg); }
-.nav-dropdown.open .dropdown-menu {
-  opacity: 1;
-  visibility: visible;
-  pointer-events: auto;
-  transform: translateX(-50%) translateY(0);
 }
 
 /* Panel del dropdown */
@@ -181,6 +177,29 @@ img, video { max-width: 100%; height: auto; }
   color: #c9a96e;
 }
 .dropdown-item:hover i { color: #c9a96e; }
+
+/* ── Botón Mi Cuenta (desktop) ──────────────────────────────────── */
+.btn-cuenta-nav {
+  background: none;
+  border: 1px solid rgba(139,115,85,0.5);
+  color: #e0e0e0;
+  font-size: 15px;
+  font-weight: 500;
+  padding: 7px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  transition: background 0.2s, border-color 0.2s, color 0.2s;
+  white-space: nowrap;
+  font-family: inherit;
+}
+.btn-cuenta-nav:hover {
+  background: rgba(139,115,85,0.15);
+  border-color: #c9a96e;
+  color: #c9a96e;
+}
 
 .login-btn {
   background: #8b7355;
@@ -832,31 +851,56 @@ img, video { max-width: 100%; height: auto; }
     border-radius: 10px 10px 0 0;
   }
 
-  /* Submenu accordion en móvil */
+  /* Submenu accordion en móvil — redefine completamente para evitar
+     conflictos con las reglas de desktop (opacity/visibility/transform) */
   .dropdown-menu {
+    display: none;
     position: static;
-    transform: none !important;
-    opacity: 1 !important;
-    visibility: visible !important;
-    pointer-events: auto !important;
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transform: none;
     background: #222;
     border: 1px solid #3a3a3a;
     border-top: none;
     border-radius: 0 0 10px 10px;
     padding: 6px;
     box-shadow: none;
-    display: none;
+    min-width: unset;
     transition: none;
   }
   .dropdown-menu::before,
   .dropdown-menu::after { display: none; }
+
   .nav-dropdown.open .dropdown-menu { display: block; }
+  .nav-dropdown.open .nav-chevron    { transform: rotate(180deg); }
 
   .dropdown-item {
     padding: 10px 14px;
     border-radius: 8px;
     font-size: 14px;
     justify-content: center;
+  }
+
+  /* Botón Mi Cuenta en móvil */
+  .btn-cuenta-nav {
+    width: 100%;
+    text-align: center;
+    padding: 11px 14px;
+    border: 1px solid #3a3a3a;
+    border-radius: 10px;
+    background: #2d2d2d;
+    color: #e0e0e0;
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+    font-family: inherit;
+  }
+  .btn-cuenta-nav:hover {
+    background: rgba(139,115,85,0.12);
+    color: #c9a96e;
+    border-color: rgba(139,115,85,0.3);
   }
 
   /* Carrito centrado */
