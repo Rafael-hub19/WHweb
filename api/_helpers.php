@@ -69,6 +69,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit;
 }
 
+// ── Manejador global de excepciones ───────────────────────────────
+// Captura cualquier excepción no manejada (PDOException, Error, etc.)
+// y devuelve JSON en vez de body vacío con status 500
+set_exception_handler(function(Throwable $e): void {
+    http_response_code(500);
+    $msg = (defined('APP_DEBUG') && APP_DEBUG)
+        ? $e->getMessage() . ' in ' . basename($e->getFile()) . ':' . $e->getLine()
+        : 'Error interno del servidor. Intenta de nuevo más tarde.';
+    echo json_encode(['success' => false, 'error' => $msg], JSON_UNESCAPED_UNICODE);
+    exit;
+});
+
 // ── Content-Type ──────────────────────────────────────────────────
 header('Content-Type: application/json; charset=utf-8');
 

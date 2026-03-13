@@ -219,9 +219,9 @@ unset($_usuario);
               <table>
                 <thead>
                   <tr>
-                    <th>ID</th>
+                    <th>Folio</th>
                     <th>Cliente</th>
-                    <th>Producto</th>
+                    <th>Correo</th>
                     <th>Fecha de Entrega</th>
                     <th>Estado</th>
                     <th>Total</th>
@@ -287,26 +287,13 @@ unset($_usuario);
                 <table>
                   <thead>
                     <tr>
-                      <th>Cliente</th><th>Empleado</th><th>Fecha</th><th>Hora</th><th>Tipo</th><th>Estado</th><th>Acciones</th>
+                      <th>Folio</th><th>Cliente</th><th>Fecha</th><th>Hora</th><th>Tipo</th><th>Estado</th><th>Acciones</th>
                     </tr>
                   </thead>
                   <tbody id="citasTable">
-                    <tr>
-                      <td>Ana Martínez</td><td>Juan Pérez</td><td>05/02/26</td><td>10:00 AM</td><td>Instalación</td>
-                      <td><span class="status-badge status-completed">Confirmada</span></td>
-                      <td>
-                        <button class="btn btn-secondary btn-small" onclick="showNotification('Editar cita (demo)', 'info')"><i class="fa-solid fa-pen"></i></button>
-                        <button class="btn btn-danger btn-small" onclick="confirmDelete('cita-001')"><i class="fa-solid fa-trash"></i></button>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>Pedro Sánchez</td><td>María García</td><td>06/02/26</td><td>2:00 PM</td><td>Cotización</td>
-                      <td><span class="status-badge status-pending">Pendiente</span></td>
-                      <td>
-                        <button class="btn btn-secondary btn-small" onclick="showNotification('Editar cita (demo)', 'info')"><i class="fa-solid fa-pen"></i></button>
-                        <button class="btn btn-danger btn-small" onclick="confirmDelete('cita-002')"><i class="fa-solid fa-trash"></i></button>
-                      </td>
-                    </tr>
+                    <tr><td colspan="7" style="text-align:center;color:var(--muted);padding:20px;">
+                      <i class="fa-solid fa-spinner fa-spin"></i> Cargando citas...
+                    </td></tr>
                   </tbody>
                 </table>
               </div>

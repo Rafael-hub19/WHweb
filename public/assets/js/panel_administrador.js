@@ -164,8 +164,8 @@
     /* =========================
        CALENDARIO
     ========================= */
-    let calYear = 2026;
-    let calMonth = 1; // Feb
+    let calYear  = new Date().getFullYear();
+    let calMonth = new Date().getMonth(); // 0-indexed, mes actual
     // Citas cargadas desde la API — sin localStorage, datos reales de MySQL
     let _citasCache = [];
 
@@ -181,10 +181,10 @@
             id:      c.numero_cita || c.id,
             cliente: c.nombre_cliente || '',
             date:    (c.fecha_cita || '').substring(0, 10),
-            time:    c.rango_horario || '00:00',
+            time:    c.rango_horario || 'Por confirmar',
             tipo:    c.tipo || 'medicion',
             estado:  c.estado || 'nueva',
-            datos:   c, // datos completos para el panel de detalle
+            datos:   c,
           }));
         }
       } catch(e) {
@@ -192,6 +192,7 @@
         _citasCache = [];
       }
       renderCalendar();
+      renderCitasTable();
     }
 
     function getCitas(){ return _citasCache; }
@@ -215,14 +216,15 @@
     }
 
     function tipoLabel(t){
-      if(t==='inst') return 'Instalación';
-      if(t==='cot') return 'Cotización';
-      return 'Cita';
+      if(t==='medicion')   return 'Medición';
+      if(t==='instalacion') return 'Instalación';
+      return 'Otro';
     }
     function estadoLabel(e){
-      if(e==='completed') return 'Confirmada';
-      if(e==='progress') return 'En proceso';
-      return 'Pendiente';
+      if(e==='confirmada') return 'Confirmada';
+      if(e==='completada') return 'Completada';
+      if(e==='cancelada')  return 'Cancelada';
+      return 'Nueva';
     }
 
     function makeDayCell(y, m, d, muted, citas){
@@ -364,6 +366,47 @@
       }else{
         selectDay(`${calYear}-${monthStr}-01`);
       }
+    }
+
+    function renderCitasTable() {
+      const tbody = document.getElementById('citasTable');
+      if (!tbody) return;
+
+      const estadoMap = {
+        nueva:      { label: 'Nueva',      cls: 'status-info'      },
+        confirmada: { label: 'Confirmada', cls: 'status-completed'  },
+        completada: { label: 'Completada', cls: 'status-progress'   },
+        cancelada:  { label: 'Cancelada',  cls: 'status-disabled'   },
+      };
+      const tipoMap = {
+        medicion:   'Medición',
+        instalacion:'Instalación',
+        otro:       'Otro',
+      };
+
+      const citas = _citasCache.slice().sort((a, b) => a.date.localeCompare(b.date));
+
+      if (!citas.length) {
+        tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:20px;">Sin citas registradas</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = citas.map(c => {
+        const est = estadoMap[c.estado] || { label: c.estado, cls: '' };
+        const dbId = c.datos?.id || '';
+        return `
+          <tr>
+            <td style="font-size:11px;color:var(--muted);">${escapeHtml(c.id)}</td>
+            <td>${escapeHtml(c.cliente)}</td>
+            <td>${fmtDMY(c.date)}</td>
+            <td>${escapeHtml(c.time)}</td>
+            <td>${tipoMap[c.tipo] || c.tipo}</td>
+            <td><span class="status-badge ${est.cls}">${est.label}</span></td>
+            <td>
+              ${dbId ? `<button class="btn btn-secondary btn-small" onclick="verDetalleCitaAdmin(${dbId})"><i class="fa-solid fa-eye"></i></button>` : '—'}
+            </td>
+          </tr>`;
+      }).join('');
     }
 
     /* =========================
