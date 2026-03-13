@@ -21,6 +21,9 @@ document.addEventListener('DOMContentLoaded', function () {
   setMinDate();
   checkURLParams();
   initRealTimeValidation();
+
+  // Pre-llenar datos de contacto si el cliente tiene sesión activa
+  prefillContactoSiLogueado();
 });
 
 // ── Menú hamburguesa ──────────────────────────────────────────────
@@ -793,7 +796,100 @@ function escapeHtml(str) {
     .replace(/'/g, '&#39;');
 }
 
+// ── Pre-llenado de contacto para clientes con sesión ─────────────
+/**
+ * Si el cliente tiene sesión activa, oculta la sección de contacto y
+ * muestra en su lugar una tarjeta con sus datos ya registrados.
+ * Solo se muestran los campos que realmente faltan (p.ej. dirección).
+ */
+async function prefillContactoSiLogueado() {
+  if (typeof AuthModal === 'undefined') return;
+
+  let cliente = AuthModal.getCliente();
+  if (!cliente) {
+    try { cliente = await AuthModal.verificar(); } catch (_) { return; }
+  }
+  if (!cliente) return;
+
+  const configs = [
+    { formId: 'formCotizacion', sectionTitle: 'Información de Contacto' },
+    { formId: 'formCita',       sectionTitle: 'Información de Contacto' },
+  ];
+
+  configs.forEach(({ formId }) => {
+    const form = document.getElementById(formId);
+    if (!form) return;
+
+    // Sección de contacto = primera .form-section del formulario
+    const seccion = form.querySelector('.form-section');
+    if (!seccion) return;
+
+    // Pre-llenar campos ocultos para que el submit los recoja
+    const setVal = (name, val) => {
+      const el = form.querySelector(`[name="${name}"]`);
+      if (el && val) { el.value = val; el.setAttribute('data-prefilled', '1'); }
+    };
+    setVal('nombre',       cliente.nombre  || '');
+    setVal('email',        cliente.correo  || '');
+    setVal('emailConfirm', cliente.correo  || '');
+    setVal('telefono',     cliente.telefono || '');
+
+    // Construir tarjeta de sesión
+    const inicial   = (cliente.nombre || 'C')[0].toUpperCase();
+    const tieneTel  = !!(cliente.telefono);
+    const cardHtml  = `
+      <div class="sesion-card" id="sesionCard_${formId}">
+        <div class="sesion-card-avatar">${escapeHtml(inicial)}</div>
+        <div class="sesion-card-info">
+          <div class="sesion-card-nombre">${escapeHtml(cliente.nombre || '')}</div>
+          <div class="sesion-card-detalle">${escapeHtml(cliente.correo || '')}</div>
+          ${tieneTel ? `<div class="sesion-card-detalle">${escapeHtml(cliente.telefono)}</div>` : ''}
+        </div>
+        <button type="button" class="sesion-card-editar"
+                onclick="mostrarCamposContacto('${formId}')">
+          <i class="fa-solid fa-pen-to-square"></i> Editar datos
+        </button>
+      </div>`;
+
+    // Ocultar sección y mostrar card en su lugar
+    seccion.style.display = 'none';
+    seccion.insertAdjacentHTML('beforebegin', cardHtml);
+
+    // Si no tiene teléfono, mostrar solo ese campo
+    if (!tieneTel) {
+      const telGroup = seccion.querySelector('[name="telefono"]')?.closest('.form-group');
+      if (telGroup) {
+        seccion.style.display = '';            // mostrar sección
+        seccion.querySelectorAll('.form-group').forEach(g => { g.style.display = 'none'; });
+        telGroup.style.display = '';           // solo teléfono visible
+        // Actualizar card para indicar que falta el teléfono
+        const card = document.getElementById(`sesionCard_${formId}`);
+        if (card) {
+          const info = card.querySelector('.sesion-card-info');
+          if (info) info.insertAdjacentHTML('beforeend',
+            '<div class="sesion-card-aviso"><i class="fa-solid fa-circle-exclamation"></i> Completa tu teléfono abajo</div>');
+        }
+      }
+    }
+  });
+}
+
+/** Muestra la sección completa de contacto y elimina la tarjeta de sesión */
+function mostrarCamposContacto(formId) {
+  const card = document.getElementById(`sesionCard_${formId}`);
+  if (card) card.remove();
+
+  const form = document.getElementById(formId);
+  if (!form) return;
+  const seccion = form.querySelector('.form-section');
+  if (seccion) {
+    seccion.style.display = '';
+    seccion.querySelectorAll('.form-group').forEach(g => { g.style.display = ''; });
+  }
+}
+
 // Exponer funciones globales requeridas por el HTML
-window.selectTime           = selectTime;
-window.trackOrder           = trackOrder;
+window.selectTime             = selectTime;
+window.trackOrder             = trackOrder;
 window.cargarSlotsDisponibles = cargarSlotsDisponibles;
+window.mostrarCamposContacto  = mostrarCamposContacto;

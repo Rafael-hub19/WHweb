@@ -10,32 +10,85 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 
 // ================================================
-// MENÚ HAMBURGUESA
+// MENÚ HAMBURGUESA + DROPDOWN "INICIO"
 // ================================================
 function initMenu() {
   const menuToggle = document.getElementById('menuToggle');
-  const navLinks = document.getElementById('navLinks');
+  const menuIcon   = document.getElementById('menuIcon');
+  const navLinks   = document.getElementById('navLinks');
   if (!menuToggle || !navLinks) return;
+
+  // ── Abrir/cerrar panel hamburguesa ──────────────────────────────
+  function openNav() {
+    navLinks.classList.add('open');
+    menuToggle.setAttribute('aria-expanded', 'true');
+    if (menuIcon) { menuIcon.classList.replace('fa-bars', 'fa-xmark'); }
+  }
+  function closeNav() {
+    navLinks.classList.remove('open');
+    menuToggle.setAttribute('aria-expanded', 'false');
+    if (menuIcon) { menuIcon.classList.replace('fa-xmark', 'fa-bars'); }
+  }
 
   menuToggle.addEventListener('click', function (e) {
     e.preventDefault();
     e.stopPropagation();
-    navLinks.classList.toggle('open');
-    menuToggle.setAttribute('aria-expanded', navLinks.classList.contains('open'));
+    navLinks.classList.contains('open') ? closeNav() : openNav();
   });
 
+  // Cerrar al hacer click fuera
   document.addEventListener('click', function (e) {
     if (!menuToggle.contains(e.target) && !navLinks.contains(e.target)) {
-      navLinks.classList.remove('open');
-      menuToggle.setAttribute('aria-expanded', 'false');
+      closeNav();
     }
   });
 
-  navLinks.querySelectorAll('a').forEach(item => {
+  // Cerrar con Escape
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') closeNav();
+  });
+
+  // Cerrar al hacer click en un enlace simple (no el botón dropdown)
+  navLinks.querySelectorAll('a.nav-link-item, a.cart-icon, a.dropdown-item').forEach(item => {
     item.addEventListener('click', function () {
-      navLinks.classList.remove('open');
-      menuToggle.setAttribute('aria-expanded', 'false');
+      closeNav();
     });
+  });
+
+  // ── Dropdown "Inicio" ────────────────────────────────────────────
+  const navDropdown = document.getElementById('navDropdown');
+  const dropdownBtn = document.getElementById('dropdownBtn');
+  if (!navDropdown || !dropdownBtn) return;
+
+  dropdownBtn.addEventListener('click', function (e) {
+    e.stopPropagation();
+    const isMobile = window.matchMedia('(max-width: 900px)').matches;
+
+    if (isMobile) {
+      // En móvil: acordeón
+      const isOpen = navDropdown.classList.toggle('open');
+      dropdownBtn.setAttribute('aria-expanded', isOpen);
+    } else {
+      // En desktop: scroll a inicio (el hover ya abre el dropdown por CSS)
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  });
+
+  // Cerrar dropdown al hacer click en un ítem dentro de él
+  navDropdown.querySelectorAll('.dropdown-item').forEach(item => {
+    item.addEventListener('click', function () {
+      navDropdown.classList.remove('open');
+      dropdownBtn.setAttribute('aria-expanded', 'false');
+      closeNav();
+    });
+  });
+
+  // Cerrar dropdown desktop al hacer click fuera
+  document.addEventListener('click', function (e) {
+    if (!navDropdown.contains(e.target)) {
+      navDropdown.classList.remove('open');
+      dropdownBtn.setAttribute('aria-expanded', 'false');
+    }
   });
 }
 

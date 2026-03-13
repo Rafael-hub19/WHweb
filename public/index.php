@@ -17,26 +17,52 @@
   <!-- Header Navigation -->
   <div class="header-nav">
     <div class="logo">
-      <img src="/assets/img/logo-header.png" alt="Wooden House" style="height:80px;">
+      <a href="/" aria-label="Wooden House – inicio">
+        <img src="/assets/img/logo-header.png" alt="Wooden House" style="height:80px;">
+      </a>
     </div>
+
     <button class="menu-toggle" id="menuToggle" aria-label="Abrir menú" aria-expanded="false">
-      <i class="fa-solid fa-bars"></i>
+      <i class="fa-solid fa-bars" id="menuIcon"></i>
     </button>
-    <div class="nav-links" id="navLinks">
-      <a href="#inicio">Inicio</a>
-      <a href="#servicios">Servicios</a>
-      <a href="#proyectos">Proyectos</a>
-      <a href="/catalogo">Catálogo</a>
-      <a href="#contacto">Contacto</a>
-      <a href="/solicitudes">Solicitudes</a>
-      <a href="/carrito" class="cart-icon" id="cartIcon">
+
+    <nav class="nav-links" id="navLinks" aria-label="Navegación principal">
+
+      <!-- Inicio con submenú desplegable -->
+      <div class="nav-item nav-dropdown" id="navDropdown">
+        <button class="nav-dropdown-btn" id="dropdownBtn"
+                aria-haspopup="true" aria-expanded="false"
+                aria-controls="dropdownMenu">
+          Inicio <i class="fa-solid fa-chevron-down nav-chevron"></i>
+        </button>
+        <div class="dropdown-menu" id="dropdownMenu" role="menu">
+          <a href="#servicios" class="dropdown-item" role="menuitem">
+            <i class="fa-solid fa-screwdriver-wrench"></i> Servicios
+          </a>
+          <a href="#proyectos" class="dropdown-item" role="menuitem">
+            <i class="fa-solid fa-images"></i> Proyectos
+          </a>
+          <a href="/catalogo" class="dropdown-item" role="menuitem">
+            <i class="fa-solid fa-box-open"></i> Catálogo
+          </a>
+          <a href="#contacto" class="dropdown-item" role="menuitem">
+            <i class="fa-solid fa-phone"></i> Contacto
+          </a>
+        </div>
+      </div>
+
+      <a href="/solicitudes" class="nav-link-item">Solicitudes</a>
+
+      <a href="/carrito" class="cart-icon" id="cartIcon" aria-label="Ver carrito">
         <i class="fa-solid fa-cart-shopping"></i>
         <span class="cart-badge" id="cartCount">0</span>
       </a>
+
       <button class="btn-cuenta-nav" onclick="AuthModal.open()">
         <i class="fa-solid fa-user"></i> Mi cuenta
       </button>
-    </div>
+
+    </nav>
   </div>
 
   <!-- Hero Section -->
