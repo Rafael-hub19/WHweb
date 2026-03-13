@@ -149,7 +149,7 @@
     }
 
     /* =========================
-       TABLA PEDIDOS (filtro demo)
+       TABLA PEDIDOS (filtros)
     ========================= */
     function filterTable(filter, ev){
       $$('#pedidos-section .filter-btn').forEach(btn => btn.classList.remove('active'));
@@ -658,6 +658,8 @@
               imagenes: detalle.producto.imagenes || [],
               especificaciones: detalle.producto.especificaciones || [],
               descripcion: detalle.producto.descripcion || p.descripcion || '',
+              activo: detalle.producto.activo ?? p.activo,
+              precio: detalle.producto.precio ?? detalle.producto.precio_base ?? p.precio,
             };
           }
         } catch(e) { console.warn('No se pudo cargar detalle del producto', e); }
@@ -1054,7 +1056,7 @@
       }
       localStorage.setItem(QUOTES_KEY, JSON.stringify(quotes));
 
-      showNotification('<i class="fa-solid fa-check"></i> Datos demo generados para reportes', 'success');
+      showNotification('<i class="fa-solid fa-check"></i> Datos de prueba generados para reportes', 'success');
       renderReportes();
       refreshKPIs();
     }
@@ -1359,7 +1361,7 @@
       // kpiPedidos y kpiClientes se llenan desde refreshKPIsFromAPI()
     }
 
-    // ── Charts (Canvas) - DEMO ────────────────────────────
+    // ── Charts (Canvas) ────────────────────────────────────
     function drawBars(canvasId, values, labels){
       const c = document.getElementById(canvasId);
       if(!c) return;

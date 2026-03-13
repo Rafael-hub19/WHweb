@@ -304,7 +304,7 @@ unset($_usuario);
         </div>
       </div>
 
-      <!-- COTIZACIONES (DEMO) -->
+      <!-- COTIZACIONES -->
       <div id="cotizaciones-section" class="content-section hidden">
         <h1 class="page-title">Gestión de Cotizaciones</h1>
         <p class="page-subtitle">Todas las solicitudes de cotización recibidas</p>

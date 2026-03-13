@@ -67,8 +67,8 @@ switch ($tipo) {
              INNER JOIN pedidos pe ON pe.id = dp.pedido_id
              INNER JOIN productos p ON p.id = dp.producto_id
              WHERE DATE(pe.fecha_creacion) BETWEEN ? AND ? AND pe.estado != 'cancelado'
-             GROUP BY dp.producto_id ORDER BY unidades_vendidas DESC LIMIT ?",
-            [$desde, $hasta, $limit]
+             GROUP BY dp.producto_id ORDER BY unidades_vendidas DESC LIMIT {$limit}",
+            [$desde, $hasta]
         );
         jsonSuccess(['productos' => $productos]);
         break;
@@ -109,8 +109,8 @@ switch ($tipo) {
             "SELECT correo_cliente, nombre_cliente, COUNT(*) AS total_pedidos,
                     SUM(total) AS total_gastado, MAX(fecha_creacion) AS ultimo_pedido
              FROM pedidos WHERE estado != 'cancelado'
-             GROUP BY correo_cliente ORDER BY total_gastado DESC LIMIT ?",
-            [$limit]
+             GROUP BY correo_cliente ORDER BY total_gastado DESC LIMIT {$limit}",
+            []
         );
         jsonSuccess(['clientes' => $clientes]);
         break;
@@ -132,8 +132,8 @@ switch ($tipo) {
         $recientes = dbRows(
             "SELECT id, numero_cotizacion, nombre_cliente, modelo_mueble, estado, fecha_creacion
              FROM cotizaciones WHERE DATE(fecha_creacion) BETWEEN ? AND ?
-             ORDER BY fecha_creacion DESC LIMIT ?",
-            [$desde, $hasta, $limit]
+             ORDER BY fecha_creacion DESC LIMIT {$limit}",
+            [$desde, $hasta]
         );
         jsonSuccess([
             'funnel'          => $funnel,
@@ -161,8 +161,8 @@ switch ($tipo) {
         $proximas = dbRows(
             "SELECT id, numero_cita, nombre_cliente, fecha_cita, rango_horario, tipo, estado
              FROM citas WHERE fecha_cita >= CURDATE() AND estado NOT IN ('cancelada','completada')
-             ORDER BY fecha_cita ASC, rango_horario ASC LIMIT ?",
-            [$limit]
+             ORDER BY fecha_cita ASC, rango_horario ASC LIMIT {$limit}",
+            []
         );
         jsonSuccess([
             'resumen'  => $resumen,

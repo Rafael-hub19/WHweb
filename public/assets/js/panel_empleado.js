@@ -200,14 +200,6 @@ function renderActivity(){
   `).join('');
 }
 
-function seedActivityDemo(){
-  addActivity('<i class="fa-solid fa-box"></i> Pedido #002 actualizado', 'Estado: En proceso → Instalación');
-  addActivity('<i class="fa-solid fa-cubes"></i> Inventario MAT-003', 'Salida (-2) | consumo_producción');
-  addActivity('<i class="fa-solid fa-calendar-days"></i> Evento agregado', 'Cita con Ana Martínez');
-  pushNotif('Pedido #002 listo para instalación', 'Revisar cita y confirmar horario');
-  renderActivity();
-  showNotification('Demo agregada', 'success');
-}
 
 // ================== KPIs desde tabla pedidos ==================
 function refreshKpisFromPedidosTable(){
@@ -892,14 +884,7 @@ document.addEventListener('DOMContentLoaded', () => {
     renderInventory();
   }
 
-  const calSaved = getCalEvents();
-  if(!calSaved.length){
-    const demo = [
-      { id:'EV-00000001', date:'2026-02-05', time:'10:00', type:'cita', title:'Cita con Ana Martínez', notes:'Visita para instalación' },
-      { id:'EV-00000002', date:'2026-02-06', time:'14:00', type:'cot', title:'Cotización Pedro Sánchez', notes:'Revisar medidas y materiales' }
-    ];
-    saveCalEvents(demo);
-  }
+  // El calendario se pobla desde la API vía cargarCitasParaCalendario()
 
   setUnread(getUnread());
   refreshKpisFromPedidosTable();
