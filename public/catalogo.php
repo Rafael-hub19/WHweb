@@ -30,6 +30,13 @@
     </div>
   </div>
 
+  <!-- Breadcrumb -->
+  <nav class="breadcrumb" aria-label="Ruta de navegación">
+    <a href="/inicio"><i class="fa-solid fa-house"></i> Inicio</a>
+    <span class="breadcrumb-sep"><i class="fa-solid fa-chevron-right"></i></span>
+    <span class="breadcrumb-current">Catálogo</span>
+  </nav>
+
   <div class="container">
     <h1 class="page-title">Catálogo de Muebles de Baño</h1>
 

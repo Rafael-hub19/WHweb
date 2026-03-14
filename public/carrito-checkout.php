@@ -31,6 +31,15 @@
     </div>
 </div>
 
+<!-- Breadcrumb -->
+<nav class="breadcrumb" aria-label="Ruta de navegación">
+  <a href="/inicio"><i class="fa-solid fa-house"></i> Inicio</a>
+  <span class="breadcrumb-sep"><i class="fa-solid fa-chevron-right"></i></span>
+  <a href="/catalogo">Catálogo</a>
+  <span class="breadcrumb-sep"><i class="fa-solid fa-chevron-right"></i></span>
+  <span class="breadcrumb-current">Carrito</span>
+</nav>
+
 <!-- ── Pasos ─────────────────────────────────────────────────────── -->
 <div class="steps-indicator">
     <div class="step active"><div class="step-number">1</div><span>Carrito</span></div>

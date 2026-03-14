@@ -1,43 +1,38 @@
 /**
  * Variables CSS Globales - Wooden House
- * Paleta premium: ámbar dorado sobre negro cálido
+ * Paleta unificada: café madera sobre gris oscuro
  */
 
 :root {
   /* === COLORES PRIMARIOS === */
-  --color-primary:       #c4922a;   /* Ámbar dorado */
-  --color-primary-hover: #d9a73a;   /* Ámbar más brillante al hover */
-  --color-primary-dark:  #a37522;   /* Ámbar oscuro */
-  --color-primary-light: rgba(196, 146, 42, 0.15);
+  --color-primary:       #8b7355;   /* Café madera */
+  --color-primary-hover: #a0865f;   /* Café madera claro (hover) */
+  --color-primary-dark:  #6e5c42;   /* Café madera oscuro */
+  --color-primary-light: rgba(139, 115, 85, 0.15);
+  --color-accent:        #c9a96e;   /* Dorado claro (texto sobre primario) */
 
   /* === FONDOS === */
-  --color-bg-main:  #0e0b08;   /* Negro cálido profundo */
-  --color-bg-panel: #151108;   /* Panel ligeramente más claro */
-  --color-bg-card:  #1c1710;   /* Tarjeta / superficie elevada */
-  --color-bg-input: #221d14;   /* Fondo de campos */
-  --color-border:   #3a3020;   /* Borde sutil cálido */
-  --color-border-light: #4a3f28;
+  --color-bg-main:  #1a1a1a;   /* Fondo general */
+  --color-bg-panel: #2d2d2d;   /* Header, footer, paneles */
+  --color-bg-card:  #2d2d2d;   /* Tarjetas / superficies */
+  --color-bg-input: #3d3d3d;   /* Fondo de inputs */
+  --color-border:   #3d3d3d;   /* Borde sutil */
+  --color-border-light: #4a4a4a;
 
   /* === TEXTO === */
-  --color-text-main:  #f0e8da;   /* Crema blanco cálido */
-  --color-text-muted: #9a8e80;   /* Texto secundario */
-  --color-text-dark:  #5a5048;   /* Texto deshabilitado */
+  --color-text-main:  #e0e0e0;   /* Texto principal */
+  --color-text-muted: #a0a0a0;   /* Texto secundario */
+  --color-text-dark:  #666666;   /* Texto deshabilitado / placeholder */
 
   /* === ESTADOS === */
-  --color-success: #4a9b5f;
-  --color-success-bg: rgba(74, 155, 95, 0.12);
-  --color-warning: #c4922a;
-  --color-warning-bg: rgba(196, 146, 42, 0.12);
-  --color-error:   #c44a4a;
-  --color-error-bg: rgba(196, 74, 74, 0.12);
-  --color-info:    #4a8bc4;
-  --color-info-bg: rgba(74, 139, 196, 0.12);
-
-  /* === GRADIENTES === */
-  --gradient-primary: linear-gradient(135deg, #c4922a 0%, #a37522 100%);
-  --gradient-dark:    linear-gradient(180deg, #151108 0%, #0e0b08 100%);
-  --gradient-card:    linear-gradient(145deg, #1c1710 0%, #151108 100%);
-  --gradient-glow:    radial-gradient(ellipse at top, rgba(196,146,42,0.08) 0%, transparent 70%);
+  --color-success:    #4a9b5f;
+  --color-success-bg: rgba(61, 107, 71, 0.15);
+  --color-warning:    #c9a96e;
+  --color-warning-bg: rgba(201, 169, 110, 0.15);
+  --color-error:      #c44a4a;
+  --color-error-bg:   rgba(139, 74, 74, 0.15);
+  --color-info:       #4a8bc4;
+  --color-info-bg:    rgba(74, 139, 196, 0.15);
 
   /* === TIPOGRAFÍA === */
   --font-main: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -63,16 +58,17 @@
   --spacing-lg: 40px;
   --spacing-xl: 60px;
 
-  /* === BORDES Y SOMBRAS === */
+  /* === BORDES Y RADIOS === */
   --border-radius-sm: 8px;
   --border-radius-md: 10px;
   --border-radius-lg: 15px;
   --border-radius-xl: 20px;
 
-  --shadow-sm:  0 2px 8px  rgba(0, 0, 0, 0.4);
-  --shadow-md:  0 5px 20px rgba(0, 0, 0, 0.5);
-  --shadow-lg:  0 10px 40px rgba(0, 0, 0, 0.6);
-  --shadow-gold: 0 0 20px rgba(196, 146, 42, 0.2);
+  /* === SOMBRAS === */
+  --shadow-sm:   0 2px 8px  rgba(0, 0, 0, 0.4);
+  --shadow-md:   0 5px 20px rgba(0, 0, 0, 0.5);
+  --shadow-lg:   0 10px 40px rgba(0, 0, 0, 0.6);
+  --shadow-primary: 0 4px 16px rgba(139, 115, 85, 0.4);
 
   /* === TRANSICIONES === */
   --transition-fast:   0.15s ease;

@@ -9,6 +9,7 @@
   <link rel="stylesheet" href="/assets/css/variables.css">
   <link rel="stylesheet" href="/assets/css/styles.css">
   <link rel="stylesheet" href="/assets/css/detalle_producto.css">
+  <link rel="stylesheet" href="/assets/css/modal-auth.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <!-- Bootstrap 5 JS - Solo componentes interactivos (modales, dropdowns). CSS propio de Wooden House tiene prioridad -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous" defer></script>
@@ -31,6 +32,15 @@
   </div>
 
 
+  <!-- Breadcrumb -->
+  <nav class="breadcrumb" aria-label="Ruta de navegación">
+    <a href="/inicio"><i class="fa-solid fa-house"></i> Inicio</a>
+    <span class="breadcrumb-sep"><i class="fa-solid fa-chevron-right"></i></span>
+    <a href="/catalogo">Catálogo</a>
+    <span class="breadcrumb-sep"><i class="fa-solid fa-chevron-right"></i></span>
+    <span class="breadcrumb-current" id="breadcrumbNombre">Producto</span>
+  </nav>
+
   <!-- Estado de carga -->
   <div id="loadingState" class="container" style="text-align:center; padding:60px 20px;">
     <div class="spinner-large"></div>
@@ -45,6 +55,9 @@
 
   <!-- Producto -->
   <div id="page" class="container" style="display:none;">
+    <a href="/catalogo" class="btn-back" style="margin-bottom:16px;display:inline-flex;">
+      <i class="fa-solid fa-arrow-left"></i> Volver al catálogo
+    </a>
     <div class="product-detail" id="productDetail">
       <!-- Galería -->
       <div class="gallery">
