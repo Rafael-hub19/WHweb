@@ -522,7 +522,7 @@
       try {
         const res  = await fetch('/api/auth.php?action=cliente-verificar', { credentials: 'same-origin' });
         const data = await res.json();
-        if (data.ok && data.autenticado && data.cliente) {
+        if (data.success && data.autenticado && data.cliente) {
           _cliente = data.cliente;
           _actualizarNavBtn();
           return _cliente;
