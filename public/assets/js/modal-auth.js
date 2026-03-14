@@ -393,10 +393,6 @@
     const confirmPassword = document.getElementById('regConfirmPassword').value;
     if (!nombre || !email || !password || !confirmPassword) return;
 
-    // Validar nombre: solo letras, espacios y acentos
-    if (!/^[a-zA-ZáéíóúÁÉÍÓÚüÜñÑ\s]{2,120}$/.test(nombre)) {
-      _authShowAlert('El nombre solo puede contener letras y espacios', 'error'); return;
-    }
     // Verificar que las contraseñas coinciden
     if (password !== confirmPassword) {
       _authShowAlert('Las contraseñas no coinciden', 'error'); return;
