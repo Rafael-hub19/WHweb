@@ -67,7 +67,7 @@
         <form class="auth-form" onsubmit="_authRegistroEmail(event)">
           <div class="auth-form-group">
             <label>Nombre completo</label>
-            <input type="text" id="regNombre" placeholder="Juan Pérez" autocomplete="name" required minlength="2" maxlength="120" pattern="[a-zA-ZáéíóúÁÉÍÓÚüÜñÑ\s]{2,120}" title="Solo letras y espacios">
+            <input type="text" id="regNombre" placeholder="Juan Pérez" autocomplete="name" required minlength="2" maxlength="120">
           </div>
           <div class="auth-form-group">
             <label>Correo electrónico</label>
@@ -101,11 +101,18 @@
         </p>
         <p style="color:#888; font-size:12px; margin-top:10px; line-height:1.5;">
           Haz clic en el enlace del correo para confirmar tu cuenta.<br>
-          Si no ves el correo, revisa tu carpeta de spam.
+          Si no ves el correo, revisa tu carpeta de <strong style="color:#aaa;">spam o promociones</strong>.
         </p>
-        <button class="btn-auth-primary" style="margin-top:20px;" onclick="_authContinuarDespuesDeRegistro()">
+        <div id="authVerifAlert" style="margin-top:12px; font-size:13px; min-height:20px;"></div>
+        <button class="btn-auth-primary" style="margin-top:16px;" onclick="_authContinuarDespuesDeRegistro()">
           Continuar a mi cuenta
         </button>
+        <div style="margin-top:14px;">
+          <a href="#" id="btnReenviarVerif" style="font-size:12px; color:#9a8e80; text-decoration:none;"
+             onclick="_authReenviarVerificacion(event)">
+            ¿No llegó? Reenviar correo
+          </a>
+        </div>
       </div>
     </div>
 
@@ -352,6 +359,30 @@
     }
   };
 
+  /* ── Reenviar correo de verificación ─────────────────────────── */
+  window._authReenviarVerificacion = async function (e) {
+    e.preventDefault();
+    const alertEl = document.getElementById('authVerifAlert');
+    const linkEl  = document.getElementById('btnReenviarVerif');
+    if (linkEl) { linkEl.style.pointerEvents = 'none'; linkEl.style.opacity = '0.5'; }
+    try {
+      const auth = await _getAuth();
+      const user = auth.currentUser;
+      if (!user) throw new Error('Sin sesión de Firebase');
+      const { sendEmailVerification } = await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js');
+      await sendEmailVerification(user);
+      if (alertEl) { alertEl.style.color = '#70c080'; alertEl.textContent = 'Correo reenviado. Revisa tu bandeja y spam.'; }
+    } catch (err) {
+      const msg = err.code === 'auth/too-many-requests'
+        ? 'Espera unos minutos antes de reenviar.'
+        : 'No se pudo reenviar. Intenta más tarde.';
+      if (alertEl) { alertEl.style.color = '#e07070'; alertEl.textContent = msg; }
+      console.warn('[Auth] reenviar verificación error:', err.code);
+    } finally {
+      if (linkEl) { linkEl.style.pointerEvents = 'auto'; linkEl.style.opacity = '1'; }
+    }
+  };
+
   /* ── Registro con email ──────────────────────────────────────── */
   window._authRegistroEmail = async function (e) {
     e.preventDefault();
@@ -378,8 +409,12 @@
         await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js');
       const cred  = await createUserWithEmailAndPassword(auth, email, password);
 
-      // Enviar correo de verificación (no bloquea el flujo)
-      sendEmailVerification(cred.user).catch(() => {});
+      // Enviar correo de verificación
+      try {
+        await sendEmailVerification(cred.user);
+      } catch (verErr) {
+        console.warn('[Auth] sendEmailVerification error:', verErr.code, verErr.message);
+      }
 
       const token = await cred.user.getIdToken();
       const data  = await _llamarBackend('cliente-registro', token, { nombre, correo: email });
