@@ -52,7 +52,7 @@
     try {
       const res    = await fetch('/api/clientes.php?action=mis-pedidos', { credentials: 'same-origin' });
       const data   = await res.json();
-      if (!data.ok) throw new Error(data.error || 'Error al cargar pedidos');
+      if (!data.success) throw new Error(data.error || 'Error al cargar pedidos');
       const pedidos = data.pedidos || [];
 
       if (pedidos.length === 0) {
@@ -188,7 +188,7 @@
         body: JSON.stringify(body),
       });
       const data = await res.json();
-      if (!data.ok) throw new Error(data.error || 'Error al guardar');
+      if (!data.success) throw new Error(data.error || 'Error al guardar');
       alert.textContent = '¡Perfil actualizado correctamente!';
       alert.className = 'mc-alert success';
       // Actualizar datos locales

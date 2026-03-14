@@ -140,7 +140,7 @@
 </div>
 
 <script src="./assets/js/firebase-config.js"></script>
-<script src="./assets/js/modal-auth.js"></script>
+<script src="./assets/js/modal-auth.js?v=3"></script>
 <script src="./assets/js/mi-cuenta.js"></script>
 </body>
 </html>

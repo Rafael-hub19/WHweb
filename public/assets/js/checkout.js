@@ -264,9 +264,12 @@ async function prefillSiLogueado() {
             const el = document.getElementById(id);
             if (el && val && !el.value) { el.value = val; el.setAttribute('data-prefilled', '1'); }
         };
-        set('clienteNombre',   cliente.nombre   || cliente.displayName || '');
-        set('clienteCorreo',   cliente.email    || '');
-        set('clienteTelefono', cliente.telefono || '');
+        set('clienteNombre',    cliente.nombre    || cliente.displayName || '');
+        set('clienteCorreo',    cliente.correo   || '');
+        set('clienteTelefono',  cliente.telefono || '');
+        set('clienteDireccion', cliente.direccion || '');
+        set('clienteCiudad',    cliente.ciudad   || '');
+        set('clienteCP',        cliente.cp       || '');
         // Sync confirm email field if present
         const correoEl   = document.getElementById('clienteCorreo');
         const confirmEl  = document.getElementById('clienteCorreoConfirm');
