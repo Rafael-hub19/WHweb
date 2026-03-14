@@ -56,6 +56,9 @@
             <input type="password" id="loginPassword" placeholder="Tu contraseña" autocomplete="current-password" required>
           </div>
           <button type="submit" class="btn-auth-primary" id="btnLoginSubmit">Iniciar sesión</button>
+          <div class="auth-forgot-wrap">
+            <a href="#" class="auth-forgot-link" onclick="_authResetPassword(event)">¿Olvidaste tu contraseña?</a>
+          </div>
         </form>
       </div>
 
@@ -404,6 +407,30 @@
       }
     } finally {
       _authSetLoading('btnRegSubmit', false);
+    }
+  };
+
+  /* ── Restablecer contraseña ──────────────────────────────────── */
+  window._authResetPassword = async function (e) {
+    e.preventDefault();
+    const email = (document.getElementById('loginEmail')?.value || '').trim();
+    if (!email) {
+      _authShowAlert('Ingresa tu correo primero para restablecer tu contraseña.', 'error');
+      document.getElementById('loginEmail')?.focus();
+      return;
+    }
+    try {
+      const auth = await _getAuth();
+      const { sendPasswordResetEmail } = await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js');
+      await sendPasswordResetEmail(auth, email);
+      _authShowAlert('Te enviamos un enlace para restablecer tu contraseña. Revisa tu correo (y spam).', 'success');
+    } catch (err) {
+      const map = {
+        'auth/user-not-found':    'No existe cuenta con ese correo.',
+        'auth/invalid-email':     'Correo inválido.',
+        'auth/too-many-requests': 'Demasiados intentos. Espera un momento.',
+      };
+      _authShowAlert(map[err.code] || 'No se pudo enviar el correo. Intenta de nuevo.', 'error');
     }
   };
 

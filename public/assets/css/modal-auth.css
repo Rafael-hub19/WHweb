@@ -165,6 +165,24 @@
 .btn-auth-primary:hover:not(:disabled) { opacity: 0.88; transform: translateY(-1px); }
 .btn-auth-primary:disabled { opacity: 0.5; cursor: not-allowed; }
 
+/* ── Olvidé contraseña ───────────────────────────────────────────── */
+.auth-forgot-wrap {
+  text-align: right;
+  margin-top: 8px;
+}
+
+.auth-forgot-link {
+  font-size: 12px;
+  color: var(--color-text-muted, #9a8e80);
+  text-decoration: none;
+  transition: color var(--transition-fast);
+}
+
+.auth-forgot-link:hover {
+  color: var(--color-primary, #c4922a);
+  text-decoration: underline;
+}
+
 /* ── Alerta de error ─────────────────────────────────────────────── */
 .auth-alert {
   border-radius: var(--border-radius-sm, 8px);
