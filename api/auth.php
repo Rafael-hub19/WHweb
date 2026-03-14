@@ -122,6 +122,10 @@ switch ($action) {
         if (!$payload) jsonError('Token de Firebase inválido', 401);
         $uid = $payload['uid'] ?? '';
         if (empty($uid)) jsonError('Token sin UID', 401);
+        // Bloquear cuentas del personal: no pueden registrarse como clientes
+        if (esPersonal($uid)) {
+            jsonError('Esta cuenta es de acceso al personal. Usa la opción "Personal" del menú.', 403);
+        }
         $nombre   = sanitize($body['nombre'] ?? '');
         $correo   = sanitize($body['correo'] ?? '');
         $telefono = sanitize($body['telefono'] ?? '');
@@ -147,7 +151,11 @@ switch ($action) {
         if (empty($firebaseToken)) jsonError('firebase_token requerido', 422);
         $payload = verificarTokenFirebase($firebaseToken);
         if (!$payload) jsonError('Token de Firebase inválido o expirado', 401);
-        $uid     = $payload['uid'] ?? '';
+        $uid = $payload['uid'] ?? '';
+        // Bloquear cuentas del personal: deben usar el acceso de personal
+        if (!empty($uid) && esPersonal($uid)) {
+            jsonError('Esta cuenta es de acceso al personal. Usa la opción "Personal" del menú.', 403);
+        }
         $cliente = $uid ? obtenerClientePorFirebaseUid($uid) : null;
         // Auto-registrar si no existe pero tiene email en el token
         if (!$cliente && !empty($uid) && !empty($payload['email'])) {

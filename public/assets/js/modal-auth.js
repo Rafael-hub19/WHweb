@@ -326,7 +326,13 @@
         'auth/too-many-requests': 'Demasiados intentos. Espera un momento.',
         'auth/invalid-credential': 'Correo o contraseña incorrectos.',
       };
-      _authShowAlert(map[e.code] || e.message || 'Error al iniciar sesión', 'error');
+      // Si el backend rechaza por ser cuenta de personal, mostrar mensaje con enlace
+      const msg = e.message || '';
+      if (msg.includes('personal') || msg.includes('Personal')) {
+        _authShowAlert('Esa cuenta es de acceso al personal. Usa la opción "Personal" del menú.', 'error');
+      } else {
+        _authShowAlert(map[e.code] || msg || 'Error al iniciar sesión', 'error');
+      }
     } finally {
       _authSetLoading('btnLoginSubmit', false);
     }
@@ -390,7 +396,12 @@
         'auth/invalid-email':        'Correo inválido.',
         'auth/weak-password':        'La contraseña es muy corta (mínimo 6 caracteres).',
       };
-      _authShowAlert(map[e.code] || e.message || 'Error al registrarse', 'error');
+      const msg = e.message || '';
+      if (msg.includes('personal') || msg.includes('Personal')) {
+        _authShowAlert('Ese correo pertenece a una cuenta de personal. Usa la opción "Personal" del menú.', 'error');
+      } else {
+        _authShowAlert(map[e.code] || msg || 'Error al registrarse', 'error');
+      }
     } finally {
       _authSetLoading('btnRegSubmit', false);
     }

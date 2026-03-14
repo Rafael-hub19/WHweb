@@ -326,12 +326,26 @@ function obtenerClientePorFirebaseUid(string $uid): ?array {
     );
 }
 
+/**
+ * Verifica si un firebase_uid pertenece a un usuario del personal.
+ * Usado para bloquear que cuentas de personal se registren como clientes.
+ */
+function esPersonal(string $uid): bool {
+    if (!preg_match('/^[a-zA-Z0-9]{20,128}$/', $uid)) return false;
+    return (bool) dbRow(
+        "SELECT id FROM usuarios_personal WHERE firebase_uid = ? LIMIT 1",
+        [$uid]
+    );
+}
+
 function registrarCliente(array $data): ?array {
     $uid    = trim($data['firebase_uid'] ?? '');
     $nombre = trim($data['nombre'] ?? '');
     $correo = trim($data['correo'] ?? '');
     if (empty($uid) || empty($nombre) || empty($correo)) return null;
     if (!filter_var($correo, FILTER_VALIDATE_EMAIL)) return null;
+    // Seguridad: nunca registrar una cuenta de personal como cliente
+    if (esPersonal($uid)) return null;
     try {
         dbQuery(
             "INSERT INTO clientes (firebase_uid, nombre, correo, telefono)

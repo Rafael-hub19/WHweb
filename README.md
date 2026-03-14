@@ -10,7 +10,7 @@ Incluye catálogo, carrito, cuentas de cliente, proceso de pago, cotizaciones, s
 | Capa | Tecnología |
 |------|-----------|
 | Frontend | HTML5, CSS3, JavaScript (Vanilla) |
-| Framework CSS | Bootstrap 5.3.3 (solo componentes JS — modales, dropdowns) |
+| Utilidades JS | Bootstrap 5.3.3 bundle (solo para compatibilidad; dropdowns y nav son custom CSS/JS) |
 | Backend | PHP 8+ |
 | Base de datos | MySQL 8 / MariaDB 10.4+ |
 | Autenticación | Firebase Auth SDK v10 compat |
@@ -176,6 +176,7 @@ Wooden House/
 | `citas` | Citas agendadas (medición e instalación) |
 | `capacidad_produccion` | Slots de producción y entrega por semana |
 | `dias_bloqueados` | Festivos y cierres del taller |
+| `carritos_guardados` | Recuperación de carritos abandonados |
 
 ### Inicializar la base de datos
 
@@ -268,6 +269,7 @@ ADMIN_EMAIL=contacto@woodenhouse.com.mx
 
 1. Crear proyecto en [Firebase Console](https://console.firebase.google.com)
 2. Habilitar **Authentication** → Correo/contraseña
+   - Al registrarse, el sistema envía automáticamente un correo de verificación vía `sendEmailVerification()`
 3. Habilitar **Firestore** → Modo producción → desplegar `firebase/firestore.rules`
 4. Habilitar **Storage** → desplegar `firebase/storage.rules`
 5. Actualizar `public/assets/js/firebase-config.js` con las credenciales del proyecto
@@ -430,12 +432,15 @@ Todos los servicios externos están explícitamente permitidos. Si ves errores C
 - Seguimiento de pedidos por número sin necesidad de login
 - Formularios de cotización y agendado de citas con tabs
 
-### Sistema de cuentas de cliente (nuevo)
+### Sistema de cuentas de cliente
 - Registro e inicio de sesión con Firebase Auth (mismo servicio que el personal interno)
+- **Verificación de correo:** al registrarse, Firebase envía automáticamente un link de verificación (`sendEmailVerification`); el cliente puede continuar usando la cuenta sin bloquearse
 - Modal de autenticación contextual: aparece al hacer clic en "Proceder al pago" o "Enviar solicitud", no al entrar al sitio
+- **Sugerencia de login no bloqueante:** en solicitudes y carrito, si el usuario no tiene sesión, aparece una tarjeta dorada opcional *"¿Ya tienes cuenta? Inicia sesión y llenamos tus datos"*. Al autenticarse, la tarjeta desaparece y los campos se pre-llenan solos
 - El carrito se conserva durante el proceso de registro/login (sin interrupciones)
 - Portal "Mi Cuenta" (`/mi-cuenta`): historial de pedidos, perfil editable, estadísticas
 - Los pedidos, cotizaciones y citas quedan vinculados a la cuenta del cliente automáticamente
+- **Header nav:** el botón "Mi cuenta" es un dropdown con dos entradas — *Clientes* (modal Auth) y *Personal* (link a `/login`), visible en todos los dispositivos
 
 ### Panel Administrador *(auto-polling 30s)*
 - Dashboard con KPIs en tiempo real, gráficas de ventas/estados y **8 acciones rápidas**: Pedidos, Citas, Cotizaciones, Catálogo, Empleados, Clientes, Ofertas, Reportes
