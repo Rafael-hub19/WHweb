@@ -60,7 +60,7 @@
       <div class="nav-item nav-dropdown cuenta-dropdown" id="cuentaDropdown">
         <button class="nav-dropdown-btn" id="cuentaDropdownBtn"
                 aria-haspopup="true" aria-expanded="false">
-          <i class="fa-solid fa-user"></i> Mi cuenta
+          <span><i class="fa-solid fa-user"></i> Mi cuenta</span>
           <i class="fa-solid fa-chevron-down nav-chevron"></i>
         </button>
         <div class="dropdown-menu cuenta-menu" id="cuentaDropdownMenu" role="menu">
@@ -371,11 +371,6 @@
     <p style="margin-top:10px;">Muebles de madera a medida en Guadalajara, Jalisco</p>
     <p style="margin-top:10px; font-size:14px;">
       <a href="mailto:ventas@muebleswh.com" style="color:#8b7355; text-decoration:none;">ventas@muebleswh.com</a>
-    </p>
-    <p style="margin-top:20px;padding-top:14px;border-top:1px solid #2a2a2a;">
-      <a href="/login" style="color:#9a9a9a;font-size:12px;text-decoration:none;letter-spacing:.5px;">
-        <i class="fa-solid fa-lock" style="font-size:10px;margin-right:5px;"></i>Acceso personal
-      </a>
     </p>
   </div>
 

@@ -872,8 +872,11 @@ img, video { max-width: 100%; height: auto; }
   .dropdown-menu::before,
   .dropdown-menu::after { display: none; }
 
-  .nav-dropdown.open .dropdown-menu { display: block; }
-  .nav-dropdown.open .nav-chevron    { transform: rotate(180deg); }
+  .nav-dropdown.open .dropdown-menu {
+    display: block;
+    border-color: rgba(139,115,85,0.3);
+  }
+  .nav-dropdown.open .nav-chevron { transform: rotate(180deg); }
   .dropdown-divider { margin: 4px 6px; }
 
   .dropdown-item {
@@ -881,27 +884,6 @@ img, video { max-width: 100%; height: auto; }
     border-radius: 8px;
     font-size: 14px;
     justify-content: center;
-  }
-
-  /* Botón Mi Cuenta en móvil */
-  .btn-cuenta-nav {
-    width: 100%;
-    text-align: center;
-    padding: 11px 14px;
-    border: 1px solid #3a3a3a;
-    border-radius: 10px;
-    background: #2d2d2d;
-    color: #e0e0e0;
-    font-size: 15px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: background 0.15s, color 0.15s;
-    font-family: inherit;
-  }
-  .btn-cuenta-nav:hover {
-    background: rgba(139,115,85,0.12);
-    color: #c9a96e;
-    border-color: rgba(139,115,85,0.3);
   }
 
   /* Carrito centrado */
