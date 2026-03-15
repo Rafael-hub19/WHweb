@@ -279,7 +279,63 @@ async function prefillSiLogueado() {
         }
         // Persist to localStorage so guardarFormulario keeps it
         guardarFormulario();
+        _mostrarSesionCardCarrito(cliente);
     } catch (e) { /* silent */ }
+}
+
+function _mostrarSesionCardCarrito(cliente) {
+    if (document.getElementById('sesionCardCarrito')) return;
+    const carritoSection = document.getElementById('carritoItems')?.closest('.section-card');
+    if (!carritoSection) return;
+
+    const partes   = (cliente.nombre || '').trim().split(/\s+/).filter(Boolean);
+    const iniciales = partes.length >= 2
+        ? (partes[0][0] + partes[1][0]).toUpperCase()
+        : (partes[0]?.[0] || 'U').toUpperCase();
+
+    const div = document.createElement('div');
+    div.id        = 'sesionCardCarrito';
+    div.className = 'sesion-card';
+
+    const nombre   = document.createElement('div');
+    nombre.className = 'sesion-card-avatar';
+    nombre.textContent = iniciales;
+
+    const info = document.createElement('div');
+    info.className = 'sesion-card-info';
+
+    const nombreEl = document.createElement('div');
+    nombreEl.className   = 'sesion-card-nombre';
+    nombreEl.textContent = cliente.nombre || '';
+
+    const correoEl = document.createElement('div');
+    correoEl.className   = 'sesion-card-detalle';
+    correoEl.textContent = cliente.correo || '';
+
+    info.appendChild(nombreEl);
+    info.appendChild(correoEl);
+
+    if (cliente.telefono) {
+        const telEl = document.createElement('div');
+        telEl.className   = 'sesion-card-detalle';
+        telEl.textContent = cliente.telefono;
+        info.appendChild(telEl);
+    }
+
+    const btn = document.createElement('button');
+    btn.type      = 'button';
+    btn.className = 'sesion-card-editar';
+    btn.innerHTML = '<i class="fa-solid fa-pen-to-square"></i> Editar datos';
+    btn.onclick   = () => {
+        document.getElementById('clienteNombre')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        document.getElementById('clienteNombre')?.focus();
+    };
+
+    div.appendChild(nombre);
+    div.appendChild(info);
+    div.appendChild(btn);
+
+    carritoSection.insertAdjacentElement('afterend', div);
 }
 
 // ── Carrito ───────────────────────────────────────────────────────

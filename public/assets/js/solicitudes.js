@@ -846,7 +846,10 @@ async function prefillContactoSiLogueado() {
     setVal('telefono',     cliente.telefono || '');
 
     // Construir tarjeta de sesión
-    const inicial   = (cliente.nombre || 'C')[0].toUpperCase();
+    const _partes   = (cliente.nombre || 'C').trim().split(/\s+/).filter(Boolean);
+    const inicial   = _partes.length >= 2
+        ? (_partes[0][0] + _partes[1][0]).toUpperCase()
+        : (_partes[0]?.[0] || 'C').toUpperCase();
     const tieneTel  = !!(cliente.telefono);
     const cardHtml  = `
       <div class="sesion-card" id="sesionCard_${formId}">
