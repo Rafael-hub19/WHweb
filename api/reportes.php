@@ -116,33 +116,41 @@ switch ($tipo) {
         break;
 
     case 'cotizaciones':
-        $funnel = dbRow(
-            "SELECT COUNT(*) AS total,
-                    SUM(CASE WHEN estado='nueva'       THEN 1 ELSE 0 END) AS nueva,
-                    SUM(CASE WHEN estado='en_revision' THEN 1 ELSE 0 END) AS en_revision,
-                    SUM(CASE WHEN estado='respondida'  THEN 1 ELSE 0 END) AS respondida,
-                    SUM(CASE WHEN estado='cerrada'     THEN 1 ELSE 0 END) AS cerrada
-             FROM cotizaciones WHERE DATE(fecha_creacion) BETWEEN ? AND ?",
-            [$desde, $hasta]
-        );
-        $totalCots = (int)(dbRow("SELECT COUNT(*) AS n FROM cotizaciones")['n'] ?? 0);
-        $respondidas = (int)(dbRow("SELECT COUNT(*) AS n FROM cotizaciones WHERE estado IN ('respondida','cerrada')")['n'] ?? 0);
-        $conversionPct = $totalCots > 0 ? round(($respondidas / $totalCots) * 100, 1) : 0;
+        try {
+            $funnel = dbRow(
+                "SELECT COUNT(*) AS total,
+                        SUM(CASE WHEN estado='nueva'       THEN 1 ELSE 0 END) AS nueva,
+                        SUM(CASE WHEN estado='en_revision' THEN 1 ELSE 0 END) AS en_revision,
+                        SUM(CASE WHEN estado='respondida'  THEN 1 ELSE 0 END) AS respondida,
+                        SUM(CASE WHEN estado='cerrada'     THEN 1 ELSE 0 END) AS cerrada
+                 FROM cotizaciones WHERE DATE(fecha_creacion) BETWEEN ? AND ?",
+                [$desde, $hasta]
+            );
+            $totalRow   = dbRow("SELECT COUNT(*) AS n FROM cotizaciones");
+            $totalCots  = (int)($totalRow['n'] ?? 0);
+            $respRow    = dbRow("SELECT COUNT(*) AS n FROM cotizaciones WHERE estado IN ('respondida','cerrada')");
+            $respondidas = (int)($respRow['n'] ?? 0);
+            $conversionPct = $totalCots > 0 ? round(($respondidas / $totalCots) * 100, 1) : 0;
 
-        $recientes = dbRows(
-            "SELECT id, numero_cotizacion, nombre_cliente, modelo_mueble, estado, fecha_creacion
-             FROM cotizaciones WHERE DATE(fecha_creacion) BETWEEN ? AND ?
-             ORDER BY fecha_creacion DESC LIMIT {$limit}",
-            [$desde, $hasta]
-        );
-        jsonSuccess([
-            'funnel'          => $funnel,
-            'conversion_pct'  => $conversionPct,
-            'total_historico' => $totalCots,
-            'respondidas'     => $respondidas,
-            'recientes'       => $recientes,
-            'periodo'         => ['desde' => $desde, 'hasta' => $hasta],
-        ]);
+            $recientes = dbRows(
+                "SELECT id, numero_cotizacion, nombre_cliente, estado, fecha_creacion
+                 FROM cotizaciones WHERE DATE(fecha_creacion) BETWEEN ? AND ?
+                 ORDER BY fecha_creacion DESC LIMIT {$limit}",
+                [$desde, $hasta]
+            );
+            jsonSuccess([
+                'funnel'          => $funnel,
+                'conversion_pct'  => $conversionPct,
+                'total_historico' => $totalCots,
+                'respondidas'     => $respondidas,
+                'recientes'       => $recientes,
+                'periodo'         => ['desde' => $desde, 'hasta' => $hasta],
+            ]);
+        } catch (\Throwable $e) {
+            appLog('error', 'reportes/cotizaciones: ' . $e->getMessage());
+            $msg = APP_DEBUG ? $e->getMessage() : 'Error al cargar reporte de cotizaciones.';
+            jsonError($msg, 500);
+        }
         break;
 
     case 'citas':

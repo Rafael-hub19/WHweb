@@ -1,101 +1,41 @@
-# ================================================
-# CONFIGURACION PRINCIPAL
-# ================================================
+# ================================================================
+# robots.txt — Wooden House (muebleswh.com)
+# ================================================================
 
-# Permitir a todos los bots de búsqueda
 User-agent: *
-
-# Permitir acceso a todo el contenido público
 Allow: /
 
-# ================================================
-# BLOQUEAR PAGINAS PRIVADAS/ADMIN
-# ================================================
+# Paneles privados
+Disallow: /admin
+Disallow: /empleado
 
-# Panel de Administrador
-Disallow: /admin/
-Disallow: /panel_administrador.html
-
-# Panel de Empleado
-Disallow: /empleado/
-Disallow: /panel_empleado.html
+# Páginas de sesión/usuario (sin valor SEO)
+Disallow: /login
+Disallow: /mi-cuenta
+Disallow: /carrito
+Disallow: /pago
 
 # APIs y backend
 Disallow: /api/
-Disallow: /src/
 
-# Base de datos
+# Archivos de sistema
 Disallow: /database/
-
-# ================================================
-# BLOQUEAR ARCHIVOS DE CONFIGURACION
-# ================================================
-
-# Variables de entorno
-Disallow: /.env
-Disallow: /.env.local
-
-# Configuración
-Disallow: /config/
-Disallow: /firebase/
-
-# Git
-Disallow: /.git/
-Disallow: /.gitignore
-
-# ================================================
-# BLOQUEAR ARCHIVOS TEMPORALES
-# ================================================
-
-Disallow: /tmp/
-Disallow: /temp/
-Disallow: /cache/
 Disallow: /logs/
+Disallow: /.git/
+Disallow: /.env
 
-# ================================================
-# PAGINAS OPCIONALES A BLOQUEAR
-# ================================================
-
-# Descomentar si NO quieres indexar estas páginas:
-
-# Proceso de pago (puede causar contenido duplicado)
-# Disallow: /pago.html
-
-# Carrito (no tiene contenido útil para SEO)
-# Disallow: /carrito.html
-
-# Login
-Disallow: /login.html
-
-# ================================================
-# UBICACION DEL SITEMAP
-# ================================================
-
-# IMPORTANTE: Reemplaza con tu dominio real
+# Sitemap
 Sitemap: https://muebleswh.com/sitemap.xml
 
-# ================================================
-# CONFIGURACION DE RASTREO
-# ================================================
-
-# Esperar 10 segundos entre peticiones
-# (Evita sobrecargar el servidor)
-Crawl-delay: 10
-
-# ================================================
-# BOTS ESPECIFICOS (Opcional)
-# ================================================
-
-# GoogleBot (motor de búsqueda de Google)
+# ----------------------------------------------------------------
+# Googlebot — sin crawl-delay (Google lo ignora de todas formas)
+# ----------------------------------------------------------------
 User-agent: Googlebot
 Allow: /
-Crawl-delay: 5
-
-# BingBot (motor de búsqueda de Bing)
-User-agent: Bingbot
-Allow: /
-Crawl-delay: 10
-
-# Bloquear bots maliciosos (opcional)
-# User-agent: BadBot
-# Disallow: /
+Disallow: /admin
+Disallow: /empleado
+Disallow: /login
+Disallow: /mi-cuenta
+Disallow: /carrito
+Disallow: /pago
+Disallow: /api/

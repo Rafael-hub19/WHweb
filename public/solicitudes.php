@@ -35,13 +35,6 @@
     </div>
   </div>
 
-  <!-- Breadcrumb -->
-  <nav class="breadcrumb" aria-label="Ruta de navegación">
-    <a href="/inicio"><i class="fa-solid fa-house"></i> Inicio</a>
-    <span class="breadcrumb-sep"><i class="fa-solid fa-chevron-right"></i></span>
-    <span class="breadcrumb-current">Solicitudes</span>
-  </nav>
-
   <div class="container">
     <h1 class="page-title"><i class="fa-solid fa-clipboard-list"></i> Centro de Solicitudes</h1>
     <p class="page-subtitle">
@@ -200,6 +193,10 @@
 
         <button type="submit" class="btn-submit"><i class="fa-solid fa-clipboard-list"></i> Solicitar Asesoría y Cotización</button>
       </form>
+      <div class="tab-nav-bottom">
+        <a href="/inicio" class="btn-tab-nav btn-tab-back"><i class="fa-solid fa-arrow-left"></i> Volver al inicio</a>
+        <button type="button" class="btn-tab-nav btn-tab-next" onclick="document.querySelector('.tab-btn[data-tab=cita]').click()">Agendar Cita <i class="fa-solid fa-arrow-right"></i></button>
+      </div>
     </div>
 
     <!-- TAB 2: AGENDAR CITA -->
@@ -283,6 +280,10 @@
 
         <button type="submit" class="btn-submit"><i class="fa-solid fa-calendar-days"></i> Agendar Visita Técnica</button>
       </form>
+      <div class="tab-nav-bottom">
+        <button type="button" class="btn-tab-nav btn-tab-back" onclick="document.querySelector('.tab-btn[data-tab=cotizacion]').click()"><i class="fa-solid fa-arrow-left"></i> Cotización</button>
+        <button type="button" class="btn-tab-nav btn-tab-next" onclick="document.querySelector('.tab-btn[data-tab=seguimiento]').click()">Seguimiento <i class="fa-solid fa-arrow-right"></i></button>
+      </div>
     </div>
 
     <!-- TAB 3: SEGUIMIENTO -->
@@ -344,6 +345,9 @@
         <div id="trackingResult"></div>
 
       </div>
+      <div class="tab-nav-bottom">
+        <button type="button" class="btn-tab-nav btn-tab-back" onclick="document.querySelector('.tab-btn[data-tab=cita]').click()"><i class="fa-solid fa-arrow-left"></i> Agendar Cita</button>
+      </div>
     </div>
   </div>
 
@@ -358,7 +362,7 @@
   </div>
 
   <script src="./assets/js/firebase-config.js"></script>
-  <script src="./assets/js/modal-auth.js?v=3"></script>
+  <script src="./assets/js/modal-auth.js?v=4"></script>
   <script src="./assets/js/solicitudes.js"></script>
 </body>
 </html>

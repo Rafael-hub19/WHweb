@@ -181,6 +181,27 @@
             position: relative;
         }
 
+        .btn-volver-catalogo {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 14px;
+            padding: 10px 22px;
+            background: #3d3d3d;
+            border: 2px solid #4a4a4a;
+            color: #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s;
+        }
+        .btn-volver-catalogo:hover {
+            background: #4a4a4a;
+            border-color: #8b7355;
+            color: #fff;
+        }
+
         /* ========== CART LAYOUT ========== */
         .cart-container {
             display: grid;

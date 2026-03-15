@@ -31,15 +31,6 @@
     </div>
 </div>
 
-<!-- Breadcrumb -->
-<nav class="breadcrumb" aria-label="Ruta de navegación">
-  <a href="/inicio"><i class="fa-solid fa-house"></i> Inicio</a>
-  <span class="breadcrumb-sep"><i class="fa-solid fa-chevron-right"></i></span>
-  <a href="/catalogo">Catálogo</a>
-  <span class="breadcrumb-sep"><i class="fa-solid fa-chevron-right"></i></span>
-  <span class="breadcrumb-current">Carrito</span>
-</nav>
-
 <!-- ── Pasos ─────────────────────────────────────────────────────── -->
 <div class="steps-indicator">
     <div class="step active"><div class="step-number">1</div><span>Carrito</span></div>
@@ -52,6 +43,7 @@
     <div class="page-header">
         <h1 class="page-title"><i class="fa-solid fa-cart-shopping"></i> Tu Carrito de Compras</h1>
         <p class="page-subtitle">Revisa tu pedido, elige opciones de entrega y selecciona tu fecha</p>
+        <a href="/catalogo" class="btn-volver-catalogo"><i class="fa-solid fa-arrow-left"></i> Seguir comprando</a>
     </div>
 
     <div class="cart-container">
@@ -283,7 +275,7 @@
 
 <script src="./assets/js/utils.js"></script>
 <script src="./assets/js/firebase-config.js"></script>
-<script src="./assets/js/modal-auth.js?v=3"></script>
+<script src="./assets/js/modal-auth.js?v=4"></script>
 <script src="./assets/js/carrito.js"></script>
 <script src="./assets/js/checkout.js"></script>
 </body>

@@ -250,14 +250,22 @@
     return res.json();
   }
 
+  /* ── Extraer dos iniciales del nombre completo ───────────────── */
+  function _getIniciales(nombre) {
+    const partes = (nombre || '').trim().split(/\s+/).filter(Boolean);
+    if (partes.length === 0) return 'U';
+    if (partes.length === 1) return partes[0][0].toUpperCase();
+    return (partes[0][0] + partes[1][0]).toUpperCase();
+  }
+
   /* ── Actualizar botón de cuenta en el nav ────────────────────── */
   function _actualizarNavBtn() {
     const btns = document.querySelectorAll('.btn-cuenta-nav');
     btns.forEach(btn => {
       if (_cliente) {
-        const inicial = (_cliente.nombre || 'U')[0].toUpperCase();
+        const iniciales = _getIniciales(_cliente.nombre);
         btn.classList.add('autenticado');
-        btn.innerHTML = `<i class="fa-solid fa-user-circle"></i> ${inicial}`;
+        btn.innerHTML = `<span style="display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:rgba(255,255,255,0.25);font-size:11px;font-weight:800;flex-shrink:0;letter-spacing:-0.5px;">${iniciales}</span>`;
         btn.title = _cliente.nombre;
         btn.onclick = () => AuthModal.open();
       } else {
@@ -282,7 +290,7 @@
     if (_cliente) {
       viewLogin.style.display = 'none';
       viewUser.style.display  = '';
-      const inicial = (_cliente.nombre || 'U')[0].toUpperCase();
+      const inicial = _getIniciales(_cliente.nombre);
       document.getElementById('authUserAvatar').textContent = inicial;
       document.getElementById('authUserName').textContent   = _cliente.nombre || '—';
       document.getElementById('authUserEmail').textContent  = _cliente.correo || '—';

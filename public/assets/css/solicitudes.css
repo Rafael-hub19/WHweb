@@ -780,6 +780,63 @@ img, video { max-width: 100%; height: auto; display: block; }
 /* ===================================================
    FOOTER
    =================================================== */
+/* ===================================================
+   NAVEGACIÓN ENTRE TABS (inferior)
+   =================================================== */
+.tab-nav-bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-top: 28px;
+  padding-top: 20px;
+  border-top: 1px solid #3d3d3d;
+  flex-wrap: wrap;
+}
+
+.btn-tab-nav {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.3s;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  border: none;
+}
+
+.btn-tab-back {
+  background: #3d3d3d;
+  color: #e0e0e0;
+  border: 2px solid #4a4a4a;
+}
+.btn-tab-back:hover {
+  background: #4a4a4a;
+  border-color: #8b7355;
+  color: #fff;
+}
+
+.btn-tab-next {
+  background: #8b7355;
+  color: #fff;
+  margin-left: auto;
+}
+.btn-tab-next:hover {
+  background: #a0865f;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px rgba(139,115,85,0.4);
+}
+
+@media (max-width: 480px) {
+  .tab-nav-bottom { justify-content: center; }
+  .btn-tab-nav { width: 100%; justify-content: center; }
+  .btn-tab-next { margin-left: 0; }
+}
+
 .footer {
   background: #2d2d2d;
   padding: 40px;

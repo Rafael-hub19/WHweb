@@ -32,15 +32,6 @@
   </div>
 
 
-  <!-- Breadcrumb -->
-  <nav class="breadcrumb" aria-label="Ruta de navegación">
-    <a href="/inicio"><i class="fa-solid fa-house"></i> Inicio</a>
-    <span class="breadcrumb-sep"><i class="fa-solid fa-chevron-right"></i></span>
-    <a href="/catalogo">Catálogo</a>
-    <span class="breadcrumb-sep"><i class="fa-solid fa-chevron-right"></i></span>
-    <span class="breadcrumb-current" id="breadcrumbNombre">Producto</span>
-  </nav>
-
   <!-- Estado de carga -->
   <div id="loadingState" class="container" style="text-align:center; padding:60px 20px;">
     <div class="spinner-large"></div>

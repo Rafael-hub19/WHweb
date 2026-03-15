@@ -20,7 +20,7 @@ $id     = isset($_GET['id']) ? (int)$_GET['id'] : null;
 // ── GET ofertas activas (público) ─────────────────────────────────
 if ($method === 'GET' && $action === 'activas') {
     $hoy = date('Y-m-d');
-    $ofertas = dbQuery(
+    $ofertas = dbRows(
         "SELECT id, nombre, descripcion, tipo, valor, codigo, fecha_inicio, fecha_fin
          FROM ofertas
          WHERE activo = 1
@@ -79,7 +79,7 @@ if ($method === 'POST' && $action === 'validar') {
 // ── GET listar todas las ofertas (admin) ──────────────────────────
 if ($method === 'GET' && !$id && !$action) {
     requerirAdmin();
-    $ofertas = dbQuery(
+    $ofertas = dbRows(
         "SELECT *,
                 CASE WHEN activo=1
                       AND (fecha_inicio IS NULL OR fecha_inicio <= CURDATE())

@@ -7,6 +7,9 @@ Options -Indexes -ExecCGI
     RewriteEngine On
     RewriteBase /
 
+    # Sitemap dinámico
+    RewriteRule ^sitemap\.xml$               sitemap.php                     [L]
+
     # Rutas directas a paneles (sin condiciones para evitar conflicto con directorios reales)
     RewriteRule ^admin/?$                    admin/panel_administrador.php   [L,QSA]
     RewriteRule ^empleado/?$                 empleado/panel_empleado.php     [L,QSA]
