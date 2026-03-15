@@ -58,7 +58,7 @@
   <!-- Contenido: autenticado -->
   <div id="mcContent" style="display:none;">
 
-    <!-- Encabezado del perfil -->
+    <!-- Encabezado del perfil + Cerrar sesión visible -->
     <div class="mc-profile-header">
       <div class="mc-avatar" id="mcAvatar">U</div>
       <div class="mc-profile-info">
@@ -66,6 +66,9 @@
         <p class="mc-correo" id="mcCorreo">—</p>
         <span class="mc-badge">Cliente registrado</span>
       </div>
+      <button class="mc-logout-btn" onclick="AuthModal.logout()" title="Cerrar sesión">
+        <i class="fa-solid fa-right-from-bracket"></i> Cerrar sesión
+      </button>
     </div>
 
     <!-- Tabs de contenido -->
@@ -139,8 +142,19 @@
   </p>
 </div>
 
+<!-- Barra de navegación fija móvil -->
+<nav class="mobile-bottom-nav" aria-label="Navegación rápida">
+  <div class="mobile-bottom-nav-inner">
+    <a href="/inicio" class="mbn-item"><i class="fa-solid fa-house"></i><span>Inicio</span></a>
+    <a href="/catalogo" class="mbn-item"><i class="fa-solid fa-store"></i><span>Catálogo</span></a>
+    <a href="/solicitudes" class="mbn-item"><i class="fa-solid fa-file-invoice"></i><span>Cotización</span></a>
+    <a href="/carrito" class="mbn-item"><i class="fa-solid fa-cart-shopping"></i><span>Carrito</span></a>
+    <button class="mbn-item mbn-item--active" onclick="AuthModal.open()"><i class="fa-solid fa-user"></i><span>Mi cuenta</span></button>
+  </div>
+</nav>
+
 <script src="./assets/js/firebase-config.js"></script>
-<script src="./assets/js/modal-auth.js?v=5"></script>
+<script src="./assets/js/modal-auth.js?v=6"></script>
 <script src="./assets/js/mi-cuenta.js"></script>
 </body>
 </html>

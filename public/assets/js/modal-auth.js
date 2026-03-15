@@ -259,16 +259,68 @@
     return (partes[0][0] + partes[1][0]).toUpperCase();
   }
 
+  /* ── Mini menú de cuenta (para páginas sin dropdown en nav) ─────── */
+  function _toggleAuthMiniMenu(btn) {
+    // Si ya hay un menú abierto, cerrarlo
+    const existing = document.querySelector('.auth-mini-menu');
+    if (existing) {
+      existing.remove();
+      btn.classList.remove('menu-open');
+      return;
+    }
+
+    btn.classList.add('menu-open');
+    const menu = document.createElement('div');
+    menu.className = 'auth-mini-menu';
+    menu.innerHTML = `
+      <div class="auth-mini-header">
+        <strong>${_esc(_cliente.nombre || '—')}</strong>
+        <span>${_esc(_cliente.correo || '')}</span>
+      </div>
+      <a href="/mi-cuenta" class="auth-mini-item">
+        <i class="fa-solid fa-user-circle"></i> Mi cuenta
+      </a>
+      <div class="auth-mini-divider"></div>
+      <button class="auth-mini-item auth-mini-logout" onclick="_authLogout()">
+        <i class="fa-solid fa-right-from-bracket"></i> Cerrar sesión
+      </button>`;
+    btn.appendChild(menu);
+
+    // Cerrar al hacer clic fuera
+    function _closeMiniMenu(e) {
+      if (!btn.contains(e.target)) {
+        menu.remove();
+        btn.classList.remove('menu-open');
+        document.removeEventListener('click', _closeMiniMenu);
+      }
+    }
+    setTimeout(() => document.addEventListener('click', _closeMiniMenu), 0);
+
+    // Cerrar con Escape
+    function _escKey(e) {
+      if (e.key === 'Escape') { menu.remove(); btn.classList.remove('menu-open'); document.removeEventListener('keydown', _escKey); }
+    }
+    document.addEventListener('keydown', _escKey);
+  }
+
+  function _esc(str) {
+    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
   /* ── Actualizar botón de cuenta en el nav ────────────────────── */
   function _actualizarNavBtn() {
     const btns = document.querySelectorAll('.btn-cuenta-nav');
     btns.forEach(btn => {
       if (_cliente) {
         const iniciales = _getIniciales(_cliente.nombre);
+        const primerNombre = (_cliente.nombre || '').trim().split(/\s+/)[0];
         btn.classList.add('autenticado');
-        btn.innerHTML = `<span style="display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:rgba(255,255,255,0.25);font-size:11px;font-weight:800;flex-shrink:0;letter-spacing:-0.5px;">${iniciales}</span>`;
+        btn.innerHTML = `
+          <span class="nav-auth-avatar-sm">${iniciales}</span>
+          <span class="nav-auth-label-sm">${_esc(primerNombre)}</span>
+          <i class="fa-solid fa-chevron-down nav-auth-chevron-sm"></i>`;
         btn.title = _cliente.nombre;
-        btn.onclick = () => AuthModal.open();
+        btn.onclick = (e) => { e.stopPropagation(); _toggleAuthMiniMenu(btn); };
       } else {
         btn.classList.remove('autenticado');
         btn.innerHTML = `<i class="fa-solid fa-user"></i> Mi cuenta`;

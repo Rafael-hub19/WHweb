@@ -7,7 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Carrito – Wooden House</title>
     <link rel="stylesheet" href="./assets/css/variables.css">
-    <link rel="stylesheet" href="./assets/css/carrito.css">
+    <link rel="stylesheet" href="./assets/css/carrito.css?v=2">
     <link rel="stylesheet" href="./assets/css/modal-auth.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <!-- Bootstrap 5 JS - Solo componentes interactivos (modales, dropdowns). CSS propio de Wooden House tiene prioridad -->
@@ -32,10 +32,19 @@
 </div>
 
 <!-- ── Pasos ─────────────────────────────────────────────────────── -->
-<div class="steps-indicator">
-    <div class="step active"><div class="step-number">1</div><span>Carrito</span></div>
-    <div class="step"><div class="step-number">2</div><span>Pago</span></div>
-    <div class="step"><div class="step-number">3</div><span>Confirmación</span></div>
+<div class="steps-indicator" aria-label="Progreso del pedido">
+    <div class="step active" aria-current="step">
+        <div class="step-number">1</div>
+        <span>Tu carrito</span>
+    </div>
+    <div class="step">
+        <div class="step-number">2</div>
+        <span>Pago</span>
+    </div>
+    <div class="step">
+        <div class="step-number">3</div>
+        <span>Listo</span>
+    </div>
 </div>
 
 <!-- ── Main ──────────────────────────────────────────────────────── -->
@@ -43,7 +52,7 @@
     <div class="page-header">
         <h1 class="page-title"><i class="fa-solid fa-cart-shopping"></i> Tu Carrito de Compras</h1>
         <p class="page-subtitle">Revisa tu pedido, elige opciones de entrega y selecciona tu fecha</p>
-        <a href="/catalogo" class="btn-volver-catalogo"><i class="fa-solid fa-arrow-left"></i> Seguir comprando</a>
+        <a href="/catalogo" class="btn-volver-catalogo"><i class="fa-solid fa-arrow-left"></i> Volver al Catálogo</a>
     </div>
 
     <div class="cart-container">
@@ -277,9 +286,20 @@
     </p>
 </div>
 
+<!-- Barra de navegación fija móvil -->
+<nav class="mobile-bottom-nav" aria-label="Navegación rápida">
+  <div class="mobile-bottom-nav-inner">
+    <a href="/inicio" class="mbn-item"><i class="fa-solid fa-house"></i><span>Inicio</span></a>
+    <a href="/catalogo" class="mbn-item"><i class="fa-solid fa-store"></i><span>Catálogo</span></a>
+    <a href="/solicitudes" class="mbn-item"><i class="fa-solid fa-file-invoice"></i><span>Cotización</span></a>
+    <a href="/carrito" class="mbn-item mbn-item--active"><i class="fa-solid fa-cart-shopping"></i><span>Carrito</span></a>
+    <button class="mbn-item" onclick="AuthModal.open()"><i class="fa-solid fa-user"></i><span>Mi cuenta</span></button>
+  </div>
+</nav>
+
 <script src="./assets/js/utils.js"></script>
 <script src="./assets/js/firebase-config.js"></script>
-<script src="./assets/js/modal-auth.js?v=5"></script>
+<script src="./assets/js/modal-auth.js?v=6"></script>
 <script src="./assets/js/carrito.js"></script>
 <script src="./assets/js/checkout.js"></script>
 </body>

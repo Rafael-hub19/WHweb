@@ -523,6 +523,10 @@
 
     .footer p { color: #666; font-size: 14px; margin: 5px 0; }
 
+    @media (max-width: 992px) {
+      .footer { padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px)); }
+    }
+
     /* =========================
        RESPONSIVE + HAMBURGUESA
        ========================= */
@@ -613,5 +617,21 @@
     @media (max-width: 380px) {
       .product-grid { grid-template-columns: 1fr; }
       .container { padding: 30px 14px; }
+    }
+
+    /* ── Compacto 480px ──────────────────────────────── */
+    @media (max-width: 480px) {
+      .container { padding: 12px 10px 20px; }
+      .page-title { font-size: 20px; margin-bottom: 10px; }
+      .search-bar { gap: 8px; }
+      .search-bar input { font-size: 14px; padding: 10px 12px; }
+      .btn-buscar { padding: 10px 14px; font-size: 13px; }
+      .filter-btn { padding: 7px 12px; font-size: 12px; }
+      .select-ordenar { font-size: 13px; padding: 8px 10px; }
+    }
+
+    /* Quitar hover-transform en táctil */
+    @media (hover: none) {
+      .product-card:hover { transform: none !important; }
     }
 

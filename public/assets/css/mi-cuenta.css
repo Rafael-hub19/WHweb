@@ -78,7 +78,33 @@
   padding: 28px;
   margin-bottom: 28px;
   box-shadow: 0 5px 20px rgba(0,0,0,0.5);
+  flex-wrap: wrap;
 }
+
+/* Botón cerrar sesión visible en Mi cuenta */
+.mc-logout-btn {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-left: auto;
+  background: none;
+  border: 1px solid #4a4a4a;
+  color: #a0a0a0;
+  padding: 9px 16px;
+  border-radius: 9px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: color 0.2s, border-color 0.2s, background 0.2s;
+  font-family: inherit;
+  white-space: nowrap;
+}
+.mc-logout-btn:hover {
+  color: #ffb3b3;
+  border-color: rgba(196,74,74,0.5);
+  background: rgba(196,74,74,0.08);
+}
+.mc-logout-btn i { font-size: 14px; }
 
 .mc-avatar {
   width: 72px;
@@ -343,8 +369,12 @@
 }
 
 /* ── Responsive ─────────────────────────────────────────────────── */
+@media (max-width: 900px) {
+  .mc-container { padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px)); }
+  .mc-logout-btn { margin-left: 0; margin-top: 8px; width: 100%; justify-content: center; }
+}
 @media (max-width: 600px) {
-  .mc-profile-header { flex-direction: column; text-align: center; }
+  .mc-profile-header { flex-direction: column; text-align: center; align-items: center; }
   .mc-form-row { grid-template-columns: 1fr; }
   .mc-pedido-card { flex-direction: column; }
   .mc-form { padding: 20px; }

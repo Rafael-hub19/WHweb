@@ -361,8 +361,19 @@
     </p>
   </div>
 
+  <!-- Barra de navegación fija móvil -->
+  <nav class="mobile-bottom-nav" aria-label="Navegación rápida">
+    <div class="mobile-bottom-nav-inner">
+      <a href="/inicio" class="mbn-item"><i class="fa-solid fa-house"></i><span>Inicio</span></a>
+      <a href="/catalogo" class="mbn-item"><i class="fa-solid fa-store"></i><span>Catálogo</span></a>
+      <a href="/solicitudes" class="mbn-item mbn-item--active"><i class="fa-solid fa-file-invoice"></i><span>Cotización</span></a>
+      <a href="/carrito" class="mbn-item"><i class="fa-solid fa-cart-shopping"></i><span>Carrito</span></a>
+      <button class="mbn-item" onclick="AuthModal.open()"><i class="fa-solid fa-user"></i><span>Mi cuenta</span></button>
+    </div>
+  </nav>
+
   <script src="./assets/js/firebase-config.js"></script>
-  <script src="./assets/js/modal-auth.js?v=5"></script>
+  <script src="./assets/js/modal-auth.js?v=6"></script>
   <script src="./assets/js/solicitudes.js"></script>
 </body>
 </html>

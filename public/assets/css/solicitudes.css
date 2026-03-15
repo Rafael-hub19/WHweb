@@ -864,9 +864,42 @@ img, video { max-width: 100%; height: auto; display: block; }
   .track-step-connector { display: none; }
 }
 
+/* ── Compacto para pantallas pequeñas ────────────────────────────── */
+@media (max-width: 480px) {
+  .container { padding: 14px 12px 24px; }
+  .page-title { font-size: 20px; margin-bottom: 6px; }
+  .page-subtitle { font-size: 12px; margin-bottom: 20px; }
+
+  /* Tabs: botones más compactos que quepan en fila */
+  .tab-navigation { gap: 6px; margin-bottom: 18px; }
+  .tab-btn { padding: 10px 12px; font-size: 13px; gap: 6px; border-radius: 8px; flex: 1; justify-content: center; }
+  .tab-btn:hover { transform: none; }
+  .tab-icon { font-size: 14px; }
+
+  /* Formulario */
+  .form-section { padding: 14px 12px; border-radius: 10px; }
+  .form-section h3 { font-size: 15px; margin-bottom: 12px; }
+  .form-group { margin-bottom: 12px; }
+  .form-group label { font-size: 12px; margin-bottom: 5px; }
+  .form-group input,
+  .form-group textarea,
+  .form-group select { padding: 10px 12px; font-size: 14px; border-radius: 8px; }
+  .help-text { font-size: 11px; }
+
+  /* Botón submit */
+  .btn-submit { padding: 13px 20px; font-size: 14px; }
+
+  /* Seguimiento */
+  .tracking-title { font-size: 18px; }
+  .tracking-subtitle { font-size: 13px; }
+  .tracking-search-box { padding: 14px 12px; }
+}
+
 @media (max-width: 900px) {
   .header-nav { padding: 16px; }
   .menu-toggle { display: block; }
+  /* Espacio para barra fija inferior */
+  .footer, body > .footer { padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px)); }
   .nav-links {
     display: none;
     width: 100%;

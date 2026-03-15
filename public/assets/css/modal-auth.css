@@ -316,13 +316,115 @@
   transition: background 0.3s, color 0.3s;
   white-space: nowrap;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  position: relative;
 }
-.btn-cuenta-nav:hover,
+.btn-cuenta-nav:hover { background: rgba(139,115,85,0.15); }
 .btn-cuenta-nav.autenticado {
-  background: #8b7355;
-  color: #fff;
+  background: rgba(139,115,85,0.18);
+  border-color: #a0865f;
+  gap: 8px;
 }
 .btn-cuenta-nav i { font-size: 14px; }
+
+/* Pill de usuario autenticado en nav */
+.nav-auth-avatar-sm {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: #8b7355;
+  font-size: 11px;
+  font-weight: 800;
+  color: #fff;
+  flex-shrink: 0;
+  letter-spacing: -0.5px;
+}
+.nav-auth-label-sm {
+  font-size: 13px;
+  font-weight: 600;
+  color: #e0e0e0;
+  max-width: 80px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.nav-auth-chevron-sm {
+  font-size: 9px;
+  color: #a0a0a0;
+  transition: transform 0.2s;
+}
+.btn-cuenta-nav.menu-open .nav-auth-chevron-sm { transform: rotate(180deg); }
+
+/* ── Mini menú de cuenta ─────────────────────────────────────────── */
+.auth-mini-menu {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  background: #2a2a2a;
+  border: 1px solid #444;
+  border-radius: 14px;
+  min-width: 220px;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.6);
+  z-index: 3000;
+  overflow: hidden;
+  animation: auth-mini-in 0.18s ease;
+}
+@keyframes auth-mini-in {
+  from { opacity: 0; transform: translateY(-6px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.auth-mini-header {
+  padding: 16px 18px 12px;
+  border-bottom: 1px solid #3a3a3a;
+}
+.auth-mini-header strong {
+  display: block;
+  color: #e0e0e0;
+  font-size: 14px;
+  font-weight: 700;
+  margin-bottom: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.auth-mini-header span {
+  display: block;
+  color: #888;
+  font-size: 12px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.auth-mini-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 13px 18px;
+  color: #d0d0d0;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 500;
+  background: none;
+  border: none;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+  font-family: inherit;
+}
+.auth-mini-item i { width: 16px; text-align: center; color: #8b7355; font-size: 13px; }
+.auth-mini-item:hover { background: rgba(139,115,85,0.12); color: #c9a96e; }
+.auth-mini-item:hover i { color: #c9a96e; }
+
+.auth-mini-divider { height: 1px; background: #3a3a3a; margin: 2px 0; }
+
+.auth-mini-logout { color: #c0c0c0; }
+.auth-mini-logout i { color: #c07070; }
+.auth-mini-logout:hover { background: rgba(196,74,74,0.1); color: #ffb3b3; }
+.auth-mini-logout:hover i { color: #ffb3b3; }
 
 /* ── Login suggest card ──────────────────────────────────────────── */
 .login-suggest-card {
@@ -425,6 +527,53 @@
 }
 .wh-verif-btn-ok:hover { background: rgba(61,120,72,0.35); border-color: #3d7848; }
 
+/* ── Barra de navegación fija móvil (compartida entre páginas) ───── */
+.mobile-bottom-nav {
+  display: none;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: #242424;
+  border-top: 1px solid #3d3d3d;
+  z-index: 1200;
+  padding: 0 4px;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  box-shadow: 0 -4px 20px rgba(0,0,0,0.4);
+}
+.mobile-bottom-nav-inner {
+  display: flex;
+  justify-content: space-around;
+  align-items: stretch;
+}
+.mbn-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  padding: 10px 6px;
+  text-decoration: none;
+  color: #777;
+  font-size: 10px;
+  font-weight: 600;
+  flex: 1;
+  transition: color 0.15s;
+  min-width: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-family: inherit;
+}
+.mbn-item i { font-size: 20px; }
+.mbn-item:hover, .mbn-item:active { color: #c9a96e; }
+.mbn-item--active { color: #c9a96e; }
+.mbn-item--active i { color: #c9a96e; }
+
+@media (max-width: 900px) {
+  .mobile-bottom-nav { display: block; }
+}
+
 /* ── Responsive ─────────────────────────────────────────────────── */
 @media (max-width: 768px) {
   .auth-modal { padding: 28px 20px 24px; }
@@ -432,4 +581,16 @@
   .login-suggest-card { gap: 10px; }
   .wh-verif-banner { gap: 8px; padding: 10px 14px; }
   .wh-verif-text { font-size: 12px; }
+}
+
+@media (max-width: 900px) {
+  /* Mini menú: en móvil aparece en posición fija centrado */
+  .auth-mini-menu {
+    position: fixed;
+    top: auto;
+    bottom: calc(64px + env(safe-area-inset-bottom, 0px));
+    right: 12px;
+    left: auto;
+    min-width: 230px;
+  }
 }

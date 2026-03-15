@@ -240,4 +240,48 @@ function formatDate(dateString) {
   }).format(new Date(dateString));
 }
 
+// ================================================
+// DROPDOWN "MI CUENTA" — actualizar según estado de auth
+// ================================================
+document.addEventListener('wh:autenticado', function (e) {
+  const cliente = e.detail;
+  if (!cliente) return;
+
+  // Actualizar botón principal del dropdown
+  const btn = document.getElementById('cuentaDropdownBtn');
+  if (btn) {
+    const iniciales = (cliente.nombre || '?').trim().split(/\s+/).filter(Boolean)
+      .slice(0, 2).map(p => p[0].toUpperCase()).join('');
+    const primerNombre = (cliente.nombre || '').trim().split(/\s+/)[0];
+    btn.innerHTML = `
+      <span style="display:inline-flex;align-items:center;gap:8px;">
+        <span style="display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:50%;background:#8b7355;font-size:11px;font-weight:800;color:#fff;flex-shrink:0;">${iniciales}</span>
+        <span style="font-size:13px;font-weight:600;">${primerNombre}</span>
+      </span>
+      <i class="fa-solid fa-chevron-down nav-chevron"></i>`;
+  }
+
+  // Actualizar items del dropdown
+  const menu = document.getElementById('cuentaDropdownMenu');
+  if (menu) {
+    menu.innerHTML = `
+      <a href="/mi-cuenta" class="dropdown-item" role="menuitem">
+        <i class="fa-solid fa-user-circle"></i> Mi cuenta
+      </a>
+      <div class="dropdown-divider"></div>
+      <button class="dropdown-item" role="menuitem" onclick="_authLogout()" style="width:100%;text-align:left;background:none;border:none;cursor:pointer;font-family:inherit;color:#c07070;">
+        <i class="fa-solid fa-right-from-bracket" style="color:#c07070;"></i> Cerrar sesión
+      </button>`;
+  }
+
+  // Actualizar también el botón en la barra inferior móvil
+  const mbnUser = document.querySelector('.mobile-bottom-nav .mbn-item:last-child');
+  if (mbnUser) {
+    const iniciales2 = (cliente.nombre || '?').trim().split(/\s+/).filter(Boolean)
+      .slice(0, 2).map(p => p[0].toUpperCase()).join('');
+    mbnUser.innerHTML = `<i class="fa-solid fa-user-check"></i><span>${iniciales2}</span>`;
+    mbnUser.style.color = '#c9a96e';
+  }
+});
+
 console.log('[OK] index.js cargado');

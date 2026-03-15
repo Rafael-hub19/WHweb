@@ -335,6 +335,61 @@ service apache2 restart
 
 ---
 
+## Mejoras de UX y diseño responsivo (v4 — 2026-03-14)
+
+### Logout siempre visible — mini-menú de cuenta
+
+**Problema:** Los usuarios no encontraban cómo cerrar sesión (estaba solo dentro del modal completo).
+**Corrección (`modal-auth.js` v6, `modal-auth.css`):**
+- Cuando el cliente está autenticado, el botón "Mi cuenta" en la nav muestra su avatar con iniciales + chevron.
+- Al hacer clic aparece un mini-popover `.auth-mini-menu` con el nombre, correo, link a "Mi cuenta" y botón "Cerrar sesión".
+- En móvil el menú se reposiciona con `position: fixed; bottom: calc(64px + ...)` para evitar que se corte.
+- También se agregó un botón "Cerrar sesión" visible directamente en el perfil de `mi-cuenta.php`.
+
+### Navegación móvil — barra inferior fija
+
+**Problema:** Sin conocer las URLs, la navegación en móvil era confusa.
+**Corrección (HTML de cada página, `modal-auth.css`):**
+- Barra fija `position: fixed; bottom: 0` con 5 íconos: Inicio, Catálogo, Cotización, Carrito, Mi cuenta.
+- Se muestra solo en pantallas ≤ 900 px (`@media (max-width: 900px)`).
+- El ítem activo de la página actual recibe la clase `mbn-item--active` (color dorado).
+- Añadida a todas las páginas: `index.php`, `catalogo.php`, `carrito-checkout.php`, `pago.php`, `solicitudes.php`, `mi-cuenta.php`.
+
+### Texto confuso "Seguir comprando" en el carrito
+
+**Problema:** Usuarios interpretaban "Seguir comprando" como avanzar al siguiente paso del checkout.
+**Corrección (`carrito-checkout.php`):** Renombrado a **"← Volver al Catálogo"** con flecha direccional explícita.
+
+### Retroalimentación visual en opciones de selección
+
+**Problema:** Al elegir tipo de entrega/instalación en el carrito o método de pago, los usuarios no notaban que algo había cambiado y esperaban una redirección.
+**Corrección (`carrito.css` v2, `pago.css`):**
+- Badge **"✓ Seleccionado"** con fondo dorado aparece en la esquina superior derecha de la opción activa con animación `badge-pop-in` (escala + opacidad).
+- La tarjeta dispara `animation: option-select-in` (glow-pulse en el borde) al seleccionarse.
+- El radio button se oculta en móvil (`display: none`) — el área completa es clickeable.
+
+### Hover inestable en dispositivos táctiles
+
+**Problema:** En móvil, al tocar una tarjeta de producto/opción, el efecto `transform: translateY` quedaba "pegado" hasta el siguiente toque.
+**Corrección (`carrito.css`, `index.css`, `catalogo.css`, `pago.css`):** Se añadió `@media (hover: none)` que fuerza `transform: none !important` en todos los estados `:hover`, desactivando los efectos que no aplican a pantallas táctiles.
+
+### Diseño compacto para pantallas pequeñas (≤ 640 px)
+
+**Problema:** Padding y tamaños de fuente pensados para escritorio consumían demasiado espacio en móvil; algunos elementos quedaban fuera de pantalla.
+**Corrección (`carrito.css`, `pago.css`, `solicitudes.css`, `catalogo.css`, `index.css`):**
+- Contenedores: padding reducido a `14–16px 12px`.
+- Indicador de pasos: horizontal compacto con `flex: 1` por paso y `gap: 0` (reemplaza `flex-direction: column` que lo hacía vertical).
+- Imágenes en el carrito: `68 × 85 px` en lugar de `85 × 105 px`.
+- Opciones de pago/entrega: padding `12–16px 10px`, fuentes 11–14 px.
+- Totales: `font-size` reducidos para no desbordarse en pantallas de 360 px.
+
+### Catálogo sin autenticación de cliente
+
+**Problema:** `catalogo.php` no cargaba `modal-auth.css` ni `modal-auth.js`, por lo que el botón "Mi cuenta" y la barra inferior no funcionaban.
+**Corrección (`catalogo.php`):** Añadidos `modal-auth.css`, `firebase-config.js` y `modal-auth.js?v=6`; agregado botón `.btn-cuenta-nav` al nav.
+
+---
+
 ## Correcciones de bugs aplicadas (v3 — 2026-03-12)
 
 ### Login empleado: 404 en primer intento

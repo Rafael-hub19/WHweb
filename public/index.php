@@ -82,12 +82,51 @@
   <div class="hero" id="inicio">
     <h1>WOODEN HOUSE</h1>
     <p class="tagline">Muebles de Madera a Medida | Calidad Artesanal en Guadalajara</p>
-    <p style="color:#666; font-size:16px; margin-top:10px;">
-      <i class="fa-solid fa-location-dot"></i> Guadalajara, Jalisco | Servicio en toda la ZMG
+    <p style="color:#888; font-size:15px; margin-top:10px;">
+      <i class="fa-solid fa-location-dot"></i> Guadalajara, Jalisco · Entregas en toda la ZMG
     </p>
     <div class="hero-buttons">
-      <a href="/solicitudes" class="btn-primary"><i class="fa-solid fa-tag"></i> Solicitar Cotización</a>
-      <a href="#servicios" class="btn-secondary"><i class="fa-solid fa-screwdriver-wrench"></i> Ver Servicios</a>
+      <a href="/catalogo" class="btn-primary"><i class="fa-solid fa-store"></i> Ver Catálogo</a>
+      <a href="/solicitudes" class="btn-secondary"><i class="fa-solid fa-tag"></i> Pedir Cotización</a>
+    </div>
+  </div>
+
+  <!-- ── Acciones rápidas ──────────────────────────────────────── -->
+  <div class="quick-actions-section">
+    <p class="quick-actions-label">¿Qué deseas hacer?</p>
+    <div class="quick-actions-grid">
+      <a href="/catalogo" class="quick-action-card">
+        <div class="qa-icon"><i class="fa-solid fa-store"></i></div>
+        <div class="qa-info">
+          <div class="qa-title">Ver Catálogo</div>
+          <div class="qa-sub">Explora nuestros muebles y precios</div>
+        </div>
+        <i class="fa-solid fa-chevron-right qa-arrow"></i>
+      </a>
+      <a href="/solicitudes" class="quick-action-card">
+        <div class="qa-icon qa-icon--cot"><i class="fa-solid fa-file-invoice"></i></div>
+        <div class="qa-info">
+          <div class="qa-title">Pedir Cotización</div>
+          <div class="qa-sub">Cuéntanos qué necesitas y te respondemos</div>
+        </div>
+        <i class="fa-solid fa-chevron-right qa-arrow"></i>
+      </a>
+      <a href="/solicitudes#cita" class="quick-action-card">
+        <div class="qa-icon qa-icon--cita"><i class="fa-solid fa-calendar-check"></i></div>
+        <div class="qa-info">
+          <div class="qa-title">Agendar Cita</div>
+          <div class="qa-sub">Visítanos o agendamos medición en tu casa</div>
+        </div>
+        <i class="fa-solid fa-chevron-right qa-arrow"></i>
+      </a>
+      <a href="/solicitudes#seguimiento" class="quick-action-card">
+        <div class="qa-icon qa-icon--seg"><i class="fa-solid fa-magnifying-glass"></i></div>
+        <div class="qa-info">
+          <div class="qa-title">Seguimiento de Pedido</div>
+          <div class="qa-sub">Consulta el estado de tu pedido o cita</div>
+        </div>
+        <i class="fa-solid fa-chevron-right qa-arrow"></i>
+      </a>
     </div>
   </div>
 
@@ -113,21 +152,24 @@
     <div id="servicios">
       <h2 class="section-title"><i class="fa-solid fa-screwdriver-wrench"></i> Nuestros Servicios</h2>
       <div class="services-grid">
-        <div class="service-card">
+        <a href="/catalogo?categoria=cocinas" class="service-card">
           <div class="service-icon"><i class="fa-solid fa-utensils"></i></div>
           <h3>Cocinas Integrales</h3>
           <p>Diseño y fabricación de cocinas funcionales y elegantes, adaptadas a tu espacio y necesidades. Incluye gabinetes, barras y acabados personalizados.</p>
-        </div>
-        <div class="service-card">
+          <span class="service-card-link">Ver en catálogo →</span>
+        </a>
+        <a href="/catalogo?categoria=closets" class="service-card">
           <div class="service-icon"><i class="fa-solid fa-shirt"></i></div>
           <h3>Clósets a Medida</h3>
           <p>Maximiza tu espacio con clósets diseñados específicamente para ti. Múltiples compartimentos, cajones y opciones de organización.</p>
-        </div>
-        <div class="service-card">
+          <span class="service-card-link">Ver en catálogo →</span>
+        </a>
+        <a href="/catalogo?categoria=bano" class="service-card">
           <div class="service-icon"><i class="fa-solid fa-bath"></i></div>
           <h3>Muebles de Baño</h3>
           <p>Muebles resistentes a la humedad con diseños modernos y clásicos. Incluye lavabo, espejo y almacenamiento optimizado.</p>
-        </div>
+          <span class="service-card-link">Ver en catálogo →</span>
+        </a>
       </div>
     </div>
 
@@ -176,11 +218,12 @@
           <h4>Medición y Diseño</h4>
           <p>Visitamos tu hogar para tomar medidas exactas y crear el diseño</p>
         </div>
-        <div class="process-step">
+        <a href="/solicitudes" class="process-step" style="text-decoration:none;color:inherit;">
           <div class="process-number">3</div>
           <h4>Cotización</h4>
           <p>Recibes propuesta detallada con renders 3D y precios claros</p>
-        </div>
+          <span style="display:block;margin-top:10px;font-size:12px;color:#8b7355;font-weight:600;">Solicitar →</span>
+        </a>
         <div class="process-step">
           <div class="process-number">4</div>
           <h4>Fabricación</h4>
@@ -374,8 +417,34 @@
     </p>
   </div>
 
+  <!-- ── Barra de navegación fija móvil ──────────────────────────── -->
+  <nav class="mobile-bottom-nav" aria-label="Navegación rápida">
+    <div class="mobile-bottom-nav-inner">
+      <a href="/catalogo" class="mbn-item mbn-item--cta">
+        <i class="fa-solid fa-store"></i>
+        <span>Catálogo</span>
+      </a>
+      <a href="/solicitudes" class="mbn-item">
+        <i class="fa-solid fa-file-invoice"></i>
+        <span>Cotización</span>
+      </a>
+      <a href="/solicitudes#cita" class="mbn-item">
+        <i class="fa-solid fa-calendar-check"></i>
+        <span>Cita</span>
+      </a>
+      <a href="/carrito" class="mbn-item">
+        <i class="fa-solid fa-cart-shopping"></i>
+        <span>Carrito</span>
+      </a>
+      <button class="mbn-item" onclick="AuthModal.open()">
+        <i class="fa-solid fa-user"></i>
+        <span>Mi cuenta</span>
+      </button>
+    </div>
+  </nav>
+
   <script src="./assets/js/firebase-config.js"></script>
-  <script src="./assets/js/modal-auth.js?v=5"></script>
+  <script src="./assets/js/modal-auth.js?v=6"></script>
   <script src="./assets/js/index.js"></script>
 
 </body>
