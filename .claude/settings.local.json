@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(find 'c:\\\\Users\\\\esteb\\\\OneDrive - Centro de Enseñanza Técnica Industrial\\\\PROYECTO\\\\Wooden House' -type f -name *.php -o -name *.css -o -name *.js)",
+      "Bash(grep -n \"form\\\\|<input\\\\|<textarea\\\\|<select\" \"c:\\\\Users\\\\esteb\\\\OneDrive - Centro de Enseñanza Técnica Industrial\\\\PROYECTO\\\\Wooden House/public\"/*.php)",
+      "Bash(grep -l \"sanitize\\\\|filter_var\\\\|htmlspecialchars\\\\|strip_tags\" \"c:\\\\Users\\\\esteb\\\\OneDrive - Centro de Enseñanza Técnica Industrial\\\\PROYECTO\\\\Wooden House/api\"/*.php)"
+    ]
+  }
+}

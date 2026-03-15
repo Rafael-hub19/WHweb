@@ -177,6 +177,7 @@ CREATE TABLE pedidos (
   direccion_envio VARCHAR(255) NULL,
   colonia_envio   VARCHAR(120) NULL,   -- Colonia para localización precisa
   ciudad_envio    VARCHAR(100) NULL,   -- Ciudad para agrupación logística
+  municipio_envio VARCHAR(100) NULL,   -- Municipio (puede diferir de la ciudad)
   cp_envio        VARCHAR(10)  NULL,   -- Código postal para agrupación logística
 
   incluye_instalacion TINYINT(1) NOT NULL DEFAULT 0,
@@ -349,6 +350,9 @@ CREATE TABLE clientes (
   INDEX idx_correo (correo),
   INDEX idx_activo (activo)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Agregar campo municipio_envio (ejecutar en instalaciones existentes)
+ALTER TABLE pedidos ADD COLUMN IF NOT EXISTS municipio_envio VARCHAR(100) NULL AFTER ciudad_envio;
 
 -- Vincular pedidos a clientes (nullable para pedidos históricos de invitados)
 ALTER TABLE pedidos ADD COLUMN cliente_id INT NULL AFTER token_seguimiento;

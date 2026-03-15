@@ -76,7 +76,7 @@ document.addEventListener('DOMContentLoaded', () => {
     actualizarTotales();
     cargarFechasDisponibles();
 
-    ['clienteNombre','clienteTelefono','clienteCorreo','clienteDireccion','clienteCiudad','clienteCP','clienteNotas']
+    ['clienteNombre','clienteTelefono','clienteCorreo','clienteDireccion','clienteColonia','clienteCiudad','clienteMunicipio','clienteCP','clienteNotas']
         .forEach(id => {
             const el = document.getElementById(id);
             if (el) { el.addEventListener('input', guardarFormulario); el.addEventListener('change', guardarFormulario); }
@@ -169,8 +169,8 @@ function initValidacionCampos() {
         });
     }
 
-    // Dirección y ciudad: bloquear inyección
-    ['clienteDireccion','clienteCiudad'].forEach(id => {
+    // Dirección, colonia, ciudad y municipio: bloquear inyección
+    ['clienteDireccion','clienteColonia','clienteCiudad','clienteMunicipio'].forEach(id => {
         const el = document.getElementById(id);
         if (el) el.addEventListener('input', function () {
             this.value = this.value.replace(/[<>"'`;\\]/g, '');
@@ -212,7 +212,9 @@ function guardarFormulario() {
         telefono:    sanitizePhone(document.getElementById('clienteTelefono')?.value  || ''),
         correo:      sanitizeEmail(document.getElementById('clienteCorreo')?.value    || ''),
         direccion:   sanitizeText(document.getElementById('clienteDireccion')?.value || '', 250),
+        colonia:     sanitizeText(document.getElementById('clienteColonia')?.value   || '', 120),
         ciudad:      sanitizeText(document.getElementById('clienteCiudad')?.value    || '', 100),
+        municipio:   sanitizeText(document.getElementById('clienteMunicipio')?.value || '', 100),
         cp:          sanitizeCP(document.getElementById('clienteCP')?.value           || ''),
         notas:       sanitizeText(document.getElementById('clienteNotas')?.value      || '', 500),
         tipoEntrega: estado.tipoEntrega,
@@ -231,7 +233,9 @@ function restaurarFormulario() {
         set('clienteTelefono',  datos.telefono);
         set('clienteCorreo',    datos.correo);
         set('clienteDireccion', datos.direccion);
+        set('clienteColonia',   datos.colonia);
         set('clienteCiudad',    datos.ciudad);
+        set('clienteMunicipio', datos.municipio);
         set('clienteCP',        datos.cp);
         set('clienteNotas',     datos.notas);
         if (datos.tipoEntrega) seleccionarEntrega(datos.tipoEntrega, false);
@@ -270,6 +274,7 @@ async function prefillSiLogueado() {
         set('clienteDireccion', cliente.direccion || '');
         set('clienteColonia',   cliente.colonia   || '');
         set('clienteCiudad',    cliente.ciudad    || '');
+        set('clienteMunicipio', cliente.municipio || '');
         set('clienteCP',        cliente.cp        || '');
         // Sync confirm email field if present
         const correoEl   = document.getElementById('clienteCorreo');
@@ -463,7 +468,7 @@ function eliminarItemCarrito(idx) {
         localStorage.removeItem('wh_delivery');
         localStorage.removeItem('wh_cliente');
         localStorage.removeItem('wh_descuento');
-        ['clienteNombre','clienteTelefono','clienteCorreo','clienteCorreoConfirm','clienteDireccion','clienteCiudad','clienteCP','clienteNotas']
+        ['clienteNombre','clienteTelefono','clienteCorreo','clienteCorreoConfirm','clienteDireccion','clienteColonia','clienteCiudad','clienteMunicipio','clienteCP','clienteNotas']
             .forEach(id => {
                 const el = document.getElementById(id);
                 if (el) { el.value = ''; el.style.borderColor = ''; }
@@ -491,7 +496,7 @@ function confirmarVaciarCarrito() {
     localStorage.removeItem('wh_descuento');
     localStorage.removeItem('wh_carrito_backup');
     // Limpiar campos del formulario visibles en el DOM (incluyendo confirmación de correo)
-    ['clienteNombre','clienteTelefono','clienteCorreo','clienteCorreoConfirm','clienteDireccion','clienteCiudad','clienteCP','clienteNotas']
+    ['clienteNombre','clienteTelefono','clienteCorreo','clienteCorreoConfirm','clienteDireccion','clienteColonia','clienteCiudad','clienteMunicipio','clienteCP','clienteNotas']
         .forEach(id => {
             const el = document.getElementById(id);
             if (el) { el.value = ''; el.style.borderColor = ''; }
@@ -727,10 +732,12 @@ function procederAlPago() {
     if (estado.tipoEntrega === 'envio') {
         const dir = sanitizeText(document.getElementById('clienteDireccion')?.value || '', 250);
         const ciu = sanitizeText(document.getElementById('clienteCiudad')?.value    || '', 100);
+        const mun = sanitizeText(document.getElementById('clienteMunicipio')?.value || '', 100);
         const cp  = sanitizeCP(document.getElementById('clienteCP')?.value           || '');
-        if (!dir)       { showToast('Ingresa la dirección de entrega',  'error'); document.getElementById('clienteDireccion')?.focus(); return; }
-        if (!ciu)       { showToast('Ingresa la ciudad',                'error'); document.getElementById('clienteCiudad')?.focus();    return; }
-        if (cp.length < 4) { showToast('Ingresa el código postal',     'error'); document.getElementById('clienteCP')?.focus();        return; }
+        if (!dir)          { showToast('Ingresa la dirección de entrega',  'error'); document.getElementById('clienteDireccion')?.focus();  return; }
+        if (!ciu)          { showToast('Ingresa la ciudad',                'error'); document.getElementById('clienteCiudad')?.focus();      return; }
+        if (!mun)          { showToast('Ingresa el municipio',             'error'); document.getElementById('clienteMunicipio')?.focus();   return; }
+        if (cp.length < 4) { showToast('Ingresa el código postal',         'error'); document.getElementById('clienteCP')?.focus();          return; }
     }
 
     const subtotal   = estado.items.reduce((s, i) => s + i.precio * i.cantidad, 0);
@@ -739,15 +746,17 @@ function procederAlPago() {
     const costoInst  = estado.instalacion ? estado.costos.instalacion * totalMuebles : 0;
 
     const esEnvio = estado.tipoEntrega === 'envio';
-    const colonia = esEnvio ? sanitizeText(document.getElementById('clienteColonia')?.value || '', 120) : '';
-    const ciudad  = esEnvio ? sanitizeText(document.getElementById('clienteCiudad')?.value  || '', 100) : '';
-    const cp      = esEnvio ? sanitizeCP(document.getElementById('clienteCP')?.value        || '')      : '';
+    const colonia   = esEnvio ? sanitizeText(document.getElementById('clienteColonia')?.value   || '', 120) : '';
+    const ciudad    = esEnvio ? sanitizeText(document.getElementById('clienteCiudad')?.value    || '', 100) : '';
+    const municipio = esEnvio ? sanitizeText(document.getElementById('clienteMunicipio')?.value || '', 100) : '';
+    const cp        = esEnvio ? sanitizeCP(document.getElementById('clienteCP')?.value          || '')      : '';
 
     const dirEnvio = esEnvio
         ? sanitizeText([
             document.getElementById('clienteDireccion')?.value.trim(),
             colonia,
             ciudad,
+            municipio,
             cp ? 'CP ' + cp : ''
           ].filter(Boolean).join(', '), 400)
         : null;
@@ -764,6 +773,7 @@ function procederAlPago() {
         direccion_envio:     dirEnvio,
         colonia_envio:       colonia,
         ciudad_envio:        ciudad,
+        municipio_envio:     municipio,
         cp_envio:            cp,
         notas:        sanitizeText(document.getElementById('clienteNotas')?.value || '', 500) || null,
         subtotal, costo_envio: costoEnvio, costo_instalacion: costoInst,

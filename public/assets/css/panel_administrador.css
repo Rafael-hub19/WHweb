@@ -871,4 +871,21 @@
     @media (max-width: 900px){
       .charts-grid{ grid-template-columns: 1fr; }
     }
+
+    @media (max-width: 480px){
+      .stats-grid{ grid-template-columns: repeat(2,1fr); gap:8px; }
+      .stat-card{ padding:12px 10px; }
+      .stat-value{ font-size:20px; }
+      .stat-title{ font-size:10px; }
+      .header{ padding:8px 12px; }
+      .header h1{ font-size:15px; }
+      .btn{ padding:6px 10px; font-size:11px; }
+      .modal-content{ padding:14px 12px; }
+      .section{ padding:12px 10px; }
+      table{ min-width:600px; font-size:12px; }
+      td, th{ padding:8px 6px; }
+      .form-grid{ grid-template-columns:1fr; gap:10px; }
+      .quick-actions-grid{ grid-template-columns:repeat(2,1fr); gap:8px; }
+      .quick-action-card{ padding:14px 10px; }
+    }
   

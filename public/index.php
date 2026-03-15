@@ -22,10 +22,6 @@
       </a>
     </div>
 
-    <button class="menu-toggle" id="menuToggle" aria-label="Abrir menú" aria-expanded="false">
-      <i class="fa-solid fa-bars" id="menuIcon"></i>
-    </button>
-
     <nav class="nav-links" id="navLinks" aria-label="Navegación principal">
 
       <!-- Inicio con submenú desplegable -->
@@ -85,10 +81,6 @@
     <p style="color:#888; font-size:15px; margin-top:10px;">
       <i class="fa-solid fa-location-dot"></i> Guadalajara, Jalisco · Entregas en toda la ZMG
     </p>
-    <div class="hero-buttons">
-      <a href="/catalogo" class="btn-primary"><i class="fa-solid fa-store"></i> Ver Catálogo</a>
-      <a href="/solicitudes" class="btn-secondary"><i class="fa-solid fa-tag"></i> Pedir Cotización</a>
-    </div>
   </div>
 
   <!-- ── Acciones rápidas ──────────────────────────────────────── -->
@@ -444,7 +436,7 @@
   </nav>
 
   <script src="./assets/js/firebase-config.js"></script>
-  <script src="./assets/js/modal-auth.js?v=6"></script>
+  <script src="./assets/js/modal-auth.js?v=7"></script>
   <script src="./assets/js/index.js"></script>
 
 </body>

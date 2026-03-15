@@ -403,56 +403,11 @@
     /* =========================
        RESPONSIVE
        ========================= */
+    /* Móvil/tablet — barra inferior maneja la navegación */
     @media (max-width: 992px) {
-      .header-nav {
-        padding: 14px 20px;
-      }
-
-      .menu-toggle {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-      }
-
-      .nav-links {
-        display: none;
-        position: static;
-        width: 100%;
-        order: 3;
-        flex-direction: column;
-        gap: 10px;
-        align-items: stretch;
-        background: #2d2d2d;
-        border: 2px solid #3d3d3d;
-        border-radius: 12px;
-        padding: 14px;
-        box-shadow: 0 8px 24px rgba(0,0,0,.4);
-        margin-top: 4px;
-        height: auto;
-        max-width: 100%;
-        top: auto;
-        right: auto;
-        overflow-y: visible;
-      }
-
-      .nav-links.open { display: flex; }
-
-      .nav-links a {
-        text-align: center;
-        padding: 10px 12px;
-        border: 1px solid #3d3d3d;
-        border-radius: 10px;
-        background: #262626;
-      }
-
-      .login-btn { width: 100%; text-align: center; }
-
-      .cart-icon { justify-content: center; }
-
+      .header-nav { padding: 14px 20px; }
       .container { padding: 40px 20px; }
-
       .product-detail { grid-template-columns: 1fr; }
-
       .thumbnails { grid-template-columns: repeat(4, 1fr); }
       .thumbnail { height: 70px; }
     }

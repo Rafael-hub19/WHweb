@@ -259,6 +259,43 @@
     return (partes[0][0] + partes[1][0]).toUpperCase();
   }
 
+  /* ── Mini menú para usuario NO autenticado (Clientes / Personal) ── */
+  function _toggleGuestMenu(btn) {
+    const existing = document.querySelector('.auth-mini-menu');
+    if (existing) { existing.remove(); btn.classList.remove('menu-open'); return; }
+
+    btn.classList.add('menu-open');
+    const menu = document.createElement('div');
+    menu.className = 'auth-mini-menu';
+    menu.innerHTML = `
+      <div class="auth-mini-header">
+        <strong>Mi cuenta</strong>
+        <span>¿Cómo deseas entrar?</span>
+      </div>
+      <button class="auth-mini-item" id="_guestBtnClientes">
+        <i class="fa-solid fa-user-circle"></i> Clientes
+      </button>
+      <div class="auth-mini-divider"></div>
+      <a href="/login" class="auth-mini-item">
+        <i class="fa-solid fa-id-badge"></i> Personal
+      </a>`;
+    btn.appendChild(menu);
+
+    menu.querySelector('#_guestBtnClientes').addEventListener('click', () => {
+      menu.remove(); btn.classList.remove('menu-open');
+      AuthModal.open();
+    });
+
+    function _close(e) {
+      if (!btn.contains(e.target)) { menu.remove(); btn.classList.remove('menu-open'); document.removeEventListener('click', _close); }
+    }
+    setTimeout(() => document.addEventListener('click', _close), 0);
+    function _esc(e) {
+      if (e.key === 'Escape') { menu.remove(); btn.classList.remove('menu-open'); document.removeEventListener('keydown', _esc); }
+    }
+    document.addEventListener('keydown', _esc);
+  }
+
   /* ── Mini menú de cuenta (para páginas sin dropdown en nav) ─────── */
   function _toggleAuthMiniMenu(btn) {
     // Si ya hay un menú abierto, cerrarlo
@@ -323,9 +360,9 @@
         btn.onclick = (e) => { e.stopPropagation(); _toggleAuthMiniMenu(btn); };
       } else {
         btn.classList.remove('autenticado');
-        btn.innerHTML = `<i class="fa-solid fa-user"></i> Mi cuenta`;
+        btn.innerHTML = `<i class="fa-solid fa-user"></i> Mi cuenta <i class="fa-solid fa-chevron-down nav-auth-chevron-sm"></i>`;
         btn.title = '';
-        btn.onclick = () => AuthModal.open();
+        btn.onclick = (e) => { e.stopPropagation(); _toggleGuestMenu(btn); };
       }
     });
   }

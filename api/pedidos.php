@@ -79,9 +79,12 @@ switch ($method) {
         $limit  = min(50, max(1, sanitizeInt($_GET['limit'] ?? 20)));
         $offset = ($page - 1) * $limit;
         $estado = trim($_GET['estado'] ?? '');
-        $busq   = trim($_GET['busqueda'] ?? '');
-        $desde  = trim($_GET['fecha_desde'] ?? '');
-        $hasta  = trim($_GET['fecha_hasta'] ?? '');
+        $busq   = sanitize($_GET['busqueda'] ?? '');
+        $desde  = preg_match('/^\d{4}-\d{2}-\d{2}$/', $_GET['fecha_desde'] ?? '') ? $_GET['fecha_desde'] : '';
+        $hasta  = preg_match('/^\d{4}-\d{2}-\d{2}$/', $_GET['fecha_hasta'] ?? '') ? $_GET['fecha_hasta'] : '';
+
+        $estadosValidos = ['pendiente','pagado','en_produccion','listo','entregado','cancelado'];
+        if ($estado && !in_array($estado, $estadosValidos, true)) $estado = '';
 
         $where = ['1=1']; $params = [];
         if ($estado) { $where[] = 'estado = ?'; $params[] = $estado; }
@@ -120,9 +123,10 @@ switch ($method) {
             jsonError('direccion_envio requerida para entrega a domicilio', 422);
         }
 
-        $cpEnvio      = sanitize($body['cp_envio']      ?? '');
-        $ciudadEnvio  = sanitize($body['ciudad_envio']  ?? '');
-        $coloniaEnvio = sanitize($body['colonia_envio'] ?? '');
+        $cpEnvio        = sanitize($body['cp_envio']        ?? '');
+        $ciudadEnvio    = sanitize($body['ciudad_envio']    ?? '');
+        $municipioEnvio = sanitize($body['municipio_envio'] ?? '');
+        $coloniaEnvio   = sanitize($body['colonia_envio']   ?? '');
 
         $subtotal = 0;
         $itemsData = [];
@@ -173,6 +177,8 @@ switch ($method) {
             $tieneColonia       = false;
             try { dbRows("SELECT cp_envio FROM pedidos LIMIT 0");     $tieneColumnasZona = true; } catch (Exception $e) {}
             try { dbRows("SELECT colonia_envio FROM pedidos LIMIT 0"); $tieneColonia      = true; } catch (Exception $e) {}
+            $tieneMunicipio = false;
+            try { dbRows("SELECT municipio_envio FROM pedidos LIMIT 0"); $tieneMunicipio  = true; } catch (Exception $e) {}
 
             $datosPedido = [
                 'numero_pedido'       => $numeroPedido,
@@ -199,6 +205,9 @@ switch ($method) {
             }
             if ($tieneColonia) {
                 $datosPedido['colonia_envio'] = $coloniaEnvio;
+            }
+            if ($tieneMunicipio) {
+                $datosPedido['municipio_envio'] = $municipioEnvio;
             }
 
             // Vincular al cliente registrado si tiene sesión activa

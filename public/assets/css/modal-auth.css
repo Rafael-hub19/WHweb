@@ -583,6 +583,36 @@
   .wh-verif-text { font-size: 12px; }
 }
 
+/* ── Navegación móvil: sin botón hamburguesa ───────────────────── */
+@media (max-width: 900px) {
+  /* Ocultar botón hamburguesa — la barra inferior maneja la navegación */
+  .menu-toggle { display: none !important; }
+
+  /* Nav siempre visible como fila compacta junto al logo */
+  .nav-links {
+    display: flex !important;
+    flex-direction: row !important;
+    width: auto !important;
+    margin: 0 !important;
+    background: none !important;
+    border: none !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+    gap: 0 !important;
+  }
+
+  /* Ocultar enlaces de página — la barra inferior los cubre */
+  .nav-links > a,
+  .nav-links .nav-link-item,
+  .nav-links .nav-item:not(.cuenta-dropdown) {
+    display: none !important;
+  }
+
+  /* Mantener siempre visible Mi cuenta (incluye acceso a Personal) */
+  .nav-links .cuenta-dropdown { display: block !important; }
+  .nav-links .btn-cuenta-nav  { display: flex !important;  }
+}
+
 @media (max-width: 900px) {
   /* Mini menú: en móvil aparece en posición fija centrado */
   .auth-mini-menu {

@@ -20,7 +20,6 @@
     <div class="logo">
       <img src="/assets/img/logo-header.png" alt="Wooden House" style="height:80px;">
     </div>
-    <button class="menu-toggle" id="menuToggle" aria-label="Abrir menú" aria-expanded="false"><i class="fa-solid fa-bars"></i></button>
     <div class="nav-links" id="navLinks">
       <a href="/inicio">Inicio</a>
       <a href="/solicitudes">Solicitudes</a>

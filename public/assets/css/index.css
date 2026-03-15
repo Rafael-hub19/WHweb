@@ -793,144 +793,90 @@ img, video { max-width: 100%; height: auto; }
 
 /* ── Responsive ──────────────────────────────────────────────────── */
 @media (max-width: 900px) {
-  .header-nav { padding: 14px 18px; flex-wrap: wrap; }
-  .menu-toggle { display: flex; align-items: center; justify-content: center; }
+  .header-nav { padding: 10px 16px; flex-wrap: nowrap; }
 
-  /* Panel hamburguesa */
-  .nav-links {
-    display: none;
-    width: 100%;
-    margin-top: 12px;
-    flex-direction: column;
-    gap: 8px;
-    align-items: stretch;
-    background: #252525;
-    border: 1px solid rgba(139,115,85,0.2);
-    border-radius: 16px;
-    padding: 12px;
-    box-shadow: 0 12px 40px rgba(0,0,0,.5);
-  }
-  .nav-links.open { display: flex; }
+  /* Quick-actions: 2 columnas en tablet */
+  .quick-actions-grid { grid-template-columns: repeat(2, 1fr); }
 
-  /* Enlace simple */
-  .nav-link-item, .nav-links > a:not(.cart-icon) {
-    display: block;
-    text-align: left;
-    padding: 11px 14px;
-    border: 1px solid #3a3a3a;
-    border-radius: 10px;
-    background: #2d2d2d;
-    color: #e0e0e0;
-    font-size: 15px;
-    text-decoration: none;
-    transition: background 0.15s, color 0.15s;
-  }
-  .nav-link-item:hover, .nav-links > a:not(.cart-icon):hover {
-    background: rgba(139,115,85,0.12);
-    color: #c9a96e;
-    border-color: rgba(139,115,85,0.3);
-  }
-
-  /* Botón Inicio en móvil */
-  .nav-dropdown { width: 100%; }
-  .nav-dropdown-btn {
-    width: 100%;
-    justify-content: space-between;
-    padding: 11px 14px;
-    border: 1px solid #3a3a3a;
-    border-radius: 10px;
-    background: #2d2d2d;
-    font-size: 15px;
-    color: #e0e0e0;
-    transition: background 0.15s, color 0.15s;
-  }
-  .nav-dropdown.open .nav-dropdown-btn {
-    background: rgba(139,115,85,0.12);
-    color: #c9a96e;
-    border-color: rgba(139,115,85,0.3);
-    border-radius: 10px 10px 0 0;
-  }
-
-  /* Submenu accordion en móvil — redefine completamente para evitar
-     conflictos con las reglas de desktop (opacity/visibility/transform) */
-  .dropdown-menu {
-    display: none;
-    position: static;
-    opacity: 1;
-    visibility: visible;
-    pointer-events: auto;
-    transform: none;
-    background: #222;
-    border: 1px solid #3a3a3a;
-    border-top: none;
-    border-radius: 0 0 10px 10px;
-    padding: 6px;
-    box-shadow: none;
-    min-width: unset;
-    transition: none;
-  }
-  .dropdown-menu::before,
-  .dropdown-menu::after { display: none; }
-
-  .nav-dropdown.open .dropdown-menu {
-    display: block;
-    border-color: rgba(139,115,85,0.3);
-  }
-  .nav-dropdown.open .nav-chevron { transform: rotate(180deg); }
-  .dropdown-divider { margin: 4px 6px; }
-
-  .dropdown-item {
-    padding: 10px 14px;
-    border-radius: 8px;
-    font-size: 14px;
-    justify-content: flex-start;
-  }
-
-  /* Carrito */
-  .cart-icon {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    justify-content: flex-start;
-    font-size: 22px;
-    padding: 11px 14px;
-    border: 1px solid #3a3a3a;
-    border-radius: 10px;
-    background: #2d2d2d;
-  }
-  .cart-icon::after {
-    content: 'Carrito';
-    font-size: 15px;
-    font-weight: 500;
-    color: #e0e0e0;
-  }
-
-  .login-btn { width: 100%; text-align: center; }
   .hero { padding: 50px 20px; }
-  .container { padding: 40px 20px; }
-  .about-box { padding: 35px 20px; }
-  .about-box h2 { font-size: 26px; }
-  .about-box p { font-size: 16px; }
+  .container { padding: 30px 16px; }
+  .about-box { padding: 28px 16px; }
+  .about-box h2 { font-size: 22px; }
+  .about-box p { font-size: 15px; }
 
   .services-grid,
   .reasons-grid,
   .process-grid,
-  .contact-grid {
-    grid-template-columns: 1fr;
-  }
+  .contact-grid { grid-template-columns: 1fr; }
 
-  .cta-section { padding: 40px 20px; }
-  .cta-section h2 { font-size: 28px; }
+  .service-card { padding: 20px 16px; }
+  .service-icon { font-size: 44px; margin-bottom: 12px; }
+  .service-card h3 { font-size: 18px; margin-bottom: 10px; }
+
+  .reason-card { padding: 20px 16px; }
+  .reason-card h4 { font-size: 17px; }
+
+  .process-step { padding: 24px 16px 18px; }
+  .process-number { width: 38px; height: 38px; font-size: 18px; }
+
+  .cta-section { padding: 32px 16px; }
+  .cta-section h2 { font-size: 24px; }
+  .cta-section p { font-size: 15px; }
+
+  .quick-actions-section { padding: 14px 16px 18px; }
+  .quick-action-card { padding: 12px 14px; gap: 10px; }
+  .qa-icon { width: 38px; height: 38px; font-size: 17px; }
+  .qa-title { font-size: 13px; }
+  .qa-sub { font-size: 11px; }
+}
+
+@media (max-width: 640px) {
+  /* Quick-actions: 1 columna en móvil */
+  .quick-actions-grid { grid-template-columns: 1fr; gap: 8px; }
+
+  .hero { padding: 36px 14px 30px; }
+  .container { padding: 20px 12px; }
+  .section-title { font-size: 18px; margin-bottom: 24px; }
+  .about-box { padding: 18px 12px; margin-bottom: 32px; }
+  .about-box h2 { font-size: 18px; }
+  .about-box p { font-size: 13px; }
+
+  .service-card { padding: 16px 12px; }
+  .service-icon { font-size: 36px; margin-bottom: 10px; }
+  .service-card h3 { font-size: 16px; }
+  .service-card p { font-size: 13px; }
+  .service-card-link { font-size: 12px; margin-top: 10px; }
+
+  .reason-card { padding: 16px 12px; }
+  .reason-card h4 { font-size: 15px; }
+  .reason-card p { font-size: 13px; }
+  .services-grid, .reasons-grid, .process-grid, .contact-grid { gap: 12px; }
+
+  .process-step { padding: 20px 12px 14px; }
+  .process-step h4 { font-size: 15px; }
+  .process-step p { font-size: 12px; }
+
+  .cta-section { padding: 22px 12px; margin-bottom: 32px; }
+  .cta-section h2 { font-size: 20px; }
+  .cta-buttons { flex-direction: column; gap: 10px; align-items: stretch; }
+  .btn-primary, .btn-secondary { padding: 12px 20px; font-size: 14px; text-align: center; }
+
+  .faq-question { padding: 14px 16px; font-size: 14px; }
+  .faq-item.active .faq-answer { padding: 12px 16px; }
+
+  .contact-card { padding: 18px 12px; }
+  .contact-card h4 { font-size: 17px; }
+  .contact-card p { font-size: 14px; }
+
+  .map-section { padding: 16px 12px; }
+  .social-section { padding: 20px 12px; }
+  .social-link { width: 52px; height: 52px; font-size: 24px; }
+
+  .footer { padding: 24px 16px; padding-bottom: calc(70px + env(safe-area-inset-bottom, 0px)); }
 }
 
 @media (max-width: 768px) {
-  .social-link { width: 60px; height: 60px; font-size: 28px; }
-}
-
-@media (max-width: 420px) {
-  .btn-primary, .btn-secondary { width: 100%; text-align: center; }
-  .hero-buttons, .cta-buttons { gap: 12px; }
-  .social-link { width: 55px; height: 55px; font-size: 24px; }
+  .social-link { width: 58px; height: 58px; font-size: 26px; }
 }
 
 /* ── Quitar hover-transforms en táctil ──────────────────────── */
@@ -946,19 +892,10 @@ img, video { max-width: 100%; height: auto; }
 
 /* ── Hero compacto en móvil ─────────────────────────────────── */
 @media (max-width: 480px) {
-  .hero { padding: 40px 16px 36px; }
+  .hero { padding: 30px 12px 24px; }
   .hero h1 { letter-spacing: 2px; }
-  .hero .tagline { font-size: 14px; }
-  .hero-buttons { gap: 10px; margin-top: 22px; }
-  .btn-primary, .btn-secondary { padding: 12px 24px; font-size: 15px; }
-  .container { padding: 28px 16px; }
-  .section-title { font-size: 20px; }
-  .about-box { padding: 24px 16px; }
-  .about-box h2 { font-size: 20px; }
-  .about-box p { font-size: 14px; }
-  .cta-section { padding: 28px 16px; }
-  .cta-section h2 { font-size: 22px; }
-  .cta-section p { font-size: 14px; }
+  .hero .tagline { font-size: 13px; }
+  .logo img { height: 52px !important; }
 }
 
 /* ── VIDEO HINT TEXTO (legacy, mantenido por compatibilidad) ─────── */

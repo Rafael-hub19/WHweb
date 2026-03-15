@@ -158,9 +158,15 @@ function emailPedidoConfirmado(pedido) {
   const tipoEntrega     = pedido.tipo_entrega || 'envio';
   const costoEnvio      = Number(pedido.costo_envio || 0);
   const etiquetaEntrega = tipoEntrega === 'recoger' ? '🏠 Recoger en tienda' : '🚚 Envío a domicilio';
-  const direccion       = pedido.direccion_envio || '';
+  const direccion = pedido.direccion_envio || '';
+  const coloniaDireccion = [
+    pedido.colonia_envio   ? `Col. ${pedido.colonia_envio}` : '',
+    pedido.ciudad_envio    || '',
+    pedido.municipio_envio ? `Mpio. ${pedido.municipio_envio}` : '',
+    pedido.cp_envio        ? `CP ${pedido.cp_envio}` : '',
+  ].filter(Boolean).join(', ');
   const entregaDetalle  = tipoEntrega === 'envio' && direccion
-    ? `<p style="margin:4px 0 0;font-size:13px;color:#777;">📍 Dirección: ${direccion}</p>` : '';
+    ? `<p style="margin:4px 0 0;font-size:13px;color:#777;">📍 ${[direccion, coloniaDireccion].filter(Boolean).join(', ')}</p>` : '';
   const entregaCosto    = tipoEntrega === 'recoger'
     ? `<span style="color:#3d8b3d;font-weight:600;">Sin costo</span>`
     : `<span style="font-weight:600;">${fmt(costoEnvio)}</span>`;

@@ -20,8 +20,7 @@
     <div class="logo">
       <img src="/assets/img/logo-header.png" alt="Wooden House" style="height:80px;">
     </div>
-    <button class="menu-toggle" id="menuToggle" aria-label="Menú" aria-expanded="false"><i class="fa-solid fa-bars"></i></button>
-    <div class="nav-links" id="navLinks">
+<div class="nav-links" id="navLinks">
         <a href="/inicio">Inicio</a>
         <a href="/solicitudes">Solicitudes</a>
         <a href="/catalogo">Catálogo</a>
@@ -215,8 +214,14 @@
                                 <input type="text" id="clienteColonia" placeholder="Ej. Col. Americana" required>
                             </div>
                             <div class="form-group">
-                                <label>Ciudad / Municipio <span class="required">*</span></label>
-                                <input type="text" id="clienteCiudad" placeholder="Guadalajara" required>
+                                <label>Ciudad <span class="required">*</span></label>
+                                <input type="text" id="clienteCiudad" placeholder="Ej. Guadalajara" required>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Municipio <span class="required">*</span></label>
+                                <input type="text" id="clienteMunicipio" placeholder="Ej. Zapopan" required>
                             </div>
                         </div>
                         <div class="form-group">
@@ -299,7 +304,7 @@
 
 <script src="./assets/js/utils.js"></script>
 <script src="./assets/js/firebase-config.js"></script>
-<script src="./assets/js/modal-auth.js?v=6"></script>
+<script src="./assets/js/modal-auth.js?v=7"></script>
 <script src="./assets/js/carrito.js"></script>
 <script src="./assets/js/checkout.js"></script>
 </body>
