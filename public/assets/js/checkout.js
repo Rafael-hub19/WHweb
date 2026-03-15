@@ -296,8 +296,9 @@ function _mostrarSesionCardCarrito(cliente) {
 
     const tieneTel = !!(cliente.telefono);
 
-    // Iniciales (dos letras)
-    const partes   = (cliente.nombre || '').trim().split(/\s+/).filter(Boolean);
+    // Iniciales (dos letras, ignorando partículas como "de", "del", "la", etc.)
+    const _ptcls = new Set(['de','del','la','las','los','el','y','e','von','van','da','das','dos','di','le','les']);
+    const partes   = (cliente.nombre || '').trim().split(/\s+/).filter(p => p && !_ptcls.has(p.toLowerCase()));
     const iniciales = partes.length >= 2
         ? (partes[0][0] + partes[1][0]).toUpperCase()
         : (partes[0]?.[0] || 'U').toUpperCase();

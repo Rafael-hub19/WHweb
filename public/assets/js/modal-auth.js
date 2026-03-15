@@ -252,11 +252,18 @@
   }
 
   /* ── Extraer dos iniciales del nombre completo ───────────────── */
+  const _PARTICULAS = new Set(['de','del','la','las','los','el','los','y','e','von','van','da','das','dos','di','le','les']);
   function _getIniciales(nombre) {
-    const partes = (nombre || '').trim().split(/\s+/).filter(Boolean);
+    const partes = (nombre || '').trim().split(/\s+/).filter(p => p && !_PARTICULAS.has(p.toLowerCase()));
     if (partes.length === 0) return 'U';
     if (partes.length === 1) return partes[0][0].toUpperCase();
     return (partes[0][0] + partes[1][0]).toUpperCase();
+  }
+
+  /* ── Detectar si el error es de red / carga de módulos ────────── */
+  function _esFalloDeConexion(e) {
+    const msg = (e && e.message) ? e.message.toLowerCase() : '';
+    return msg.includes('failed to fetch') || msg.includes('dynamically imported') || msg.includes('load failed') || msg.includes('networkerror');
   }
 
   /* ── Mini menú para usuario NO autenticado (Clientes / Personal) ── */
@@ -541,12 +548,13 @@
         'auth/too-many-requests': 'Demasiados intentos. Espera un momento.',
         'auth/invalid-credential': 'Correo o contraseña incorrectos.',
       };
-      // Si el backend rechaza por ser cuenta de personal, mostrar mensaje con enlace
       const msg = e.message || '';
-      if (msg.includes('personal') || msg.includes('Personal')) {
+      if (_esFalloDeConexion(e)) {
+        _authShowAlert('Sin conexión. Verifica tu internet e intenta de nuevo.', 'error');
+      } else if (msg.includes('personal') || msg.includes('Personal')) {
         _authShowAlert('Esa cuenta es de acceso al personal. Usa la opción "Personal" del menú.', 'error');
       } else {
-        _authShowAlert(map[e.code] || msg || 'Error al iniciar sesión', 'error');
+        _authShowAlert(map[e.code] || (msg.startsWith('Error') ? msg : 'Error al iniciar sesión. Intenta de nuevo.'), 'error');
       }
     } finally {
       _authSetLoading('btnLoginSubmit', false);
@@ -643,10 +651,12 @@
         'auth/weak-password':        'La contraseña es muy corta (mínimo 6 caracteres).',
       };
       const msg = e.message || '';
-      if (msg.includes('personal') || msg.includes('Personal')) {
+      if (_esFalloDeConexion(e)) {
+        _authShowAlert('Sin conexión. Verifica tu internet e intenta de nuevo.', 'error');
+      } else if (msg.includes('personal') || msg.includes('Personal')) {
         _authShowAlert('Ese correo pertenece a una cuenta de personal. Usa la opción "Personal" del menú.', 'error');
       } else {
-        _authShowAlert(map[e.code] || msg || 'Error al registrarse', 'error');
+        _authShowAlert(map[e.code] || (msg.startsWith('Error') ? msg : 'No se pudo crear la cuenta. Intenta de nuevo.'), 'error');
       }
     } finally {
       _authSetLoading('btnRegSubmit', false);
@@ -673,7 +683,11 @@
         'auth/invalid-email':     'Correo inválido.',
         'auth/too-many-requests': 'Demasiados intentos. Espera un momento.',
       };
-      _authShowAlert(map[err.code] || 'No se pudo enviar el correo. Intenta de nuevo.', 'error');
+      if (_esFalloDeConexion(err)) {
+        _authShowAlert('Sin conexión. Verifica tu internet e intenta de nuevo.', 'error');
+      } else {
+        _authShowAlert(map[err.code] || 'No se pudo enviar el correo. Intenta de nuevo.', 'error');
+      }
     }
   };
 

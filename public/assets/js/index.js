@@ -250,7 +250,8 @@ document.addEventListener('wh:autenticado', function (e) {
   // Actualizar botón principal del dropdown
   const btn = document.getElementById('cuentaDropdownBtn');
   if (btn) {
-    const iniciales = (cliente.nombre || '?').trim().split(/\s+/).filter(Boolean)
+    const _ptcls = new Set(['de','del','la','las','los','el','y','e','von','van','da','das','dos','di','le','les']);
+  const iniciales = (cliente.nombre || '?').trim().split(/\s+/).filter(p => p && !_ptcls.has(p.toLowerCase()))
       .slice(0, 2).map(p => p[0].toUpperCase()).join('');
     const primerNombre = (cliente.nombre || '').trim().split(/\s+/)[0];
     btn.innerHTML = `
@@ -277,7 +278,7 @@ document.addEventListener('wh:autenticado', function (e) {
   // Actualizar también el botón en la barra inferior móvil
   const mbnUser = document.querySelector('.mobile-bottom-nav .mbn-item:last-child');
   if (mbnUser) {
-    const iniciales2 = (cliente.nombre || '?').trim().split(/\s+/).filter(Boolean)
+    const iniciales2 = (cliente.nombre || '?').trim().split(/\s+/).filter(p => p && !_ptcls.has(p.toLowerCase()))
       .slice(0, 2).map(p => p[0].toUpperCase()).join('');
     mbnUser.innerHTML = `<i class="fa-solid fa-user-check"></i><span>${iniciales2}</span>`;
     mbnUser.style.color = '#c9a96e';
