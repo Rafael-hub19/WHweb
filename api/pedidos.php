@@ -120,8 +120,10 @@ switch ($method) {
             jsonError('direccion_envio requerida para entrega a domicilio', 422);
         }
 
-        $cpEnvio     = sanitize($body['cp_envio']     ?? '');
-        $ciudadEnvio = sanitize($body['ciudad_envio'] ?? '');
+        $cpEnvio      = sanitize($body['cp_envio']      ?? '');
+        $ciudadEnvio  = sanitize($body['ciudad_envio']  ?? '');
+        $coloniaEnvio = sanitize($body['colonia_envio'] ?? '');
+        $estadoEnvio  = sanitize($body['estado_envio']  ?? '');
 
         $subtotal = 0;
         $itemsData = [];
@@ -168,8 +170,10 @@ switch ($method) {
         try {
             db()->beginTransaction();
 
-            $tieneColumnasZona = false;
-            try { dbRows("SELECT cp_envio FROM pedidos LIMIT 0"); $tieneColumnasZona = true; } catch (Exception $e) {}
+            $tieneColumnasZona   = false;
+            $tieneColoniaEstado  = false;
+            try { dbRows("SELECT cp_envio FROM pedidos LIMIT 0");     $tieneColumnasZona  = true; } catch (Exception $e) {}
+            try { dbRows("SELECT colonia_envio FROM pedidos LIMIT 0"); $tieneColoniaEstado = true; } catch (Exception $e) {}
 
             $datosPedido = [
                 'numero_pedido'       => $numeroPedido,
@@ -193,6 +197,10 @@ switch ($method) {
             if ($tieneColumnasZona) {
                 $datosPedido['cp_envio']     = $cpEnvio;
                 $datosPedido['ciudad_envio'] = $ciudadEnvio;
+            }
+            if ($tieneColoniaEstado) {
+                $datosPedido['colonia_envio'] = $coloniaEnvio;
+                $datosPedido['estado_envio']  = $estadoEnvio;
             }
 
             // Vincular al cliente registrado si tiene sesión activa

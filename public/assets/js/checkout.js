@@ -264,12 +264,19 @@ async function prefillSiLogueado() {
             const el = document.getElementById(id);
             if (el && val && !el.value) { el.value = val; el.setAttribute('data-prefilled', '1'); }
         };
-        set('clienteNombre',    cliente.nombre    || cliente.displayName || '');
-        set('clienteCorreo',    cliente.correo   || '');
-        set('clienteTelefono',  cliente.telefono || '');
+        set('clienteNombre',    cliente.nombre     || cliente.displayName || '');
+        set('clienteCorreo',    cliente.correo    || '');
+        set('clienteTelefono',  cliente.telefono  || '');
         set('clienteDireccion', cliente.direccion || '');
-        set('clienteCiudad',    cliente.ciudad   || '');
-        set('clienteCP',        cliente.cp       || '');
+        set('clienteColonia',   cliente.colonia   || '');
+        set('clienteCiudad',    cliente.ciudad    || '');
+        set('clienteCP',        cliente.cp        || '');
+        // Estado: solo prefill si el cliente tiene uno guardado
+        const estEl = document.getElementById('clienteEstado');
+        if (estEl && cliente.estado && !estEl.getAttribute('data-prefilled')) {
+            estEl.value = cliente.estado;
+            if (estEl.value) estEl.setAttribute('data-prefilled', '1');
+        }
         // Sync confirm email field if present
         const correoEl   = document.getElementById('clienteCorreo');
         const confirmEl  = document.getElementById('clienteCorreoConfirm');
@@ -285,57 +292,88 @@ async function prefillSiLogueado() {
 
 function _mostrarSesionCardCarrito(cliente) {
     if (document.getElementById('sesionCardCarrito')) return;
-    const carritoSection = document.getElementById('carritoItems')?.closest('.section-card');
-    if (!carritoSection) return;
+    const form = document.getElementById('formularioCliente');
+    if (!form) return;
 
+    const tieneTel = !!(cliente.telefono);
+
+    // Iniciales (dos letras)
     const partes   = (cliente.nombre || '').trim().split(/\s+/).filter(Boolean);
     const iniciales = partes.length >= 2
         ? (partes[0][0] + partes[1][0]).toUpperCase()
         : (partes[0]?.[0] || 'U').toUpperCase();
 
-    const div = document.createElement('div');
-    div.id        = 'sesionCardCarrito';
-    div.className = 'sesion-card';
+    // Construir card
+    const card = document.createElement('div');
+    card.id        = 'sesionCardCarrito';
+    card.className = 'sesion-card';
+    card.style.marginBottom = '18px';
 
-    const nombre   = document.createElement('div');
-    nombre.className = 'sesion-card-avatar';
-    nombre.textContent = iniciales;
+    const avatarEl = document.createElement('div');
+    avatarEl.className   = 'sesion-card-avatar';
+    avatarEl.textContent = iniciales;
 
-    const info = document.createElement('div');
-    info.className = 'sesion-card-info';
+    const infoEl = document.createElement('div');
+    infoEl.className = 'sesion-card-info';
+    infoEl.innerHTML = `
+        <div class="sesion-card-nombre">${_esc(cliente.nombre || '')}</div>
+        <div class="sesion-card-detalle">${_esc(cliente.correo || '')}</div>
+        ${tieneTel ? `<div class="sesion-card-detalle">${_esc(cliente.telefono)}</div>` : ''}`;
 
-    const nombreEl = document.createElement('div');
-    nombreEl.className   = 'sesion-card-nombre';
-    nombreEl.textContent = cliente.nombre || '';
+    const btnEditar = document.createElement('button');
+    btnEditar.type      = 'button';
+    btnEditar.className = 'sesion-card-editar';
+    btnEditar.innerHTML = '<i class="fa-solid fa-pen-to-square"></i> Editar datos';
+    btnEditar.onclick   = _restaurarFormCarrito;
 
-    const correoEl = document.createElement('div');
-    correoEl.className   = 'sesion-card-detalle';
-    correoEl.textContent = cliente.correo || '';
+    card.appendChild(avatarEl);
+    card.appendChild(infoEl);
+    card.appendChild(btnEditar);
 
-    info.appendChild(nombreEl);
-    info.appendChild(correoEl);
+    // Insertar card antes del formulario
+    form.insertAdjacentElement('beforebegin', card);
 
-    if (cliente.telefono) {
-        const telEl = document.createElement('div');
-        telEl.className   = 'sesion-card-detalle';
-        telEl.textContent = cliente.telefono;
-        info.appendChild(telEl);
+    // Ocultar campos ya rellenos
+    const grpNombre        = document.getElementById('clienteNombre')?.closest('.form-group');
+    const grpCorreo        = document.getElementById('clienteCorreo')?.closest('.form-group');
+    const grpConfirm       = document.getElementById('clienteCorreoConfirm')?.closest('.form-group');
+    const rowCorreoConfirm = grpConfirm?.closest('.form-row');
+    const grpTel           = document.getElementById('clienteTelefono')?.closest('.form-group');
+    const rowTelCorreo     = grpTel?.closest('.form-row');
+
+    if (grpNombre)        grpNombre.style.display        = 'none';
+    if (grpCorreo)        grpCorreo.style.display        = 'none';
+    if (grpConfirm)       grpConfirm.style.display       = 'none';
+    if (rowCorreoConfirm) rowCorreoConfirm.style.display = 'none';
+
+    if (tieneTel) {
+        // Ocultar también teléfono y el row completo
+        if (grpTel)        grpTel.style.display       = 'none';
+        if (rowTelCorreo)  rowTelCorreo.style.display = 'none';
+    } else {
+        // Mostrar solo teléfono — ocultar correo del mismo row pero mantener el row visible
+        if (grpCorreo) grpCorreo.style.display = 'none';
+        // Aviso en la card
+        const aviso = document.createElement('div');
+        aviso.className   = 'sesion-card-aviso';
+        aviso.innerHTML   = '<i class="fa-solid fa-circle-exclamation"></i> Completa tu teléfono abajo';
+        infoEl.appendChild(aviso);
     }
+}
 
-    const btn = document.createElement('button');
-    btn.type      = 'button';
-    btn.className = 'sesion-card-editar';
-    btn.innerHTML = '<i class="fa-solid fa-pen-to-square"></i> Editar datos';
-    btn.onclick   = () => {
-        document.getElementById('clienteNombre')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        document.getElementById('clienteNombre')?.focus();
-    };
+function _restaurarFormCarrito() {
+    document.getElementById('sesionCardCarrito')?.remove();
+    // Restaurar visibilidad de todos los grupos del formulario
+    const form = document.getElementById('formularioCliente');
+    if (!form) return;
+    form.querySelectorAll('.form-group, .form-row').forEach(el => {
+        el.style.display = '';
+    });
+    document.getElementById('clienteNombre')?.focus();
+}
 
-    div.appendChild(nombre);
-    div.appendChild(info);
-    div.appendChild(btn);
-
-    carritoSection.insertAdjacentElement('afterend', div);
+function _esc(str) {
+    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
 // ── Carrito ───────────────────────────────────────────────────────
@@ -699,8 +737,20 @@ function procederAlPago() {
     const totalMuebles = estado.items.reduce((s, i) => s + i.cantidad, 0);
     const costoInst  = estado.instalacion ? estado.costos.instalacion * totalMuebles : 0;
 
-    const dirEnvio = estado.tipoEntrega === 'envio'
-        ? sanitizeText(`${document.getElementById('clienteDireccion')?.value.trim()}, ${document.getElementById('clienteCiudad')?.value.trim()}, Jal. CP ${document.getElementById('clienteCP')?.value.trim()}`, 400)
+    const esEnvio = estado.tipoEntrega === 'envio';
+    const colonia  = esEnvio ? sanitizeText(document.getElementById('clienteColonia')?.value  || '', 120) : '';
+    const ciudad   = esEnvio ? sanitizeText(document.getElementById('clienteCiudad')?.value   || '', 100) : '';
+    const estadoEnt= esEnvio ? sanitizeText(document.getElementById('clienteEstado')?.value   || '', 100) : '';
+    const cp       = esEnvio ? sanitizeCP(document.getElementById('clienteCP')?.value         || '')      : '';
+
+    const dirEnvio = esEnvio
+        ? sanitizeText([
+            document.getElementById('clienteDireccion')?.value.trim(),
+            colonia,
+            ciudad,
+            estadoEnt,
+            cp ? 'CP ' + cp : ''
+          ].filter(Boolean).join(', '), 400)
         : null;
 
     const payload = {
@@ -713,8 +763,10 @@ function procederAlPago() {
         fecha_estimada:      estado.semana.fecha_sugerida,
         semana_etiqueta:     estado.semana.etiqueta,
         direccion_envio:     dirEnvio,
-        cp_envio:     estado.tipoEntrega === 'envio' ? sanitizeCP(document.getElementById('clienteCP')?.value    || '') : '',
-        ciudad_envio: estado.tipoEntrega === 'envio' ? sanitizeText(document.getElementById('clienteCiudad')?.value || '', 100) : '',
+        colonia_envio:       colonia,
+        ciudad_envio:        ciudad,
+        estado_envio:        estadoEnt,
+        cp_envio:            cp,
         notas:        sanitizeText(document.getElementById('clienteNotas')?.value || '', 500) || null,
         subtotal, costo_envio: costoEnvio, costo_instalacion: costoInst,
         total: subtotal + costoEnvio + costoInst,

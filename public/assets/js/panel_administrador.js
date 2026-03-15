@@ -1822,7 +1822,19 @@ async function verDetallePedidoAdmin(id) {
     const color = estadoColors[est] || 'var(--accent)';
     const label = estadoLabels[est] || est;
 
-    const entrega     = p.tipo_entrega === 'recoger' ? '🏪 Recoge en tienda' : `🚚 Envío — ${p.direccion_envio||'Sin dirección'}`;
+    let entrega;
+    if (p.tipo_entrega === 'recoger') {
+      entrega = '🏪 Recoge en tienda';
+    } else {
+      const partesDireccion = [
+        p.direccion_envio,
+        p.colonia_envio  ? `Col. ${p.colonia_envio}` : '',
+        p.ciudad_envio,
+        p.estado_envio,
+        p.cp_envio       ? `CP ${p.cp_envio}` : '',
+      ].filter(Boolean).join(', ');
+      entrega = `🚚 Envío — ${partesDireccion || 'Sin dirección'}`;
+    }
     const instalacion = parseInt(p.incluye_instalacion) ? '✅ Incluye instalación' : '❌ Sin instalación';
 
     const items = p.items || [];

@@ -175,8 +175,10 @@ CREATE TABLE pedidos (
 
   tipo_entrega ENUM('recoger','envio') NOT NULL DEFAULT 'envio',
   direccion_envio VARCHAR(255) NULL,
-  cp_envio        VARCHAR(10)  NULL,   -- Código postal para agrupación logística
+  colonia_envio   VARCHAR(120) NULL,   -- Colonia para localización precisa
   ciudad_envio    VARCHAR(100) NULL,   -- Ciudad para agrupación logística
+  estado_envio    VARCHAR(100) NULL,   -- Estado (entidad federativa)
+  cp_envio        VARCHAR(10)  NULL,   -- Código postal para agrupación logística
 
   incluye_instalacion TINYINT(1) NOT NULL DEFAULT 0,
   fecha_estimada DATE NULL,
