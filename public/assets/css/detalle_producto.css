@@ -466,6 +466,10 @@
     }
     .spec-row-highlight .spec-key { color: #8b7355; }
 
+    @media (max-width: 520px) {
+      .spec-row { grid-template-columns: 1fr; gap: 4px; }
+      .thumbnails { grid-template-columns: repeat(2, 1fr); }
+    }
     @media (max-width: 500px) {
       .spec-row { grid-template-columns: 1fr; gap: 2px; }
       .spec-key { font-size: 11px; color: #8b7355; }
@@ -648,4 +652,9 @@
       .tab-btn { padding: 10px 12px; font-size: 13px; }
       .product-title { font-size: 20px; }
       .price-large { font-size: 26px; }
+    }
+
+    /* Espacio para la barra inferior fija en móvil */
+    @media (max-width: 900px) {
+      .footer, body > .container:last-of-type { padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px)); }
     }

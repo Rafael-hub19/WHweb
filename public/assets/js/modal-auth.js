@@ -344,8 +344,21 @@
     return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
   }
 
+  /* ── Badge del carrito en barra móvil ───────────────────────── */
+  function _actualizarMbnCartBadge() {
+    try {
+      const carrito = JSON.parse(sessionStorage.getItem('wh_carrito') || '[]');
+      const total   = carrito.reduce((s, i) => s + (Number(i.cantidad) || 1), 0);
+      document.querySelectorAll('.mbn-cart-badge').forEach(badge => {
+        badge.textContent = total > 99 ? '99+' : String(total);
+        badge.style.display = total > 0 ? 'flex' : 'none';
+      });
+    } catch { /* silent */ }
+  }
+
   /* ── Actualizar botón de cuenta en el nav ────────────────────── */
   function _actualizarNavBtn() {
+    // Header desktop button
     const btns = document.querySelectorAll('.btn-cuenta-nav');
     btns.forEach(btn => {
       if (_cliente) {
@@ -365,6 +378,23 @@
         btn.onclick = (e) => { e.stopPropagation(); _toggleGuestMenu(btn); };
       }
     });
+
+    // Barra móvil: botón Mi cuenta (último item)
+    const mbnBtn = document.querySelector('.mobile-bottom-nav .mbn-item:last-child');
+    if (mbnBtn) {
+      if (_cliente) {
+        const iniciales = _getIniciales(_cliente.nombre);
+        mbnBtn.innerHTML = `<i class="fa-solid fa-user-check"></i><span>${iniciales}</span>`;
+        mbnBtn.style.color = '#c9a96e';
+        mbnBtn.onclick = () => { window.location.href = '/mi-cuenta'; };
+      } else {
+        mbnBtn.innerHTML = `<i class="fa-solid fa-user"></i><span>Mi cuenta</span>`;
+        mbnBtn.style.color = '';
+        mbnBtn.onclick = (e) => { e.stopPropagation(); _toggleGuestMenu(mbnBtn); };
+      }
+    }
+
+    _actualizarMbnCartBadge();
   }
 
   /* ── Actualizar vista del modal ──────────────────────────────── */
@@ -730,6 +760,15 @@
 
     isEmailVerified() { return _emailVerificado !== false; },
 
+    // Para el botón Mi cuenta de la barra móvil
+    openMenuMovil(btn) {
+      if (_cliente) { window.location.href = '/mi-cuenta'; }
+      else { _toggleGuestMenu(btn || document.querySelector('.mobile-bottom-nav .mbn-item:last-child')); }
+    },
+
+    // Actualizar badge del carrito en barra móvil (llamar desde carrito.js tras cambios)
+    actualizarCartBadge() { _actualizarMbnCartBadge(); },
+
     // Para páginas que necesitan auth antes de continuar
     requireAuth(callback, mensajePersonalizado) {
       if (_cliente) {
@@ -747,6 +786,7 @@
 
   /* ── Verificar sesión al cargar la página ────────────────────── */
   document.addEventListener('DOMContentLoaded', () => {
+    _actualizarMbnCartBadge(); // mostrar badge del carrito inmediatamente
     AuthModal.verificar();
   });
 

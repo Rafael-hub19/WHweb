@@ -849,6 +849,17 @@ img, video { max-width: 100%; height: auto; display: block; }
 /* ===================================================
    RESPONSIVE
    =================================================== */
+@media (max-width: 640px) {
+  .container { padding: 18px 14px; }
+  .page-title { font-size: 24px; }
+  .page-subtitle { font-size: 13px; margin-bottom: 16px; }
+  .tab-btn { font-size: 14px; padding: 11px 14px; }
+  .form-section { padding: 16px 14px; border-radius: 10px; }
+  .form-section h3 { font-size: 16px; }
+  .time-slots { grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); gap: 6px; }
+  .footer { padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px)); }
+}
+
 @media (max-width: 768px) {
   .container { padding: 40px 20px; }
   .page-title { font-size: 28px; }

@@ -819,8 +819,10 @@
       .container{ height:auto; min-height:calc(100vh - 55px); }
       .sidebar{ display:none; }
       .menu-toggle{ display:inline-flex; }
-      .main-content{ padding:14px; }
-      table{ min-width:900px; }
+      .main-content{ padding:14px; overflow-x: hidden; }
+      /* Scroll horizontal en tablas — sin el wrapper las contenemos en sección */
+      .section, .table-wrap, .module-body { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+      table{ min-width:680px; }
       .cal-side{ grid-template-columns:1fr; }
       .cal-day{ min-height:78px; }
       .detail-wrap{ grid-template-columns:1fr; }

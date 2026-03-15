@@ -263,13 +263,17 @@
     }
 
     /* ========== RESPONSIVE ========== */
-    @media (max-width: 480px) {
-      .login-container {
-        padding: 30px 20px;
-      }
+    @media (max-width: 640px) {
+      .login-wrapper { padding: 16px 14px; }
+      .login-container { padding: 30px 20px; border-radius: 14px; }
+      .logo h1 { font-size: 38px; }
+    }
 
-      .logo h1 {
-        font-size: 36px;
-      }
+    @media (max-width: 480px) {
+      .login-wrapper { padding: 10px; }
+      .login-container { padding: 24px 16px; border-radius: 12px; }
+      .logo h1 { font-size: 32px; }
+      .login-container input { padding: 11px 14px; font-size: 14px; }
+      .btn-login { padding: 12px; font-size: 15px; }
     }
   

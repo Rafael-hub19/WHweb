@@ -389,3 +389,20 @@
   .mc-stat { padding: 12px 10px; }
   .mc-stat-value { font-size: 22px; }
 }
+
+@media (max-width: 480px) {
+  .mc-container { padding: 10px 8px; }
+  .mc-tabs { gap: 3px; overflow-x: auto; flex-wrap: nowrap; }
+  .mc-tab { padding: 7px 10px; font-size: 12px; white-space: nowrap; flex-shrink: 0; }
+  .mc-avatar { width: 56px; height: 56px; font-size: 20px; }
+  .mc-name { font-size: 18px; }
+  .mc-form-group label { font-size: 12px; }
+  .mc-form-group input,
+  .mc-form-group select,
+  .mc-form-group textarea { font-size: 14px; padding: 10px 12px; }
+  .mc-btn-save { width: 100%; justify-content: center; }
+  .mc-pedido-num { font-size: 13px; }
+  .mc-pedido-status { font-size: 11px; padding: 3px 8px; }
+  .mc-stat-value { font-size: 20px; }
+  .mc-stat { padding: 10px 8px; }
+}

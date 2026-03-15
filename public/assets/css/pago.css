@@ -717,6 +717,17 @@ body {
   }
 }
 
+@media (max-width: 768px) {
+  .container { padding: 20px 14px; }
+  .page-title { font-size: 24px; }
+  .steps-indicator { gap: 16px; padding: 18px 14px; }
+  .step { font-size: 13px; gap: 6px; }
+  .step-number { width: 30px; height: 30px; font-size: 13px; }
+  .payment-card { padding: 22px 16px; }
+  .order-summary { padding: 18px 16px; }
+  .footer { padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px)); }
+}
+
 @media (max-width: 640px) {
   .container {
     padding: 16px 12px;

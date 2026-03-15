@@ -145,13 +145,13 @@
     <a href="/inicio" class="mbn-item"><i class="fa-solid fa-house"></i><span>Inicio</span></a>
     <a href="/catalogo" class="mbn-item"><i class="fa-solid fa-store"></i><span>Catálogo</span></a>
     <a href="/solicitudes" class="mbn-item"><i class="fa-solid fa-file-invoice"></i><span>Cotización</span></a>
-    <a href="/carrito" class="mbn-item"><i class="fa-solid fa-cart-shopping"></i><span>Carrito</span></a>
-    <button class="mbn-item mbn-item--active" onclick="AuthModal.open()"><i class="fa-solid fa-user"></i><span>Mi cuenta</span></button>
+    <a href="/carrito" class="mbn-item"><span class="mbn-icon-wrap"><i class="fa-solid fa-cart-shopping"></i><span class="mbn-cart-badge"></span></span><span>Carrito</span></a>
+    <button class="mbn-item mbn-item--active" onclick="AuthModal.openMenuMovil(this)"><i class="fa-solid fa-user"></i><span>Mi cuenta</span></button>
   </div>
 </nav>
 
 <script src="./assets/js/firebase-config.js"></script>
-<script src="./assets/js/modal-auth.js?v=7"></script>
+<script src="./assets/js/modal-auth.js?v=8"></script>
 <script src="./assets/js/mi-cuenta.js"></script>
 </body>
 </html>
