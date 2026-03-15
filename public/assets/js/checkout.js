@@ -705,6 +705,13 @@ function procederAlPago() {
     if (estado.items.length === 0)   { showToast('Tu carrito está vacío', 'error'); return; }
     if (!estado.semana)              { showToast('Por favor selecciona una fecha de entrega', 'error'); document.getElementById('semanasGrid')?.scrollIntoView({ behavior:'smooth', block:'center' }); return; }
 
+    // Bloquear si el cliente está logueado pero no ha verificado su correo
+    if (window.AuthModal && AuthModal.isAuthenticated() && !AuthModal.isEmailVerified()) {
+        showToast('Confirma tu correo electrónico antes de completar tu compra. Revisa tu bandeja de entrada.', 'error');
+        document.getElementById('whVerifBanner')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        return;
+    }
+
     // Leer y sanitizar TODOS los campos antes de validar
     const nombre   = sanitizeName(document.getElementById('clienteNombre')?.value    || '');
     const telefono = sanitizePhone(document.getElementById('clienteTelefono')?.value  || '');

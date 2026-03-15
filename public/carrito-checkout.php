@@ -279,7 +279,7 @@
 
 <script src="./assets/js/utils.js"></script>
 <script src="./assets/js/firebase-config.js"></script>
-<script src="./assets/js/modal-auth.js?v=4"></script>
+<script src="./assets/js/modal-auth.js?v=5"></script>
 <script src="./assets/js/carrito.js"></script>
 <script src="./assets/js/checkout.js"></script>
 </body>

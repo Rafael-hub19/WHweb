@@ -14,10 +14,11 @@
   'use strict';
 
   /* ── Estado ──────────────────────────────────────────────────── */
-  let _cliente   = null;   // datos del cliente autenticado
-  let _callback  = null;   // función a ejecutar tras autenticación
-  let _firebaseApp = null;
-  let _firebaseAuth = null;
+  let _cliente         = null;   // datos del cliente autenticado
+  let _emailVerificado = null;   // null=desconocido, true=verificado, false=no verificado
+  let _callback        = null;   // función a ejecutar tras autenticación
+  let _firebaseApp     = null;
+  let _firebaseAuth    = null;
 
   /* ── Crear estructura HTML del modal ─────────────────────────── */
   function _crearModal() {
@@ -300,11 +301,89 @@
     }
   }
 
+  /* ── Banner de correo no verificado ─────────────────────────── */
+  function _mostrarBannerVerificacion() {
+    if (document.getElementById('whVerifBanner')) return;
+    const correo = _cliente?.correo || '';
+    const banner = document.createElement('div');
+    banner.id        = 'whVerifBanner';
+    banner.className = 'wh-verif-banner';
+    banner.innerHTML = `
+      <span class="wh-verif-icon"><i class="fa-solid fa-triangle-exclamation"></i></span>
+      <span class="wh-verif-text">
+        <strong>Confirma tu correo electrónico</strong> — Enviamos un enlace a <strong>${correo}</strong>.
+        Sin confirmar no podrás completar compras.
+      </span>
+      <div class="wh-verif-actions">
+        <button type="button" class="wh-verif-btn" id="btnBannerReenviar" onclick="_authReenviarBanner(event)">
+          <i class="fa-solid fa-paper-plane"></i> Reenviar
+        </button>
+        <button type="button" class="wh-verif-btn wh-verif-btn-ok" onclick="_authYaVerifique()">
+          Ya verifiqué
+        </button>
+      </div>`;
+    // Insertar justo después del header-nav si existe, si no al inicio del body
+    const nav = document.querySelector('.header-nav');
+    if (nav) nav.insertAdjacentElement('afterend', banner);
+    else document.body.insertAdjacentElement('afterbegin', banner);
+  }
+
+  window._authReenviarBanner = async function(e) {
+    const btn = document.getElementById('btnBannerReenviar');
+    if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Enviando…'; }
+    try {
+      const auth = await _getAuth();
+      const user = auth.currentUser;
+      if (!user) throw new Error('sin sesión');
+      const { sendEmailVerification } = await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js');
+      await sendEmailVerification(user);
+      if (btn) { btn.innerHTML = '<i class="fa-solid fa-check"></i> Enviado'; btn.style.background = '#3d7848'; }
+    } catch (err) {
+      if (btn) {
+        btn.disabled = false;
+        btn.innerHTML = err.code === 'auth/too-many-requests'
+          ? 'Espera un momento'
+          : '<i class="fa-solid fa-paper-plane"></i> Reenviar';
+      }
+    }
+  };
+
+  window._authYaVerifique = async function() {
+    try {
+      const auth = await _getAuth();
+      const user = auth.currentUser;
+      if (user) {
+        await user.reload();
+        if (user.emailVerified) {
+          _emailVerificado = true;
+          document.getElementById('whVerifBanner')?.remove();
+          return;
+        }
+      }
+    } catch (_) {}
+    // Si aún no está verificado, animar el banner para avisar
+    const banner = document.getElementById('whVerifBanner');
+    if (banner) {
+      banner.style.animation = 'none';
+      banner.offsetHeight; // reflow
+      banner.style.animation = 'wh-shake 0.4s ease';
+      const txt = banner.querySelector('.wh-verif-text');
+      if (txt) { txt.style.color = '#ffd080'; setTimeout(() => { txt.style.color = ''; }, 1500); }
+    }
+  };
+
   /* ── Tras autenticación exitosa ──────────────────────────────── */
-  function _onAutenticado(cliente) {
-    _cliente = cliente;
+  function _onAutenticado(cliente, emailVerificado) {
+    _cliente         = cliente;
+    _emailVerificado = emailVerificado ?? true;
     _actualizarNavBtn();
     _actualizarVistaModal();
+    // Mostrar banner si el correo no está verificado
+    if (_emailVerificado === false) {
+      _mostrarBannerVerificacion();
+    } else {
+      document.getElementById('whVerifBanner')?.remove();
+    }
     // Notificar a otras partes de la página (solicitudes, checkout, etc.)
     document.dispatchEvent(new CustomEvent('wh:autenticado', { detail: cliente }));
 
@@ -314,7 +393,6 @@
       AuthModal.close();
       cb(cliente);
     } else {
-      // Sin callback: mostrar vista de usuario autenticado
       _actualizarVistaModal();
     }
   }
@@ -335,7 +413,7 @@
       const token = await cred.user.getIdToken();
       const data  = await _llamarBackend('cliente-login', token);
       if (!data.success) throw new Error(data.error || 'Error al iniciar sesión');
-      _onAutenticado(data.cliente);
+      _onAutenticado(data.cliente, cred.user.emailVerified);
     } catch (e) {
       const map = {
         'auth/user-not-found':    'No existe cuenta con ese correo.',
@@ -358,9 +436,16 @@
 
   /* ── Continuar después del registro (botón en vista verificación) ── */
   let _pendingCliente = null;
-  window._authContinuarDespuesDeRegistro = function () {
+  window._authContinuarDespuesDeRegistro = async function () {
     if (_pendingCliente) {
-      _onAutenticado(_pendingCliente);
+      // Verificar si el cliente ya confirmó antes de continuar
+      let verified = false;
+      try {
+        const auth = await _getAuth();
+        const user = auth.currentUser;
+        if (user) { await user.reload(); verified = user.emailVerified; }
+      } catch (_) {}
+      _onAutenticado(_pendingCliente, verified);
       _pendingCliente = null;
     } else {
       AuthModal.close();
@@ -532,14 +617,29 @@
         const data = await res.json();
         if (data.success && data.autenticado && data.cliente) {
           _cliente = data.cliente;
+          // Chequear emailVerified desde Firebase
+          try {
+            const auth = await _getAuth();
+            const user = auth.currentUser;
+            if (user) {
+              await user.reload();
+              _emailVerificado = user.emailVerified;
+            } else {
+              _emailVerificado = true; // sin usuario Firebase activo, asumir OK
+            }
+          } catch (_) { _emailVerificado = true; }
           _actualizarNavBtn();
+          if (_emailVerificado === false) _mostrarBannerVerificacion();
           return _cliente;
         }
       } catch (_) { /* ignorar */ }
       _cliente = null;
+      _emailVerificado = null;
       _actualizarNavBtn();
       return null;
     },
+
+    isEmailVerified() { return _emailVerificado !== false; },
 
     // Para páginas que necesitan auth antes de continuar
     requireAuth(callback, mensajePersonalizado) {
