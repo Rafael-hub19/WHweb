@@ -123,7 +123,6 @@ switch ($method) {
         $cpEnvio      = sanitize($body['cp_envio']      ?? '');
         $ciudadEnvio  = sanitize($body['ciudad_envio']  ?? '');
         $coloniaEnvio = sanitize($body['colonia_envio'] ?? '');
-        $estadoEnvio  = sanitize($body['estado_envio']  ?? '');
 
         $subtotal = 0;
         $itemsData = [];
@@ -170,10 +169,10 @@ switch ($method) {
         try {
             db()->beginTransaction();
 
-            $tieneColumnasZona   = false;
-            $tieneColoniaEstado  = false;
-            try { dbRows("SELECT cp_envio FROM pedidos LIMIT 0");     $tieneColumnasZona  = true; } catch (Exception $e) {}
-            try { dbRows("SELECT colonia_envio FROM pedidos LIMIT 0"); $tieneColoniaEstado = true; } catch (Exception $e) {}
+            $tieneColumnasZona  = false;
+            $tieneColonia       = false;
+            try { dbRows("SELECT cp_envio FROM pedidos LIMIT 0");     $tieneColumnasZona = true; } catch (Exception $e) {}
+            try { dbRows("SELECT colonia_envio FROM pedidos LIMIT 0"); $tieneColonia      = true; } catch (Exception $e) {}
 
             $datosPedido = [
                 'numero_pedido'       => $numeroPedido,
@@ -198,9 +197,8 @@ switch ($method) {
                 $datosPedido['cp_envio']     = $cpEnvio;
                 $datosPedido['ciudad_envio'] = $ciudadEnvio;
             }
-            if ($tieneColoniaEstado) {
+            if ($tieneColonia) {
                 $datosPedido['colonia_envio'] = $coloniaEnvio;
-                $datosPedido['estado_envio']  = $estadoEnvio;
             }
 
             // Vincular al cliente registrado si tiene sesión activa

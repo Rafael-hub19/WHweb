@@ -1828,10 +1828,9 @@ async function verDetallePedidoAdmin(id) {
     } else {
       const partesDireccion = [
         p.direccion_envio,
-        p.colonia_envio  ? `Col. ${p.colonia_envio}` : '',
+        p.colonia_envio ? `Col. ${p.colonia_envio}` : '',
         p.ciudad_envio,
-        p.estado_envio,
-        p.cp_envio       ? `CP ${p.cp_envio}` : '',
+        p.cp_envio      ? `CP ${p.cp_envio}` : '',
       ].filter(Boolean).join(', ');
       entrega = `🚚 Envío — ${partesDireccion || 'Sin dirección'}`;
     }

@@ -139,7 +139,6 @@ function notificarNuevoPedido(array $pedido): void {
                 'direccion_envio'   => $pedido['direccion_envio'] ?? '',
                 'colonia_envio'     => $pedido['colonia_envio']  ?? '',
                 'ciudad_envio'      => $pedido['ciudad_envio']   ?? '',
-                'estado_envio'      => $pedido['estado_envio']   ?? '',
                 'cp_envio'          => $pedido['cp_envio']       ?? '',
                 'costo_envio'       => (float)($pedido['costo_envio'] ?? 0),
                 'incluye_instalacion' => !empty($pedido['incluye_instalacion']),

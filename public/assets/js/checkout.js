@@ -271,12 +271,6 @@ async function prefillSiLogueado() {
         set('clienteColonia',   cliente.colonia   || '');
         set('clienteCiudad',    cliente.ciudad    || '');
         set('clienteCP',        cliente.cp        || '');
-        // Estado: solo prefill si el cliente tiene uno guardado
-        const estEl = document.getElementById('clienteEstado');
-        if (estEl && cliente.estado && !estEl.getAttribute('data-prefilled')) {
-            estEl.value = cliente.estado;
-            if (estEl.value) estEl.setAttribute('data-prefilled', '1');
-        }
         // Sync confirm email field if present
         const correoEl   = document.getElementById('clienteCorreo');
         const confirmEl  = document.getElementById('clienteCorreoConfirm');
@@ -738,17 +732,15 @@ function procederAlPago() {
     const costoInst  = estado.instalacion ? estado.costos.instalacion * totalMuebles : 0;
 
     const esEnvio = estado.tipoEntrega === 'envio';
-    const colonia  = esEnvio ? sanitizeText(document.getElementById('clienteColonia')?.value  || '', 120) : '';
-    const ciudad   = esEnvio ? sanitizeText(document.getElementById('clienteCiudad')?.value   || '', 100) : '';
-    const estadoEnt= esEnvio ? sanitizeText(document.getElementById('clienteEstado')?.value   || '', 100) : '';
-    const cp       = esEnvio ? sanitizeCP(document.getElementById('clienteCP')?.value         || '')      : '';
+    const colonia = esEnvio ? sanitizeText(document.getElementById('clienteColonia')?.value || '', 120) : '';
+    const ciudad  = esEnvio ? sanitizeText(document.getElementById('clienteCiudad')?.value  || '', 100) : '';
+    const cp      = esEnvio ? sanitizeCP(document.getElementById('clienteCP')?.value        || '')      : '';
 
     const dirEnvio = esEnvio
         ? sanitizeText([
             document.getElementById('clienteDireccion')?.value.trim(),
             colonia,
             ciudad,
-            estadoEnt,
             cp ? 'CP ' + cp : ''
           ].filter(Boolean).join(', '), 400)
         : null;
@@ -765,7 +757,6 @@ function procederAlPago() {
         direccion_envio:     dirEnvio,
         colonia_envio:       colonia,
         ciudad_envio:        ciudad,
-        estado_envio:        estadoEnt,
         cp_envio:            cp,
         notas:        sanitizeText(document.getElementById('clienteNotas')?.value || '', 500) || null,
         subtotal, costo_envio: costoEnvio, costo_instalacion: costoInst,
