@@ -16,6 +16,11 @@ body {
 
 img, video { max-width: 100%; height: auto; display: block; }
 
+/* Neutralizar colores de Bootstrap Reboot */
+a { color: inherit; text-decoration: none; }
+p { margin-bottom: 0; }
+h1, h2, h3, h4, h5, h6 { margin-bottom: 0; }
+
 /* ===================================================
    HEADER — idéntico al resto del sitio
    =================================================== */

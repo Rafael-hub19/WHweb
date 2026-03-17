@@ -13,7 +13,22 @@
     --warn:#8b6914;
     --info:#4a7c8b;
     --danger:#8b4a4a;
+
+    /* Bootstrap 5 — Mapear variables a la paleta Wooden House */
+    --bs-primary:          #8b7355;
+    --bs-primary-rgb:      139, 115, 85;
+    --bs-link-color:       #c9a96e;
+    --bs-link-hover-color: #8b7355;
+    --bs-body-color:       #e0e0e0;
+    --bs-body-bg:          #1e1e1e;
+    --bs-border-color:     #3c3c3c;
+    --bs-focus-ring-color: rgba(139, 115, 85, 0.25);
   }
+
+  /* Neutralizar colores de Bootstrap Reboot */
+  a { color: inherit; text-decoration: none; }
+  p { margin-bottom: 0; }
+  h1, h2, h3, h4, h5, h6 { margin-bottom: 0; }
 
   *{ margin:0; padding:0; box-sizing:border-box; }
 

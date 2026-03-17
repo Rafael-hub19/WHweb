@@ -79,4 +79,22 @@
   --z-header:       1000;
   --z-modal:        2000;
   --z-notification: 3000;
+
+  /* === BOOTSTRAP 5 OVERRIDES — Mapear colores de Bootstrap a la paleta Wooden House === */
+  --bs-primary:           #8b7355;
+  --bs-primary-rgb:       139, 115, 85;
+  --bs-secondary:         #a0a0a0;
+  --bs-secondary-rgb:     160, 160, 160;
+  --bs-link-color:        #c9a96e;
+  --bs-link-hover-color:  #8b7355;
+  --bs-body-color:        #e0e0e0;
+  --bs-body-color-rgb:    224, 224, 224;
+  --bs-body-bg:           #1a1a1a;
+  --bs-body-font-family:  'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  --bs-body-line-height:  1.6;
+  --bs-border-color:      #3d3d3d;
+  --bs-border-radius:     10px;
+  --bs-border-radius-sm:  8px;
+  --bs-border-radius-lg:  15px;
+  --bs-focus-ring-color:  rgba(139, 115, 85, 0.25);
 }
