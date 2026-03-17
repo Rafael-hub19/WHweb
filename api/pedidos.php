@@ -218,6 +218,19 @@ switch ($method) {
 
             $pedidoId = dbInsert('pedidos', $datosPedido);
 
+            // Sincronizar datos al perfil del cliente registrado
+            if ($clienteSession) {
+                $profileUpdate = [];
+                if (!empty($body['telefono_cliente'])) $profileUpdate['telefono'] = sanitize($body['telefono_cliente']);
+                if ($ciudadEnvio)                      $profileUpdate['ciudad']   = $ciudadEnvio;
+                if ($cpEnvio)                          $profileUpdate['cp']       = $cpEnvio;
+                if (!empty($body['direccion_envio']))  $profileUpdate['direccion'] = sanitize($body['direccion_envio']);
+                if ($profileUpdate) {
+                    try { dbUpdate('clientes', $profileUpdate, 'id = ?', [$clienteSession['id']]); }
+                    catch (\Exception $e) { appLog('warning', 'No se pudo sincronizar perfil en pedido', ['e' => $e->getMessage()]); }
+                }
+            }
+
             foreach ($itemsData as $item) {
                 dbInsert('detalle_pedido', [
                     'pedido_id'       => $pedidoId,

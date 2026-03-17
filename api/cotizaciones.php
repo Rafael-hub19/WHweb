@@ -115,6 +115,15 @@ switch ($method) {
         }
         $cotId = dbInsert('cotizaciones', $datosCot);
 
+        // Sincronizar teléfono al perfil del cliente registrado
+        if ($clienteSession) {
+            $tel = sanitize($body['telefono_cliente']);
+            if ($tel) {
+                try { dbUpdate('clientes', ['telefono' => $tel], 'id = ?', [$clienteSession['id']]); }
+                catch (\Exception $e) { appLog('warning', 'No se pudo sincronizar telefono en cotizacion', ['e' => $e->getMessage()]); }
+            }
+        }
+
         try {
             // Firebase Cloud Function enviará correos al cliente y al admin
             notificarNuevaCotizacion([
