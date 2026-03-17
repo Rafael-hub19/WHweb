@@ -96,7 +96,6 @@ switch ($method) {
             'fecha_cita'       => $fechaCita,
             'rango_horario'    => sanitize($body['rango_horario'] ?? 'Por confirmar'),
             'tipo'             => $body['tipo'],
-            'notas'            => sanitize($body['notas'] ?? ''),
             'estado'           => 'nueva',
         ];
         $clienteSession = sesionClienteActiva();
