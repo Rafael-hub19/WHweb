@@ -867,24 +867,19 @@ async function prefillContactoSiLogueado() {
         </button>
       </div>`;
 
-    // Ocultar sección y mostrar card en su lugar
-    seccion.style.display = 'none';
-    seccion.insertAdjacentHTML('beforebegin', cardHtml);
-
-    // Si no tiene teléfono, mostrar solo ese campo
-    if (!tieneTel) {
-      const telGroup = seccion.querySelector('[name="telefono"]')?.closest('.form-group');
-      if (telGroup) {
-        seccion.style.display = '';            // mostrar sección
-        seccion.querySelectorAll('.form-group').forEach(g => { g.style.display = 'none'; });
-        telGroup.style.display = '';           // solo teléfono visible
-        // Actualizar card para indicar que falta el teléfono
-        const card = document.getElementById(`sesionCard_${formId}`);
-        if (card) {
-          const info = card.querySelector('.sesion-card-info');
-          if (info) info.insertAdjacentHTML('beforeend',
-            '<div class="sesion-card-aviso"><i class="fa-solid fa-circle-exclamation"></i> Completa tu teléfono abajo</div>');
-        }
+    if (tieneTel) {
+      // Perfil completo: ocultar sección y mostrar solo la card
+      seccion.style.display = 'none';
+      seccion.insertAdjacentHTML('beforebegin', cardHtml);
+    } else {
+      // Perfil incompleto (sin teléfono): mostrar card como banner + dejar sección
+      // completa visible para que el usuario pueda llenar todos sus datos
+      seccion.insertAdjacentHTML('beforebegin', cardHtml);
+      const card = document.getElementById(`sesionCard_${formId}`);
+      if (card) {
+        const info = card.querySelector('.sesion-card-info');
+        if (info) info.insertAdjacentHTML('beforeend',
+          '<div class="sesion-card-aviso"><i class="fa-solid fa-circle-exclamation"></i> Completa tus datos abajo</div>');
       }
     }
   });

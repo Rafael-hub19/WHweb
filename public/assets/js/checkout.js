@@ -341,22 +341,20 @@ function _mostrarSesionCardCarrito(cliente) {
     const grpTel           = document.getElementById('clienteTelefono')?.closest('.form-group');
     const rowTelCorreo     = grpTel?.closest('.form-row');
 
-    if (grpNombre)        grpNombre.style.display        = 'none';
-    if (grpCorreo)        grpCorreo.style.display        = 'none';
-    if (grpConfirm)       grpConfirm.style.display       = 'none';
-    if (rowCorreoConfirm) rowCorreoConfirm.style.display = 'none';
-
     if (tieneTel) {
-        // Ocultar también teléfono y el row completo
-        if (grpTel)        grpTel.style.display       = 'none';
-        if (rowTelCorreo)  rowTelCorreo.style.display = 'none';
+        // Perfil completo: ocultar campos ya rellenos (nombre, correo, teléfono)
+        if (grpNombre)        grpNombre.style.display        = 'none';
+        if (grpCorreo)        grpCorreo.style.display        = 'none';
+        if (grpConfirm)       grpConfirm.style.display       = 'none';
+        if (rowCorreoConfirm) rowCorreoConfirm.style.display = 'none';
+        if (grpTel)           grpTel.style.display           = 'none';
+        if (rowTelCorreo)     rowTelCorreo.style.display     = 'none';
     } else {
-        // Mostrar solo teléfono — ocultar correo del mismo row pero mantener el row visible
-        if (grpCorreo) grpCorreo.style.display = 'none';
-        // Aviso en la card
+        // Perfil incompleto (sin teléfono): mostrar card solo como banner informativo,
+        // dejar el formulario completo visible para que el usuario llene sus datos
         const aviso = document.createElement('div');
-        aviso.className   = 'sesion-card-aviso';
-        aviso.innerHTML   = '<i class="fa-solid fa-circle-exclamation"></i> Completa tu teléfono abajo';
+        aviso.className = 'sesion-card-aviso';
+        aviso.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i> Completa tus datos para continuar';
         infoEl.appendChild(aviso);
     }
 }
