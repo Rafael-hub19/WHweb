@@ -100,7 +100,11 @@ switch ($method) {
             'estado'           => 'nueva',
         ];
         $clienteSession = sesionClienteActiva();
-        if ($clienteSession) $datosCita['cliente_id'] = $clienteSession['id'];
+        if ($clienteSession) {
+            $tieneClienteId = false;
+            try { dbRows("SELECT cliente_id FROM citas LIMIT 0"); $tieneClienteId = true; } catch (\Exception $e) {}
+            if ($tieneClienteId) $datosCita['cliente_id'] = $clienteSession['id'];
+        }
         $citaId = dbInsert('citas', $datosCita);
 
         try {

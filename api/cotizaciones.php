@@ -108,7 +108,11 @@ switch ($method) {
             'estado'                => 'nueva',
         ];
         $clienteSession = sesionClienteActiva();
-        if ($clienteSession) $datosCot['cliente_id'] = $clienteSession['id'];
+        if ($clienteSession) {
+            $tieneClienteId = false;
+            try { dbRows("SELECT cliente_id FROM cotizaciones LIMIT 0"); $tieneClienteId = true; } catch (\Exception $e) {}
+            if ($tieneClienteId) $datosCot['cliente_id'] = $clienteSession['id'];
+        }
         $cotId = dbInsert('cotizaciones', $datosCot);
 
         try {

@@ -132,7 +132,7 @@ if ($method === 'PUT' && $id) {
 
     if (empty($nombre) || strlen($nombre) < 2) jsonError('Nombre requerido', 422);
 
-    dbExecute(
+    dbQuery(
         "UPDATE clientes SET nombre=?, telefono=?, direccion=?, ciudad=?, cp=? WHERE id=?",
         [$nombre, $telefono ?: null, $direccion ?: null, $ciudad ?: null, $cp ?: null, $id]
     );
