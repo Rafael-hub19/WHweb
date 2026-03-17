@@ -82,27 +82,27 @@
         </div>
         <div class="form-section">
           <h3 class="section-title"><i class="fa-solid fa-phone"></i> Información de Contacto</h3>
-          <div class="form-grid">
-            <div class="form-group full-width">
+          <div class="row g-3">
+            <div class="col-12 form-group">
               <label>Nombre Completo <span class="required">*</span></label>
               <input type="text" name="nombre" placeholder="Ej: Juan Pérez López" required maxlength="100" autocomplete="name" spellcheck="false">
             </div>
-            <div class="form-group">
+            <div class="col-md-6 form-group">
               <label>Teléfono <span class="required">*</span></label>
-              <input type="tel" name="telefono" placeholder="33 1234 5678" autocomplete="tel" required maxlength="20" >
+              <input type="tel" name="telefono" placeholder="33 1234 5678" autocomplete="tel" required maxlength="20">
               <div class="help-text">Usaremos este número para contactarte</div>
             </div>
-            <div class="form-group">
+            <div class="col-md-6 form-group">
               <label>Correo Electrónico <span class="required">*</span></label>
               <input type="email" name="email" placeholder="correo@ejemplo.com" autocomplete="email" required maxlength="150">
               <div class="help-text">Te enviaremos la cotización detallada aquí</div>
             </div>
-            <div class="form-group">
+            <div class="col-md-6 form-group">
               <label>Confirmar Correo Electrónico <span class="required">*</span></label>
               <input type="email" name="emailConfirm" placeholder="correo@ejemplo.com" required maxlength="150" autocomplete="off" autocorrect="off" spellcheck="false">
               <div class="help-text">Escribe tu correo nuevamente para confirmarlo</div>
             </div>
-            <div class="form-group full-width">
+            <div class="col-12 form-group">
               <label>Ciudad o Zona</label>
               <input type="text" name="ciudad" placeholder="Ej: Guadalajara, Zapopan, Tlaquepaque" maxlength="100" autocomplete="address-level2">
               <div class="help-text">Opcional: Nos ayuda a calcular costos de envío/instalación</div>
@@ -112,8 +112,8 @@
 
         <div class="form-section">
           <h3 class="section-title"><i class="fa-solid fa-ruler-combined"></i> Especificaciones del Proyecto</h3>
-          <div class="form-grid">
-            <div class="form-group">
+          <div class="row g-3">
+            <div class="col-md-6 form-group">
               <label>Modelo de Mueble <span class="required">*</span></label>
               <select name="modeloMueble" required>
                 <option value="">Selecciona una opción</option>
@@ -134,7 +134,7 @@
               </select>
             </div>
 
-            <div class="form-group">
+            <div class="col-md-6 form-group">
               <label>¿Tienes las medidas?</label>
               <select name="tieneMedidas" id="tieneMedidas">
                 <option value="si">Sí, tengo las medidas</option>
@@ -142,19 +142,19 @@
               </select>
             </div>
 
-            <div class="form-group full-width" id="medidasField">
+            <div class="col-12 form-group" id="medidasField">
               <label>Medidas del Mueble</label>
               <input type="text" name="medidas" placeholder="Ej: Ancho 2.5m x Alto 2.4m x Profundidad 0.6m" maxlength="300">
               <div class="help-text">Proporciona las medidas disponibles (alto, ancho, profundidad)</div>
             </div>
 
-            <div class="form-group full-width">
+            <div class="col-12 form-group">
               <label>Descripción y Características Deseadas <span class="required">*</span></label>
               <textarea name="descripcion" placeholder="Describe tu proyecto: estilo, colores, materiales, funcionalidades (cajones, puertas, iluminación), etc." required maxlength="1000"></textarea>
               <div class="help-text">Entre más detalles proporciones, más precisa será la cotización</div>
             </div>
 
-            <div class="form-group">
+            <div class="col-md-6 form-group">
               <label>Presupuesto Estimado</label>
               <select name="presupuesto">
                 <option value="">Selecciona un rango</option>
@@ -165,7 +165,7 @@
               <div class="help-text">Opcional: Nos ayuda a orientar mejor la propuesta</div>
             </div>
 
-            <div class="form-group">
+            <div class="col-md-6 form-group">
               <label>Tiempo estimado de necesidad</label>
               <select name="urgencia">
                 <option value="">Selecciona un plazo</option>
@@ -175,7 +175,7 @@
               </select>
             </div>
 
-            <div class="form-group">
+            <div class="col-md-6 form-group">
               <label>¿Necesitas instalación?</label>
               <select name="instalacion">
                 <option value="">Selecciona una opción</option>
@@ -221,26 +221,26 @@
         </div>
         <div class="form-section">
           <h3 class="section-title"><i class="fa-solid fa-user"></i> Información de Contacto</h3>
-          <div class="form-grid">
-            <div class="form-group">
+          <div class="row g-3">
+            <div class="col-md-6 form-group">
               <label>Nombre Completo <span class="required">*</span></label>
               <input type="text" name="nombre" placeholder="Ej: Juan Pérez" required maxlength="100" autocomplete="name" spellcheck="false">
             </div>
-            <div class="form-group">
+            <div class="col-md-6 form-group">
               <label>Teléfono <span class="required">*</span></label>
-              <input type="tel" name="telefono" placeholder="33 1234 5678" autocomplete="tel" required maxlength="20" >
+              <input type="tel" name="telefono" placeholder="33 1234 5678" autocomplete="tel" required maxlength="20">
             </div>
-            <div class="form-group">
+            <div class="col-md-6 form-group">
               <label>Correo Electrónico <span class="required">*</span></label>
               <input type="email" name="email" placeholder="correo@ejemplo.com" autocomplete="email" required maxlength="150">
             </div>
-            <div class="form-group">
+            <div class="col-md-6 form-group">
               <label>Confirmar Correo Electrónico <span class="required">*</span></label>
               <input type="email" name="emailConfirm" placeholder="correo@ejemplo.com" required maxlength="150" autocomplete="off" autocorrect="off" spellcheck="false">
               <div class="help-text">Escribe tu correo nuevamente para confirmarlo</div>
             </div>
 
-            <div class="form-group full-width">
+            <div class="col-12 form-group">
               <label>Dirección Completa <span class="required">*</span></label>
               <input type="text" name="direccion" placeholder="Calle, Número, Colonia, Ciudad" maxlength="200" autocomplete="street-address">
               <div class="help-text">Solo para visitas a domicilio</div>
@@ -250,13 +250,13 @@
 
         <div class="form-section">
           <h3 class="section-title"><i class="fa-solid fa-calendar-days"></i> Fecha y Hora</h3>
-          <div class="form-grid">
-            <div class="form-group">
+          <div class="row g-3">
+            <div class="col-md-6 form-group">
               <label>Fecha Preferida <span class="required">*</span></label>
               <input type="date" name="fecha" id="fechaCita" required onchange="cargarSlotsDisponibles(this.value)">
             </div>
 
-            <div class="form-group full-width">
+            <div class="col-12 form-group">
               <label>Horarios Disponibles <span class="required">*</span></label>
               <div class="time-slots" id="timeSlots">
                 <div style="color:var(--muted,#888);font-size:14px;padding:10px;grid-column:1/-1;">

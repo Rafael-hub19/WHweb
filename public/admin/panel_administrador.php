@@ -103,26 +103,34 @@ unset($_usuario);
         <h1 class="page-title">Dashboard Administrativo</h1>
         <p class="page-subtitle">Control total del sistema</p>
 
-        <div class="stats-grid">
-          <div class="stat-card">
-            <div class="stat-title">Ventas del Mes</div>
-            <div class="stat-value" id="kpiVentasMes">$0</div>
-            <div class="stat-subtitle" id="kpiVentasHint">—</div>
+        <div class="row row-cols-2 row-cols-md-4 g-3 stats-grid">
+          <div class="col">
+            <div class="stat-card">
+              <div class="stat-title">Ventas del Mes</div>
+              <div class="stat-value" id="kpiVentasMes">$0</div>
+              <div class="stat-subtitle" id="kpiVentasHint">—</div>
+            </div>
           </div>
-          <div class="stat-card">
-            <div class="stat-title">Pedidos Totales</div>
-            <div class="stat-value" id="kpiPedidos">0</div>
-            <div class="stat-subtitle" id="kpiPedidosHint">—</div>
+          <div class="col">
+            <div class="stat-card">
+              <div class="stat-title">Pedidos Totales</div>
+              <div class="stat-value" id="kpiPedidos">0</div>
+              <div class="stat-subtitle" id="kpiPedidosHint">—</div>
+            </div>
           </div>
-          <div class="stat-card">
-            <div class="stat-title">Clientes Atendidos</div>
-            <div class="stat-value" id="kpiClientes">0</div>
-            <div class="stat-subtitle" id="kpiClientesHint">—</div>
+          <div class="col">
+            <div class="stat-card">
+              <div class="stat-title">Clientes Atendidos</div>
+              <div class="stat-value" id="kpiClientes">0</div>
+              <div class="stat-subtitle" id="kpiClientesHint">—</div>
+            </div>
           </div>
-          <div class="stat-card">
-            <div class="stat-title">Productos en Catálogo</div>
-            <div class="stat-value" id="kpiProductos">0</div>
-            <div class="stat-subtitle" id="kpiStockLow">—</div>
+          <div class="col">
+            <div class="stat-card">
+              <div class="stat-title">Productos en Catálogo</div>
+              <div class="stat-value" id="kpiProductos">0</div>
+              <div class="stat-subtitle" id="kpiStockLow">—</div>
+            </div>
           </div>
         </div>
 
@@ -132,63 +140,83 @@ unset($_usuario);
             <div class="help">Basado en pedidos registrados en el sistema.</div>
           </div>
 
-          <div class="charts-grid">
-            <div class="chart-card">
-              <div class="chart-title">Ventas (últimos 7 días)</div>
-              <canvas id="chartVentas" height="120" aria-label="Gráfica de ventas" role="img"></canvas>
-              <div class="chart-meta" id="chartVentasMeta">—</div>
+          <div class="row g-3 charts-grid">
+            <div class="col-md-6">
+              <div class="chart-card">
+                <div class="chart-title">Ventas (últimos 7 días)</div>
+                <canvas id="chartVentas" height="120" aria-label="Gráfica de ventas" role="img"></canvas>
+                <div class="chart-meta" id="chartVentasMeta">—</div>
+              </div>
             </div>
 
-            <div class="chart-card">
-              <div class="chart-title">Pedidos por estado</div>
-              <canvas id="chartEstados" height="120" aria-label="Gráfica de pedidos por estado" role="img"></canvas>
-              <div class="chart-meta" id="chartEstadosMeta">—</div>
+            <div class="col-md-6">
+              <div class="chart-card">
+                <div class="chart-title">Pedidos por estado</div>
+                <canvas id="chartEstados" height="120" aria-label="Gráfica de pedidos por estado" role="img"></canvas>
+                <div class="chart-meta" id="chartEstadosMeta">—</div>
+              </div>
             </div>
           </div>
         </div>
 
         <div class="section">
           <div class="section-header"><h2 class="section-title">Acciones Rápidas</h2></div>
-          <div class="actions-grid">
-            <div class="action-card" onclick="showSection('pedidos', event)">
-              <div class="action-icon"><i class="fa-solid fa-cart-shopping"></i></div>
-              <div class="action-title">Ver Pedidos</div>
-              <div class="action-subtitle">Control total</div>
+          <div class="row row-cols-2 row-cols-md-4 g-3 actions-grid">
+            <div class="col">
+              <div class="action-card h-100" onclick="showSection('pedidos', event)">
+                <div class="action-icon"><i class="fa-solid fa-cart-shopping"></i></div>
+                <div class="action-title">Ver Pedidos</div>
+                <div class="action-subtitle">Control total</div>
+              </div>
             </div>
-            <div class="action-card" onclick="showSection('citas', event)">
-              <div class="action-icon"><i class="fa-solid fa-calendar-days"></i></div>
-              <div class="action-title">Citas</div>
-              <div class="action-subtitle">Agenda y calendario</div>
+            <div class="col">
+              <div class="action-card h-100" onclick="showSection('citas', event)">
+                <div class="action-icon"><i class="fa-solid fa-calendar-days"></i></div>
+                <div class="action-title">Citas</div>
+                <div class="action-subtitle">Agenda y calendario</div>
+              </div>
             </div>
-            <div class="action-card" onclick="showSection('cotizaciones', event)">
-              <div class="action-icon"><i class="fa-solid fa-file-invoice-dollar"></i></div>
-              <div class="action-title">Cotizaciones</div>
-              <div class="action-subtitle">Solicitudes recibidas</div>
+            <div class="col">
+              <div class="action-card h-100" onclick="showSection('cotizaciones', event)">
+                <div class="action-icon"><i class="fa-solid fa-file-invoice-dollar"></i></div>
+                <div class="action-title">Cotizaciones</div>
+                <div class="action-subtitle">Solicitudes recibidas</div>
+              </div>
             </div>
-            <div class="action-card" onclick="showSection('catalogo', event)">
-              <div class="action-icon"><i class="fa-solid fa-box"></i></div>
-              <div class="action-title">Gestionar Catálogo</div>
-              <div class="action-subtitle">Productos y servicios</div>
+            <div class="col">
+              <div class="action-card h-100" onclick="showSection('catalogo', event)">
+                <div class="action-icon"><i class="fa-solid fa-box"></i></div>
+                <div class="action-title">Gestionar Catálogo</div>
+                <div class="action-subtitle">Productos y servicios</div>
+              </div>
             </div>
-            <div class="action-card" onclick="showSection('empleados', event)">
-              <div class="action-icon"><i class="fa-solid fa-users"></i></div>
-              <div class="action-title">Empleados</div>
-              <div class="action-subtitle">Usuarios y permisos</div>
+            <div class="col">
+              <div class="action-card h-100" onclick="showSection('empleados', event)">
+                <div class="action-icon"><i class="fa-solid fa-users"></i></div>
+                <div class="action-title">Empleados</div>
+                <div class="action-subtitle">Usuarios y permisos</div>
+              </div>
             </div>
-            <div class="action-card" onclick="showSection('clientes', event)">
-              <div class="action-icon"><i class="fa-solid fa-user-group"></i></div>
-              <div class="action-title">Clientes</div>
-              <div class="action-subtitle">Cuentas registradas</div>
+            <div class="col">
+              <div class="action-card h-100" onclick="showSection('clientes', event)">
+                <div class="action-icon"><i class="fa-solid fa-user-group"></i></div>
+                <div class="action-title">Clientes</div>
+                <div class="action-subtitle">Cuentas registradas</div>
+              </div>
             </div>
-            <div class="action-card" onclick="showSection('ofertas', event)">
-              <div class="action-icon"><i class="fa-solid fa-tag"></i></div>
-              <div class="action-title">Ofertas</div>
-              <div class="action-subtitle">Promociones activas</div>
+            <div class="col">
+              <div class="action-card h-100" onclick="showSection('ofertas', event)">
+                <div class="action-icon"><i class="fa-solid fa-tag"></i></div>
+                <div class="action-title">Ofertas</div>
+                <div class="action-subtitle">Promociones activas</div>
+              </div>
             </div>
-            <div class="action-card" onclick="showSection('reportes', event)">
-              <div class="action-icon"><i class="fa-solid fa-chart-bar"></i></div>
-              <div class="action-title">Reportes</div>
-              <div class="action-subtitle">Exportar datos</div>
+            <div class="col">
+              <div class="action-card h-100" onclick="showSection('reportes', event)">
+                <div class="action-icon"><i class="fa-solid fa-chart-bar"></i></div>
+                <div class="action-title">Reportes</div>
+                <div class="action-subtitle">Exportar datos</div>
+              </div>
             </div>
           </div>
         </div>
@@ -268,20 +296,24 @@ unset($_usuario);
 
             <div class="calendar-grid" id="calendarGrid"></div>
 
-            <div class="cal-side">
-              <div class="cal-list">
-                <div class="cal-list-head" id="dayHead">Citas del día</div>
-                <div class="cal-list-body" id="dayList">
-                  <div class="cal-item">
-                    <div class="t">Selecciona un día</div>
-                    <div class="m">Aquí verás las citas y asignaciones.</div>
+            <div class="row g-3 cal-side">
+              <div class="col-md-8">
+                <div class="cal-list">
+                  <div class="cal-list-head" id="dayHead">Citas del día</div>
+                  <div class="cal-list-body" id="dayList">
+                    <div class="cal-item">
+                      <div class="t">Selecciona un día</div>
+                      <div class="m">Aquí verás las citas y asignaciones.</div>
+                    </div>
                   </div>
                 </div>
               </div>
 
-              <div class="cal-list">
-                <div class="cal-list-head">Próximas (vista rápida)</div>
-                <div class="cal-list-body" id="nextList"></div>
+              <div class="col-md-4">
+                <div class="cal-list">
+                  <div class="cal-list-head">Próximas (vista rápida)</div>
+                  <div class="cal-list-body" id="nextList"></div>
+                </div>
               </div>
             </div>
 
@@ -434,31 +466,35 @@ unset($_usuario);
             </div>
           </div>
 
-          <div class="report-grid">
-            <div class="detail-side">
-              <h4>Métricas</h4>
-              <div class="kv"><span>Ventas del mes (MXN)</span><b id="repVentas">—</b></div>
-              <div class="kv"><span>Pedidos del mes</span><b id="repOrdenes">—</b></div>
-              <div class="kv"><span>Ticket promedio</span><b id="repTicket">—</b></div>
-              <div class="kv"><span>Conversión cotizaciones</span><b id="repConv">—</b></div>
-              <div class="kv"><span>Total cotizaciones respondidas</span><b id="repCotRespondidas">—</b></div>
+          <div class="row g-3 report-grid">
+            <div class="col-md-6">
+              <div class="detail-side">
+                <h4>Métricas</h4>
+                <div class="kv"><span>Ventas del mes (MXN)</span><b id="repVentas">—</b></div>
+                <div class="kv"><span>Pedidos del mes</span><b id="repOrdenes">—</b></div>
+                <div class="kv"><span>Ticket promedio</span><b id="repTicket">—</b></div>
+                <div class="kv"><span>Conversión cotizaciones</span><b id="repConv">—</b></div>
+                <div class="kv"><span>Total cotizaciones respondidas</span><b id="repCotRespondidas">—</b></div>
+              </div>
             </div>
 
-            <div class="detail-side">
-              <h4>Análisis de citas</h4>
-              <div style="color:#ddd; font-size:12px;">
-                Mediciones <b id="repCitasMedicion" style="float:right;color:var(--accent);">—</b>
-                <div class="bar"><span id="barInst"></span></div>
+            <div class="col-md-6">
+              <div class="detail-side">
+                <h4>Análisis de citas</h4>
+                <div style="color:#ddd; font-size:12px;">
+                  Mediciones <b id="repCitasMedicion" style="float:right;color:var(--accent);">—</b>
+                  <div class="bar"><span id="barInst"></span></div>
+                </div>
+                <div style="color:#ddd; font-size:12px; margin-top:10px;">
+                  Instalaciones <b id="repCitasInstalacion" style="float:right;color:var(--accent);">—</b>
+                  <div class="bar"><span id="barCot"></span></div>
+                </div>
+                <div style="color:#ddd; font-size:12px; margin-top:10px;">
+                  Otros <b id="repCitasOtros" style="float:right;color:var(--accent);">—</b>
+                  <div class="bar"><span id="barCita"></span></div>
+                </div>
+                <small>Tipos de citas — datos reales de la base de datos</small>
               </div>
-              <div style="color:#ddd; font-size:12px; margin-top:10px;">
-                Instalaciones <b id="repCitasInstalacion" style="float:right;color:var(--accent);">—</b>
-                <div class="bar"><span id="barCot"></span></div>
-              </div>
-              <div style="color:#ddd; font-size:12px; margin-top:10px;">
-                Otros <b id="repCitasOtros" style="float:right;color:var(--accent);">—</b>
-                <div class="bar"><span id="barCita"></span></div>
-              </div>
-              <small>Tipos de citas — datos reales de la base de datos</small>
             </div>
           </div>
         </div>
@@ -490,11 +526,11 @@ unset($_usuario);
         <h1 class="page-title">Análisis Financiero</h1>
         <p class="page-subtitle">Ingresos, egresos y análisis detallado</p>
 
-        <div class="stats-grid">
-          <div class="stat-card"><div class="stat-title">Ingresos del Mes</div><div class="stat-value">$156,800</div><div class="stat-subtitle">+18%</div></div>
-          <div class="stat-card"><div class="stat-title">Egresos del Mes</div><div class="stat-value">$89,200</div><div class="stat-subtitle">-5%</div></div>
-          <div class="stat-card"><div class="stat-title">Utilidad Neta</div><div class="stat-value">$67,600</div><div class="stat-subtitle">+23%</div></div>
-          <div class="stat-card"><div class="stat-title">Margen de Utilidad</div><div class="stat-value">43%</div><div class="stat-subtitle">+2%</div></div>
+        <div class="row row-cols-2 row-cols-md-4 g-3 stats-grid">
+          <div class="col"><div class="stat-card"><div class="stat-title">Ingresos del Mes</div><div class="stat-value">$156,800</div><div class="stat-subtitle">+18%</div></div></div>
+          <div class="col"><div class="stat-card"><div class="stat-title">Egresos del Mes</div><div class="stat-value">$89,200</div><div class="stat-subtitle">-5%</div></div></div>
+          <div class="col"><div class="stat-card"><div class="stat-title">Utilidad Neta</div><div class="stat-value">$67,600</div><div class="stat-subtitle">+23%</div></div></div>
+          <div class="col"><div class="stat-card"><div class="stat-title">Margen de Utilidad</div><div class="stat-value">43%</div><div class="stat-subtitle">+2%</div></div></div>
         </div>
       </div>
 
@@ -510,18 +546,18 @@ unset($_usuario);
           <input type="hidden" id="p_key" value=""/>
 
           <!-- Fila 1: Nombre + Categoría -->
-          <div class="form-grid">
-            <div class="form-group">
+          <div class="row g-3 form-grid">
+            <div class="col-md-6 form-group">
               <label class="form-label">Nombre del modelo *</label>
               <input type="text" class="form-input" id="p_nombre" placeholder="ej: Modelo Sevilla"/>
             </div>
-            <div class="form-group">
+            <div class="col-md-6 form-group">
               <label class="form-label">Categoría *</label>
               <select class="form-select" id="p_categoria">
                 <option value="">Cargando...</option>
               </select>
             </div>
-            <div class="form-group">
+            <div class="col-md-6 form-group">
               <label class="form-label">Etiqueta / Badge</label>
               <select class="form-select" id="p_badge">
                 <option value="">Ninguna</option>
@@ -531,14 +567,14 @@ unset($_usuario);
                 <option value="Mas vendido">Más vendido</option>
               </select>
             </div>
-            <div class="form-group">
+            <div class="col-md-6 form-group">
               <label class="form-label">Estado</label>
               <select class="form-select" id="p_estado">
                 <option value="activo">Activo</option>
                 <option value="inactivo">Inactivo</option>
               </select>
             </div>
-            <div class="form-group">
+            <div class="col-md-6 form-group">
               <label class="form-label">Precio del mueble (MXN) *</label>
               <input type="number" class="form-input" id="p_precio" step="0.01" min="1" placeholder="4900"/>
             </div>
@@ -556,39 +592,39 @@ unset($_usuario);
               <h2 class="section-title"><i class="fa-solid fa-ruler-combined"></i> Dimensiones y características</h2>
             </div>
 
-            <div class="form-grid" style="margin-top:10px;">
-              <div class="form-group">
+            <div class="row g-3 form-grid" style="margin-top:10px;">
+              <div class="col-md-6 form-group">
                 <label class="form-label">Tipo de instalación *</label>
                 <select class="form-select" id="p_tipo_instalacion">
                   <option value="A piso">A piso</option>
                   <option value="Flotado">Flotado</option>
                 </select>
               </div>
-              <div class="form-group">
+              <div class="col-md-6 form-group">
                 <label class="form-label">Largo (cm) *</label>
                 <input type="text" class="form-input" id="p_largo" placeholder="ej: 80 cm"/>
               </div>
-              <div class="form-group">
+              <div class="col-md-6 form-group">
                 <label class="form-label">Alto (cm) *</label>
                 <input type="text" class="form-input" id="p_alto" placeholder="ej: 55 cm"/>
               </div>
-              <div class="form-group">
+              <div class="col-md-6 form-group">
                 <label class="form-label">Fondo (cm) *</label>
                 <input type="text" class="form-input" id="p_fondo" placeholder="ej: 50 cm"/>
               </div>
-              <div class="form-group">
+              <div class="col-md-6 form-group">
                 <label class="form-label">Ovalín *</label>
                 <input type="text" class="form-input" id="p_ovalin" placeholder="ej: Rectangular 60x40 cm"/>
               </div>
-              <div class="form-group">
+              <div class="col-md-6 form-group">
                 <label class="form-label">Monomando *</label>
                 <input type="text" class="form-input" id="p_monomando" placeholder="ej: 30 cm cromado"/>
               </div>
-              <div class="form-group" style="grid-column: span 2;">
+              <div class="col-12 form-group">
                 <label class="form-label">Incluye</label>
                 <input type="text" class="form-input" id="p_incluye" value="Céspol de PBC - Contra canasta" placeholder="ej: Céspol de PBC - Contra canasta"/>
               </div>
-              <div class="form-group" style="grid-column: span 2;">
+              <div class="col-12 form-group">
                 <label class="form-label">Espejo opcional</label>
                 <input type="text" class="form-input" id="p_espejo"
                   placeholder="ej: Rectangular 50x70 cm - LED/Touch 4mm - 3 intensidades - $1,300  (dejar vacío si no aplica)"/>
@@ -723,32 +759,41 @@ unset($_usuario);
         <p class="page-subtitle">Demanda de producción en tiempo real · Gestión de días bloqueados</p>
 
         <!-- KPIs de capacidad -->
-        <div class="stats-grid" style="margin-bottom:24px;">
-          <div class="stat-card">
-            <div class="stat-title">Capacidad diaria</div>
-            <div class="stat-value" id="capLimiteDia">—</div>
-            <div class="stat-subtitle">máx. productos por día</div>
+        <div class="row row-cols-2 row-cols-md-4 g-3 stats-grid" style="margin-bottom:24px;">
+          <div class="col">
+            <div class="stat-card">
+              <div class="stat-title">Capacidad diaria</div>
+              <div class="stat-value" id="capLimiteDia">—</div>
+              <div class="stat-subtitle">máx. productos por día</div>
+            </div>
           </div>
-          <div class="stat-card">
-            <div class="stat-title">Días llenos próximos</div>
-            <div class="stat-value" id="capDiasLlenos" style="color:var(--danger);">—</div>
-            <div class="stat-subtitle">en los próximos 30 días</div>
+          <div class="col">
+            <div class="stat-card">
+              <div class="stat-title">Días llenos próximos</div>
+              <div class="stat-value" id="capDiasLlenos" style="color:var(--danger);">—</div>
+              <div class="stat-subtitle">en los próximos 30 días</div>
+            </div>
           </div>
-          <div class="stat-card">
-            <div class="stat-title">Días bloqueados</div>
-            <div class="stat-value" id="capDiasBloqueados" style="color:var(--warn);">—</div>
-            <div class="stat-subtitle">festivos o cierre de taller</div>
+          <div class="col">
+            <div class="stat-card">
+              <div class="stat-title">Días bloqueados</div>
+              <div class="stat-value" id="capDiasBloqueados" style="color:var(--warn);">—</div>
+              <div class="stat-subtitle">festivos o cierre de taller</div>
+            </div>
           </div>
-          <div class="stat-card">
-            <div class="stat-title">Próxima fecha libre</div>
-            <div class="stat-value" id="capProximaLibre" style="font-size:16px;">—</div>
-            <div class="stat-subtitle">primer día con espacio</div>
+          <div class="col">
+            <div class="stat-card">
+              <div class="stat-title">Próxima fecha libre</div>
+              <div class="stat-value" id="capProximaLibre" style="font-size:16px;">—</div>
+              <div class="stat-subtitle">primer día con espacio</div>
+            </div>
           </div>
         </div>
 
-        <div style="display:grid;grid-template-columns:1fr 360px;gap:20px;align-items:flex-start;">
+        <div class="row g-4 align-items-start">
 
           <!-- Mapa de carga por día -->
+          <div class="col-lg-8">
           <div class="table-card">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px;">
               <h3 style="color:var(--accent);font-size:15px;font-weight:800;">Carga del Taller — Próximos 30 días hábiles</h3>
@@ -779,8 +824,10 @@ unset($_usuario);
               </div>
             </div>
           </div>
+          </div><!-- end col-lg-8 -->
 
           <!-- Panel de bloquear/desbloquear días -->
+          <div class="col-lg-4">
           <div class="table-card" style="position:sticky;top:20px;">
             <h3 style="color:var(--accent);font-size:15px;font-weight:800;margin-bottom:16px;">
               <i class="fa-solid fa-calendar-xmark"></i> Bloquear Día
@@ -817,6 +864,7 @@ unset($_usuario);
               </div>
             </div>
           </div>
+          </div><!-- end col-lg-4 -->
 
         </div>
       </div>
@@ -838,14 +886,18 @@ unset($_usuario);
           </div>
 
           <!-- Stats rápidas -->
-          <div class="stats-grid" style="margin-bottom:20px;" id="clientesStatsRow">
-            <div class="stat-card">
-              <div class="stat-title">Total clientes</div>
-              <div class="stat-value" id="statTotalClientes">—</div>
+          <div class="row row-cols-2 g-3 stats-grid" style="margin-bottom:20px;" id="clientesStatsRow">
+            <div class="col">
+              <div class="stat-card">
+                <div class="stat-title">Total clientes</div>
+                <div class="stat-value" id="statTotalClientes">—</div>
+              </div>
             </div>
-            <div class="stat-card">
-              <div class="stat-title">Con pedidos</div>
-              <div class="stat-value" id="statClientesConPedidos">—</div>
+            <div class="col">
+              <div class="stat-card">
+                <div class="stat-title">Con pedidos</div>
+                <div class="stat-value" id="statClientesConPedidos">—</div>
+              </div>
             </div>
           </div>
 
@@ -955,16 +1007,16 @@ unset($_usuario);
           <input type="hidden" id="of_id" value="">
           <input type="hidden" id="of_mode" value="create">
 
-          <div class="form-grid">
-            <div class="form-group" style="grid-column:span 2;">
+          <div class="row g-3 form-grid">
+            <div class="col-12 form-group">
               <label class="form-label">Nombre de la oferta *</label>
               <input type="text" class="form-input" id="of_nombre" placeholder="Ej: Promoción de Verano 20%">
             </div>
-            <div class="form-group" style="grid-column:span 2;">
+            <div class="col-12 form-group">
               <label class="form-label">Descripción (visible al cliente)</label>
               <input type="text" class="form-input" id="of_descripcion" placeholder="Ej: 20% de descuento en todos los muebles">
             </div>
-            <div class="form-group">
+            <div class="col-md-6 form-group">
               <label class="form-label">Tipo de descuento *</label>
               <select class="form-select" id="of_tipo" onchange="actualizarValorLabel()">
                 <option value="porcentaje">Porcentaje (%)</option>
@@ -972,28 +1024,28 @@ unset($_usuario);
                 <option value="envio_gratis">Envío gratis</option>
               </select>
             </div>
-            <div class="form-group">
+            <div class="col-md-6 form-group">
               <label class="form-label" id="of_valor_label">Valor (%) *</label>
               <input type="number" class="form-input" id="of_valor" min="0" step="0.01" placeholder="20">
             </div>
-            <div class="form-group">
+            <div class="col-md-6 form-group">
               <label class="form-label">Código de cupón (opcional)</label>
               <input type="text" class="form-input" id="of_codigo" placeholder="VERANO20" style="text-transform:uppercase;">
               <div class="help">Si no escribes código, la oferta no requiere cupón</div>
             </div>
-            <div class="form-group">
+            <div class="col-md-6 form-group">
               <label class="form-label">Usos máximos (dejar vacío = ilimitado)</label>
               <input type="number" class="form-input" id="of_usos_max" min="1" placeholder="100">
             </div>
-            <div class="form-group">
+            <div class="col-md-6 form-group">
               <label class="form-label">Fecha inicio</label>
               <input type="date" class="form-input" id="of_fecha_inicio">
             </div>
-            <div class="form-group">
+            <div class="col-md-6 form-group">
               <label class="form-label">Fecha fin</label>
               <input type="date" class="form-input" id="of_fecha_fin">
             </div>
-            <div class="form-group" style="grid-column:span 2;display:flex;align-items:center;gap:10px;">
+            <div class="col-12 form-group" style="display:flex;align-items:center;gap:10px;">
               <input type="checkbox" id="of_activo" checked style="width:18px;height:18px;accent-color:var(--accent);">
               <label for="of_activo" class="form-label" style="margin:0;cursor:pointer;">Oferta activa (visible para clientes)</label>
             </div>

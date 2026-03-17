@@ -80,9 +80,9 @@ if (!$paypalId)  error_log('[pago.php] PAYPAL_CLIENT_ID vacío o no definido');
       <p class="page-subtitle">Completa tu compra de forma segura y protegida</p>
     </div>
 
-    <div class="payment-container">
+    <div class="row g-4 payment-container">
       <!-- Columna izquierda: métodos de pago -->
-      <div class="payment-section">
+      <div class="col-lg-8 payment-section">
 
         <!-- Error global visible para todos los métodos de pago -->
         <div id="payment-error-global" style="display:none; background:rgba(231,76,60,0.1); border:1px solid #e74c3c; border-radius:10px; padding:14px 18px; margin-bottom:20px; color:#e74c3c; font-size:14px; font-weight:600;"></div>
@@ -95,19 +95,23 @@ if (!$paypalId)  error_log('[pago.php] PAYPAL_CLIENT_ID vacío o no definido');
 
         <h2 class="section-title"><span><i class="fa-solid fa-credit-card"></i></span> Método de Pago</h2>
 
-        <div class="payment-methods">
+        <div class="row g-3 payment-methods">
           <!-- STRIPE -->
-          <div class="payment-option selected" data-method="card" id="opt-card">
-            <div class="payment-icon"><i class="fa-solid fa-credit-card"></i></div>
-            <h3>Tarjeta de Crédito/Débito</h3>
-            <p>Pago seguro con Stripe · Visa, Mastercard, Amex</p>
+          <div class="col-6">
+            <div class="payment-option selected h-100" data-method="card" id="opt-card">
+              <div class="payment-icon"><i class="fa-solid fa-credit-card"></i></div>
+              <h3>Tarjeta de Crédito/Débito</h3>
+              <p>Pago seguro con Stripe · Visa, Mastercard, Amex</p>
+            </div>
           </div>
 
           <!-- PAYPAL -->
-          <div class="payment-option" data-method="paypal" id="opt-paypal">
-            <div class="payment-icon"><i class="fab fa-paypal"></i></div>
-            <h3>PayPal</h3>
-            <p>Paga con tu cuenta PayPal o tarjeta sin registrarte</p>
+          <div class="col-6">
+            <div class="payment-option h-100" data-method="paypal" id="opt-paypal">
+              <div class="payment-icon"><i class="fab fa-paypal"></i></div>
+              <h3>PayPal</h3>
+              <p>Paga con tu cuenta PayPal o tarjeta sin registrarte</p>
+            </div>
           </div>
         </div>
 
@@ -141,7 +145,7 @@ if (!$paypalId)  error_log('[pago.php] PAYPAL_CLIENT_ID vacío o no definido');
       </div>
 
       <!-- Columna derecha: resumen del pedido -->
-      <div class="order-summary">
+      <div class="col-lg-4 order-summary">
         <h2 class="section-title"><i class="fa-solid fa-clipboard-list"></i> Resumen del Pedido</h2>
         <div id="cart-items-summary"></div>
         <div class="totals">

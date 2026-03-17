@@ -194,14 +194,9 @@ h1, h2, h3, h4, h5, h6 { margin-bottom: 0; }
   gap: 10px;
 }
 
-.form-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 20px;
-}
+/* .form-grid layout replaced by Bootstrap row g-3 / col-md-6 / col-12 */
 
 .form-group { margin-bottom: 18px; }
-.form-group.full-width { grid-column: 1 / -1; }
 
 .form-group label {
   display: block;
@@ -870,7 +865,6 @@ h1, h2, h3, h4, h5, h6 { margin-bottom: 0; }
   .page-title { font-size: 28px; }
   .tab-btn { padding: 12px 18px; font-size: 15px; }
   .form-section { padding: 20px; }
-  .form-grid { grid-template-columns: 1fr; }
   .time-slots { grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); }
   .track-info-grid { grid-template-columns: 1fr; }
   .track-info-item { border-right: none !important; }

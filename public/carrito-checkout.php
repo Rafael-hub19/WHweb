@@ -56,9 +56,9 @@
         <a href="/catalogo" class="btn-volver-catalogo"><i class="fa-solid fa-arrow-left"></i> Volver al Catálogo</a>
     </div>
 
-    <div class="cart-container">
+    <div class="row g-4 cart-container">
         <!-- ── Columna izquierda ───────────────────────────────── -->
-        <div class="cart-items">
+        <div class="col-lg-8 cart-items">
 
             <!-- Productos -->
             <div class="section-card">
@@ -186,12 +186,12 @@
                         <label>Nombre completo <span class="required">*</span></label>
                         <input type="text" id="clienteNombre" placeholder="Juan Pérez López" required>
                     </div>
-                    <div class="form-row">
-                        <div class="form-group">
+                    <div class="row g-3 form-row">
+                        <div class="col-md-6 form-group">
                             <label>Teléfono de contacto <span class="required">*</span></label>
                             <input type="tel" id="clienteTelefono" placeholder="33 1234 5678" required>
                         </div>
-                        <div class="form-group">
+                        <div class="col-md-6 form-group">
                             <label>Correo electrónico <span class="required">*</span></label>
                             <input type="email" id="clienteCorreo" placeholder="correo@ejemplo.com" required>
                         </div>
@@ -210,18 +210,18 @@
                             <label>Calle y número <span class="required">*</span></label>
                             <input type="text" id="clienteDireccion" placeholder="Ej. Av. Chapultepec 1234" required>
                         </div>
-                        <div class="form-row">
-                            <div class="form-group">
+                        <div class="row g-3 form-row">
+                            <div class="col-md-6 form-group">
                                 <label>Colonia <span class="required">*</span></label>
                                 <input type="text" id="clienteColonia" placeholder="Ej. Col. Americana" required>
                             </div>
-                            <div class="form-group">
+                            <div class="col-md-6 form-group">
                                 <label>Ciudad <span class="required">*</span></label>
                                 <input type="text" id="clienteCiudad" placeholder="Ej. Guadalajara" required>
                             </div>
                         </div>
-                        <div class="form-row">
-                            <div class="form-group">
+                        <div class="row g-3 form-row">
+                            <div class="col-12 form-group">
                                 <label>Municipio <span class="required">*</span></label>
                                 <input type="text" id="clienteMunicipio" placeholder="Ej. Zapopan" required>
                             </div>
@@ -242,6 +242,7 @@
         </div><!-- /cart-items -->
 
         <!-- ── Columna derecha: resumen ───────────────────────── -->
+        <div class="col-lg-4 cart-summary-col">
         <div class="cart-summary">
             <h3 class="summary-title"><i class="fa-solid fa-clipboard-list"></i> Resumen del pedido</h3>
 
@@ -280,6 +281,7 @@
                 <i class="fa-solid fa-lock"></i> Pago 100% seguro · Stripe &amp; PayPal<br>
                 <i class="fa-solid fa-box"></i> Garantía de satisfacción incluida
             </p>
+        </div>
         </div>
     </div>
 </div>

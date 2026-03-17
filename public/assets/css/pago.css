@@ -141,13 +141,8 @@ body {
 }
 
 /* ========================================
-   LAYOUT DE PAGO
+   LAYOUT DE PAGO — handled by Bootstrap row g-4 / col-lg-8 / col-lg-4
    ======================================== */
-.payment-container {
-  display: grid;
-  grid-template-columns: 1fr 400px;
-  gap: 35px;
-}
 
 .payment-section {
   background: linear-gradient(135deg, #2d2d2d, #282828);
@@ -170,12 +165,9 @@ body {
 }
 
 /* ========================================
-   MÉTODOS DE PAGO
+   MÉTODOS DE PAGO — handled by Bootstrap row g-3 / col-6
    ======================================== */
 .payment-methods {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 18px;
   margin-bottom: 30px;
 }
 
@@ -693,17 +685,9 @@ body {
    RESPONSIVE
    ======================================== */
 @media (max-width: 968px) {
-  .payment-container {
-    grid-template-columns: 1fr;
-  }
-
   .order-summary {
     position: static;
     top: 0;
-  }
-
-  .payment-methods {
-    grid-template-columns: 1fr;
   }
 
   .steps-indicator {
@@ -763,11 +747,6 @@ body {
     width: 28px;
     height: 28px;
     font-size: 13px;
-  }
-
-  .payment-methods {
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
   }
 
   .payment-option {

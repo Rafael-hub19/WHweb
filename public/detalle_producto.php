@@ -50,18 +50,18 @@
     <a href="/catalogo" class="btn-back" style="margin-bottom:16px;display:inline-flex;">
       <i class="fa-solid fa-arrow-left"></i> Volver al catálogo
     </a>
-    <div class="product-detail" id="productDetail">
+    <div class="row g-4 mb-5 product-detail" id="productDetail">
       <!-- Galería -->
-      <div class="gallery">
+      <div class="col-md-6 gallery">
         <div class="main-image" id="mainImageBox">
           <div class="placeholder-img" id="imgPlaceholder"><i class="fa-solid fa-tree"></i></div>
           <img id="mainImage" alt="Imagen principal" style="display:none;" onerror="this.style.display='none';document.getElementById('imgPlaceholder').style.display='flex'">
         </div>
-        <div class="thumbnails" id="thumbs"></div>
+        <div class="row row-cols-4 g-2 mt-2 thumbnails" id="thumbs"></div>
       </div>
 
       <!-- Info del producto -->
-      <div class="product-info">
+      <div class="col-md-6 product-info">
         <div class="product-header">
           <span id="pCategoria" class="product-category-badge"></span>
           <div class="product-title" id="pNombre"></div>

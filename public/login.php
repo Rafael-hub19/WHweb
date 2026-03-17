@@ -34,7 +34,7 @@ if (!empty($_GET['logout']) || !empty($_SESSION['_just_logged_out'])) {
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous" defer></script>
 </head>
 
-<body>
+<body class="d-flex align-items-center justify-content-center min-vh-100">
   <div class="login-container">
     <div class="logo">
       <img src="/assets/img/logo-login.png" alt="Wooden House" style="height:140px;">

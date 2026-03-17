@@ -118,21 +118,27 @@ unset($_usuario);
         <h1 class="page-title">Dashboard</h1>
         <p class="page-subtitle">Resumen general de actividades</p>
 
-        <div class="stats-grid">
-          <div class="stat-card">
-            <div class="stat-title">Pedidos Pendientes</div>
-            <div class="stat-value" id="kpiPendientes">—</div>
-            <div class="stat-subtitle">Requieren atención</div>
+        <div class="row row-cols-2 row-cols-md-3 g-3 stats-grid">
+          <div class="col">
+            <div class="stat-card">
+              <div class="stat-title">Pedidos Pendientes</div>
+              <div class="stat-value" id="kpiPendientes">—</div>
+              <div class="stat-subtitle">Requieren atención</div>
+            </div>
           </div>
-          <div class="stat-card">
-            <div class="stat-title">Citas Hoy</div>
-            <div class="stat-value" id="kpiCitasHoy">—</div>
-            <div class="stat-subtitle">Programadas para hoy</div>
+          <div class="col">
+            <div class="stat-card">
+              <div class="stat-title">Citas Hoy</div>
+              <div class="stat-value" id="kpiCitasHoy">—</div>
+              <div class="stat-subtitle">Programadas para hoy</div>
+            </div>
           </div>
-          <div class="stat-card">
-            <div class="stat-title">Cotizaciones Nuevas</div>
-            <div class="stat-value" id="kpiCotNuevas">—</div>
-            <div class="stat-subtitle">Sin atender</div>
+          <div class="col">
+            <div class="stat-card">
+              <div class="stat-title">Cotizaciones Nuevas</div>
+              <div class="stat-value" id="kpiCotNuevas">—</div>
+              <div class="stat-subtitle">Sin atender</div>
+            </div>
           </div>
         </div>
 
@@ -280,18 +286,22 @@ unset($_usuario);
             <div class="calendar-grid" id="calDow"></div>
             <div class="calendar-grid" id="calGrid"></div>
 
-            <div class="cal-side">
-              <div class="cal-list">
-                <div class="cal-list-head" id="selectedDayTitle">Eventos del día</div>
-                <div class="cal-list-body" id="dayEventsList">
-                  <div style="color: var(--muted);">Selecciona un día para ver eventos.</div>
+            <div class="row g-3 cal-side">
+              <div class="col-md-8">
+                <div class="cal-list">
+                  <div class="cal-list-head" id="selectedDayTitle">Eventos del día</div>
+                  <div class="cal-list-body" id="dayEventsList">
+                    <div style="color: var(--muted);">Selecciona un día para ver eventos.</div>
+                  </div>
                 </div>
               </div>
 
-              <div class="cal-list">
-                <div class="cal-list-head">Próximos (7 días)</div>
-                <div class="cal-list-body" id="nextEventsList">
-                  <div style="color: var(--muted);">—</div>
+              <div class="col-md-4">
+                <div class="cal-list">
+                  <div class="cal-list-head">Próximos (7 días)</div>
+                  <div class="cal-list-body" id="nextEventsList">
+                    <div style="color: var(--muted);">—</div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -310,20 +320,20 @@ unset($_usuario);
         <button class="modal-close" onclick="closeModal('pedidoModal')">×</button>
       </div>
 
-      <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px;">
-        <div>
+      <div class="row g-2 mb-2">
+        <div class="col-6">
           <div class="form-label">Cliente</div>
           <div style="color:var(--muted2); font-size:13px;" id="pDetCliente">—</div>
         </div>
-        <div>
+        <div class="col-6">
           <div class="form-label">Producto</div>
           <div style="color:var(--muted2); font-size:13px;" id="pDetProducto">—</div>
         </div>
-        <div>
+        <div class="col-6">
           <div class="form-label">Fecha de entrega</div>
           <div style="color:var(--muted2); font-size:13px;" id="pDetEntrega">—</div>
         </div>
-        <div>
+        <div class="col-6">
           <div class="form-label">Total</div>
           <div style="color:var(--accent); font-size:14px; font-weight:900;" id="pDetTotal">—</div>
         </div>

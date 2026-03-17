@@ -267,11 +267,7 @@
   box-shadow: 0 5px 20px rgba(0,0,0,0.5);
 }
 
-.mc-form-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
-}
+/* .mc-form-row layout handled by Bootstrap row g-3 / col-md-6 */
 
 .mc-form-group {
   display: flex;
@@ -381,7 +377,6 @@
   .mc-email { font-size: 13px; }
   .mc-tabs { gap: 4px; }
   .mc-tab { padding: 8px 12px; font-size: 13px; }
-  .mc-form-row { grid-template-columns: 1fr; gap: 12px; }
   .mc-pedido-card { flex-direction: column; gap: 10px; }
   .mc-form { padding: 14px 12px; }
   .mc-section { padding: 14px 12px; }

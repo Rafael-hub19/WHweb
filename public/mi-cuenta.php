@@ -97,26 +97,24 @@
       </div>
       <div id="mcPerfilAlert" class="mc-alert"></div>
       <form id="mcPerfilForm" class="mc-form" onsubmit="mcGuardarPerfil(event)">
-        <div class="mc-form-row">
-          <div class="mc-form-group">
+        <div class="row g-3">
+          <div class="col-md-6 mc-form-group">
             <label>Nombre completo <span class="mc-req">*</span></label>
             <input type="text" id="pfNombre" name="nombre" required minlength="2" maxlength="120">
           </div>
-          <div class="mc-form-group">
+          <div class="col-md-6 mc-form-group">
             <label>Teléfono</label>
             <input type="tel" id="pfTelefono" name="telefono" maxlength="20">
           </div>
-        </div>
-        <div class="mc-form-group">
-          <label>Dirección</label>
-          <input type="text" id="pfDireccion" name="direccion" maxlength="255" placeholder="Calle, número, colonia">
-        </div>
-        <div class="mc-form-row">
-          <div class="mc-form-group">
+          <div class="col-12 mc-form-group">
+            <label>Dirección</label>
+            <input type="text" id="pfDireccion" name="direccion" maxlength="255" placeholder="Calle, número, colonia">
+          </div>
+          <div class="col-md-6 mc-form-group">
             <label>Ciudad</label>
             <input type="text" id="pfCiudad" name="ciudad" maxlength="100">
           </div>
-          <div class="mc-form-group">
+          <div class="col-md-6 mc-form-group">
             <label>Código postal</label>
             <input type="text" id="pfCP" name="cp" maxlength="10">
           </div>

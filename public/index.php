@@ -88,39 +88,47 @@
   <!-- ── Acciones rápidas ──────────────────────────────────────── -->
   <div class="quick-actions-section">
     <p class="quick-actions-label">¿Qué deseas hacer?</p>
-    <div class="quick-actions-grid">
-      <a href="/catalogo" class="quick-action-card">
-        <div class="qa-icon"><i class="fa-solid fa-store"></i></div>
-        <div class="qa-info">
-          <div class="qa-title">Ver Catálogo</div>
-          <div class="qa-sub">Explora nuestros muebles y precios</div>
-        </div>
-        <i class="fa-solid fa-chevron-right qa-arrow"></i>
-      </a>
-      <a href="/solicitudes" class="quick-action-card">
-        <div class="qa-icon qa-icon--cot"><i class="fa-solid fa-file-invoice"></i></div>
-        <div class="qa-info">
-          <div class="qa-title">Pedir Cotización</div>
-          <div class="qa-sub">Cuéntanos qué necesitas y te respondemos</div>
-        </div>
-        <i class="fa-solid fa-chevron-right qa-arrow"></i>
-      </a>
-      <a href="/solicitudes#cita" class="quick-action-card">
-        <div class="qa-icon qa-icon--cita"><i class="fa-solid fa-calendar-check"></i></div>
-        <div class="qa-info">
-          <div class="qa-title">Agendar Cita</div>
-          <div class="qa-sub">Visítanos o agendamos medición en tu casa</div>
-        </div>
-        <i class="fa-solid fa-chevron-right qa-arrow"></i>
-      </a>
-      <a href="/solicitudes#seguimiento" class="quick-action-card">
-        <div class="qa-icon qa-icon--seg"><i class="fa-solid fa-magnifying-glass"></i></div>
-        <div class="qa-info">
-          <div class="qa-title">Seguimiento de Pedido</div>
-          <div class="qa-sub">Consulta el estado de tu pedido o cita</div>
-        </div>
-        <i class="fa-solid fa-chevron-right qa-arrow"></i>
-      </a>
+    <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-4 g-3 quick-actions-grid">
+      <div class="col">
+        <a href="/catalogo" class="quick-action-card h-100">
+          <div class="qa-icon"><i class="fa-solid fa-store"></i></div>
+          <div class="qa-info">
+            <div class="qa-title">Ver Catálogo</div>
+            <div class="qa-sub">Explora nuestros muebles y precios</div>
+          </div>
+          <i class="fa-solid fa-chevron-right qa-arrow"></i>
+        </a>
+      </div>
+      <div class="col">
+        <a href="/solicitudes" class="quick-action-card h-100">
+          <div class="qa-icon qa-icon--cot"><i class="fa-solid fa-file-invoice"></i></div>
+          <div class="qa-info">
+            <div class="qa-title">Pedir Cotización</div>
+            <div class="qa-sub">Cuéntanos qué necesitas y te respondemos</div>
+          </div>
+          <i class="fa-solid fa-chevron-right qa-arrow"></i>
+        </a>
+      </div>
+      <div class="col">
+        <a href="/solicitudes#cita" class="quick-action-card h-100">
+          <div class="qa-icon qa-icon--cita"><i class="fa-solid fa-calendar-check"></i></div>
+          <div class="qa-info">
+            <div class="qa-title">Agendar Cita</div>
+            <div class="qa-sub">Visítanos o agendamos medición en tu casa</div>
+          </div>
+          <i class="fa-solid fa-chevron-right qa-arrow"></i>
+        </a>
+      </div>
+      <div class="col">
+        <a href="/solicitudes#seguimiento" class="quick-action-card h-100">
+          <div class="qa-icon qa-icon--seg"><i class="fa-solid fa-magnifying-glass"></i></div>
+          <div class="qa-info">
+            <div class="qa-title">Seguimiento de Pedido</div>
+            <div class="qa-sub">Consulta el estado de tu pedido o cita</div>
+          </div>
+          <i class="fa-solid fa-chevron-right qa-arrow"></i>
+        </a>
+      </div>
     </div>
   </div>
 
@@ -145,55 +153,73 @@
     <!-- Services Section -->
     <div id="servicios">
       <h2 class="section-title"><i class="fa-solid fa-screwdriver-wrench"></i> Nuestros Servicios</h2>
-      <div class="services-grid">
-        <a href="/catalogo?categoria=cocinas" class="service-card">
-          <div class="service-icon"><i class="fa-solid fa-utensils"></i></div>
-          <h3>Cocinas Integrales</h3>
-          <p>Diseño y fabricación de cocinas funcionales y elegantes, adaptadas a tu espacio y necesidades. Incluye gabinetes, barras y acabados personalizados.</p>
-          <span class="service-card-link">Ver en catálogo →</span>
-        </a>
-        <a href="/catalogo?categoria=closets" class="service-card">
-          <div class="service-icon"><i class="fa-solid fa-shirt"></i></div>
-          <h3>Clósets a Medida</h3>
-          <p>Maximiza tu espacio con clósets diseñados específicamente para ti. Múltiples compartimentos, cajones y opciones de organización.</p>
-          <span class="service-card-link">Ver en catálogo →</span>
-        </a>
-        <a href="/catalogo?categoria=bano" class="service-card">
-          <div class="service-icon"><i class="fa-solid fa-bath"></i></div>
-          <h3>Muebles de Baño</h3>
-          <p>Muebles resistentes a la humedad con diseños modernos y clásicos. Incluye lavabo, espejo y almacenamiento optimizado.</p>
-          <span class="service-card-link">Ver en catálogo →</span>
-        </a>
+      <div class="row row-cols-1 row-cols-md-3 g-4 mb-5">
+        <div class="col">
+          <a href="/catalogo?categoria=cocinas" class="service-card h-100 d-block">
+            <div class="service-icon"><i class="fa-solid fa-utensils"></i></div>
+            <h3>Cocinas Integrales</h3>
+            <p>Diseño y fabricación de cocinas funcionales y elegantes, adaptadas a tu espacio y necesidades. Incluye gabinetes, barras y acabados personalizados.</p>
+            <span class="service-card-link">Ver en catálogo →</span>
+          </a>
+        </div>
+        <div class="col">
+          <a href="/catalogo?categoria=closets" class="service-card h-100 d-block">
+            <div class="service-icon"><i class="fa-solid fa-shirt"></i></div>
+            <h3>Clósets a Medida</h3>
+            <p>Maximiza tu espacio con clósets diseñados específicamente para ti. Múltiples compartimentos, cajones y opciones de organización.</p>
+            <span class="service-card-link">Ver en catálogo →</span>
+          </a>
+        </div>
+        <div class="col">
+          <a href="/catalogo?categoria=bano" class="service-card h-100 d-block">
+            <div class="service-icon"><i class="fa-solid fa-bath"></i></div>
+            <h3>Muebles de Baño</h3>
+            <p>Muebles resistentes a la humedad con diseños modernos y clásicos. Incluye lavabo, espejo y almacenamiento optimizado.</p>
+            <span class="service-card-link">Ver en catálogo →</span>
+          </a>
+        </div>
       </div>
     </div>
 
     <!-- Why Choose Us -->
     <div>
       <h2 class="section-title"><i class="fa-solid fa-star"></i> ¿Por Qué Elegirnos?</h2>
-      <div class="reasons-grid">
-        <div class="reason-card">
-          <h4><i class="fa-solid fa-palette"></i> Diseño Personalizado</h4>
-          <p>Cada mueble es único y diseñado específicamente para ti. Trabajamos contigo desde el concepto hasta la instalación.</p>
+      <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 g-4 mb-5">
+        <div class="col">
+          <div class="reason-card h-100">
+            <h4><i class="fa-solid fa-palette"></i> Diseño Personalizado</h4>
+            <p>Cada mueble es único y diseñado específicamente para ti. Trabajamos contigo desde el concepto hasta la instalación.</p>
+          </div>
         </div>
-        <div class="reason-card">
-          <h4><i class="fa-solid fa-tree"></i> Materiales de Calidad</h4>
-          <p>Utilizamos maderas nobles y materiales de primera calidad que garantizan durabilidad y belleza.</p>
+        <div class="col">
+          <div class="reason-card h-100">
+            <h4><i class="fa-solid fa-tree"></i> Materiales de Calidad</h4>
+            <p>Utilizamos maderas nobles y materiales de primera calidad que garantizan durabilidad y belleza.</p>
+          </div>
         </div>
-        <div class="reason-card">
-          <h4><i class="fa-solid fa-wrench"></i> Instalación Profesional</h4>
-          <p>Equipo técnico especializado se encarga de la instalación perfecta en tu hogar.</p>
+        <div class="col">
+          <div class="reason-card h-100">
+            <h4><i class="fa-solid fa-wrench"></i> Instalación Profesional</h4>
+            <p>Equipo técnico especializado se encarga de la instalación perfecta en tu hogar.</p>
+          </div>
         </div>
-        <div class="reason-card">
-          <h4><i class="fa-solid fa-bolt"></i> Entrega Puntual</h4>
-          <p>Cumplimos con los tiempos de entrega acordados. Tu proyecto es nuestra prioridad.</p>
+        <div class="col">
+          <div class="reason-card h-100">
+            <h4><i class="fa-solid fa-bolt"></i> Entrega Puntual</h4>
+            <p>Cumplimos con los tiempos de entrega acordados. Tu proyecto es nuestra prioridad.</p>
+          </div>
         </div>
-        <div class="reason-card">
-          <h4><i class="fa-solid fa-tag"></i> Precios Justos</h4>
-          <p>Cotizaciones transparentes y competitivas sin costos ocultos. Calidad al mejor precio.</p>
+        <div class="col">
+          <div class="reason-card h-100">
+            <h4><i class="fa-solid fa-tag"></i> Precios Justos</h4>
+            <p>Cotizaciones transparentes y competitivas sin costos ocultos. Calidad al mejor precio.</p>
+          </div>
         </div>
-        <div class="reason-card">
-          <h4><i class="fa-solid fa-shield-halved"></i> Garantía Total</h4>
-          <p>1 año de garantía contra defectos de fabricación y 30 días de garantía de satisfacción.</p>
+        <div class="col">
+          <div class="reason-card h-100">
+            <h4><i class="fa-solid fa-shield-halved"></i> Garantía Total</h4>
+            <p>1 año de garantía contra defectos de fabricación y 30 días de garantía de satisfacción.</p>
+          </div>
         </div>
       </div>
     </div>
@@ -201,32 +227,42 @@
     <!-- Process -->
     <div>
       <h2 class="section-title"><i class="fa-solid fa-clipboard-list"></i> Proceso de Trabajo</h2>
-      <div class="process-grid">
-        <div class="process-step">
-          <div class="process-number">1</div>
-          <h4>Consulta Inicial</h4>
-          <p>Conversamos sobre tu proyecto, necesidades y presupuesto</p>
+      <div class="row row-cols-2 row-cols-sm-3 row-cols-lg-5 g-5">
+        <div class="col">
+          <div class="process-step h-100">
+            <div class="process-number">1</div>
+            <h4>Consulta Inicial</h4>
+            <p>Conversamos sobre tu proyecto, necesidades y presupuesto</p>
+          </div>
         </div>
-        <div class="process-step">
-          <div class="process-number">2</div>
-          <h4>Medición y Diseño</h4>
-          <p>Visitamos tu hogar para tomar medidas exactas y crear el diseño</p>
+        <div class="col">
+          <div class="process-step h-100">
+            <div class="process-number">2</div>
+            <h4>Medición y Diseño</h4>
+            <p>Visitamos tu hogar para tomar medidas exactas y crear el diseño</p>
+          </div>
         </div>
-        <a href="/solicitudes" class="process-step" style="text-decoration:none;color:inherit;">
-          <div class="process-number">3</div>
-          <h4>Cotización</h4>
-          <p>Recibes propuesta detallada con renders 3D y precios claros</p>
-          <span style="display:block;margin-top:10px;font-size:12px;color:#8b7355;font-weight:600;">Solicitar →</span>
-        </a>
-        <div class="process-step">
-          <div class="process-number">4</div>
-          <h4>Fabricación</h4>
-          <p>Elaboramos tu mueble con materiales de primera calidad</p>
+        <div class="col">
+          <a href="/solicitudes" class="process-step h-100 d-block" style="text-decoration:none;color:inherit;">
+            <div class="process-number">3</div>
+            <h4>Cotización</h4>
+            <p>Recibes propuesta detallada con renders 3D y precios claros</p>
+            <span style="display:block;margin-top:10px;font-size:12px;color:#8b7355;font-weight:600;">Solicitar →</span>
+          </a>
         </div>
-        <div class="process-step">
-          <div class="process-number">5</div>
-          <h4>Instalación</h4>
-          <p>Entregamos e instalamos profesionalmente en tu hogar</p>
+        <div class="col">
+          <div class="process-step h-100">
+            <div class="process-number">4</div>
+            <h4>Fabricación</h4>
+            <p>Elaboramos tu mueble con materiales de primera calidad</p>
+          </div>
+        </div>
+        <div class="col">
+          <div class="process-step h-100">
+            <div class="process-number">5</div>
+            <h4>Instalación</h4>
+            <p>Entregamos e instalamos profesionalmente en tu hogar</p>
+          </div>
         </div>
       </div>
     </div>
@@ -235,42 +271,54 @@
     <div id="proyectos">
       <h2 class="section-title"><i class="fa-solid fa-sparkles"></i> Proyectos Realizados</h2>
 
-      <div class="work-grid">
+      <div class="row row-cols-2 row-cols-md-3 g-3">
 
-        <div class="work-card video-card">
-          <video muted loop playsinline preload="none">
-            <source data-src="https://firebasestorage.googleapis.com/v0/b/woodenhouse-898de.firebasestorage.app/o/proyectos%2Fproyecto1.mp4?alt=media&token=27da66f5-8a7a-4b2f-aa97-2475947c5cb6" type="video/mp4">
-          </video>
+        <div class="col">
+          <div class="work-card video-card">
+            <video muted loop playsinline preload="none">
+              <source data-src="https://firebasestorage.googleapis.com/v0/b/woodenhouse-898de.firebasestorage.app/o/proyectos%2Fproyecto1.mp4?alt=media&token=27da66f5-8a7a-4b2f-aa97-2475947c5cb6" type="video/mp4">
+            </video>
+          </div>
         </div>
 
-        <div class="work-card video-card">
-          <video muted loop playsinline preload="none">
-            <source data-src="https://firebasestorage.googleapis.com/v0/b/woodenhouse-898de.firebasestorage.app/o/proyectos%2Fproyecto2.mp4?alt=media&token=ba5e5413-3bb3-407c-845b-afc6e113cf50" type="video/mp4">
-          </video>
+        <div class="col">
+          <div class="work-card video-card">
+            <video muted loop playsinline preload="none">
+              <source data-src="https://firebasestorage.googleapis.com/v0/b/woodenhouse-898de.firebasestorage.app/o/proyectos%2Fproyecto2.mp4?alt=media&token=ba5e5413-3bb3-407c-845b-afc6e113cf50" type="video/mp4">
+            </video>
+          </div>
         </div>
 
-        <div class="work-card video-card">
-          <video muted loop playsinline preload="none">
-            <source data-src="https://firebasestorage.googleapis.com/v0/b/woodenhouse-898de.firebasestorage.app/o/proyectos%2Fproyecto3.mp4?alt=media&token=859c8549-0c19-4a60-936e-45d1989c0f78" type="video/mp4">
-          </video>
+        <div class="col">
+          <div class="work-card video-card">
+            <video muted loop playsinline preload="none">
+              <source data-src="https://firebasestorage.googleapis.com/v0/b/woodenhouse-898de.firebasestorage.app/o/proyectos%2Fproyecto3.mp4?alt=media&token=859c8549-0c19-4a60-936e-45d1989c0f78" type="video/mp4">
+            </video>
+          </div>
         </div>
 
-        <div class="work-card video-card">
-          <video muted loop playsinline preload="none">
-            <source data-src="https://firebasestorage.googleapis.com/v0/b/woodenhouse-898de.firebasestorage.app/o/proyectos%2Fproyecto4.mp4?alt=media&token=f513e173-9386-4cfc-b98f-195abd566efd" type="video/mp4">
-          </video>
+        <div class="col">
+          <div class="work-card video-card">
+            <video muted loop playsinline preload="none">
+              <source data-src="https://firebasestorage.googleapis.com/v0/b/woodenhouse-898de.firebasestorage.app/o/proyectos%2Fproyecto4.mp4?alt=media&token=f513e173-9386-4cfc-b98f-195abd566efd" type="video/mp4">
+            </video>
+          </div>
         </div>
 
-        <div class="work-card video-card">
-          <video muted loop playsinline preload="none">
-            <source data-src="https://firebasestorage.googleapis.com/v0/b/woodenhouse-898de.firebasestorage.app/o/proyectos%2Fproyecto5.mp4?alt=media&token=a75ea48f-eb33-4b67-969d-6a0c1b3c9dd5" type="video/mp4">
-          </video>
+        <div class="col">
+          <div class="work-card video-card">
+            <video muted loop playsinline preload="none">
+              <source data-src="https://firebasestorage.googleapis.com/v0/b/woodenhouse-898de.firebasestorage.app/o/proyectos%2Fproyecto5.mp4?alt=media&token=a75ea48f-eb33-4b67-969d-6a0c1b3c9dd5" type="video/mp4">
+            </video>
+          </div>
         </div>
 
-        <div class="work-card video-card">
-          <video muted loop playsinline preload="none">
-            <source data-src="https://firebasestorage.googleapis.com/v0/b/woodenhouse-898de.firebasestorage.app/o/proyectos%2Fproyecto6.mp4?alt=media&token=cf9d54fe-9299-43dd-b79f-3def076921d0" type="video/mp4">
-          </video>
+        <div class="col">
+          <div class="work-card video-card">
+            <video muted loop playsinline preload="none">
+              <source data-src="https://firebasestorage.googleapis.com/v0/b/woodenhouse-898de.firebasestorage.app/o/proyectos%2Fproyecto6.mp4?alt=media&token=cf9d54fe-9299-43dd-b79f-3def076921d0" type="video/mp4">
+            </video>
+          </div>
         </div>
 
       </div>
@@ -280,7 +328,7 @@
     <div class="cta-section">
       <h2><i class="fa-solid fa-house"></i> ¿Listo para Transformar tu Espacio?</h2>
       <p>Contáctanos hoy y recibe una cotización personalizada sin compromiso</p>
-      <div class="cta-buttons">
+      <div class="d-flex flex-wrap gap-3 justify-content-center cta-buttons">
         <a href="/solicitudes" class="btn-primary"><i class="fa-solid fa-tag"></i> Solicitar Cotización Gratis</a>
         <a href="#contacto" class="btn-secondary"><i class="fa-solid fa-phone"></i> Contactar Ahora</a>
       </div>
@@ -335,30 +383,38 @@
     <!-- Contact Section -->
     <div id="contacto">
       <h2 class="section-title"><i class="fa-solid fa-phone"></i> Información de Contacto</h2>
-      <div class="contact-grid">
-        <div class="contact-card">
-          <div class="contact-icon"><i class="fa-solid fa-mobile-screen"></i></div>
-          <h4>WhatsApp</h4>
-          <p><a href="https://wa.me/5213317054017" target="_blank">33 1705 4017</a></p>
-          <small>Lun - Sáb: 9:00 AM - 7:00 PM</small>
+      <div class="row row-cols-1 row-cols-sm-2 g-4">
+        <div class="col">
+          <div class="contact-card h-100">
+            <div class="contact-icon"><i class="fa-solid fa-mobile-screen"></i></div>
+            <h4>WhatsApp</h4>
+            <p><a href="https://wa.me/5213317054017" target="_blank">33 1705 4017</a></p>
+            <small>Lun - Sáb: 9:00 AM - 7:00 PM</small>
+          </div>
         </div>
-        <div class="contact-card">
-          <div class="contact-icon"><i class="fa-solid fa-envelope"></i></div>
-          <h4>Email</h4>
-          <p><a href="mailto:ventas@muebleswh.com">ventas@muebleswh.com</a></p>
-          <small>Respuesta en 24 hrs</small>
+        <div class="col">
+          <div class="contact-card h-100">
+            <div class="contact-icon"><i class="fa-solid fa-envelope"></i></div>
+            <h4>Email</h4>
+            <p><a href="mailto:ventas@muebleswh.com">ventas@muebleswh.com</a></p>
+            <small>Respuesta en 24 hrs</small>
+          </div>
         </div>
-        <div class="contact-card">
-          <div class="contact-icon"><i class="fa-solid fa-location-dot"></i></div>
-          <h4>Ubicación</h4>
-          <p>Guadalajara, Jalisco</p>
-          <small>Servicio en toda la ZMG</small>
+        <div class="col">
+          <div class="contact-card h-100">
+            <div class="contact-icon"><i class="fa-solid fa-location-dot"></i></div>
+            <h4>Ubicación</h4>
+            <p>Guadalajara, Jalisco</p>
+            <small>Servicio en toda la ZMG</small>
+          </div>
         </div>
-        <div class="contact-card">
-          <div class="contact-icon"><i class="fa-solid fa-clock"></i></div>
-          <h4>Horario</h4>
-          <p>Lunes a Sábado</p>
-          <small>9:00 AM - 7:00 PM</small>
+        <div class="col">
+          <div class="contact-card h-100">
+            <div class="contact-icon"><i class="fa-solid fa-clock"></i></div>
+            <h4>Horario</h4>
+            <p>Lunes a Sábado</p>
+            <small>9:00 AM - 7:00 PM</small>
+          </div>
         </div>
       </div>
     </div>
@@ -381,7 +437,7 @@
     <div class="social-section">
       <h3><i class="fa-solid fa-globe"></i> Síguenos en Redes Sociales</h3>
       <p style="color:#a0a0a0; margin-bottom:20px;">Mantente al día con nuestros proyectos más recientes</p>
-      <div class="social-links">
+      <div class="d-flex flex-wrap gap-4 justify-content-center social-links">
         <a href="https://www.facebook.com/wh020" class="social-link facebook" title="Facebook" target="_blank">
           <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="white">
             <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>

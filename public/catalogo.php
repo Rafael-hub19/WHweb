@@ -38,14 +38,14 @@
   <div class="container">
     <h1 class="page-title">Catálogo de Muebles de Baño</h1>
 
-    <div class="catalog-header">
+    <div class="d-flex flex-wrap gap-4 align-items-center justify-content-between catalog-header">
       <div class="search-bar">
         <input type="text" id="buscar-producto" placeholder="Buscar por nombre, características...">
         <button id="btn-buscar" class="btn-buscar"><i class="fa-solid fa-magnifying-glass"></i> Buscar</button>
       </div>
 
-      <div class="filters-row">
-        <div id="categorias-filtro" class="filters">
+      <div class="d-flex align-items-center flex-wrap gap-3 filters-row">
+        <div id="categorias-filtro" class="d-flex flex-wrap gap-2 filters">
           <button class="filter-btn active" onclick="filtrarPorCategoria(null, this)">Todos</button>
         </div>
         <select id="ordenar-por" class="select-ordenar">

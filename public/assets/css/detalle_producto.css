@@ -116,12 +116,7 @@
        ========================= */
     .container { max-width: 1400px; margin: 0 auto; padding: 60px 40px; }
 
-    .product-detail {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 40px;
-      margin-bottom: 50px;
-    }
+    /* .product-detail layout handled by Bootstrap row g-4 / col-md-6 */
 
     .gallery { display: flex; flex-direction: column; gap: 15px; }
 
@@ -151,11 +146,7 @@
       background: linear-gradient(135deg, #3d3d3d, #2a2a2a);
     }
 
-    .thumbnails {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 10px;
-    }
+    /* .thumbnails layout handled by Bootstrap row row-cols-4 g-2 */
 
     .thumbnail, .thumb {
       height: 80px;
@@ -407,20 +398,15 @@
     @media (max-width: 992px) {
       .header-nav { padding: 14px 20px; }
       .container { padding: 40px 20px; }
-      .product-detail { grid-template-columns: 1fr; }
-      .thumbnails { grid-template-columns: repeat(4, 1fr); }
       .thumbnail { height: 70px; }
     }
 
     @media (max-width: 520px) {
-      .thumbnails { grid-template-columns: repeat(2, 1fr); }
       .spec-row { grid-template-columns: 1fr; }
-      /* Sin altura fija - aspect-ratio 4/3 lo controla */
     }
 
     @media (max-width: 400px) {
-      .main-image { aspect-ratio: 1/1; }  /* cuadrado en pantallas muy pequeñas */
-      .thumbnails { grid-template-columns: repeat(4, 1fr); }
+      .main-image { aspect-ratio: 1/1; }
       .thumbnail, .thumb { height: 60px; }
     }
     /* ===== Especificaciones por secciones (modelos reales) ===== */
@@ -468,7 +454,6 @@
 
     @media (max-width: 520px) {
       .spec-row { grid-template-columns: 1fr; gap: 4px; }
-      .thumbnails { grid-template-columns: repeat(2, 1fr); }
     }
     @media (max-width: 500px) {
       .spec-row { grid-template-columns: 1fr; gap: 2px; }
@@ -524,6 +509,7 @@
       font-weight: 800;
       margin-bottom: 24px;
     }
+    /* .related-grid — JS fills this; keep CSS grid for auto-fill */
     .related-grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
@@ -647,8 +633,7 @@
     .product-header { display: flex; flex-direction: column; gap: 4px; }
 
     @media (max-width: 360px) {
-      .main-image { aspect-ratio: 1/1; }   /* square on very small phones */
-      .thumbnails { grid-template-columns: repeat(3, 1fr); }
+      .main-image { aspect-ratio: 1/1; }
       .tab-btn { padding: 10px 12px; font-size: 13px; }
       .product-title { font-size: 20px; }
       .price-large { font-size: 26px; }

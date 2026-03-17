@@ -275,9 +275,6 @@
 
   /* CARDS / SECTION */
   .stats-grid{
-    display:grid;
-    grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
-    gap:12px;
     margin-bottom:16px;
   }
 
@@ -703,7 +700,7 @@
   .chip.cot{ border-color:rgba(139,105,20,.6); }
   .chip.inst{ border-color:rgba(74,139,90,.6); }
 
-  .cal-side{ display:grid; grid-template-columns:1.2fr .8fr; gap:12px; }
+  /* .cal-side layout handled by Bootstrap row g-3 */
   .cal-list{
     border:1px solid var(--border);
     border-radius:12px;
@@ -749,14 +746,12 @@
     .main-content{ padding:14px; overflow-x: hidden; }
     .table-wrap, .section, .module-body{ overflow-x:auto; -webkit-overflow-scrolling:touch; width:100%; }
     table{ min-width:680px; }
-    .cal-side{ grid-template-columns:1fr; }
     .cal-day{ min-height:78px; }
   }
 
   @media (max-width: 600px){
     .header{ padding:10px 12px; }
     .user-info span{ display:none; }
-    .stats-grid{ grid-template-columns:1fr; }
     .table-filters{ flex-direction:column; align-items:stretch; }
     .notification{ right:12px; left:12px; max-width:none; }
     .notif-panel{ right:12px; left:12px; width:auto; }
@@ -793,7 +788,6 @@
 
   /* ── MEJOR RESPONSIVE 480px ─────────────────────── */
   @media (max-width: 480px) {
-    .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
     .stat-value { font-size: 20px; }
     .stat-title { font-size: 10px; }
     .btn { padding: 6px 8px; font-size: 11px; }
