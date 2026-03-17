@@ -959,7 +959,7 @@ async function cargarPedidosEmpleadoAPI() {
     tbody.innerHTML = (data.pedidos || []).map(p => `
       <tr data-status="${p.estado}" data-id="${p.id}">
         <td>${p.numero_pedido}</td>
-        <td>${escapeHtml(p.nombre_cliente)}</td>
+        <td>${escapeHtml(p.nombre_cliente)}${p.cliente_id?` <span style="background:#e8f5e9;color:#2E7D32;border-radius:10px;padding:1px 7px;font-size:10px;font-weight:700;vertical-align:middle;" title="Cliente registrado #${p.cliente_id}"><i class="fa-solid fa-user-check"></i> #${p.cliente_id}</span>`:''}</td>
         <td>${p.correo_cliente}</td>
         <td>${p.fecha_estimada || '—'}</td>
         <td><span class="status-badge ${clsMap[p.estado] || ''}">${labMap[p.estado] || p.estado}</span></td>
@@ -1002,7 +1002,7 @@ async function cargarCitasAPI() {
     tbody.innerHTML = (data.citas || []).map(c => `
       <tr>
         <td>${c.numero_cita}</td>
-        <td>${escapeHtml(c.nombre_cliente)}</td>
+        <td>${escapeHtml(c.nombre_cliente)}${c.cliente_id?` <span style="background:#e8f5e9;color:#2E7D32;border-radius:10px;padding:1px 7px;font-size:10px;font-weight:700;vertical-align:middle;" title="Cliente registrado #${c.cliente_id}"><i class="fa-solid fa-user-check"></i> #${c.cliente_id}</span>`:''}</td>
         <td>${c.fecha_cita}</td>
         <td>${c.rango_horario || '—'}</td>
         <td>${c.tipo}</td>
@@ -1037,7 +1037,7 @@ async function cargarCotizacionesAPI() {
     tbody.innerHTML = (data.cotizaciones || []).map(c => `
       <tr>
         <td>${c.numero_cotizacion}</td>
-        <td>${escapeHtml(c.nombre_cliente)}</td>
+        <td>${escapeHtml(c.nombre_cliente)}${c.cliente_id?` <span style="background:#e8f5e9;color:#2E7D32;border-radius:10px;padding:1px 7px;font-size:10px;font-weight:700;vertical-align:middle;" title="Cliente registrado #${c.cliente_id}"><i class="fa-solid fa-user-check"></i> #${c.cliente_id}</span>`:''}</td>
         <td>${escapeHtml(c.modelo_mueble || '—')}</td>
         <td>${c.rango_presupuesto || '—'}</td>
         <td><span class="status-badge ${clsMap[c.estado]||''}">${c.estado}</span></td>
@@ -1105,6 +1105,7 @@ async function verDetallePedidoEmp(id) {
         <div><span style="color:var(--muted);">Instalación:</span><br><strong>${parseInt(p.incluye_instalacion)?'✅ Incluye':'❌ No incluye'}</strong></div>
         <div><span style="color:var(--muted);">Estado:</span><br><strong>${p.estado}</strong></div>
         ${items.length>1?`<div style="grid-column:1/-1;"><span style="color:var(--muted);">Todos los productos:</span><br>${items.map(i=>`<span style="display:inline-block;background:#eee;border-radius:4px;padding:2px 8px;margin:2px;font-size:12px;">${escapeHtml(i.nombre_producto||i.producto_nombre||'?')} ×${i.cantidad}</span>`).join('')}</div>`:''}
+        ${p.cliente_id?`<div style="grid-column:1/-1;margin-top:4px;"><span style="background:#e8f5e9;color:#2E7D32;border-radius:12px;padding:3px 10px;font-size:11px;font-weight:700;"><i class="fa-solid fa-user-check"></i> Cliente registrado #${p.cliente_id}</span></div>`:''}
       </div>
     `;
   } catch(e) { console.error('Error cargando pedido:', e); }

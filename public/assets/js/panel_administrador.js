@@ -397,7 +397,7 @@
         return `
           <tr>
             <td style="font-size:11px;color:var(--muted);">${escapeHtml(c.id)}</td>
-            <td>${escapeHtml(c.cliente)}</td>
+            <td>${escapeHtml(c.cliente)}${c.datos?.cliente_id?` <span style="background:#2d6a3f20;color:#2d6a3f;border-radius:10px;padding:1px 7px;font-size:10px;font-weight:700;vertical-align:middle;" title="Cliente registrado #${c.datos.cliente_id}"><i class="fa-solid fa-user-check"></i> #${c.datos.cliente_id}</span>`:''}</td>
             <td>${fmtDMY(c.date)}</td>
             <td>${escapeHtml(c.time)}</td>
             <td>${tipoMap[c.tipo] || c.tipo}</td>
@@ -1707,7 +1707,7 @@ async function cargarPedidosAPI() {
     tbody.innerHTML = (data.pedidos || []).map(p => `
       <tr data-status="${p.estado}" data-id="${p.id}">
         <td>${p.numero_pedido}</td>
-        <td>${escapeHtml(p.nombre_cliente)}</td>
+        <td>${escapeHtml(p.nombre_cliente)}${p.cliente_id?` <span style="background:#2d6a3f20;color:#2d6a3f;border-radius:10px;padding:1px 7px;font-size:10px;font-weight:700;vertical-align:middle;" title="Cliente registrado #${p.cliente_id}"><i class="fa-solid fa-user-check"></i> #${p.cliente_id}</span>`:''}</td>
         <td>${escapeHtml(p.correo_cliente)}</td>
         <td>${p.fecha_estimada || '—'}</td>
         <td><span class="status-badge ${statusMap[p.estado] || ''}">${labelMap[p.estado] || p.estado}</span></td>
@@ -1884,6 +1884,7 @@ async function verDetallePedidoAdmin(id) {
           <div style="grid-column:1/-1;"><span style="color:var(--muted);display:block;font-size:10px;">Entrega</span><strong>${entrega}</strong></div>
           <div style="grid-column:1/-1;"><span style="color:var(--muted);display:block;font-size:10px;">Instalación</span><strong>${instalacion}</strong></div>
           ${p.notas?`<div style="grid-column:1/-1;"><span style="color:var(--muted);display:block;font-size:10px;">Notas</span><strong>${escapeHtml(p.notas)}</strong></div>`:''}
+          ${p.cliente_id?`<div style="grid-column:1/-1;margin-top:4px;"><span style="background:#2d6a3f20;color:#2d6a3f;border-radius:12px;padding:3px 10px;font-size:11px;font-weight:700;"><i class="fa-solid fa-user-check"></i> Cliente registrado #${p.cliente_id}</span></div>`:''}
         </div>
       </div>
 
@@ -2075,7 +2076,7 @@ async function cargarCotizacionesAPI() {
         }[c.modelo_mueble] || (c.modelo_mueble || 'Sin modelo');
         return `<tr>
           <td><strong>${escapeHtml(c.numero_cotizacion || '')}</strong></td>
-          <td>${escapeHtml(c.nombre_cliente || '')}</td>
+          <td>${escapeHtml(c.nombre_cliente || '')}${c.cliente_id?` <span style="background:#2d6a3f20;color:#2d6a3f;border-radius:10px;padding:1px 7px;font-size:10px;font-weight:700;vertical-align:middle;" title="Cliente registrado #${c.cliente_id}"><i class="fa-solid fa-user-check"></i> #${c.cliente_id}</span>`:''}</td>
           <td>${escapeHtml(c.correo_cliente || '')}</td>
           <td>${escapeHtml(tipo)}</td>
           <td>${escapeHtml(fecha)}</td>
