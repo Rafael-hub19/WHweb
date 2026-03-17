@@ -694,7 +694,7 @@ function renderDayEvents(dayISO){
 
   list.innerHTML = events.map(e => `
     <div class="cal-item">
-      <div class="t">${escapeHtml((e.time ? e.time + ' — ' : '') + e.title)}</div>
+      <div class="t">${escapeHtml((e.time ? e.time + ' — ' : '') + e.title)}${e.cliente_id ? ` <span style="background:#e8f5e9;color:#2E7D32;border-radius:8px;padding:1px 7px;font-size:10px;font-weight:700;"><i class="fa-solid fa-user-check"></i> #${e.cliente_id}</span>` : ''}</div>
       <div class="m">${escapeHtml(e.notes || '')}</div>
       <div style="display:flex; gap:8px; margin-top:6px;">
         <button class="btn btn-secondary btn-small" onclick="deleteEvent('${e.id}')">Eliminar</button>
@@ -871,7 +871,8 @@ async function cargarCitasParaCalendario() {
         time: c.rango_horario || '10:00',
         type: 'cita',
         title: `${c.tipo === 'medicion' ? 'Medición' : 'Instalación'}: ${c.nombre_cliente}`,
-        notes: c.notas || ''
+        notes: c.notas || '',
+        cliente_id: c.cliente_id || null
       }));
     if (nuevos.length) saveCalEvents([...existentes, ...nuevos]);
   } catch(e) { /* silencioso — el calendario muestra lo que tenga en local */ }
@@ -1002,15 +1003,16 @@ async function cargarCitasAPI() {
     tbody.innerHTML = (data.citas || []).map(c => `
       <tr>
         <td>${c.numero_cita}</td>
-        <td>${escapeHtml(c.nombre_cliente)}${c.cliente_id?` <span style="background:#e8f5e9;color:#2E7D32;border-radius:10px;padding:1px 7px;font-size:10px;font-weight:700;vertical-align:middle;" title="Cliente registrado #${c.cliente_id}"><i class="fa-solid fa-user-check"></i> #${c.cliente_id}</span>`:''}</td>
+        <td>${escapeHtml(c.nombre_cliente)}</td>
+        <td>${c.cliente_id ? `<span style="background:#e8f5e9;color:#2E7D32;border-radius:10px;padding:2px 8px;font-size:11px;font-weight:700;"><i class="fa-solid fa-user-check"></i> #${c.cliente_id}</span>` : '<span style="color:#aaa;font-size:11px;">—</span>'}</td>
         <td>${c.fecha_cita}</td>
         <td>${c.rango_horario || '—'}</td>
         <td>${c.tipo}</td>
         <td><span class="status-badge ${clsMap[c.estado]||''}">${c.estado}</span></td>
-        <td style="display:flex;gap:4px;flex-wrap:wrap;">
-          <button onclick="verDetalleCitaEmp(${c.id})" style="background:#5C6BC0;color:#fff;border:none;padding:4px 10px;border-radius:4px;cursor:pointer;font-size:11px;white-space:nowrap;"><i class='fa-solid fa-eye'></i> Ver</button>
-          <button class="btn btn-secondary btn-small" onclick="confirmarCita(${c.id})">✅</button>
-          <button class="btn btn-secondary btn-small" onclick="completarCita(${c.id})">🏁</button>
+        <td style="display:flex;gap:4px;flex-wrap:wrap;align-items:center;">
+          <button onclick="verDetalleCitaEmp(${c.id})" class="btn btn-primary btn-small" title="Ver detalle"><i class='fa-solid fa-eye'></i> Ver</button>
+          <button class="btn btn-secondary btn-small" onclick="confirmarCita(${c.id})" title="Confirmar cita"><i class="fa-solid fa-check"></i></button>
+          <button class="btn btn-secondary btn-small" onclick="completarCita(${c.id})" title="Marcar como completada"><i class="fa-solid fa-flag-checkered"></i></button>
         </td>
       </tr>
     `).join('');
@@ -1034,25 +1036,38 @@ async function cargarCotizacionesAPI() {
     const data = await apiFetch(`${API_BASE}/cotizaciones.php?limit=30`);
     if (!data.success) return;
     const clsMap = { nueva:'status-pending', en_revision:'status-progress', respondida:'status-completed', cerrada:'status-disabled' };
-    tbody.innerHTML = (data.cotizaciones || []).map(c => `
+    const estadoLabels = { nueva:'Nueva', en_revision:'En revisión', respondida:'Respondida', cerrada:'Cerrada' };
+    const modeloLabels = {
+      sevilla:'Modelo Sevilla', roma:'Modelo Roma', edinburgo:'Modelo Edinburgo',
+      singapur:'Modelo Singapur', sydney:'Modelo Sydney', palermo:'Modelo Palermo',
+      budapest:'Modelo Budapest', quebec:'Modelo Quebec', toronto:'Modelo Toronto',
+      amsterdam:'Modelo Amsterdam', oslo:'Mueble Oslo', paris:'Muebles Paris',
+      tokio:'Mueble Tokio', personalizado:'Personalizado',
+      baño:'Baño', sala:'Sala', recamara:'Recámara', estudio:'Estudio', cocina:'Cocina', closet:'Closet',
+    };
+    tbody.innerHTML = (data.cotizaciones || []).map(c => {
+      const cid  = c.cliente_id || '';
+      const tipo = modeloLabels[c.modelo_mueble] || (c.modelo_mueble || '—');
+      return `
       <tr>
         <td>${c.numero_cotizacion}</td>
-        <td>${escapeHtml(c.nombre_cliente)}${c.cliente_id?` <span style="background:#e8f5e9;color:#2E7D32;border-radius:10px;padding:1px 7px;font-size:10px;font-weight:700;vertical-align:middle;" title="Cliente registrado #${c.cliente_id}"><i class="fa-solid fa-user-check"></i> #${c.cliente_id}</span>`:''}</td>
-        <td>${escapeHtml(c.modelo_mueble || '—')}</td>
+        <td>${escapeHtml(c.nombre_cliente)}</td>
+        <td>${cid ? `<span style="background:#e8f5e9;color:#2E7D32;border-radius:10px;padding:2px 8px;font-size:11px;font-weight:700;"><i class="fa-solid fa-user-check"></i> #${cid}</span>` : '<span style="color:#aaa;font-size:11px;">—</span>'}</td>
+        <td>${escapeHtml(tipo)}</td>
         <td>${c.rango_presupuesto || '—'}</td>
-        <td><span class="status-badge ${clsMap[c.estado]||''}">${c.estado}</span></td>
+        <td><span class="status-badge ${clsMap[c.estado]||''}">${estadoLabels[c.estado]||c.estado}</span></td>
         <td>
           <div style="display:flex;gap:4px;flex-wrap:wrap;align-items:center;">
-            <button onclick="verDetalleCotEmp(${c.id})" style="background:#2E7D32;color:#fff;border:none;padding:4px 10px;border-radius:4px;cursor:pointer;font-size:11px;white-space:nowrap;"><i class='fa-solid fa-eye'></i> Ver</button>
-            <select class="form-select" style="width:120px;font-size:11px;" onchange="actualizarCotizacion(${c.id}, this.value)">
+            <button onclick="verDetalleCotEmp(${c.id})" class="btn btn-primary btn-small" title="Ver detalle"><i class='fa-solid fa-eye'></i> Ver</button>
+            <select class="form-select" style="width:115px;font-size:11px;" onchange="actualizarCotizacion(${c.id}, this.value)">
               ${['nueva','en_revision','respondida','cerrada'].map(s =>
-                `<option value="${s}" ${s===c.estado?'selected':''}>${s}</option>`
+                `<option value="${s}" ${s===c.estado?'selected':''}>${estadoLabels[s]||s}</option>`
               ).join('')}
             </select>
           </div>
         </td>
-      </tr>
-    `).join('');
+      </tr>`;
+    }).join('');
   } catch(e) { console.error('Cotizaciones API error:', e); }
 }
 

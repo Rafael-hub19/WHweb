@@ -71,10 +71,17 @@ switch ($method) {
         if (mb_strlen($body['ciudad']               ?? '') > 120)  jsonError('Ciudad demasiado larga', 422);
 
         // Campos de selección: validar contra lista permitida
-        $tiposValidos = ['baño','sala','recamara','estudio','personalizado',''];
-        $modeloMueble   = $body['modelo_mueble'] ?? '';
-        if (!in_array($modeloMueble, $tiposValidos, true) && mb_strlen($modeloMueble) > 100) {
-            $modeloMueble = sanitize(mb_substr($modeloMueble, 0, 100));
+        $tiposValidos = [
+            'sevilla','roma','edinburgo','singapur','sydney','palermo',
+            'budapest','quebec','toronto','amsterdam','oslo','paris','tokio',
+            'personalizado',
+            // valores legacy por compatibilidad con registros anteriores
+            'baño','sala','recamara','estudio','cocina','closet',
+            '',
+        ];
+        $modeloMueble = $body['modelo_mueble'] ?? '';
+        if (!in_array($modeloMueble, $tiposValidos, true)) {
+            $modeloMueble = sanitize(mb_substr($modeloMueble, 0, 80));
         }
 
         $presupuestosValidos = ['5-20','20-50','50+',''];

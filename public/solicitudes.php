@@ -117,19 +117,19 @@
               <label>Modelo de Mueble <span class="required">*</span></label>
               <select name="modeloMueble" required>
                 <option value="">Selecciona una opción</option>
-                <option value="baño">Modelo Sevilla</option>
-                <option value="baño">Modelo Roma</option>
-                <option value="baño">Modelo Edinburgo</option>
-                <option value="baño">Modelo Singapur</option>
-                <option value="baño">Modelo Sydney</option>
-                <option value="baño">Modelo Palermo</option>
-                <option value="baño">Modelo Budapest</option>
-                <option value="baño">Modelo Quebec</option>
-                <option value="baño">Modelo Toronto</option>
-                <option value="baño">Modelo Amsterdam</option>
-                <option value="sala">Mueble Oslo</option>
-                <option value="recamara">Muebles Paris</option>
-                <option value="estudio">Mueble Tokio</option>
+                <option value="sevilla">Modelo Sevilla</option>
+                <option value="roma">Modelo Roma</option>
+                <option value="edinburgo">Modelo Edinburgo</option>
+                <option value="singapur">Modelo Singapur</option>
+                <option value="sydney">Modelo Sydney</option>
+                <option value="palermo">Modelo Palermo</option>
+                <option value="budapest">Modelo Budapest</option>
+                <option value="quebec">Modelo Quebec</option>
+                <option value="toronto">Modelo Toronto</option>
+                <option value="amsterdam">Modelo Amsterdam</option>
+                <option value="oslo">Mueble Oslo</option>
+                <option value="paris">Muebles Paris</option>
+                <option value="tokio">Mueble Tokio</option>
                 <option value="personalizado">Diseño Personalizado</option>
               </select>
             </div>

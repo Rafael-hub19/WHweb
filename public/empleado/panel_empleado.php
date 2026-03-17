@@ -215,6 +215,7 @@ unset($_usuario);
                   <tr>
                     <th>Folio</th>
                     <th>Cliente</th>
+                    <th>ID Cliente</th>
                     <th>Fecha</th>
                     <th>Hora</th>
                     <th>Tipo</th>
@@ -223,7 +224,7 @@ unset($_usuario);
                   </tr>
                 </thead>
                 <tbody>
-                  <tr><td colspan="7" style="text-align:center;color:#888;padding:20px;"><i class="fa-solid fa-spinner fa-spin"></i> Cargando citas...</td></tr>
+                  <tr><td colspan="8" style="text-align:center;color:#888;padding:20px;"><i class="fa-solid fa-spinner fa-spin"></i> Cargando citas...</td></tr>
                 </tbody>
               </table>
             </div>
@@ -250,6 +251,7 @@ unset($_usuario);
                   <tr>
                     <th>Folio</th>
                     <th>Cliente</th>
+                    <th>ID Cliente</th>
                     <th>Modelo</th>
                     <th>Presupuesto</th>
                     <th>Estado</th>
@@ -257,7 +259,7 @@ unset($_usuario);
                   </tr>
                 </thead>
                 <tbody>
-                  <tr><td colspan="6" style="text-align:center;color:#888;padding:20px;"><i class="fa-solid fa-spinner fa-spin"></i> Cargando cotizaciones...</td></tr>
+                  <tr><td colspan="7" style="text-align:center;color:#888;padding:20px;"><i class="fa-solid fa-spinner fa-spin"></i> Cargando cotizaciones...</td></tr>
                 </tbody>
               </table>
             </div>

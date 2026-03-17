@@ -286,13 +286,14 @@
         const estadoTexto = {'nueva':'Nueva','confirmada':'Confirmada','completada':'Completada','cancelada':'Cancelada'}[c.estado] || c.estado;
         const tipoTexto   = {'medicion':'Medición','instalacion':'Instalación','otro':'Otro'}[c.tipo] || c.tipo;
         const dbId = c.datos?.id || '';
+        const cid = c.datos?.cliente_id || '';
         el.innerHTML = `
           <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">
             <div>
-              <div class="t">${escapeHtml(c.time)} • ${escapeHtml(c.cliente)}</div>
+              <div class="t">${escapeHtml(c.time)} • ${escapeHtml(c.cliente)}${cid ? ` <span style="background:#2d6a3f20;color:#2d6a3f;border-radius:8px;padding:1px 7px;font-size:10px;font-weight:700;"><i class="fa-solid fa-user-check"></i> #${cid}</span>` : ''}</div>
               <div class="m">${tipoTexto} • ${estadoTexto} • ${escapeHtml(c.id)}</div>
             </div>
-            ${dbId ? `<button onclick="verDetalleCitaAdmin(${dbId})" style="background:#5C6BC0;color:#fff;border:none;padding:4px 10px;border-radius:4px;cursor:pointer;font-size:11px;white-space:nowrap;flex-shrink:0;"><i class='fa-solid fa-eye'></i> Ver</button>` : ''}
+            ${dbId ? `<button onclick="verDetalleCitaAdmin(${dbId})" class="btn btn-primary btn-small" style="flex-shrink:0;white-space:nowrap;"><i class='fa-solid fa-eye'></i> Ver</button>` : ''}
           </div>
         `;
         list.appendChild(el);
@@ -349,8 +350,9 @@
           const tipoTexto = {'medicion':'Medición','instalacion':'Instalación','otro':'Otro'}[c.tipo] || c.tipo;
           const hoy = new Date().toISOString().substring(0,10);
           const esHoy = c.date === hoy;
+          const cidNext = c.datos?.cliente_id || '';
           el.innerHTML = `
-            <div class="t">${escapeHtml(c.cliente)}${esHoy ? ' <span style="color:#2E7D32;font-size:11px;">● HOY</span>' : ''}</div>
+            <div class="t">${escapeHtml(c.cliente)}${esHoy ? ' <span style="color:#2E7D32;font-size:11px;">● HOY</span>' : ''}${cidNext ? ` <span style="background:#2d6a3f20;color:#2d6a3f;border-radius:8px;padding:1px 7px;font-size:10px;font-weight:700;"><i class="fa-solid fa-user-check"></i> #${cidNext}</span>` : ''}</div>
             <div class="m">${fmtDMY(c.date)} • ${escapeHtml(c.time)} • ${tipoTexto}</div>
           `;
           nextList.appendChild(el);
@@ -394,16 +396,18 @@
       tbody.innerHTML = citas.map(c => {
         const est = estadoMap[c.estado] || { label: c.estado, cls: '' };
         const dbId = c.datos?.id || '';
+        const cid  = c.datos?.cliente_id || '';
         return `
           <tr>
             <td style="font-size:11px;color:var(--muted);">${escapeHtml(c.id)}</td>
-            <td>${escapeHtml(c.cliente)}${c.datos?.cliente_id?` <span style="background:#2d6a3f20;color:#2d6a3f;border-radius:10px;padding:1px 7px;font-size:10px;font-weight:700;vertical-align:middle;" title="Cliente registrado #${c.datos.cliente_id}"><i class="fa-solid fa-user-check"></i> #${c.datos.cliente_id}</span>`:''}</td>
+            <td>${escapeHtml(c.cliente)}</td>
+            <td>${cid ? `<span style="background:#2d6a3f20;color:#2d6a3f;border-radius:10px;padding:2px 8px;font-size:11px;font-weight:700;"><i class="fa-solid fa-user-check"></i> #${cid}</span>` : '<span style="color:var(--muted);font-size:11px;">—</span>'}</td>
             <td>${fmtDMY(c.date)}</td>
             <td>${escapeHtml(c.time)}</td>
             <td>${tipoMap[c.tipo] || c.tipo}</td>
             <td><span class="status-badge ${est.cls}">${est.label}</span></td>
             <td>
-              ${dbId ? `<button class="btn btn-secondary btn-small" onclick="verDetalleCitaAdmin(${dbId})"><i class="fa-solid fa-eye"></i></button>` : '—'}
+              ${dbId ? `<button class="btn btn-primary btn-small" onclick="verDetalleCitaAdmin(${dbId})" title="Ver detalle"><i class="fa-solid fa-eye"></i> Ver</button>` : '—'}
             </td>
           </tr>`;
       }).join('');
@@ -2069,23 +2073,33 @@ async function cargarCotizacionesAPI() {
         const color = estadoColors[est] || '#757575';
         const label = estadoLabels[est] || est;
         const fecha = (c.fecha_creacion || '').substring(0, 10);
-        const tipo  = {
-          'cocina':'Milano','closet':'Venecia','bano':'Toscana',
-          'sala':'Oslo','recamara':'Paris','estudio':'Tokio',
-          'personalizado':'Personalizado'
-        }[c.modelo_mueble] || (c.modelo_mueble || 'Sin modelo');
+        const modeloLabels = {
+          sevilla:'Modelo Sevilla', roma:'Modelo Roma', edinburgo:'Modelo Edinburgo',
+          singapur:'Modelo Singapur', sydney:'Modelo Sydney', palermo:'Modelo Palermo',
+          budapest:'Modelo Budapest', quebec:'Modelo Quebec', toronto:'Modelo Toronto',
+          amsterdam:'Modelo Amsterdam', oslo:'Mueble Oslo', paris:'Muebles Paris',
+          tokio:'Mueble Tokio', personalizado:'Personalizado',
+          // legacy
+          baño:'Baño', sala:'Sala', recamara:'Recámara', estudio:'Estudio',
+          cocina:'Cocina', closet:'Closet',
+        };
+        const tipo = modeloLabels[c.modelo_mueble] || (c.modelo_mueble || 'Sin modelo');
+        const cid  = c.cliente_id || '';
         return `<tr>
           <td><strong>${escapeHtml(c.numero_cotizacion || '')}</strong></td>
-          <td>${escapeHtml(c.nombre_cliente || '')}${c.cliente_id?` <span style="background:#2d6a3f20;color:#2d6a3f;border-radius:10px;padding:1px 7px;font-size:10px;font-weight:700;vertical-align:middle;" title="Cliente registrado #${c.cliente_id}"><i class="fa-solid fa-user-check"></i> #${c.cliente_id}</span>`:''}</td>
+          <td>${escapeHtml(c.nombre_cliente || '')}</td>
+          <td>${cid ? `<span style="background:#2d6a3f20;color:#2d6a3f;border-radius:10px;padding:2px 8px;font-size:11px;font-weight:700;"><i class="fa-solid fa-user-check"></i> #${cid}</span>` : '<span style="color:var(--muted);font-size:11px;">—</span>'}</td>
           <td>${escapeHtml(c.correo_cliente || '')}</td>
           <td>${escapeHtml(tipo)}</td>
           <td>${escapeHtml(fecha)}</td>
           <td><span style="background:${color}22;color:${color};padding:3px 10px;border-radius:12px;font-size:12px;font-weight:600;">${label}</span></td>
           <td>
-            <button onclick="verDetalleCotAdmin(${c.id})" style="background:#2E7D32;color:#fff;border:none;padding:4px 10px;border-radius:4px;cursor:pointer;font-size:11px;margin:1px;" title="Ver detalle"><i class='fa-solid fa-eye'></i> Ver</button>
-            <button onclick="cambiarEstadoCotAdmin(${c.id}, 'en_revision')" style="font-size:11px;padding:3px 8px;margin:1px;background:#fff;border:1px solid #ccc;border-radius:4px;cursor:pointer;" title="En revisión">📋</button>
-            <button onclick="cambiarEstadoCotAdmin(${c.id}, 'respondida')" style="font-size:11px;padding:3px 8px;margin:1px;background:#fff;border:1px solid #ccc;border-radius:4px;cursor:pointer;" title="Respondida">✅</button>
-            <button onclick="cambiarEstadoCotAdmin(${c.id}, 'cerrada')"   style="font-size:11px;padding:3px 8px;margin:1px;background:#fff;border:1px solid #ccc;border-radius:4px;cursor:pointer;" title="Cerrar">🔒</button>
+            <div style="display:flex;gap:4px;flex-wrap:wrap;align-items:center;">
+              <button onclick="verDetalleCotAdmin(${c.id})" class="btn btn-primary btn-small" title="Ver detalle"><i class='fa-solid fa-eye'></i> Ver</button>
+              <button onclick="cambiarEstadoCotAdmin(${c.id}, 'en_revision')" class="btn btn-secondary btn-small" title="Marcar en revisión"><i class="fa-solid fa-clipboard-list"></i></button>
+              <button onclick="cambiarEstadoCotAdmin(${c.id}, 'respondida')"  class="btn btn-secondary btn-small" title="Marcar respondida"><i class="fa-solid fa-check"></i></button>
+              <button onclick="cambiarEstadoCotAdmin(${c.id}, 'cerrada')"    class="btn btn-secondary btn-small" title="Cerrar cotización"><i class="fa-solid fa-lock"></i></button>
+            </div>
           </td>
         </tr>`;
       }).join('');

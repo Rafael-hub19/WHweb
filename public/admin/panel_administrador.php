@@ -322,11 +322,11 @@ unset($_usuario);
                 <table>
                   <thead>
                     <tr>
-                      <th>Folio</th><th>Cliente</th><th>Fecha</th><th>Hora</th><th>Tipo</th><th>Estado</th><th>Acciones</th>
+                      <th>Folio</th><th>Cliente</th><th>ID Cliente</th><th>Fecha</th><th>Hora</th><th>Tipo</th><th>Estado</th><th>Acciones</th>
                     </tr>
                   </thead>
                   <tbody id="citasTable">
-                    <tr><td colspan="7" style="text-align:center;color:var(--muted);padding:20px;">
+                    <tr><td colspan="8" style="text-align:center;color:var(--muted);padding:20px;">
                       <i class="fa-solid fa-spinner fa-spin"></i> Cargando citas...
                     </td></tr>
                   </tbody>
@@ -358,6 +358,7 @@ unset($_usuario);
                   <tr>
                     <th>Folio</th>
                     <th>Cliente</th>
+                    <th>ID Cliente</th>
                     <th>Correo</th>
                     <th>Modelo de Mueble</th>
                     <th>Fecha</th>
@@ -366,7 +367,7 @@ unset($_usuario);
                   </tr>
                 </thead>
                 <tbody id="cotizacionesAdminBody">
-                  <tr><td colspan="7" style="text-align:center;padding:30px;color:var(--muted);">
+                  <tr><td colspan="8" style="text-align:center;padding:30px;color:var(--muted);">
                     <i class="fa-solid fa-spinner fa-spin"></i> Cargando cotizaciones...
                   </td></tr>
                 </tbody>
