@@ -74,6 +74,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 // y devuelve JSON en vez de body vacío con status 500
 set_exception_handler(function(Throwable $e): void {
     http_response_code(500);
+    // Registrar siempre en el log del servidor (visible aunque APP_DEBUG=false)
+    $logLine = sprintf('[%s] EXCEPTION %s: %s in %s:%d',
+        date('Y-m-d H:i:s'), get_class($e), $e->getMessage(), $e->getFile(), $e->getLine()
+    );
+    $logDir = dirname(__DIR__) . '/logs';
+    @file_put_contents($logDir . '/api_errors.log', $logLine . PHP_EOL, FILE_APPEND | LOCK_EX);
+    error_log($logLine);
+
     $msg = (defined('APP_DEBUG') && APP_DEBUG)
         ? $e->getMessage() . ' in ' . basename($e->getFile()) . ':' . $e->getLine()
         : 'Error interno del servidor. Intenta de nuevo más tarde.';
