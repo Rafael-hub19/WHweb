@@ -261,17 +261,17 @@ function emailPedidoConfirmado(pedido) {
 <p style="color:#555;"><strong>📅 Semana estimada de entrega:</strong> ${fecha}</p>
 
 <!-- Ticket de pago -->
-${pedido.referencia_pago ? `
+${(pedido.metodo_pago || pedido.referencia_pago) ? `
 <h3 style="color:#5C3D11;font-size:15px;margin:24px 0 8px;">🧾 Comprobante de pago</h3>
 <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;margin-bottom:20px;background:#faf6f0;border-radius:6px;">
   <tr>
     <td style="padding:10px 14px;border-bottom:1px solid #f0e8d8;color:#666;width:40%;">Método de pago</td>
     <td style="padding:10px 14px;border-bottom:1px solid #f0e8d8;font-weight:600;">${pedido.metodo_pago || '—'}</td>
   </tr>
-  <tr>
-    <td style="padding:10px 14px;border-bottom:1px solid #f0e8d8;color:#666;">ID de transacción</td>
+  ${pedido.referencia_pago ? `<tr>
+    <td style="padding:10px 14px;border-bottom:1px solid #f0e8d8;color:#666;">Referencia de pago</td>
     <td style="padding:10px 14px;border-bottom:1px solid #f0e8d8;font-family:monospace;font-size:12px;word-break:break-all;">${pedido.referencia_pago}</td>
-  </tr>
+  </tr>` : ''}
   <tr>
     <td style="padding:10px 14px;color:#666;">Fecha de pago</td>
     <td style="padding:10px 14px;font-weight:600;">${pedido.fecha_pago || '—'}</td>

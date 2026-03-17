@@ -253,7 +253,11 @@ if ($action === 'paypal_capturar') {
             // Enviar notificación solo si el webhook aún no lo hizo
             if ($pedido && empty($pedido['notificacion_enviada'])) {
                 try {
-                    $pedido['items'] = dbRows("SELECT nombre_producto, cantidad, precio_unitario FROM detalle_pedido WHERE pedido_id = ?", [$pedidoId]);
+                    $captureId = $capture['purchase_units'][0]['payments']['captures'][0]['id'] ?? $orderId;
+                    $pedido['items']           = dbRows("SELECT nombre_producto, cantidad, precio_unitario FROM detalle_pedido WHERE pedido_id = ?", [$pedidoId]);
+                    $pedido['metodo_pago']     = 'PayPal';
+                    $pedido['referencia_pago'] = $captureId;
+                    $pedido['fecha_pago']      = date('d/m/Y H:i');
                     notificarNuevoPedido($pedido);
                     dbUpdate('pedidos', ['notificacion_enviada' => 1], 'id = ?', [$pedidoId]);
                 } catch (Exception $e) {
