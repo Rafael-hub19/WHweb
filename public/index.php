@@ -227,7 +227,7 @@
     <!-- Process -->
     <div>
       <h2 class="section-title"><i class="fa-solid fa-clipboard-list"></i> Proceso de Trabajo</h2>
-      <div class="row row-cols-2 row-cols-sm-3 row-cols-lg-5 g-5">
+      <div class="row row-cols-2 row-cols-sm-3 row-cols-lg-5 g-5 mb-5">
         <div class="col">
           <div class="process-step h-100">
             <div class="process-number">1</div>
@@ -271,7 +271,7 @@
     <div id="proyectos">
       <h2 class="section-title"><i class="fa-solid fa-sparkles"></i> Proyectos Realizados</h2>
 
-      <div class="row row-cols-2 row-cols-md-3 g-3">
+      <div class="row row-cols-2 row-cols-md-3 g-3 mb-5">
 
         <div class="col">
           <div class="work-card video-card">
@@ -383,7 +383,7 @@
     <!-- Contact Section -->
     <div id="contacto">
       <h2 class="section-title"><i class="fa-solid fa-phone"></i> Información de Contacto</h2>
-      <div class="row row-cols-1 row-cols-sm-2 g-4">
+      <div class="row row-cols-1 row-cols-sm-2 g-4 mb-5">
         <div class="col">
           <div class="contact-card h-100">
             <div class="contact-icon"><i class="fa-solid fa-mobile-screen"></i></div>

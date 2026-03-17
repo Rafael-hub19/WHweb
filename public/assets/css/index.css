@@ -131,6 +131,7 @@ img, video { max-width: 100%; height: auto; }
 
 /* Panel del dropdown */
 .dropdown-menu {
+  display: block !important; /* Sobreescribir display:none de Bootstrap — se oculta via opacity/visibility */
   position: absolute;
   top: calc(100% + 14px);
   left: 50%;
