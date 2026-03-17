@@ -1174,6 +1174,7 @@ async function verDetalleCitaEmp(id) {
           <div style="grid-column:1/-1;"><span style="color:#888;">Correo:</span><br><strong>${escapeHtml(c.correo_cliente)}</strong></div>
           <div style="grid-column:1/-1;"><span style="color:#888;">📍 Dirección:</span><br><strong>${escapeHtml(c.direccion||'Sin especificar')}</strong></div>
           ${c.notas?`<div style="grid-column:1/-1;"><span style="color:#888;">Notas:</span><br>${escapeHtml(c.notas)}</div>`:''}
+          ${c.cliente_id?`<div style="grid-column:1/-1;margin-top:4px;"><span style="background:#e8f5e9;color:#2E7D32;border-radius:12px;padding:3px 10px;font-size:11px;font-weight:700;"><i class="fa-solid fa-user-check"></i> Cliente registrado #${c.cliente_id}</span></div>`:''}
         </div>
       </div>`;
   } catch(e) {
@@ -1235,6 +1236,7 @@ async function verDetalleCotEmp(id) {
           <div><span style="color:#888;">Nombre:</span><br><strong>${escapeHtml(cot.nombre_cliente)}</strong></div>
           <div><span style="color:#888;">Teléfono:</span><br><strong>${escapeHtml(cot.telefono_cliente||'—')}</strong></div>
           <div style="grid-column:1/-1;"><span style="color:#888;">Correo:</span><br><strong>${escapeHtml(cot.correo_cliente)}</strong></div>
+          ${cot.cliente_id?`<div style="grid-column:1/-1;margin-top:4px;"><span style="background:#e8f5e9;color:#2E7D32;border-radius:12px;padding:3px 10px;font-size:11px;font-weight:700;"><i class="fa-solid fa-user-check"></i> Cliente registrado #${cot.cliente_id}</span></div>`:''}
         </div>
       </div>
       <div style="background:#f0fff4;border-left:3px solid #2E7D32;border-radius:4px;padding:12px;">

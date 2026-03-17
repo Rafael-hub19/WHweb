@@ -254,9 +254,10 @@ function initFormCotizacion() {
 
     try {
       const res  = await fetch(`${API_URL}/cotizaciones.php`, {
-        method:  'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify(datos),
+        method:      'POST',
+        credentials: 'same-origin',
+        headers:     { 'Content-Type': 'application/json' },
+        body:        JSON.stringify(datos),
       });
       const ct = res.headers.get('content-type') || '';
       if (!ct.includes('application/json')) throw new Error('Error de servidor. Intenta nuevamente.');
@@ -343,9 +344,10 @@ function initFormCita() {
 
     try {
       const res  = await fetch(`${API_URL}/citas.php`, {
-        method:  'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify(datos),
+        method:      'POST',
+        credentials: 'same-origin',
+        headers:     { 'Content-Type': 'application/json' },
+        body:        JSON.stringify(datos),
       });
       const ct = res.headers.get('content-type') || '';
       if (!ct.includes('application/json')) throw new Error('Error de servidor. Intenta nuevamente.');

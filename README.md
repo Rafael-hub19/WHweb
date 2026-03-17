@@ -16,7 +16,7 @@ Incluye catálogo, carrito, cuentas de cliente, proceso de pago, cotizaciones, s
 | Autenticación | Firebase Auth SDK v10 compat |
 | Base de datos RT | Firebase Firestore SDK v10 compat |
 | Almacenamiento | Firebase Storage SDK v10 compat |
-| Cloud Functions | Firebase Functions v2 (Node.js 20) |
+| Cloud Functions | Firebase Functions v2 (Node.js 22) |
 | Pasarela 1 | Stripe JS v3 + PHP vía cURL |
 | Pasarela 2 | PayPal JS SDK v5 + REST API v2 |
 | Correos | SMTP directo desde PHP (Brevo/Gmail compatible) |
@@ -332,6 +332,57 @@ firebase deploy --only functions
 a2enmod rewrite headers expires deflate
 service apache2 restart
 ```
+
+---
+
+## Correcciones y mejoras (v5 — 2026-03-17)
+
+### Sincronización de datos de contacto al perfil del cliente
+
+**Problema:** Al completar un pedido, cotización o cita, los datos ingresados (teléfono, dirección, ciudad, CP) no se guardaban en la tabla `clientes`. El formulario de solicitudes seguía mostrando "Completa tu teléfono" aunque el usuario lo hubiera ingresado antes.
+
+**Corrección (`api/pedidos.php`, `api/cotizaciones.php`, `api/citas.php`):**
+- Al insertar un pedido con éxito, si hay sesión de cliente activa, se hace `UPDATE clientes SET telefono, ciudad, cp, direccion` con los datos del checkout.
+- Al insertar una cotización o cita, si hay sesión activa, se actualiza `clientes.telefono`.
+- El update es silencioso (no cancela el pedido/cita/cotización si falla).
+
+### Vinculación correcta de `cliente_id` en cotizaciones y citas
+
+**Problema:** El campo `cliente_id` quedaba NULL en `cotizaciones` y `citas` aunque el usuario estuviera logueado, porque `solicitudes.js` no enviaba las cookies de sesión PHP con el fetch.
+
+**Corrección (`public/assets/js/solicitudes.js`):**
+- Agregado `credentials: 'same-origin'` a los fetch de POST cotizaciones y POST citas, de modo que la cookie de sesión PHP llega al servidor y `sesionClienteActiva()` puede detectar al cliente.
+
+### Badge "Cliente registrado" en paneles admin y empleado
+
+**Mejora (`public/assets/js/panel_administrador.js`, `public/assets/js/panel_empleado.js`):**
+- En el modal de detalle de cotizaciones y citas, si el registro tiene `cliente_id` (no NULL), aparece un badge verde **"Cliente registrado #ID"** en la sección de datos del cliente.
+
+### Corrección de errores 500 en cotizaciones, citas y perfil
+
+- **`api/cotizaciones.php`** — columna `modelo_mueble` faltaba en la BD; agregado `ALTER TABLE IF NOT EXISTS` en `schema.sql` para instalaciones existentes.
+- **`api/citas.php`** — removido campo `notas` del INSERT (columna inexistente y el formulario no tiene ese campo).
+- **`api/clientes.php`** — reemplazado `dbExecute()` (inexistente) por `dbQuery()` para guardar el perfil correctamente.
+
+### Email de confirmación de pago PayPal
+
+**Problema:** El correo de confirmación del cliente no mostraba el método de pago ni la referencia para pedidos con PayPal.
+
+**Corrección (`api/pagos.php`, `firebase/functions/index.js`):**
+- En el bloque `paypal_capturar`, se asignan `metodo_pago`, `referencia_pago` y `fecha_pago` antes de llamar a `notificarNuevoPedido`.
+- La sección "Comprobante de pago" del template de email ahora se muestra si existe `metodo_pago` O `referencia_pago`, y muestra la referencia solo si existe.
+
+### Admin solo recibe notificaciones internas (sin BCC de emails del cliente)
+
+**Problema:** El admin recibía tanto su email de notificación interna como un BCC de cada email enviado al cliente.
+
+**Corrección (`firebase/functions/index.js`):**
+- Removido `bcc: emails.admin` de las 5 funciones de envío al cliente (nuevo_pedido, estado_pedido, nueva_cotizacion, cotizacion_respondida, nueva_cita).
+
+### Firebase Cloud Functions — Node.js 22
+
+- `firebase/firebase.json` y `firebase/functions/package.json` actualizados de Node.js 20 a Node.js 22.
+- Paquete `firebase-functions` actualizado a la versión más reciente.
 
 ---
 

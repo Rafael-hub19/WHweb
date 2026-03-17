@@ -361,6 +361,9 @@ ALTER TABLE pedidos ADD CONSTRAINT fk_pedidos_cliente
   ON DELETE SET NULL ON UPDATE CASCADE;
 CREATE INDEX idx_pedidos_cliente ON pedidos (cliente_id);
 
+-- Columnas que pueden faltar en instalaciones existentes previas al módulo de clientes
+ALTER TABLE cotizaciones ADD COLUMN IF NOT EXISTS modelo_mueble VARCHAR(80) NULL AFTER telefono_cliente;
+
 -- Vincular cotizaciones a clientes
 ALTER TABLE cotizaciones ADD COLUMN cliente_id INT NULL AFTER numero_cotizacion;
 ALTER TABLE cotizaciones ADD CONSTRAINT fk_cotizaciones_cliente

@@ -1961,6 +1961,7 @@ async function verDetalleCitaAdmin(id) {
           <div style="grid-column:1/-1;"><span style="color:var(--muted);display:block;font-size:10px;">Correo</span><strong>${escapeHtml(c.correo_cliente)}</strong></div>
           <div style="grid-column:1/-1;"><span style="color:var(--muted);display:block;font-size:10px;">📍 Dirección</span><strong>${escapeHtml(c.direccion||'Sin especificar')}</strong></div>
           ${c.notas?`<div style="grid-column:1/-1;"><span style="color:var(--muted);display:block;font-size:10px;">Notas</span><strong>${escapeHtml(c.notas)}</strong></div>`:''}
+          ${c.cliente_id?`<div style="grid-column:1/-1;margin-top:4px;"><span style="background:#2d6a3f20;color:#2d6a3f;border-radius:12px;padding:3px 10px;font-size:11px;font-weight:700;"><i class="fa-solid fa-user-check"></i> Cliente registrado #${c.cliente_id}</span></div>`:''}
         </div>
       </div>
     `;
@@ -2014,6 +2015,7 @@ async function verDetalleCotAdmin(id) {
           <div><span style="color:var(--muted);display:block;font-size:10px;">Nombre</span><strong>${escapeHtml(cot.nombre_cliente)}</strong></div>
           <div><span style="color:var(--muted);display:block;font-size:10px;">Teléfono</span><strong>${escapeHtml(cot.telefono_cliente||'—')}</strong></div>
           <div style="grid-column:1/-1;"><span style="color:var(--muted);display:block;font-size:10px;">Correo</span><strong>${escapeHtml(cot.correo_cliente)}</strong></div>
+          ${cot.cliente_id?`<div style="grid-column:1/-1;margin-top:4px;"><span style="background:#2d6a3f20;color:#2d6a3f;border-radius:12px;padding:3px 10px;font-size:11px;font-weight:700;"><i class="fa-solid fa-user-check"></i> Cliente registrado #${cot.cliente_id}</span></div>`:''}
         </div>
       </div>
 
