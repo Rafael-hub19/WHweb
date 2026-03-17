@@ -1237,7 +1237,14 @@ async function verDetalleCotEmp(id) {
 
     const estLabels = { nueva:'Nueva 🆕', en_revision:'En Revisión 📋', respondida:'Respondida ✅', cerrada:'Cerrada 🔒' };
     const estColors = { nueva:'#1565C0', en_revision:'#F57F17', respondida:'#2E7D32', cerrada:'#757575' };
-    const tipoMap   = { baño:'Mueble de baño', personalizado:'Diseño Personalizado' };
+    const tipoMap = {
+      sevilla:'Modelo Sevilla', roma:'Modelo Roma', edinburgo:'Modelo Edinburgo',
+      singapur:'Modelo Singapur', sydney:'Modelo Sydney', palermo:'Modelo Palermo',
+      budapest:'Modelo Budapest', quebec:'Modelo Quebec', toronto:'Modelo Toronto',
+      amsterdam:'Modelo Amsterdam', oslo:'Mueble Oslo', paris:'Muebles Paris',
+      tokio:'Mueble Tokio', personalizado:'Diseño Personalizado',
+      baño:'Baño', sala:'Sala', recamara:'Recámara', estudio:'Estudio', cocina:'Cocina', closet:'Closet',
+    };
     const est = cot.estado || 'nueva';
     const tipoLabel = tipoMap[cot.modelo_mueble] || (cot.modelo_mueble || 'No especificado');
 
