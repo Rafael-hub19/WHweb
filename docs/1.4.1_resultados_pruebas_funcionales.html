@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>1.4.1 — Resultados de Pruebas Funcionales · Wooden House</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', Arial, sans-serif; font-size: 12px; color: #1a1a1a; background: #fff; line-height: 1.5; }
+
+    .cover {
+      min-height: 100vh; display: flex; flex-direction: column;
+      justify-content: center; align-items: center; text-align: center;
+      background: linear-gradient(135deg, #2c1a0e 0%, #5a3825 100%);
+      color: #fff; padding: 60px 40px; page-break-after: always;
+    }
+    .cover-logo { font-size: 48px; margin-bottom: 16px; }
+    .cover h1 { font-size: 28px; font-weight: 700; letter-spacing: 1px; margin-bottom: 8px; }
+    .cover h2 { font-size: 18px; font-weight: 400; opacity: .85; margin-bottom: 32px; }
+    .cover-meta { border-top: 1px solid rgba(255,255,255,.3); padding-top: 24px; font-size: 13px; opacity: .8; line-height: 2; }
+
+    .page { max-width: 960px; margin: 0 auto; padding: 40px 50px; }
+    @media print { .page { padding: 20px 30px; } }
+
+    h2.section { font-size: 15px; color: #2c1a0e; border-bottom: 2px solid #8b5e3c;
+      padding-bottom: 6px; margin: 32px 0 14px; text-transform: uppercase; letter-spacing: .5px; }
+    h3.sub { font-size: 13px; color: #5a3825; margin: 22px 0 10px; font-weight: 700; border-left: 3px solid #8b5e3c; padding-left: 8px; }
+    p { margin-bottom: 10px; }
+
+    /* ── Tabla de casos ── */
+    table { width: 100%; border-collapse: collapse; margin-bottom: 24px; font-size: 11.5px; }
+    th { background: #2c1a0e; color: #fff; padding: 7px 9px; text-align: left; font-weight: 600; }
+    td { padding: 6px 9px; border-bottom: 1px solid #e8ddd5; vertical-align: top; }
+    tr:nth-child(even) td { background: #faf6f2; }
+    td:first-child { font-weight: 600; color: #5a3825; white-space: nowrap; }
+
+    .pass { background: #d4edda; color: #155724; padding: 2px 8px; border-radius: 10px; font-size: 10.5px; font-weight: 700; white-space: nowrap; }
+    .fail { background: #f8d7da; color: #721c24; padding: 2px 8px; border-radius: 10px; font-size: 10.5px; font-weight: 700; white-space: nowrap; }
+    .pend { background: #d1ecf1; color: #0c5460; padding: 2px 8px; border-radius: 10px; font-size: 10.5px; font-weight: 700; white-space: nowrap; }
+    .na   { background: #e2e3e5; color: #383d41; padding: 2px 8px; border-radius: 10px; font-size: 10.5px; font-weight: 700; white-space: nowrap; }
+
+    /* ── Resumen ── */
+    .summary { display: flex; gap: 16px; flex-wrap: wrap; margin: 16px 0; }
+    .sum-box { flex: 1; min-width: 100px; border-radius: 8px; padding: 14px; text-align: center; }
+    .sum-box .num { font-size: 32px; font-weight: 700; }
+    .sum-box .lbl { font-size: 11px; margin-top: 2px; text-transform: uppercase; letter-spacing: .5px; }
+    .sum-total  { background: #f0e8e0; } .sum-total  .num { color: #2c1a0e; }
+    .sum-pass   { background: #d4edda; } .sum-pass   .num { color: #155724; }
+    .sum-fail   { background: #f8d7da; } .sum-fail   .num { color: #721c24; }
+    .sum-pend   { background: #d1ecf1; } .sum-pend   .num { color: #0c5460; }
+
+    .infobox { background: #faf6f2; border-left: 4px solid #8b5e3c;
+      padding: 10px 14px; margin: 12px 0; border-radius: 0 6px 6px 0; font-size: 11.5px; }
+    .infobox strong { display: block; margin-bottom: 3px; color: #2c1a0e; }
+
+    .footer { margin-top: 48px; padding-top: 16px; border-top: 1px solid #e0d6cd;
+      font-size: 11px; color: #888; text-align: center; }
+
+    code { background: #f3ece6; padding: 1px 5px; border-radius: 3px; font-family: 'Courier New', monospace; font-size: 11px; }
+  </style>
+</head>
+<body>
+
+<!-- ══ PORTADA ══ -->
+<div class="cover">
+  <div class="cover-logo">🪵</div>
+  <h1>Wooden House</h1>
+  <h2>Sitio web de e-commerce — Muebles de baño</h2>
+  <div style="font-size:22px; font-weight:700; margin-bottom:8px; margin-top:20px;">
+    RESULTADOS DE PRUEBAS DE FUNCIONAMIENTO GENERAL
+  </div>
+  <div style="font-size:15px; opacity:.8; margin-bottom:32px;">Entregable 1.4.1</div>
+  <div class="cover-meta">
+    <div><strong>Proyecto:</strong> E-commerce Wooden House</div>
+    <div><strong>Sitio web:</strong> https://muebleswh.com</div>
+    <div><strong>Fecha de elaboración:</strong> 20 de marzo de 2026</div>
+    <div><strong>Fase:</strong> 4 — Pruebas y validación</div>
+  </div>
+</div>
+
+<!-- ══ CONTENIDO ══ -->
+<div class="page">
+
+  <h2 class="section">1. Introducción</h2>
+  <p>
+    Este documento recoge los resultados de las pruebas de funcionamiento general del sistema
+    de e-commerce <strong>Wooden House</strong>. Las pruebas cubren todos los módulos funcionales
+    del sitio: catálogo, carrito, pago, cotizaciones, citas, cuenta de cliente, panel de
+    administrador, panel de empleado, notificaciones y seguimiento de pedidos.
+  </p>
+  <p>
+    Cada caso de prueba define su identificador, módulo, descripción, datos de entrada,
+    resultado esperado, resultado obtenido y estado (PASS / FAIL).
+  </p>
+
+  <!-- ── Resumen ejecutivo ── -->
+  <h2 class="section">2. Resumen ejecutivo</h2>
+  <div class="summary">
+    <div class="sum-box sum-total"><div class="num">76</div><div class="lbl">Casos totales</div></div>
+    <div class="sum-box sum-pass"> <div class="num">76</div><div class="lbl">PASS</div></div>
+    <div class="sum-box sum-fail"> <div class="num">0</div> <div class="lbl">FAIL</div></div>
+    <div class="sum-box sum-pend"> <div class="num">0</div> <div class="lbl">Pendientes</div></div>
+  </div>
+  <p>Todos los módulos del sistema fueron probados. No se encontraron fallas funcionales al momento de elaborar este documento.</p>
+
+  <!-- ══ MÓDULO 1: Catálogo ══ -->
+  <h3 class="sub">Módulo 1 — Catálogo de productos</h3>
+  <table>
+    <tr><th>ID</th><th>Caso de prueba</th><th>Datos de entrada</th><th>Resultado esperado</th><th>Resultado obtenido</th><th>Estado</th></tr>
+    <tr>
+      <td>CAT-01</td>
+      <td>Carga del catálogo</td>
+      <td>Navegar a <code>/catalogo</code></td>
+      <td>Se muestran todos los productos activos con imagen, nombre y precio</td>
+      <td>Catálogo cargó con todos los productos y sus datos correctos</td>
+      <td><span class="pass">PASS</span></td>
+    </tr>
+    <tr>
+      <td>CAT-02</td>
+      <td>Filtro por categoría</td>
+      <td>Clic en categoría "Lavabos"</td>
+      <td>Solo se muestran productos de esa categoría</td>
+      <td>El catálogo filtró correctamente, mostrando solo la categoría seleccionada</td>
+      <td><span class="pass">PASS</span></td>
+    </tr>
+    <tr>
+      <td>CAT-03</td>
+      <td>Búsqueda por nombre</td>
+      <td>Texto "madera" en campo de búsqueda</td>
+      <td>Se muestran solo productos cuyo nombre o descripción coincide</td>
+      <td>Resultados filtrados en tiempo real con coincidencias correctas</td>
+      <td><span class="pass">PASS</span></td>
+    </tr>
+    <tr>
+      <td>CAT-04</td>
+      <td>Ordenamiento por precio</td>
+      <td>Seleccionar "Precio: menor a mayor"</td>
+      <td>Productos ordenados de menor a mayor precio</td>
+      <td>Orden aplicado correctamente</td>
+      <td><span class="pass">PASS</span></td>
+    </tr>
+    <tr>
+      <td>CAT-05</td>
+      <td>Detalle de producto</td>
+      <td>Clic en un producto del catálogo</td>
+      <td>Página de detalle con galería, especificaciones y botón "Agregar al carrito"</td>
+      <td>Página de detalle cargó con galería, tabs de especificaciones y precio</td>
+      <td><span class="pass">PASS</span></td>
+    </tr>
+    <tr>
+      <td>CAT-06</td>
+      <td>Galería de imágenes</td>
+      <td>Clic en imágenes secundarias del producto</td>
+      <td>Imagen principal cambia al hacer clic en miniaturas</td>
+      <td>Galería interactiva funcionó correctamente</td>
+      <td><span class="pass">PASS</span></td>
+    </tr>
+    <tr>
+      <td>CAT-07</td>
+      <td>Productos relacionados</td>
+      <td>Sección inferior de detalle de producto</td>
+      <td>Se muestran otros productos de la misma categoría</td>
+      <td>Sección de relacionados visible con productos de la misma categoría</td>
+      <td><span class="pass">PASS</span></td>
+    </tr>
+  </table>
+
+  <!-- ══ MÓDULO 2: Carrito ══ -->
+  <h3 class="sub">Módulo 2 — Carrito de compras</h3>
+  <table>
+    <tr><th>ID</th><th>Caso de prueba</th><th>Datos de entrada</th><th>Resultado esperado</th><th>Resultado obtenido</th><th>Estado</th></tr>
+    <tr>
+      <td>CART-01</td>
+      <td>Agregar producto al carrito</td>
+      <td>Clic en "Agregar al carrito" en detalle de producto</td>
+      <td>Producto aparece en carrito con cantidad 1, contador del ícono incrementa</td>
+      <td>Producto agregado correctamente, badge del carrito actualizado</td>
+      <td><span class="pass">PASS</span></td>
+    </tr>
+    <tr>
+      <td>CART-02</td>
+      <td>Cambiar cantidad</td>
+      <td>Aumentar cantidad de 1 a 3 en el carrito</td>
+      <td>Subtotal del producto se actualiza a precio × 3</td>
+      <td>Cantidad y subtotal actualizados correctamente</td>
+      <td><span class="pass">PASS</span></td>
+    </tr>
+    <tr>
+      <td>CART-03</td>
+      <td>Eliminar producto</td>
+      <td>Clic en ícono de eliminar en un producto del carrito</td>
+      <td>Producto desaparece del carrito, total recalculado</td>
+      <td>Producto eliminado, total actualizado en tiempo real</td>
+      <td><span class="pass">PASS</span></td>
+    </tr>
+    <tr>
+      <td>CART-04</td>
+      <td>Persistencia del carrito</td>
+      <td>Agregar productos, cerrar pestaña, volver al sitio</td>
+      <td>El carrito conserva sus productos (localStorage)</td>
+      <td>Carrito recuperado correctamente al volver al sitio</td>
+      <td><span class="pass">PASS</span></td>
+    </tr>
+    <tr>
+      <td>CART-05</td>
+      <td>Total del carrito</td>
+      <td>Carrito con 3 productos de precios distintos</td>
+      <td>Total mostrado = suma correcta de todos los subtotales</td>
+      <td>Total calculado correctamente</td>
+      <td><span class="pass">PASS</span></td>
+    </tr>
+    <tr>
+      <td>CART-06</td>
+      <td>Carrito vacío</td>
+      <td>Navegar a <code>/carrito</code> sin productos</td>
+      <td>Mensaje "Tu carrito está vacío" con enlace al catálogo</td>
+      <td>Estado vacío mostrado correctamente con botón de regreso al catálogo</td>
+      <td><span class="pass">PASS</span></td>
+    </tr>
+  </table>
+
+  <!-- ══ MÓDULO 3: Checkout ══ -->
+  <h3 class="sub">Módulo 3 — Proceso de checkout</h3>
+  <table>
+    <tr><th>ID</th><th>Caso de prueba</th><th>Datos de entrada</th><th>Resultado esperado</th><th>Resultado obtenido</th><th>Estado</th></tr>
+    <tr>
+      <td>CHK-01</td>
+      <td>Formulario de datos del cliente</td>
+      <td>Llenar nombre, correo, teléfono y dirección</td>
+      <td>Datos guardados para el pedido, sin errores de validación</td>
+      <td>Formulario procesó correctamente, validaciones de frontend funcionaron</td>
+      <td><span class="pass">PASS</span></td>
+    </tr>
+    <tr>
+      <td>CHK-02</td>
+      <td>Selección de tipo de entrega</td>
+      <td>Seleccionar "Envío a domicilio"</td>
+      <td>Aparece campo de dirección, se suma costo de envío al total</td>
+      <td>Costo de envío sumado correctamente al total</td>
+      <td><span class="pass">PASS</span></td>
+    </tr>
+    <tr>
+      <td>CHK-03</td>
+      <td>Opción de recoger en tienda</td>
+      <td>Seleccionar "Recoger en tienda"</td>
+      <td>No se suma costo de envío, campo de dirección oculto</td>
+      <td>Total sin costo de envío, dirección ocultada</td>
+      <td><span class="pass">PASS</span></td>
+    </tr>
+    <tr>
+      <td>CHK-04</td>
+      <td>Opción de instalación</td>
+      <td>Activar checkbox "Incluir instalación profesional"</td>
+      <td>Costo de instalación (MXN $1,500) sumado al total</td>
+      <td>Costo de instalación reflejado correctamente en el resumen</td>
+      <td><span class="pass">PASS</span></td>
+    </tr>
+    <tr>
+      <td>CHK-05</td>
+      <td>Selector de semana de entrega</td>
+      <td>Abrir selector de semanas disponibles</td>
+      <td>Muestra semanas con capacidad disponible, bloquea las agotadas</td>
+      <td>Semanas cargadas desde <code>/api/disponibilidad.php</code>, semanas llenas deshabilitadas</td>
+      <td><span class="pass">PASS</span></td>
+    </tr>
+    <tr>
+      <td>CHK-06</td>
+      <td>Código de descuento válido</td>
+      <td>Ingresar código de oferta activo</td>
+      <td>Descuento aplicado, total recalculado con deducción</td>
+      <td>Descuento aplicado correctamente al total</td>
+      <td><span class="pass">PASS</span></td>
+    </tr>
+    <tr>
+      <td>CHK-07</td>
+      <td>Código de descuento inválido</td>
+      <td>Ingresar código inexistente o expirado</td>
+      <td>Mensaje de error "Código inválido", sin modificar el total</td>
+      <td>Mensaje de error mostrado, total sin cambio</td>
+      <td><span class="pass">PASS</span></td>
+    </tr>
+    <tr>
+      <td>CHK-08</td>
+      <td>Autocompletado con sesión activa</td>
+      <td>Proceder al checkout estando logueado como cliente</td>
+      <td>Campos de nombre, correo y teléfono prellenados con datos del perfil</td>
+      <td>Datos del perfil del cliente cargados automáticamente en el formulario</td>
+      <td><span class="pass">PASS</span></td>
+    </tr>
+  </table>
+
+  <!-- ══ MÓDULO 4: Pagos ══ -->
+  <h3 class="sub">Módulo 4 — Pagos en línea</h3>
+  <div class="infobox">
+    <strong>Datos de tarjeta de prueba Stripe:</strong>
+    Número: 4242 4242 4242 4242 · Expiración: cualquier fecha futura · CVC: cualquier 3 dígitos
+  </div>
+  <table>
+    <tr><th>ID</th><th>Caso de prueba</th><th>Datos de entrada</th><th>Resultado esperado</th><th>Resultado obtenido</th><th>Estado</th></tr>
+    <tr>
+      <td>PAY-01</td>
+      <td>Pago exitoso con Stripe</td>
+      <td>Tarjeta 4242 4242 4242 4242</td>
+      <td>Pago aprobado, pedido pasa a estado "pagado", email de confirmación enviado</td>
+      <td>Pago procesado, estado actualizado, email recibido</td>
+      <td><span class="pass">PASS</span></td>
+    </tr>
+    <tr>
+      <td>PAY-02</td>
+      <td>Pago rechazado con Stripe</td>
+      <td>Tarjeta 4000 0000 0000 0002 (declinada)</td>
+      <td>Mensaje de error "Tarjeta rechazada", pedido permanece en "pendiente"</td>
+      <td>Error mostrado correctamente, estado del pedido sin cambio</td>
+      <td><span class="pass">PASS</span></td>
+    </tr>
+    <tr>
+      <td>PAY-03</td>
+      <td>Pago exitoso con PayPal</td>
+      <td>Cuenta PayPal sandbox</td>
+      <td>Redirección a PayPal, aprobación, regreso al sitio con pedido "pagado"</td>
+      <td>Flujo PayPal completo exitoso, estado del pedido actualizado</td>
+      <td><span class="pass">PASS</span></td>
+    </tr>
+    <tr>
+      <td>PAY-04</td>
+      <td>Webhook Stripe — pago completado</td>
+      <td>Evento <code>payment_intent.succeeded</code> simulado</td>
+      <td>Pedido actualizado a "pagado" en la BD sin intervención del frontend</td>
+      <td>Webhook recibido, firma verificada, estado actualizado</td>
+      <td><span class="pass">PASS</span></td>
+    </tr>
+    <tr>
+      <td>PAY-05</td>
+      <td>Webhook PayPal — captura completada</td>
+      <td>Evento <code>PAYMENT.CAPTURE.COMPLETED</code> simulado</td>
+      <td>Pedido actualizado a "pagado" en la BD</td>
+      <td>Webhook recibido, estado del pedido actualizado correctamente</td>
+      <td><span class="pass">PASS</span></td>
+    </tr>
+    <tr>
+      <td>PAY-06</td>
+      <td>Seguridad: datos de tarjeta</td>
+      <td>Completar pago con Stripe Elements</td>
+      <td>Ningún dato de tarjeta almacenado en la BD ni en logs del servidor</td>
+      <td>La tabla <code>pagos</code> solo contiene el ID de transacción de Stripe, sin datos de tarjeta</td>
+      <td><span class="pass">PASS</span></td>
+    </tr>
+  </table>
+
+  <!-- ══ MÓDULO 5: Cotizaciones ══ -->
+  <h3 class="sub">Módulo 5 — Cotizaciones personalizadas</h3>
+  <table>
+    <tr><th>ID</th><th>Caso de prueba</th><th>Datos de entrada</th><th>Resultado esperado</th><th>Resultado obtenido</th><th>Estado</th></tr>
+    <tr>
+      <td>COT-01</td>
+      <td>Crear solicitud de cotización</td>
+      <td>Formulario completo en <code>/solicitudes</code></td>
+      <td>Solicitud creada, se muestra número de folio, email enviado al cliente</td>
+      <td>Cotización creada con número de folio único, email de confirmación recibido</td>
+      <td><span class="pass">PASS</span></td>
+    </tr>
+    <tr>
+      <td>COT-02</td>
+      <td>Campos obligatorios vacíos</td>
+      <td>Enviar formulario sin nombre ni descripción</td>
+      <td>Errores de validación mostrados, formulario no enviado</td>
+      <td>Validaciones client-side y server-side bloquearon el envío</td>
+      <td><span class="pass">PASS</span></td>
+    </tr>
+    <tr>
+      <td>COT-03</td>
+      <td>Consulta de folio</td>
+      <td>Ingresar número de folio en seguimiento</td>
+      <td>Se muestra estado actual de la cotización y detalles</td>
+      <td>Estado de cotización consultado correctamente sin necesidad de login</td>
+      <td><span class="pass">PASS</span></td>
+    </tr>
+    <tr>
+      <td>COT-04</td>
+      <td>Folio inexistente</td>
+      <td>Ingresar folio inválido</td>
+      <td>Mensaje "No se encontró la cotización con ese número"</td>
+      <td>Mensaje de error mostrado correctamente</td>
+      <td><span class="pass">PASS</span></td>
+    </tr>
+    <tr>
+      <td>COT-05</td>
+      <td>Cambio de estado (panel admin)</td>
+      <td>Admin cambia estado de "nueva" a "en_revisión"</td>
+      <td>Estado actualizado en BD, visible en panel y en seguimiento del cliente</td>
+      <td>Estado actualizado correctamente, reflejado en panel y en consulta del cliente</td>
+      <td><span class="pass">PASS</span></td>
+    </tr>
+    <tr>
+      <td>COT-06</td>
+      <td>Vinculación a cuenta de cliente</td>
+      <td>Crear cotización estando logueado como cliente</td>
+      <td>La cotización aparece en el historial de "Mi cuenta" del cliente</td>
+      <td>Cotización vinculada al cliente por <code>cliente_id</code>, visible en su cuenta</td>
+      <td><span class="pass">PASS</span></td>
+    </tr>
+  </table>
+
+  <!-- ══ MÓDULO 6: Citas ══ -->
+  <h3 class="sub">Módulo 6 — Agendado de citas</h3>
+  <table>
+    <tr><th>ID</th><th>Caso de prueba</th><th>Datos de entrada</th><th>Resultado esperado</th><th>Resultado obtenido</th><th>Estado</th></tr>
+    <tr>
+      <td>CIT-01</td>
+      <td>Agendar cita de medición</td>
+      <td>Tipo: Medición, fecha disponible, dirección</td>
+      <td>Cita creada, número de folio generado, email enviado</td>
+      <td>Cita registrada correctamente con folio único</td>
+      <td><span class="pass">PASS</span></td>
+    </tr>
+    <tr>
+      <td>CIT-02</td>
+      <td>Agendar cita de instalación</td>
+      <td>Tipo: Instalación, fecha y rango horario</td>
+      <td>Cita creada y visible en calendario del panel</td>
+      <td>Cita registrada y visible en panel del empleado</td>
+      <td><span class="pass">PASS</span></td>
+    </tr>
+    <tr>
+      <td>CIT-03</td>
+      <td>Confirmar cita (empleado)</td>
+      <td>Cambiar estado a "confirmada" desde panel</td>
+      <td>Estado actualizado, notificación al admin</td>
+      <td>Estado actualizado, notificación en Firestore disparada</td>
+      <td><span class="pass">PASS</span></td>
+    </tr>
+    <tr>
+      <td>CIT-04</td>
+      <td>Vista calendario</td>
+      <td>Abrir pestaña Calendario en panel empleado</td>
+      <td>Citas del mes mostradas en calendario visual</td>
+      <td>Calendario con todas las citas del mes mostrado correctamente</td>
+      <td><span class="pass">PASS</span></td>
+    </tr>
+    <tr>
+      <td>CIT-05</td>
+      <td>Consulta de folio de cita</td>
+      <td>Ingresar número de cita en seguimiento</td>
+      <td>Detalles de la cita y estado actual mostrados</td>
+      <td>Información de cita recuperada correctamente</td>
+      <td><span class="pass">PASS</span></td>
+    </tr>
+  </table>
+
+  <!-- ══ MÓDULO 7: Cuenta cliente ══ -->
+  <h3 class="sub">Módulo 7 — Cuenta de cliente</h3>
+  <table>
+    <tr><th>ID</th><th>Caso de prueba</th><th>Datos de entrada</th><th>Resultado esperado</th><th>Resultado obtenido</th><th>Estado</th></tr>
+    <tr>
+      <td>CLI-01</td>
+      <td>Registro de nuevo cliente</td>
+      <td>Nombre, correo nuevo, contraseña</td>
+      <td>Cuenta creada en Firebase Auth y en tabla <code>clientes</code>, sesión iniciada</td>
+      <td>Cuenta creada exitosamente, sesión iniciada automáticamente</td>
+      <td><span class="pass">PASS</span></td>
+    </tr>
+    <tr>
+      <td>CLI-02</td>
+      <td>Inicio de sesión</td>
+      <td>Correo y contraseña correctos</td>
+      <td>Sesión iniciada, redirigido a <code>/mi-cuenta</code></td>
+      <td>Login exitoso, redirección correcta</td>
+      <td><span class="pass">PASS</span></td>
+    </tr>
+    <tr>
+      <td>CLI-03</td>
+      <td>Contraseña incorrecta</td>
+      <td>Correo válido + contraseña errónea</td>
+      <td>Mensaje de error "Correo o contraseña incorrectos"</td>
+      <td>Mensaje de error mostrado sin revelar si el correo existe</td>
+      <td><span class="pass">PASS</span></td>
+    </tr>
+    <tr>
+      <td>CLI-04</td>
+      <td>Historial de pedidos</td>
+      <td>Navegar a "Mis pedidos" en <code>/mi-cuenta</code></td>
+      <td>Lista de pedidos realizados con estado y folio</td>
+      <td>Historial de pedidos del cliente mostrado con datos correctos</td>
+      <td><span class="pass">PASS</span></td>
+    </tr>
+    <tr>
+      <td>CLI-05</td>
+      <td>Historial de cotizaciones</td>
+      <td>Navegar a "Mis cotizaciones" en <code>/mi-cuenta</code></td>
+      <td>Lista de cotizaciones vinculadas a la cuenta</td>
+      <td>Historial de cotizaciones mostrado correctamente</td>
+      <td><span class="pass">PASS</span></td>
+    </tr>
+    <tr>
+      <td>CLI-06</td>
+      <td>Editar perfil</td>
+      <td>Cambiar teléfono y dirección</td>
+      <td>Datos actualizados en la BD, reflejados al recargar</td>
+      <td>Perfil actualizado correctamente en la tabla <code>clientes</code></td>
+      <td><span class="pass">PASS</span></td>
+    </tr>
+    <tr>
+      <td>CLI-07</td>
+      <td>Cierre de sesión</td>
+      <td>Clic en "Cerrar sesión"</td>
+      <td>Sesión destruida, redirigido a página de inicio</td>
+      <td>Sesión cerrada completamente (Firebase + sesión PHP), redirección correcta</td>
+      <td><span class="pass">PASS</span></td>
+    </tr>
+    <tr>
+      <td>CLI-08</td>
+      <td>Modal de auth en checkout</td>
+      <td>Proceder al pago sin sesión activa</td>
+      <td>Modal de login/registro aparece sin redirigir a otra página</td>
+      <td>Modal contextual mostrado, carrito preservado durante el proceso</td>
+      <td><span class="pass">PASS</span></td>
+    </tr>
+  </table>
+
+  <!-- ══ MÓDULO 8: Panel administrador ══ -->
+  <h3 class="sub">Módulo 8 — Panel de administrador</h3>
+  <table>
+    <tr><th>ID</th><th>Caso de prueba</th><th>Datos de entrada</th><th>Resultado esperado</th><th>Resultado obtenido</th><th>Estado</th></tr>
+    <tr>
+      <td>ADM-01</td>
+      <td>Login como administrador</td>
+      <td>Credenciales de admin en Firebase</td>
+      <td>Acceso al panel completo en <code>/admin</code></td>
+      <td>Panel admin cargado con todas las secciones disponibles</td>
+      <td><span class="pass">PASS</span></td>
+    </tr>
+    <tr>
+      <td>ADM-02</td>
+      <td>Dashboard — KPIs</td>
+      <td>Cargar panel con datos en BD</td>
+      <td>Métricas de pedidos, cotizaciones, citas y ventas actualizadas</td>
+      <td>KPIs calculados y mostrados correctamente desde la API de reportes</td>
+      <td><span class="pass">PASS</span></td>
+    </tr>
+    <tr>
+      <td>ADM-03</td>
+      <td>Agregar producto</td>
+      <td>Nombre, categoría, precio, imagen y especificaciones</td>
+      <td>Producto guardado en BD, imagen en Firebase Storage, visible en catálogo</td>
+      <td>Producto creado y visible en catálogo público</td>
+      <td><span class="pass">PASS</span></td>
+    </tr>
+    <tr>
+      <td>ADM-04</td>
+      <td>Editar producto</td>
+      <td>Modificar precio de un producto existente</td>
+      <td>Precio actualizado en BD y reflejado en catálogo</td>
+      <td>Actualización aplicada correctamente</td>
+      <td><span class="pass">PASS</span></td>
+    </tr>
+    <tr>
+      <td>ADM-05</td>
+      <td>Eliminar producto</td>
+      <td>Clic en eliminar en producto del catálogo</td>
+      <td>Producto desactivado (soft delete), desaparece del catálogo público</td>
+      <td>Producto marcado como inactivo, no visible en catálogo público</td>
+      <td><span class="pass">PASS</span></td>
+    </tr>
+    <tr>
+      <td>ADM-06</td>
+      <td>Gestión de pedidos</td>
+      <td>Cambiar estado de "pagado" a "en_produccion"</td>
+      <td>Estado actualizado, línea de tiempo del pedido avanza</td>
+      <td>Estado actualizado en BD, timeline reflejado correctamente</td>
+      <td><span class="pass">PASS</span></td>
+    </tr>
+    <tr>
+      <td>ADM-07</td>
+      <td>Reportes — exportar PDF</td>
+      <td>Seleccionar periodo y clic en "Exportar PDF"</td>
+      <td>Archivo PDF descargado con métricas del periodo</td>
+      <td>PDF generado y descargado correctamente</td>
+      <td><span class="pass">PASS</span></td>
+    </tr>
+    <tr>
+      <td>ADM-08</td>
+      <td>Gestión de empleados</td>
+      <td>Crear nuevo empleado con correo y rol</td>
+      <td>Usuario creado en Firebase Auth y en <code>usuarios_personal</code></td>
+      <td>Empleado creado y funcional con acceso al panel de empleado</td>
+      <td><span class="pass">PASS</span></td>
+    </tr>
+    <tr>
+      <td>ADM-09</td>
+      <td>Gestión de ofertas</td>
+      <td>Crear oferta de 10% de descuento con código</td>
+      <td>Oferta activa, código funcional en checkout</td>
+      <td>Código de descuento aplicado correctamente en el carrito</td>
+      <td><span class="pass">PASS</span></td>
+    </tr>
+    <tr>
+      <td>ADM-10</td>
+      <td>Gestión de capacidad de producción</td>
+      <td>Configurar slots disponibles para una semana</td>
+      <td>Semana refleja nueva capacidad en el selector de checkout</td>
+      <td>Capacidad actualizada y reflejada en <code>/api/disponibilidad.php</code></td>
+      <td><span class="pass">PASS</span></td>
+    </tr>
+    <tr>
+      <td>ADM-11</td>
+      <td>Lista de clientes registrados</td>
+      <td>Navegar a sección "Clientes" del panel</td>
+      <td>Lista de clientes con nombre, correo, total gastado y número de pedidos</td>
+      <td>Lista de clientes mostrada con datos completos</td>
+      <td><span class="pass">PASS</span></td>
+    </tr>
+    <tr>
+      <td>ADM-12</td>
+      <td>Auto-actualización del panel</td>
+      <td>Esperar 30 segundos en el panel</td>
+      <td>Los datos se actualizan automáticamente sin recargar la página</td>
+      <td>Polling cada 30 s funcionando; se pausó al cambiar de pestaña</td>
+      <td><span class="pass">PASS</span></td>
+    </tr>
+  </table>
+
+  <!-- ══ MÓDULO 9: Panel empleado ══ -->
+  <h3 class="sub">Módulo 9 — Panel de empleado</h3>
+  <table>
+    <tr><th>ID</th><th>Caso de prueba</th><th>Datos de entrada</th><th>Resultado esperado</th><th>Resultado obtenido</th><th>Estado</th></tr>
+    <tr>
+      <td>EMP-01</td>
+      <td>Login como empleado</td>
+      <td>Credenciales de empleado</td>
+      <td>Acceso al panel en <code>/empleado</code>, sin acceso a funciones de admin</td>
+      <td>Panel empleado cargado sin secciones exclusivas de admin</td>
+      <td><span class="pass">PASS</span></td>
+    </tr>
+    <tr>
+      <td>EMP-02</td>
+      <td>Intento de acceso al panel admin</td>
+      <td>Empleado intenta navegar a <code>/admin</code></td>
+      <td>Redirigido o acceso denegado</td>
+      <td>Acceso denegado, redirigido al login</td>
+      <td><span class="pass">PASS</span></td>
+    </tr>
+    <tr>
+      <td>EMP-03</td>
+      <td>Actualizar estado de pedido</td>
+      <td>Cambiar estado a "listo"</td>
+      <td>Estado actualizado en BD</td>
+      <td>Estado actualizado correctamente por empleado</td>
+      <td><span class="pass">PASS</span></td>
+    </tr>
+    <tr>
+      <td>EMP-04</td>
+      <td>Confirmar cita</td>
+      <td>Cambiar estado de cita a "confirmada"</td>
+      <td>Estado actualizado, notificación al admin</td>
+      <td>Cita confirmada y notificación disparada en Firestore</td>
+      <td><span class="pass">PASS</span></td>
+    </tr>
+    <tr>
+      <td>EMP-05</td>
+      <td>Notificaciones en tiempo real</td>
+      <td>Crear nuevo pedido desde otra ventana</td>
+      <td>Notificación aparece en el panel sin recargar la página</td>
+      <td>Notificación recibida via Firestore listener en tiempo real</td>
+      <td><span class="pass">PASS</span></td>
+    </tr>
+  </table>
+
+  <!-- ══ MÓDULO 10: Notificaciones ══ -->
+  <h3 class="sub">Módulo 10 — Notificaciones automáticas</h3>
+  <table>
+    <tr><th>ID</th><th>Caso de prueba</th><th>Datos de entrada</th><th>Resultado esperado</th><th>Resultado obtenido</th><th>Estado</th></tr>
+    <tr>
+      <td>NOT-01</td>
+      <td>Email de confirmación de pedido</td>
+      <td>Completar pago exitosamente</td>
+      <td>Cliente recibe email con número de pedido y detalles</td>
+      <td>Email recibido correctamente con todos los datos del pedido</td>
+      <td><span class="pass">PASS</span></td>
+    </tr>
+    <tr>
+      <td>NOT-02</td>
+      <td>Email de confirmación de cotización</td>
+      <td>Enviar solicitud de cotización</td>
+      <td>Cliente recibe email con número de folio</td>
+      <td>Email de confirmación recibido con folio y resumen de la solicitud</td>
+      <td><span class="pass">PASS</span></td>
+    </tr>
+    <tr>
+      <td>NOT-03</td>
+      <td>Email de confirmación de cita</td>
+      <td>Agendar cita</td>
+      <td>Cliente recibe email con fecha, hora y tipo de cita</td>
+      <td>Email recibido con los detalles correctos de la cita</td>
+      <td><span class="pass">PASS</span></td>
+    </tr>
+    <tr>
+      <td>NOT-04</td>
+      <td>Notificación al admin (Firestore)</td>
+      <td>Nuevo pedido creado</td>
+      <td>Notificación aparece en panel admin sin recargar</td>
+      <td>Notificación en tiempo real recibida por el listener de Firestore</td>
+      <td><span class="pass">PASS</span></td>
+    </tr>
+    <tr>
+      <td>NOT-05</td>
+      <td>Marcar notificación como leída</td>
+      <td>Clic en notificación en el panel</td>
+      <td>Notificación marcada como leída, ya no aparece como nueva</td>
+      <td>Estado de notificación actualizado correctamente en Firestore</td>
+      <td><span class="pass">PASS</span></td>
+    </tr>
+  </table>
+
+  <!-- ══ MÓDULO 11: Seguimiento ══ -->
+  <h3 class="sub">Módulo 11 — Seguimiento de pedidos</h3>
+  <table>
+    <tr><th>ID</th><th>Caso de prueba</th><th>Datos de entrada</th><th>Resultado esperado</th><th>Resultado obtenido</th><th>Estado</th></tr>
+    <tr>
+      <td>SEG-01</td>
+      <td>Seguimiento con token</td>
+      <td>Ingresar número de pedido + correo</td>
+      <td>Estado actual del pedido mostrado con línea de tiempo</td>
+      <td>Estado y timeline mostrados correctamente sin necesidad de login</td>
+      <td><span class="pass">PASS</span></td>
+    </tr>
+    <tr>
+      <td>SEG-02</td>
+      <td>Folio de pedido incorrecto</td>
+      <td>Número de pedido inexistente</td>
+      <td>Mensaje "No se encontró el pedido"</td>
+      <td>Mensaje de error mostrado sin exponer datos de otros pedidos</td>
+      <td><span class="pass">PASS</span></td>
+    </tr>
+    <tr>
+      <td>SEG-03</td>
+      <td>Línea de tiempo del pedido</td>
+      <td>Pedido en estado "en_produccion"</td>
+      <td>Línea de tiempo muestra los 4 estados con el actual resaltado</td>
+      <td>Timeline con 4 etapas (pendiente → pagado → en producción → entregado) mostrado correctamente</td>
+      <td><span class="pass">PASS</span></td>
+    </tr>
+  </table>
+
+  <!-- ══ MÓDULO 12: Accesibilidad y SEO ══ -->
+  <h3 class="sub">Módulo 12 — Navegación, SEO y accesibilidad</h3>
+  <table>
+    <tr><th>ID</th><th>Caso de prueba</th><th>Descripción</th><th>Resultado obtenido</th><th>Estado</th></tr>
+    <tr>
+      <td>NAV-01</td>
+      <td>URLs limpias</td>
+      <td>Acceder a <code>/catalogo</code>, <code>/carrito</code>, <code>/solicitudes</code></td>
+      <td>Todas las rutas limpias cargan correctamente gracias a mod_rewrite</td>
+      <td><span class="pass">PASS</span></td>
+    </tr>
+    <tr>
+      <td>NAV-02</td>
+      <td>Responsive en móvil</td>
+      <td>Abrir el sitio en smartphone (375px)</td>
+      <td>Diseño adaptado, menú hamburguesa funcional, imágenes redimensionadas</td>
+      <td><span class="pass">PASS</span></td>
+    </tr>
+    <tr>
+      <td>NAV-03</td>
+      <td>Meta etiquetas SEO</td>
+      <td>Ver código fuente de las páginas principales</td>
+      <td>Etiquetas title, description, Open Graph presentes</td>
+      <td><span class="pass">PASS</span></td>
+    </tr>
+    <tr>
+      <td>NAV-04</td>
+      <td>Sitemap XML</td>
+      <td>Acceder a <code>/sitemap.xml</code></td>
+      <td>Mapa del sitio en formato XML estándar</td>
+      <td><span class="pass">PASS</span></td>
+    </tr>
+    <tr>
+      <td>NAV-05</td>
+      <td>HTTPS / HSTS</td>
+      <td>Acceder via HTTP</td>
+      <td>Redirección automática a HTTPS</td>
+      <td><span class="pass">PASS</span></td>
+    </tr>
+  </table>
+
+  <!-- ── Conclusiones ── -->
+  <h2 class="section">3. Conclusiones</h2>
+  <p>
+    Se ejecutaron un total de <strong>76 casos de prueba</strong> distribuidos en 12 módulos funcionales.
+    Todos los casos resultaron en estado <strong>PASS</strong>.
+  </p>
+  <p>
+    El sistema de e-commerce Wooden House cumple correctamente con todos los objetivos funcionales
+    establecidos: catálogo con filtros, carrito, checkout, pagos (Stripe y PayPal), cotizaciones,
+    citas, cuenta de cliente, panel de administrador con control total, panel de empleado con acceso
+    restringido, notificaciones automáticas por email y en tiempo real, y seguimiento de pedidos sin
+    necesidad de iniciar sesión.
+  </p>
+
+  <div class="footer">
+    Wooden House — Resultados de Pruebas de Funcionamiento General (Entregable 1.4.1) · Marzo 2026
+  </div>
+</div>
+</body>
+</html>

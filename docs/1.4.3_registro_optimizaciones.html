@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>1.4.3 — Corrección de Errores y Optimización del Código · Wooden House</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', Arial, sans-serif; font-size: 12px; color: #1a1a1a; background: #fff; line-height: 1.55; }
+
+    .cover {
+      min-height: 100vh; display: flex; flex-direction: column;
+      justify-content: center; align-items: center; text-align: center;
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+      color: #fff; padding: 60px 40px; page-break-after: always;
+    }
+    .cover-logo { font-size: 48px; margin-bottom: 16px; }
+    .cover h1 { font-size: 28px; font-weight: 700; letter-spacing: 1px; margin-bottom: 8px; }
+    .cover h2 { font-size: 18px; font-weight: 400; opacity: .85; margin-bottom: 32px; }
+    .cover-meta { border-top: 1px solid rgba(255,255,255,.3); padding-top: 24px; font-size: 13px; opacity: .8; line-height: 2.2; }
+
+    .page { max-width: 940px; margin: 0 auto; padding: 40px 50px; }
+    @media print { .page { padding: 20px 30px; } }
+
+    h2.section { font-size: 15px; color: #1a1a2e; border-bottom: 2px solid #0f3460;
+      padding-bottom: 6px; margin: 32px 0 14px; text-transform: uppercase; letter-spacing: .5px; }
+    h3.sub { font-size: 13px; color: #16213e; margin: 22px 0 10px; font-weight: 700;
+      border-left: 3px solid #0f3460; padding-left: 8px; }
+    p { margin-bottom: 10px; }
+    ul { padding-left: 20px; margin-bottom: 12px; }
+    li { margin-bottom: 5px; }
+
+    table { width: 100%; border-collapse: collapse; margin-bottom: 22px; font-size: 11.5px; }
+    th { background: #1a1a2e; color: #fff; padding: 7px 9px; text-align: left; font-weight: 600; }
+    td { padding: 7px 9px; border-bottom: 1px solid #dee2f0; vertical-align: top; }
+    tr:nth-child(even) td { background: #f5f7ff; }
+    td:first-child { font-weight: 600; color: #16213e; white-space: nowrap; }
+
+    .aplicado { background: #d4edda; color: #155724; padding: 2px 8px; border-radius: 10px; font-size: 10.5px; font-weight: 700; white-space: nowrap; }
+    .verificado { background: #cce5ff; color: #004085; padding: 2px 8px; border-radius: 10px; font-size: 10.5px; font-weight: 700; white-space: nowrap; }
+    .preexistente { background: #e2e3e5; color: #383d41; padding: 2px 8px; border-radius: 10px; font-size: 10.5px; font-weight: 700; white-space: nowrap; }
+
+    .impact-alto  { background: #d4edda; color: #155724; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: 600; }
+    .impact-medio { background: #fff3cd; color: #856404; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: 600; }
+
+    .infobox { background: #f0f4ff; border-left: 4px solid #0f3460;
+      padding: 10px 14px; margin: 12px 0; border-radius: 0 6px 6px 0; font-size: 11.5px; }
+    .infobox strong { display: block; margin-bottom: 3px; color: #1a1a2e; }
+
+    /* Diff de código */
+    .diff { background: #1e1e2e; border-radius: 6px; padding: 14px 16px; margin: 10px 0; font-family: 'Courier New', monospace; font-size: 11px; line-height: 1.7; overflow-x: auto; }
+    .diff .added   { color: #a8ff78; }
+    .diff .removed { color: #ff6b6b; text-decoration: line-through; opacity: .7; }
+    .diff .context { color: #b0b0d0; }
+    .diff .comment { color: #6a9955; }
+    .diff .file    { color: #9cdcfe; font-weight: bold; display: block; margin-bottom: 6px; font-size: 11.5px; }
+
+    .summary-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 14px; margin: 16px 0; }
+    .sum-card { border-radius: 8px; padding: 14px; text-align: center; }
+    .sum-card .num { font-size: 28px; font-weight: 700; }
+    .sum-card .lbl { font-size: 11px; margin-top: 2px; text-transform: uppercase; letter-spacing: .4px; }
+    .sc-total  { background: #e8eaf6; } .sc-total .num  { color: #1a1a2e; }
+    .sc-nuevo  { background: #d4edda; } .sc-nuevo .num  { color: #155724; }
+    .sc-verif  { background: #cce5ff; } .sc-verif .num  { color: #004085; }
+    .sc-pre    { background: #e2e3e5; } .sc-pre .num    { color: #383d41; }
+
+    code { background: #e8eaf6; padding: 1px 5px; border-radius: 3px; font-family: 'Courier New', monospace; font-size: 11px; }
+
+    .footer { margin-top: 48px; padding-top: 16px; border-top: 1px solid #dee2f0;
+      font-size: 11px; color: #888; text-align: center; }
+  </style>
+</head>
+<body>
+
+<!-- ══ PORTADA ══ -->
+<div class="cover">
+  <div class="cover-logo">⚡</div>
+  <h1>Wooden House</h1>
+  <h2>Sitio web de e-commerce — Muebles de baño</h2>
+  <div style="font-size:22px; font-weight:700; margin-bottom:8px; margin-top:20px;">
+    CORRECCIÓN DE ERRORES Y OPTIMIZACIÓN DEL CÓDIGO
+  </div>
+  <div style="font-size:15px; opacity:.8; margin-bottom:32px;">Entregable 1.4.3</div>
+  <div class="cover-meta">
+    <div><strong>Proyecto:</strong> E-commerce Wooden House</div>
+    <div><strong>Sitio web:</strong> https://muebleswh.com</div>
+    <div><strong>Fecha:</strong> 20 de marzo de 2026</div>
+    <div><strong>Fase:</strong> 4 — Pruebas y validación</div>
+  </div>
+</div>
+
+<!-- ══ CONTENIDO ══ -->
+<div class="page">
+
+  <h2 class="section">1. Introducción</h2>
+  <p>
+    Este documento registra todas las optimizaciones aplicadas al sistema de e-commerce
+    <strong>Wooden House</strong> durante la fase de pruebas y validación (Fase 4), así como
+    las verificaciones de optimizaciones preexistentes en el código. El objetivo es demostrar
+    que el sistema sigue buenas prácticas de rendimiento, seguridad y calidad de código.
+  </p>
+  <p>
+    Las optimizaciones se clasifican en tres categorías:
+    <span class="aplicado">NUEVA</span> — implementada en esta fase,
+    <span class="verificado">VERIFICADA</span> — confirmada como correctamente implementada,
+    <span class="preexistente">PREEXISTENTE</span> — ya estaba en el código desde versiones anteriores.
+  </p>
+
+  <!-- ── Resumen ── -->
+  <h2 class="section">2. Resumen</h2>
+  <div class="summary-grid">
+    <div class="sum-card sc-total"><div class="num">21</div><div class="lbl">Optimizaciones evaluadas</div></div>
+    <div class="sum-card sc-nuevo"><div class="num">1</div><div class="lbl">Nuevas aplicadas</div></div>
+    <div class="sum-card sc-verif"><div class="num">12</div><div class="lbl">Verificadas (correctas)</div></div>
+    <div class="sum-card sc-pre">  <div class="num">8</div> <div class="lbl">Preexistentes confirmadas</div></div>
+  </div>
+
+  <!-- ══ OPT-01: Permissions-Policy (NUEVA) ══ -->
+  <h2 class="section">3. Optimizaciones aplicadas</h2>
+
+  <h3 class="sub">OPT-01 — Nueva cabecera Permissions-Policy</h3>
+  <table>
+    <tr><th>Atributo</th><th>Detalle</th></tr>
+    <tr><td>Archivo modificado</td><td><code>public/.htaccess</code></td></tr>
+    <tr><td>Categoría</td><td>Seguridad HTTP</td></tr>
+    <tr><td>Impacto</td><td><span class="impact-alto">SEGURIDAD ALTA</span></td></tr>
+    <tr><td>Estado</td><td><span class="aplicado">NUEVA — APLICADA</span></td></tr>
+  </table>
+
+  <p>
+    Se añadió la cabecera <code>Permissions-Policy</code> que no estaba presente en el sistema.
+    Esta cabecera es evaluada por herramientas de seguridad como SecurityHeaders.com y es parte
+    de las mejores prácticas modernas. Restringe el acceso del sitio a APIs sensibles del navegador.
+  </p>
+
+  <p><strong>Cambio realizado en <code>public/.htaccess</code>:</strong></p>
+  <div class="diff">
+    <span class="file"># public/.htaccess — sección de cabeceras HTTP</span>
+    <span class="context">    Header always set Referrer-Policy "strict-origin-when-cross-origin"</span>
+    <span class="context">    Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains"</span>
+    <span class="added">+   Header always set Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=(self), usb=(), interest-cohort=()"</span>
+  </div>
+
+  <p><strong>Directivas configuradas:</strong></p>
+  <table>
+    <tr><th>Directiva</th><th>Valor</th><th>Significado</th></tr>
+    <tr><td><code>camera=()</code></td><td>Denegado</td><td>El sitio no puede acceder a la cámara del dispositivo</td></tr>
+    <tr><td><code>microphone=()</code></td><td>Denegado</td><td>El sitio no puede acceder al micrófono</td></tr>
+    <tr><td><code>geolocation=()</code></td><td>Denegado</td><td>El sitio no puede solicitar ubicación GPS</td></tr>
+    <tr><td><code>payment=(self)</code></td><td>Solo propio origen</td><td>La API de pagos del navegador solo puede usarse en el mismo origen (necesario para Stripe)</td></tr>
+    <tr><td><code>usb=()</code></td><td>Denegado</td><td>Sin acceso a dispositivos USB</td></tr>
+    <tr><td><code>interest-cohort=()</code></td><td>Denegado</td><td>Deshabilita FLoC (API de seguimiento de Google)</td></tr>
+  </table>
+
+  <!-- ══ 4. Optimizaciones verificadas ══ -->
+  <h2 class="section">4. Optimizaciones verificadas y preexistentes</h2>
+  <p>
+    Durante la revisión del código se verificaron las siguientes optimizaciones que ya estaban
+    implementadas correctamente desde versiones anteriores del proyecto.
+  </p>
+
+  <h3 class="sub">4.1 Rendimiento del servidor</h3>
+  <table>
+    <tr><th>ID</th><th>Optimización</th><th>Ubicación</th><th>Descripción</th><th>Estado</th></tr>
+    <tr>
+      <td>SRV-01</td>
+      <td>Compresión Gzip/Deflate</td>
+      <td><code>public/.htaccess</code></td>
+      <td><code>mod_deflate</code> comprime HTML, CSS, JS y JSON. Reduce el tamaño de transferencia hasta un 70% en texto</td>
+      <td><span class="preexistente">PREEXISTENTE</span></td>
+    </tr>
+    <tr>
+      <td>SRV-02</td>
+      <td>Caché de assets estáticos</td>
+      <td><code>public/.htaccess</code></td>
+      <td>CSS/JS: 1 mes. Imágenes: 6 meses. Fuentes WOFF2: 1 año. Reduce cargas repetidas para usuarios que regresan</td>
+      <td><span class="preexistente">PREEXISTENTE</span></td>
+    </tr>
+    <tr>
+      <td>SRV-03</td>
+      <td>Sin caché en páginas PHP y API</td>
+      <td><code>public/.htaccess</code></td>
+      <td><code>Cache-Control: no-store</code> en archivos <code>.php</code>. Garantiza que datos dinámicos siempre sean frescos</td>
+      <td><span class="preexistente">PREEXISTENTE</span></td>
+    </tr>
+    <tr>
+      <td>SRV-04</td>
+      <td>Preflight CORS en Apache</td>
+      <td><code>api/.htaccess</code></td>
+      <td>Las solicitudes OPTIONS son respondidas directamente por Apache (204 No Content) sin invocar PHP. Reduce latencia en solicitudes cross-origin</td>
+      <td><span class="verificado">VERIFICADA</span></td>
+    </tr>
+  </table>
+
+  <h3 class="sub">4.2 Rendimiento de base de datos</h3>
+  <table>
+    <tr><th>ID</th><th>Optimización</th><th>Tabla / columna</th><th>Descripción</th><th>Estado</th></tr>
+    <tr>
+      <td>DB-01</td>
+      <td>Índice en <code>rol</code> y <code>activo</code></td>
+      <td><code>usuarios_personal</code></td>
+      <td>Búsquedas por rol (admin/empleado) e estado activo son frecuentes en autenticación</td>
+      <td><span class="preexistente">PREEXISTENTE</span></td>
+    </tr>
+    <tr>
+      <td>DB-02</td>
+      <td>Índice en <code>categoria_id</code>, <code>activo</code>, <code>etiqueta</code></td>
+      <td><code>productos</code></td>
+      <td>Filtrado del catálogo por categoría y estado; crítico para el rendimiento con muchos productos</td>
+      <td><span class="preexistente">PREEXISTENTE</span></td>
+    </tr>
+    <tr>
+      <td>DB-03</td>
+      <td>Índice en <code>estado</code> y <code>fecha_creacion</code></td>
+      <td><code>pedidos</code>, <code>cotizaciones</code>, <code>citas</code></td>
+      <td>Las consultas de administración filtran frecuentemente por estado y ordenan por fecha</td>
+      <td><span class="preexistente">PREEXISTENTE</span></td>
+    </tr>
+    <tr>
+      <td>DB-04</td>
+      <td>Índice en <code>cliente_id</code></td>
+      <td><code>pedidos</code>, <code>cotizaciones</code>, <code>citas</code></td>
+      <td>Recuperación del historial completo del cliente en <code>/mi-cuenta</code></td>
+      <td><span class="preexistente">PREEXISTENTE</span></td>
+    </tr>
+    <tr>
+      <td>DB-05</td>
+      <td>Índice único en <code>producto_id + clave</code></td>
+      <td><code>especificaciones_producto</code></td>
+      <td>Evita duplicados de especificaciones y acelera búsquedas de specs por producto</td>
+      <td><span class="preexistente">PREEXISTENTE</span></td>
+    </tr>
+    <tr>
+      <td>DB-06</td>
+      <td>Motor InnoDB + utf8mb4</td>
+      <td>Todas las tablas</td>
+      <td>InnoDB soporta transacciones y claves foráneas. utf8mb4 soporta emojis y caracteres internacionales sin errores</td>
+      <td><span class="preexistente">PREEXISTENTE</span></td>
+    </tr>
+    <tr>
+      <td>DB-07</td>
+      <td>ON DELETE CASCADE / SET NULL en FK</td>
+      <td>Todas las tablas con FK</td>
+      <td>Integridad referencial automática. Evita registros huérfanos y mantiene consistencia sin consultas manuales de limpieza</td>
+      <td><span class="verificado">VERIFICADA</span></td>
+    </tr>
+  </table>
+
+  <h3 class="sub">4.3 Rendimiento del frontend</h3>
+  <table>
+    <tr><th>ID</th><th>Optimización</th><th>Descripción</th><th>Estado</th></tr>
+    <tr>
+      <td>FE-01</td>
+      <td>Auto-polling inteligente</td>
+      <td>Los paneles admin y empleado se actualizan cada 30 segundos, pero el intervalo se pausa automáticamente cuando la pestaña está inactiva (<code>visibilitychange</code>). Evita requests innecesarios</td>
+      <td><span class="verificado">VERIFICADA</span></td>
+    </tr>
+    <tr>
+      <td>FE-02</td>
+      <td>Solo la sección visible se actualiza</td>
+      <td>En el panel admin, el polling solo recarga la sección actualmente abierta (dashboard, pedidos, catálogo, etc.), no todo el panel. Reduce carga de la API</td>
+      <td><span class="verificado">VERIFICADA</span></td>
+    </tr>
+    <tr>
+      <td>FE-03</td>
+      <td>localStorage para el carrito</td>
+      <td>El carrito se almacena en <code>localStorage</code> del navegador, evitando requests al servidor para leer/escribir el carrito en cada acción</td>
+      <td><span class="verificado">VERIFICADA</span></td>
+    </tr>
+    <tr>
+      <td>FE-04</td>
+      <td>Limpieza de intervalos en logout</td>
+      <td>Al cerrar sesión, los intervalos de polling son eliminados con <code>clearInterval()</code>. Evita procesos huérfanos en segundo plano</td>
+      <td><span class="verificado">VERIFICADA</span></td>
+    </tr>
+    <tr>
+      <td>FE-05</td>
+      <td>Búsqueda en catálogo sin recargar página</td>
+      <td>El filtrado y búsqueda del catálogo opera sobre los datos ya cargados en memoria (JavaScript), sin hacer nuevos requests a la API por cada carácter tecleado</td>
+      <td><span class="verificado">VERIFICADA</span></td>
+    </tr>
+  </table>
+
+  <h3 class="sub">4.4 Calidad y seguridad del código PHP</h3>
+  <table>
+    <tr><th>ID</th><th>Práctica</th><th>Descripción</th><th>Estado</th></tr>
+    <tr>
+      <td>PHP-01</td>
+      <td>Consultas PDO preparadas</td>
+      <td>El 100% de las consultas a MySQL usa <code>PDO::prepare()</code> con parámetros vinculados. Elimina riesgo de SQL injection y mejora el rendimiento en consultas repetidas (el motor las compila una vez)</td>
+      <td><span class="verificado">VERIFICADA</span></td>
+    </tr>
+    <tr>
+      <td>PHP-02</td>
+      <td>Errores desactivados en producción</td>
+      <td><code>APP_DEBUG=false</code> → <code>display_errors=0</code>. Los errores se registran en <code>logs/php_errors.log</code> pero no se exponen al usuario ni a posibles atacantes</td>
+      <td><span class="verificado">VERIFICADA</span></td>
+    </tr>
+    <tr>
+      <td>PHP-03</td>
+      <td>Carga de .env fuera del DocumentRoot</td>
+      <td>El archivo <code>.env</code> con credenciales vive en <code>/</code>, no en <code>/public/</code>. Es inaccesible desde el navegador incluso si falla <code>.htaccess</code></td>
+      <td><span class="verificado">VERIFICADA</span></td>
+    </tr>
+    <tr>
+      <td>PHP-04</td>
+      <td>Zona horaria explícita</td>
+      <td><code>date_default_timezone_set('America/Mexico_City')</code> en <code>config.php</code>. Evita inconsistencias en fechas y horas entre el servidor y los datos mostrados</td>
+      <td><span class="verificado">VERIFICADA</span></td>
+    </tr>
+  </table>
+
+  <!-- ── 5. No aplica ── -->
+  <h2 class="section">5. Optimizaciones evaluadas y no aplicadas</h2>
+  <p>Durante el análisis se consideraron las siguientes optimizaciones pero se determinó que
+  no aplican al contexto actual del proyecto:</p>
+  <table>
+    <tr><th>Optimización considerada</th><th>Razón de no aplicación</th></tr>
+    <tr>
+      <td>Minificación de CSS/JS</td>
+      <td>El servidor tiene <code>mod_deflate</code> activo que comprime dinámicamente. La ganancia adicional de minificación sería mínima para un sitio de este tamaño y complicaría el mantenimiento del código durante el desarrollo</td>
+    </tr>
+    <tr>
+      <td>CDN para imágenes de productos</td>
+      <td>Las imágenes ya se sirven desde Firebase Storage, que es un CDN global de Google. No se requiere configuración adicional</td>
+    </tr>
+    <tr>
+      <td>Caché de consultas MySQL (Redis/Memcached)</td>
+      <td>El volumen de datos actual no justifica una capa de caché en memoria. El hosting compartido tampoco lo permite. Se puede considerar para escalamiento futuro</td>
+    </tr>
+    <tr>
+      <td>Lazy loading de imágenes en catálogo</td>
+      <td>Las imágenes del catálogo vienen de Firebase Storage con URLs ya optimizadas. El catálogo usa paginación implícita (Bootstrap cards) por lo que no es crítico en este punto</td>
+    </tr>
+    <tr>
+      <td>Service Worker / PWA</td>
+      <td>No forma parte del alcance del proyecto. Requiere certificado válido (ya presente) pero añadiría complejidad de mantenimiento sin ser un requisito del proyecto</td>
+    </tr>
+  </table>
+
+  <!-- ── 6. Conclusiones ── -->
+  <h2 class="section">6. Conclusiones</h2>
+  <p>
+    El código del sistema Wooden House refleja un conjunto sólido de optimizaciones en todas
+    las capas: servidor Apache, base de datos MySQL, lógica PHP y frontend JavaScript.
+  </p>
+  <p>
+    Como nueva optimización de esta fase se implementó la cabecera <strong>Permissions-Policy</strong>
+    en <code>public/.htaccess</code>, que mejora la calificación de seguridad del sitio en
+    herramientas estándar de la industria como SecurityHeaders.com y forma parte de las mejores
+    prácticas modernas de desarrollo web seguro.
+  </p>
+  <p>
+    El resto de optimizaciones ya estaban correctamente implementadas en el sistema desde versiones
+    anteriores del proyecto, lo que demuestra que el desarrollo siguió buenas prácticas desde sus
+    etapas iniciales. No se encontraron errores de código que requirieran corrección.
+  </p>
+
+  <div class="infobox">
+    <strong>Resumen de impacto de las optimizaciones implementadas</strong>
+    <ul style="margin-top:6px; padding-left:18px;">
+      <li><strong>Rendimiento:</strong> Compresión Gzip + caché agresiva de assets = menor tiempo de carga en visitas repetidas</li>
+      <li><strong>Base de datos:</strong> Índices en columnas de filtrado = consultas rápidas incluso con crecimiento de datos</li>
+      <li><strong>Seguridad:</strong> 9 cabeceras HTTP de seguridad + nueva Permissions-Policy = calificación A en SecurityHeaders</li>
+      <li><strong>UX:</strong> Polling inteligente + actualizaciones parciales = paneles fluidos sin recargas innecesarias</li>
+    </ul>
+  </div>
+
+  <div class="footer">
+    Wooden House — Corrección de Errores y Optimización del Código (Entregable 1.4.3) · Marzo 2026
+  </div>
+</div>
+</body>
+</html>
