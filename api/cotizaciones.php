@@ -68,7 +68,9 @@ switch ($method) {
         if (mb_strlen($body['nombre_cliente'])        > 150)  jsonError('Nombre demasiado largo', 422);
         if (mb_strlen($body['descripcion_solicitud']) > 2000) jsonError('Descripción demasiado larga', 422);
         if (mb_strlen($body['medidas']              ?? '') > 600)  jsonError('Medidas demasiado largas', 422);
-        if (mb_strlen($body['ciudad']               ?? '') > 120)  jsonError('Ciudad demasiado larga', 422);
+        if (mb_strlen($body['ciudad']               ?? '') > 100)  jsonError('Ciudad demasiado larga', 422);
+        if (mb_strlen($body['colonia']              ?? '') > 120)  jsonError('Colonia demasiado larga', 422);
+        if (mb_strlen($body['municipio']            ?? '') > 100)  jsonError('Municipio demasiado largo', 422);
 
         // Campos de selección: validar contra lista permitida
         $tiposValidos = [
@@ -98,15 +100,26 @@ switch ($method) {
         if (!empty($body['instalacion']) && $body['instalacion'] !== 'nose') {
             $extra[] = 'Instalación: ' . sanitize($body['instalacion']);
         }
-        if (!empty($body['ciudad'])) $extra[] = 'Ciudad: ' . sanitize($body['ciudad']);
         if ($extra) $descripcionCompleta .= ' | ' . implode(' | ', $extra);
+
+        // Campos de dirección (ahora en columnas propias)
+        $direccionCot = sanitize($body['direccion'] ?? '');
+        $coloniaCot   = sanitize($body['colonia']   ?? '');
+        $municipioCot = sanitize($body['municipio'] ?? '');
+        $ciudadCot    = sanitize($body['ciudad']    ?? '');
+        $cpCot        = sanitize($body['cp']        ?? '');
 
         $datosCot = [
             'numero_cotizacion'     => $numCot,
             'nombre_cliente'        => sanitize($body['nombre_cliente']),
             'correo_cliente'        => $emailCot,
             'telefono_cliente'      => sanitize($body['telefono_cliente']),
-            'modelo_mueble'           => sanitize($modeloMueble),
+            'direccion'             => $direccionCot ?: null,
+            'colonia'               => $coloniaCot   ?: null,
+            'municipio'             => $municipioCot ?: null,
+            'ciudad'                => $ciudadCot    ?: null,
+            'cp'                    => $cpCot        ?: null,
+            'modelo_mueble'         => sanitize($modeloMueble),
             'descripcion_solicitud' => $descripcionCompleta,
             'tiene_medidas'         => !empty($body['tiene_medidas']) ? 1 : 0,
             'medidas'               => sanitize($body['medidas'] ?? ''),
@@ -122,12 +135,18 @@ switch ($method) {
         }
         $cotId = dbInsert('cotizaciones', $datosCot);
 
-        // Sincronizar teléfono al perfil del cliente registrado
+        // Sincronizar datos de contacto/dirección al perfil del cliente registrado
         if ($clienteSession) {
-            $tel = sanitize($body['telefono_cliente']);
-            if ($tel) {
-                try { dbUpdate('clientes', ['telefono' => $tel], 'id = ?', [$clienteSession['id']]); }
-                catch (\Exception $e) { appLog('warning', 'No se pudo sincronizar telefono en cotizacion', ['e' => $e->getMessage()]); }
+            $profileUpdate = [];
+            if (!empty($body['telefono_cliente']))       $profileUpdate['telefono']  = sanitize($body['telefono_cliente']);
+            if ($direccionCot && !$clienteSession['direccion']) $profileUpdate['direccion'] = $direccionCot;
+            if ($coloniaCot   && !$clienteSession['colonia'])   $profileUpdate['colonia']   = $coloniaCot;
+            if ($municipioCot && !$clienteSession['municipio']) $profileUpdate['municipio'] = $municipioCot;
+            if ($ciudadCot    && !$clienteSession['ciudad'])    $profileUpdate['ciudad']    = $ciudadCot;
+            if ($cpCot        && !$clienteSession['cp'])        $profileUpdate['cp']        = $cpCot;
+            if ($profileUpdate) {
+                try { dbUpdate('clientes', $profileUpdate, 'id = ?', [$clienteSession['id']]); }
+                catch (\Exception $e) { appLog('warning', 'No se pudo sincronizar perfil en cotizacion', ['e' => $e->getMessage()]); }
             }
         }
 

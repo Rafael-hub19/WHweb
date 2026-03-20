@@ -75,7 +75,10 @@ switch ($method) {
 
         // Longitudes máximas
         if (mb_strlen($body['nombre_cliente']) > 150) jsonError('Nombre demasiado largo', 422);
-        if (mb_strlen($body['direccion'] ?? '') > 250) jsonError('Dirección demasiado larga', 422);
+        if (mb_strlen($body['direccion'] ?? '') > 255) jsonError('Dirección demasiado larga', 422);
+        if (mb_strlen($body['colonia']   ?? '') > 120) jsonError('Colonia demasiado larga', 422);
+        if (mb_strlen($body['municipio'] ?? '') > 100) jsonError('Municipio demasiado largo', 422);
+        if (mb_strlen($body['ciudad']    ?? '') > 100) jsonError('Ciudad demasiado larga', 422);
         if (mb_strlen($body['notas']     ?? '') > 600) jsonError('Notas demasiado largas', 422);
         $tiposValidos = ['medicion', 'instalacion', 'otro'];
         if (!in_array($body['tipo'], $tiposValidos)) jsonError('tipo inválido. Usa: medicion, instalacion, otro', 422);
@@ -86,13 +89,23 @@ switch ($method) {
             jsonError('fecha_cita debe tener formato YYYY-MM-DD', 422);
         }
 
-        $numeroCita = generarNumeroCita();
+        $numeroCita   = generarNumeroCita();
+        $direccionCita = sanitize($body['direccion'] ?? '') ?: 'Sin especificar';
+        $coloniaCita   = sanitize($body['colonia']   ?? '');
+        $municipioCita = sanitize($body['municipio'] ?? '');
+        $ciudadCita    = sanitize($body['ciudad']    ?? '');
+        $cpCita        = sanitize($body['cp']        ?? '');
+
         $datosCita = [
             'numero_cita'      => $numeroCita,
             'nombre_cliente'   => sanitize($body['nombre_cliente']),
             'correo_cliente'   => $emailCita,
             'telefono_cliente' => sanitize($body['telefono_cliente']),
-            'direccion'        => sanitize($body['direccion'] ?? '') ?: 'Sin especificar',
+            'direccion'        => $direccionCita,
+            'colonia'          => $coloniaCita   ?: null,
+            'municipio'        => $municipioCita ?: null,
+            'ciudad'           => $ciudadCita    ?: null,
+            'cp'               => $cpCita        ?: null,
             'fecha_cita'       => $fechaCita,
             'rango_horario'    => sanitize($body['rango_horario'] ?? 'Por confirmar'),
             'tipo'             => $body['tipo'],
@@ -106,12 +119,18 @@ switch ($method) {
         }
         $citaId = dbInsert('citas', $datosCita);
 
-        // Sincronizar teléfono al perfil del cliente registrado
+        // Sincronizar datos de contacto/dirección al perfil del cliente registrado
         if ($clienteSession) {
-            $tel = sanitize($body['telefono_cliente']);
-            if ($tel) {
-                try { dbUpdate('clientes', ['telefono' => $tel], 'id = ?', [$clienteSession['id']]); }
-                catch (\Exception $e) { appLog('warning', 'No se pudo sincronizar telefono en cita', ['e' => $e->getMessage()]); }
+            $profileUpdate = [];
+            if (!empty($body['telefono_cliente']))                 $profileUpdate['telefono']  = sanitize($body['telefono_cliente']);
+            if ($direccionCita !== 'Sin especificar' && !$clienteSession['direccion']) $profileUpdate['direccion'] = $direccionCita;
+            if ($coloniaCita   && !$clienteSession['colonia'])   $profileUpdate['colonia']   = $coloniaCita;
+            if ($municipioCita && !$clienteSession['municipio']) $profileUpdate['municipio'] = $municipioCita;
+            if ($ciudadCita    && !$clienteSession['ciudad'])    $profileUpdate['ciudad']    = $ciudadCita;
+            if ($cpCita        && !$clienteSession['cp'])        $profileUpdate['cp']        = $cpCita;
+            if ($profileUpdate) {
+                try { dbUpdate('clientes', $profileUpdate, 'id = ?', [$clienteSession['id']]); }
+                catch (\Exception $e) { appLog('warning', 'No se pudo sincronizar perfil en cita', ['e' => $e->getMessage()]); }
             }
         }
 

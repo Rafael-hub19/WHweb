@@ -103,9 +103,25 @@
               <div class="help-text">Escribe tu correo nuevamente para confirmarlo</div>
             </div>
             <div class="col-12 form-group">
-              <label>Ciudad o Zona</label>
-              <input type="text" name="ciudad" placeholder="Ej: Guadalajara, Zapopan, Tlaquepaque" maxlength="100" autocomplete="address-level2">
-              <div class="help-text">Opcional: Nos ayuda a calcular costos de envío/instalación</div>
+              <label>Dirección</label>
+              <input type="text" name="direccion" placeholder="Calle y número" maxlength="255" autocomplete="street-address">
+            </div>
+            <div class="col-md-6 form-group">
+              <label>Colonia</label>
+              <input type="text" name="colonia" placeholder="Ej: Col. Providencia" maxlength="120" autocomplete="address-line2">
+            </div>
+            <div class="col-md-6 form-group">
+              <label>Municipio / Alcaldía</label>
+              <input type="text" name="municipio" placeholder="Ej: Zapopan" maxlength="100">
+            </div>
+            <div class="col-md-6 form-group">
+              <label>Ciudad</label>
+              <input type="text" name="ciudad" placeholder="Ej: Guadalajara" maxlength="100" autocomplete="address-level2">
+              <div class="help-text">Nos ayuda a calcular costos de envío/instalación</div>
+            </div>
+            <div class="col-md-6 form-group">
+              <label>Código Postal</label>
+              <input type="text" name="cp" placeholder="Ej: 44100" maxlength="10" autocomplete="postal-code">
             </div>
           </div>
         </div>
@@ -241,9 +257,25 @@
             </div>
 
             <div class="col-12 form-group">
-              <label>Dirección Completa <span class="required">*</span></label>
-              <input type="text" name="direccion" placeholder="Calle, Número, Colonia, Ciudad" maxlength="200" autocomplete="street-address">
-              <div class="help-text">Solo para visitas a domicilio</div>
+              <label>Dirección <span class="required">*</span></label>
+              <input type="text" name="direccion" placeholder="Calle y número" maxlength="255" autocomplete="street-address" required>
+              <div class="help-text">Requerida para la visita a domicilio</div>
+            </div>
+            <div class="col-md-6 form-group">
+              <label>Colonia</label>
+              <input type="text" name="colonia" placeholder="Ej: Col. Providencia" maxlength="120" autocomplete="address-line2">
+            </div>
+            <div class="col-md-6 form-group">
+              <label>Municipio / Alcaldía</label>
+              <input type="text" name="municipio" placeholder="Ej: Zapopan" maxlength="100">
+            </div>
+            <div class="col-md-6 form-group">
+              <label>Ciudad</label>
+              <input type="text" name="ciudad" placeholder="Ej: Guadalajara" maxlength="100" autocomplete="address-level2">
+            </div>
+            <div class="col-md-6 form-group">
+              <label>Código Postal</label>
+              <input type="text" name="cp" placeholder="Ej: 44100" maxlength="10" autocomplete="postal-code">
             </div>
           </div>
         </div>

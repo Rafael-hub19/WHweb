@@ -205,13 +205,17 @@ function initFormCotizacion() {
       nombre_cliente:        sanitizeName(fd.get('nombre') || ''),
       correo_cliente:        sanitizeEmail(fd.get('email') || ''),
       telefono_cliente:      sanitizePhone(fd.get('telefono') || ''),
-      modelo_mueble:           sanitizeText(fd.get('modeloMueble') || '', 100),
+      direccion:             sanitizeText(fd.get('direccion') || '', 255),
+      colonia:               sanitizeText(fd.get('colonia')   || '', 120),
+      municipio:             sanitizeText(fd.get('municipio') || '', 100),
+      ciudad:                sanitizeText(fd.get('ciudad')    || '', 100),
+      cp:                    sanitizeText(fd.get('cp')        || '', 10),
+      modelo_mueble:         sanitizeText(fd.get('modeloMueble') || '', 100),
       descripcion_solicitud: sanitizeDescription(fd.get('descripcion') || ''),
       tiene_medidas:         fd.get('tieneMedidas') === 'si' ? 1 : 0,
       medidas:               sanitizeDescription(fd.get('medidas') || '', 500),
       rango_presupuesto:     sanitizeText(fd.get('presupuesto') || '', 50),
       requiere_instalacion:  fd.get('instalacion') === 'si' ? 1 : 0,
-      ciudad:                sanitizeText(fd.get('ciudad') || '', 100),
       urgencia:              sanitizeText(fd.get('urgencia') || '', 50),
       instalacion:           sanitizeText(fd.get('instalacion') || '', 30),
       // Anti-bot honeypot fields (always empty for real users)
@@ -304,7 +308,11 @@ function initFormCita() {
       nombre_cliente:   sanitizeName(fd.get('nombre') || ''),
       correo_cliente:   sanitizeEmail(fd.get('email') || ''),
       telefono_cliente: sanitizePhone(fd.get('telefono') || ''),
-      direccion:        sanitizeText(fd.get('direccion') || '', 200),
+      direccion:        sanitizeText(fd.get('direccion') || '', 255),
+      colonia:          sanitizeText(fd.get('colonia')   || '', 120),
+      municipio:        sanitizeText(fd.get('municipio') || '', 100),
+      ciudad:           sanitizeText(fd.get('ciudad')    || '', 100),
+      cp:               sanitizeText(fd.get('cp')        || '', 10),
       fecha_cita:       fechaSeleccionada,
       rango_horario:    selectedTime,
       tipo:             'medicion',
@@ -842,17 +850,27 @@ async function prefillContactoSiLogueado() {
       const el = form.querySelector(`[name="${name}"]`);
       if (el && val) { el.value = val; el.setAttribute('data-prefilled', '1'); }
     };
-    setVal('nombre',       cliente.nombre  || '');
-    setVal('email',        cliente.correo  || '');
-    setVal('emailConfirm', cliente.correo  || '');
+    setVal('nombre',       cliente.nombre   || '');
+    setVal('email',        cliente.correo   || '');
+    setVal('emailConfirm', cliente.correo   || '');
     setVal('telefono',     cliente.telefono || '');
+    setVal('direccion',    cliente.direccion || '');
+    setVal('colonia',      cliente.colonia   || '');
+    setVal('municipio',    cliente.municipio || '');
+    setVal('ciudad',       cliente.ciudad    || '');
+    setVal('cp',           cliente.cp        || '');
 
     // Construir tarjeta de sesión
     const _partes   = (cliente.nombre || 'C').trim().split(/\s+/).filter(Boolean);
     const inicial   = _partes.length >= 2
         ? (_partes[0][0] + _partes[1][0]).toUpperCase()
         : (_partes[0]?.[0] || 'C').toUpperCase();
-    const tieneTel  = !!(cliente.telefono);
+    const tieneTel     = !!(cliente.telefono);
+    const tieneDireccion = !!(cliente.direccion);
+    const perfilCompleto = tieneTel && tieneDireccion;
+    // Línea de dirección corta para la card
+    const lineaDireccion = [cliente.direccion, cliente.colonia, cliente.ciudad]
+        .filter(Boolean).join(', ');
     const cardHtml  = `
       <div class="sesion-card" id="sesionCard_${formId}">
         <div class="sesion-card-avatar">${escapeHtml(inicial)}</div>
@@ -860,6 +878,7 @@ async function prefillContactoSiLogueado() {
           <div class="sesion-card-nombre">${escapeHtml(cliente.nombre || '')}</div>
           <div class="sesion-card-detalle">${escapeHtml(cliente.correo || '')}</div>
           ${tieneTel ? `<div class="sesion-card-detalle">${escapeHtml(cliente.telefono)}</div>` : ''}
+          ${lineaDireccion ? `<div class="sesion-card-detalle">${escapeHtml(lineaDireccion)}</div>` : ''}
         </div>
         <button type="button" class="sesion-card-editar"
                 onclick="mostrarCamposContacto('${formId}')">
@@ -867,13 +886,12 @@ async function prefillContactoSiLogueado() {
         </button>
       </div>`;
 
-    if (tieneTel) {
+    if (perfilCompleto) {
       // Perfil completo: ocultar sección y mostrar solo la card
       seccion.style.display = 'none';
       seccion.insertAdjacentHTML('beforebegin', cardHtml);
     } else {
-      // Perfil incompleto (sin teléfono): mostrar card como banner + dejar sección
-      // completa visible para que el usuario pueda llenar todos sus datos
+      // Perfil incompleto: mostrar card como banner + dejar sección visible
       seccion.insertAdjacentHTML('beforebegin', cardHtml);
       const card = document.getElementById(`sesionCard_${formId}`);
       if (card) {

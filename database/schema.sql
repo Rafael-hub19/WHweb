@@ -122,6 +122,13 @@ CREATE TABLE cotizaciones (
   correo_cliente VARCHAR(150) NOT NULL,
   telefono_cliente VARCHAR(30) NULL,
 
+  -- Dirección de entrega/referencia (opcional en cotizaciones)
+  direccion  VARCHAR(255) NULL,
+  colonia    VARCHAR(120) NULL,
+  municipio  VARCHAR(100) NULL,
+  ciudad     VARCHAR(100) NULL,
+  cp         VARCHAR(10)  NULL,
+
   modelo_mueble VARCHAR(80) NULL,
   descripcion_solicitud TEXT NOT NULL,
   tiene_medidas TINYINT(1) NOT NULL DEFAULT 0,
@@ -130,10 +137,10 @@ CREATE TABLE cotizaciones (
   requiere_instalacion TINYINT(1) NOT NULL DEFAULT 0,
 
   estado ENUM('nueva','en_revision','respondida','cerrada') NOT NULL DEFAULT 'nueva',
-  
+
   fecha_creacion TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   fecha_actualizacion TIMESTAMP NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
-  
+
   INDEX idx_estado (estado),
   INDEX idx_correo (correo_cliente),
   INDEX idx_fecha (fecha_creacion)
@@ -147,7 +154,13 @@ CREATE TABLE citas (
   correo_cliente VARCHAR(150) NOT NULL,
   telefono_cliente VARCHAR(30) NULL,
 
-  direccion VARCHAR(255) NOT NULL,
+  -- Dirección descompuesta (igual que en pedidos)
+  direccion  VARCHAR(255) NOT NULL,
+  colonia    VARCHAR(120) NULL,
+  municipio  VARCHAR(100) NULL,
+  ciudad     VARCHAR(100) NULL,
+  cp         VARCHAR(10)  NULL,
+
   fecha_cita DATE NOT NULL,
   rango_horario VARCHAR(20) NULL,
   tipo ENUM('medicion','instalacion','otro') NOT NULL DEFAULT 'medicion',
@@ -155,7 +168,7 @@ CREATE TABLE citas (
 
   fecha_creacion TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   fecha_actualizacion TIMESTAMP NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
-  
+
   INDEX idx_estado (estado),
   INDEX idx_fecha_cita (fecha_cita),
   INDEX idx_tipo (tipo)
@@ -369,6 +382,19 @@ CREATE INDEX idx_pedidos_cliente ON pedidos (cliente_id);
 
 -- Columnas que pueden faltar en instalaciones existentes previas al módulo de clientes
 ALTER TABLE cotizaciones ADD COLUMN IF NOT EXISTS modelo_mueble VARCHAR(80) NULL AFTER telefono_cliente;
+
+-- Dirección descompuesta en cotizaciones (instalaciones existentes)
+ALTER TABLE cotizaciones ADD COLUMN IF NOT EXISTS direccion  VARCHAR(255) NULL AFTER modelo_mueble;
+ALTER TABLE cotizaciones ADD COLUMN IF NOT EXISTS colonia    VARCHAR(120) NULL AFTER direccion;
+ALTER TABLE cotizaciones ADD COLUMN IF NOT EXISTS municipio  VARCHAR(100) NULL AFTER colonia;
+ALTER TABLE cotizaciones ADD COLUMN IF NOT EXISTS ciudad     VARCHAR(100) NULL AFTER municipio;
+ALTER TABLE cotizaciones ADD COLUMN IF NOT EXISTS cp         VARCHAR(10)  NULL AFTER ciudad;
+
+-- Dirección descompuesta en citas (instalaciones existentes)
+ALTER TABLE citas ADD COLUMN IF NOT EXISTS colonia    VARCHAR(120) NULL AFTER direccion;
+ALTER TABLE citas ADD COLUMN IF NOT EXISTS municipio  VARCHAR(100) NULL AFTER colonia;
+ALTER TABLE citas ADD COLUMN IF NOT EXISTS ciudad     VARCHAR(100) NULL AFTER municipio;
+ALTER TABLE citas ADD COLUMN IF NOT EXISTS cp         VARCHAR(10)  NULL AFTER ciudad;
 
 -- Vincular cotizaciones a clientes
 ALTER TABLE cotizaciones ADD COLUMN cliente_id INT NULL AFTER numero_cotizacion;
