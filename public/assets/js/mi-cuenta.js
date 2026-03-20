@@ -116,8 +116,8 @@
     if (pfTel) pfTel.addEventListener('input', function () {
       this.value = this.value.replace(/[^0-9\s+\-().]/g, '');
     });
-    // Dirección y ciudad: bloquear inyección
-    ['pfDireccion','pfCiudad'].forEach(id => {
+    // Dirección, colonia, municipio y ciudad: bloquear inyección
+    ['pfDireccion','pfColonia','pfMunicipio','pfCiudad'].forEach(id => {
       const el = document.getElementById(id);
       if (el) el.addEventListener('input', function () {
         this.value = this.value.replace(/[<>"'`;\\]/g, '');
@@ -133,11 +133,13 @@
   /* ── Formulario de perfil ──────────────────────────────────── */
   function _rellenarFormPerfil(c) {
     const set = (id, val) => { const el = document.getElementById(id); if (el) el.value = val || ''; };
-    set('pfNombre',   c.nombre);
-    set('pfTelefono', c.telefono);
-    set('pfDireccion',c.direccion);
-    set('pfCiudad',   c.ciudad);
-    set('pfCP',       c.cp);
+    set('pfNombre',    c.nombre);
+    set('pfTelefono',  c.telefono);
+    set('pfDireccion', c.direccion);
+    set('pfColonia',   c.colonia);
+    set('pfMunicipio', c.municipio);
+    set('pfCiudad',    c.ciudad);
+    set('pfCP',        c.cp);
     _initValidacionPerfil();
   }
 
@@ -158,6 +160,8 @@
     const nombre    = _sanitizeName(document.getElementById('pfNombre')?.value    || '');
     const telefono  = _sanitizePhone(document.getElementById('pfTelefono')?.value  || '');
     const direccion = _sanitizeText(document.getElementById('pfDireccion')?.value  || '', 255);
+    const colonia   = _sanitizeText(document.getElementById('pfColonia')?.value    || '', 120);
+    const municipio = _sanitizeText(document.getElementById('pfMunicipio')?.value  || '', 100);
     const ciudad    = _sanitizeText(document.getElementById('pfCiudad')?.value     || '', 100);
     const cp        = _sanitizeCP(document.getElementById('pfCP')?.value            || '');
 
@@ -178,7 +182,7 @@
     const csrf = document.cookie.split(';').map(c => c.trim()).find(c => c.startsWith('XSRF-TOKEN='));
     const csrfToken = csrf ? decodeURIComponent(csrf.split('=')[1]) : '';
 
-    const body = { nombre, telefono, direccion, ciudad, cp };
+    const body = { nombre, telefono, direccion, colonia, municipio, ciudad, cp };
 
     try {
       const res  = await fetch(`/api/clientes.php?id=${cliente.id}`, {

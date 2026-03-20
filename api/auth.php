@@ -138,7 +138,9 @@ switch ($action) {
         $cliente = registrarCliente(['firebase_uid' => $uid, 'nombre' => $nombre, 'correo' => $correo, 'telefono' => $telefono]);
         if (!$cliente) jsonError('No se pudo registrar la cuenta. Intenta nuevamente.', 500);
         _crearSesionCliente($cliente);
-        jsonSuccess(['cliente' => ['id' => $cliente['id'], 'nombre' => $cliente['nombre'], 'correo' => $cliente['correo']], 'csrf' => getCsrfToken(), 'mensaje' => '¡Cuenta creada exitosamente!']);
+        // Los nuevos registros nunca tienen el correo verificado aún
+        $_SESSION['cliente_email_verified'] = false;
+        jsonSuccess(['cliente' => ['id' => $cliente['id'], 'nombre' => $cliente['nombre'], 'correo' => $cliente['correo']], 'email_verified' => false, 'csrf' => getCsrfToken(), 'mensaje' => '¡Cuenta creada exitosamente!']);
         break;
 
     // ── Login de cliente ──────────────────────────────────────────
@@ -167,14 +169,17 @@ switch ($action) {
         }
         if (!$cliente) jsonError('No se pudo autenticar la cuenta', 403);
         _crearSesionCliente($cliente);
-        jsonSuccess(['cliente' => ['id' => $cliente['id'], 'nombre' => $cliente['nombre'], 'correo' => $cliente['correo']], 'csrf' => getCsrfToken()]);
+        $emailVerified = (bool)($payload['email_verified'] ?? false);
+        $_SESSION['cliente_email_verified'] = $emailVerified;
+        jsonSuccess(['cliente' => ['id' => $cliente['id'], 'nombre' => $cliente['nombre'], 'correo' => $cliente['correo']], 'email_verified' => $emailVerified, 'csrf' => getCsrfToken()]);
         break;
 
     // ── Verificar sesión de cliente ───────────────────────────────
     case 'cliente-verificar':
         $cliente = sesionClienteActiva();
         if ($cliente) {
-            jsonSuccess(['autenticado' => true, 'cliente' => $cliente, 'csrf' => getCsrfToken()]);
+            $ev = $_SESSION['cliente_email_verified'] ?? null;
+            jsonSuccess(['autenticado' => true, 'cliente' => $cliente, 'email_verified' => $ev, 'csrf' => getCsrfToken()]);
         }
         $token = getBearerToken();
         if ($token) {
@@ -182,10 +187,32 @@ switch ($action) {
             if ($payload) {
                 $uid = $payload['uid'] ?? '';
                 $c   = $uid ? obtenerClientePorFirebaseUid($uid) : null;
-                if ($c) { _crearSesionCliente($c); jsonSuccess(['autenticado' => true, 'cliente' => $c, 'csrf' => getCsrfToken()]); }
+                if ($c) {
+                    _crearSesionCliente($c);
+                    $ev = (bool)($payload['email_verified'] ?? false);
+                    $_SESSION['cliente_email_verified'] = $ev;
+                    jsonSuccess(['autenticado' => true, 'cliente' => $c, 'email_verified' => $ev, 'csrf' => getCsrfToken()]);
+                }
             }
         }
         jsonSuccess(['autenticado' => false]);
+        break;
+
+    // ── Marcar correo como verificado (llamado desde el frontend tras confirmar con Firebase) ─
+    case 'cliente-email-verificado':
+        if ($method !== 'POST') jsonError('Método no permitido', 405);
+        $cliente = sesionClienteActiva();
+        if (!$cliente) jsonError('No autenticado', 401);
+        // Validar con token Firebase fresco que realmente está verificado
+        $body = getJsonBody();
+        $firebaseToken = trim($body['firebase_token'] ?? '');
+        if (empty($firebaseToken)) jsonError('firebase_token requerido', 422);
+        $payload = verificarTokenFirebase($firebaseToken);
+        if (!$payload || empty($payload['email_verified'])) {
+            jsonError('El correo aún no ha sido verificado', 403);
+        }
+        $_SESSION['cliente_email_verified'] = true;
+        jsonSuccess(['email_verified' => true]);
         break;
 
     // ── Logout de cliente ─────────────────────────────────────────

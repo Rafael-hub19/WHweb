@@ -108,7 +108,15 @@
           </div>
           <div class="col-12 mc-form-group">
             <label>Dirección</label>
-            <input type="text" id="pfDireccion" name="direccion" maxlength="255" placeholder="Calle, número, colonia">
+            <input type="text" id="pfDireccion" name="direccion" maxlength="255" placeholder="Calle y número">
+          </div>
+          <div class="col-md-6 mc-form-group">
+            <label>Colonia</label>
+            <input type="text" id="pfColonia" name="colonia" maxlength="120">
+          </div>
+          <div class="col-md-6 mc-form-group">
+            <label>Municipio / Alcaldía</label>
+            <input type="text" id="pfMunicipio" name="municipio" maxlength="100">
           </div>
           <div class="col-md-6 mc-form-group">
             <label>Ciudad</label>

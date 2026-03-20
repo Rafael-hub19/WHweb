@@ -487,9 +487,8 @@
   font-size: 13px;
   color: #f0c060;
   flex-wrap: wrap;
-  position: sticky;
-  top: 0;
-  z-index: 1500;
+  position: relative;
+  z-index: 99;
   animation: wh-slidein 0.3s ease;
 }
 @keyframes wh-slidein {

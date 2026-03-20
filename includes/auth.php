@@ -320,7 +320,7 @@ function verificarCsrfToken(string $token): bool {
 function obtenerClientePorFirebaseUid(string $uid): ?array {
     if (!preg_match('/^[a-zA-Z0-9]{20,128}$/', $uid)) return null;
     return dbRow(
-        "SELECT id, firebase_uid, nombre, correo, telefono, direccion, ciudad, cp, activo
+        "SELECT id, firebase_uid, nombre, correo, telefono, direccion, colonia, municipio, ciudad, cp, activo
          FROM clientes WHERE firebase_uid = ? AND activo = 1 LIMIT 1",
         [$uid]
     );
@@ -381,7 +381,7 @@ function sesionClienteActiva(): ?array {
     if (!empty($_SESSION['_last_activity']) && ($now - $_SESSION['_last_activity']) > 7200) { _destruirSesion(); return null; }
     $_SESSION['_last_activity'] = $now;
     return dbRow(
-        "SELECT id, firebase_uid, nombre, correo, telefono, direccion, ciudad, cp
+        "SELECT id, firebase_uid, nombre, correo, telefono, direccion, colonia, municipio, ciudad, cp
          FROM clientes WHERE id = ? AND activo = 1 LIMIT 1",
         [$_SESSION['cliente_id']]
     );

@@ -98,7 +98,7 @@ if ($method === 'GET' && !$id && !$action) {
 if ($method === 'GET' && $id) {
     requerirAdmin();
     $cliente = dbRow(
-        "SELECT id, nombre, correo, telefono, direccion, ciudad, cp, activo, fecha_registro
+        "SELECT id, nombre, correo, telefono, direccion, colonia, municipio, ciudad, cp, activo, fecha_registro
          FROM clientes WHERE id = ? LIMIT 1",
         [$id]
     );
@@ -123,21 +123,23 @@ if ($method === 'PUT' && $id) {
     $cliente = requerirCliente();
     if ((int)$cliente['id'] !== $id) jsonError('No autorizado', 403);
 
-    $body     = getJsonBody();
-    $nombre   = sanitize($body['nombre'] ?? '');
-    $telefono = sanitize($body['telefono'] ?? '');
+    $body      = getJsonBody();
+    $nombre    = sanitize($body['nombre'] ?? '');
+    $telefono  = sanitize($body['telefono'] ?? '');
     $direccion = sanitize($body['direccion'] ?? '');
-    $ciudad   = sanitize($body['ciudad'] ?? '');
-    $cp       = sanitize($body['cp'] ?? '');
+    $colonia   = sanitize($body['colonia'] ?? '');
+    $municipio = sanitize($body['municipio'] ?? '');
+    $ciudad    = sanitize($body['ciudad'] ?? '');
+    $cp        = sanitize($body['cp'] ?? '');
 
     if (empty($nombre) || strlen($nombre) < 2) jsonError('Nombre requerido', 422);
 
     dbQuery(
-        "UPDATE clientes SET nombre=?, telefono=?, direccion=?, ciudad=?, cp=? WHERE id=?",
-        [$nombre, $telefono ?: null, $direccion ?: null, $ciudad ?: null, $cp ?: null, $id]
+        "UPDATE clientes SET nombre=?, telefono=?, direccion=?, colonia=?, municipio=?, ciudad=?, cp=? WHERE id=?",
+        [$nombre, $telefono ?: null, $direccion ?: null, $colonia ?: null, $municipio ?: null, $ciudad ?: null, $cp ?: null, $id]
     );
 
-    $actualizado = dbRow("SELECT id, nombre, correo, telefono, direccion, ciudad, cp FROM clientes WHERE id=?", [$id]);
+    $actualizado = dbRow("SELECT id, nombre, correo, telefono, direccion, colonia, municipio, ciudad, cp FROM clientes WHERE id=?", [$id]);
     jsonSuccess(['cliente' => $actualizado, 'mensaje' => 'Perfil actualizado correctamente']);
 }
 

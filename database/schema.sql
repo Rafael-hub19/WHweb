@@ -341,6 +341,8 @@ CREATE TABLE clientes (
   correo VARCHAR(150) NOT NULL UNIQUE,
   telefono VARCHAR(30) NULL,
   direccion VARCHAR(255) NULL,
+  colonia VARCHAR(120) NULL,
+  municipio VARCHAR(100) NULL,
   ciudad VARCHAR(100) NULL,
   cp VARCHAR(10) NULL,
   activo TINYINT(1) NOT NULL DEFAULT 1,
@@ -350,6 +352,10 @@ CREATE TABLE clientes (
   INDEX idx_correo (correo),
   INDEX idx_activo (activo)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Agregar colonia y municipio a clientes (para instalaciones existentes)
+ALTER TABLE clientes ADD COLUMN IF NOT EXISTS colonia VARCHAR(120) NULL AFTER direccion;
+ALTER TABLE clientes ADD COLUMN IF NOT EXISTS municipio VARCHAR(100) NULL AFTER colonia;
 
 -- Agregar campo municipio_envio (ejecutar en instalaciones existentes)
 ALTER TABLE pedidos ADD COLUMN IF NOT EXISTS municipio_envio VARCHAR(100) NULL AFTER ciudad_envio;

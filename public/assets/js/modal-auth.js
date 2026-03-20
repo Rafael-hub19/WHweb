@@ -481,6 +481,16 @@
       if (user) {
         await user.reload();
         if (user.emailVerified) {
+          // Informar al backend para actualizar la sesión
+          try {
+            const token = await user.getIdToken(true);
+            await fetch('/api/auth.php?action=cliente-email-verificado', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              credentials: 'same-origin',
+              body: JSON.stringify({ firebase_token: token }),
+            });
+          } catch (_) {}
           _emailVerificado = true;
           document.getElementById('whVerifBanner')?.remove();
           return;
@@ -501,7 +511,7 @@
   /* ── Tras autenticación exitosa ──────────────────────────────── */
   function _onAutenticado(cliente, emailVerificado) {
     _cliente         = cliente;
-    _emailVerificado = emailVerificado ?? true;
+    _emailVerificado = emailVerificado ?? false;
     _actualizarNavBtn();
     _actualizarVistaModal();
     // Mostrar banner si el correo no está verificado
@@ -750,17 +760,18 @@
         const data = await res.json();
         if (data.success && data.autenticado && data.cliente) {
           _cliente = data.cliente;
-          // Chequear emailVerified desde Firebase
-          try {
-            const auth = await _getAuth();
-            const user = auth.currentUser;
-            if (user) {
-              await user.reload();
-              _emailVerificado = user.emailVerified;
-            } else {
-              _emailVerificado = true; // sin usuario Firebase activo, asumir OK
-            }
-          } catch (_) { _emailVerificado = true; }
+          // Usar el valor que devuelve el servidor (guardado en sesión al hacer login)
+          // Si el servidor devuelve null (sesión vieja sin el dato) intentar desde Firebase
+          if (data.email_verified !== null && data.email_verified !== undefined) {
+            _emailVerificado = data.email_verified;
+          } else {
+            try {
+              const auth = await _getAuth();
+              const user = auth.currentUser;
+              if (user) { await user.reload(); _emailVerificado = user.emailVerified; }
+              else { _emailVerificado = false; } // sin usuario Firebase: tratar como no verificado
+            } catch (_) { _emailVerificado = false; }
+          }
           _actualizarNavBtn();
           if (_emailVerificado === false) _mostrarBannerVerificacion();
           return _cliente;
