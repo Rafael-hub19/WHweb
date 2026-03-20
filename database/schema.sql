@@ -367,11 +367,12 @@ CREATE TABLE clientes (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Agregar colonia y municipio a clientes (para instalaciones existentes)
-ALTER TABLE clientes ADD COLUMN IF NOT EXISTS colonia VARCHAR(120) NULL AFTER direccion;
-ALTER TABLE clientes ADD COLUMN IF NOT EXISTS municipio VARCHAR(100) NULL AFTER colonia;
+-- Nota: ejecutar solo si las columnas no existen aún
+ALTER TABLE clientes ADD COLUMN colonia VARCHAR(120) NULL AFTER direccion;
+ALTER TABLE clientes ADD COLUMN municipio VARCHAR(100) NULL AFTER colonia;
 
 -- Agregar campo municipio_envio (ejecutar en instalaciones existentes)
-ALTER TABLE pedidos ADD COLUMN IF NOT EXISTS municipio_envio VARCHAR(100) NULL AFTER ciudad_envio;
+ALTER TABLE pedidos ADD COLUMN municipio_envio VARCHAR(100) NULL AFTER ciudad_envio;
 
 -- Vincular pedidos a clientes (nullable para pedidos históricos de invitados)
 ALTER TABLE pedidos ADD COLUMN cliente_id INT NULL AFTER token_seguimiento;
@@ -381,20 +382,21 @@ ALTER TABLE pedidos ADD CONSTRAINT fk_pedidos_cliente
 CREATE INDEX idx_pedidos_cliente ON pedidos (cliente_id);
 
 -- Columnas que pueden faltar en instalaciones existentes previas al módulo de clientes
-ALTER TABLE cotizaciones ADD COLUMN IF NOT EXISTS modelo_mueble VARCHAR(80) NULL AFTER telefono_cliente;
+-- Nota: ejecutar cada ALTER solo si la columna no existe aún
+ALTER TABLE cotizaciones ADD COLUMN modelo_mueble VARCHAR(80) NULL AFTER telefono_cliente;
 
 -- Dirección descompuesta en cotizaciones (instalaciones existentes)
-ALTER TABLE cotizaciones ADD COLUMN IF NOT EXISTS direccion  VARCHAR(255) NULL AFTER modelo_mueble;
-ALTER TABLE cotizaciones ADD COLUMN IF NOT EXISTS colonia    VARCHAR(120) NULL AFTER direccion;
-ALTER TABLE cotizaciones ADD COLUMN IF NOT EXISTS municipio  VARCHAR(100) NULL AFTER colonia;
-ALTER TABLE cotizaciones ADD COLUMN IF NOT EXISTS ciudad     VARCHAR(100) NULL AFTER municipio;
-ALTER TABLE cotizaciones ADD COLUMN IF NOT EXISTS cp         VARCHAR(10)  NULL AFTER ciudad;
+ALTER TABLE cotizaciones ADD COLUMN direccion  VARCHAR(255) NULL AFTER modelo_mueble;
+ALTER TABLE cotizaciones ADD COLUMN colonia    VARCHAR(120) NULL AFTER direccion;
+ALTER TABLE cotizaciones ADD COLUMN municipio  VARCHAR(100) NULL AFTER colonia;
+ALTER TABLE cotizaciones ADD COLUMN ciudad     VARCHAR(100) NULL AFTER municipio;
+ALTER TABLE cotizaciones ADD COLUMN cp         VARCHAR(10)  NULL AFTER ciudad;
 
 -- Dirección descompuesta en citas (instalaciones existentes)
-ALTER TABLE citas ADD COLUMN IF NOT EXISTS colonia    VARCHAR(120) NULL AFTER direccion;
-ALTER TABLE citas ADD COLUMN IF NOT EXISTS municipio  VARCHAR(100) NULL AFTER colonia;
-ALTER TABLE citas ADD COLUMN IF NOT EXISTS ciudad     VARCHAR(100) NULL AFTER municipio;
-ALTER TABLE citas ADD COLUMN IF NOT EXISTS cp         VARCHAR(10)  NULL AFTER ciudad;
+ALTER TABLE citas ADD COLUMN colonia    VARCHAR(120) NULL AFTER direccion;
+ALTER TABLE citas ADD COLUMN municipio  VARCHAR(100) NULL AFTER colonia;
+ALTER TABLE citas ADD COLUMN ciudad     VARCHAR(100) NULL AFTER municipio;
+ALTER TABLE citas ADD COLUMN cp         VARCHAR(10)  NULL AFTER ciudad;
 
 -- Vincular cotizaciones a clientes
 ALTER TABLE cotizaciones ADD COLUMN cliente_id INT NULL AFTER numero_cotizacion;
