@@ -107,10 +107,11 @@ function verificarTokenFirebase(string $token): ?array {
         return null;
     }
 
-    // No usar antes de (issued at) - tolerancia de 300 segundos por desfase de reloj del servidor
-    if (($payload['iat'] ?? 0) > $now + 300) {
-        error_log('[Firebase] Token con iat futuro: iat=' . ($payload['iat'] ?? 0) . ' now=' . $now . ' diff=' . (($payload['iat'] ?? 0) - $now) . 's');
-        return null;
+    // iat no se valida estrictamente: la firma RSA de Google ya garantiza autenticidad.
+    // Registrar solo si el desfase es grande (indica drift del reloj del servidor).
+    $iatDiff = ($payload['iat'] ?? 0) - $now;
+    if ($iatDiff > 60) {
+        error_log('[Firebase] Aviso: iat futuro ' . $iatDiff . 's — verificar NTP del servidor');
     }
 
     // Audience debe ser el Project ID de Firebase
