@@ -118,9 +118,9 @@
        ========================= */
     .container {
       width: 100%;
-      max-width: 1400px;
+      max-width: 100%;
       margin: 0 auto;
-      padding: 60px 40px;
+      padding: 40px clamp(20px, 4vw, 80px);
     }
 
     .page-title {
@@ -521,7 +521,7 @@
        ========================= */
     @media (max-width: 992px) {
       .header-nav { padding: 10px 16px; }
-      .container { padding: 20px 14px; }
+      .container { padding: 16px 14px; }
       /* !important necesario porque Bootstrap usa utilidades con !important (d-flex, align-items-center, etc.) */
       .catalog-header { flex-direction: column !important; align-items: stretch !important; gap: 12px !important; }
       .search-bar { width: 100%; min-width: 0; }

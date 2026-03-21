@@ -527,21 +527,26 @@
 /* ── Barra de navegación fija móvil (compartida entre páginas) ───── */
 .mobile-bottom-nav {
   display: none;
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
+  position: fixed !important;
+  bottom: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  width: 100% !important;
   background: #242424;
   border-top: 1px solid #3d3d3d;
-  z-index: 1200;
+  z-index: 9999 !important;
   padding: 0 4px;
   padding-bottom: env(safe-area-inset-bottom, 0px);
   box-shadow: 0 -4px 20px rgba(0,0,0,0.4);
+  /* Evitar que transforms de elementos padre alteren el posicionamiento */
+  transform: translateZ(0);
+  will-change: auto;
 }
 .mobile-bottom-nav-inner {
   display: flex;
   justify-content: space-around;
   align-items: stretch;
+  min-height: 56px;
 }
 .mbn-item {
   display: flex;
@@ -567,8 +572,8 @@
 .mbn-item--active { color: #c9a96e; }
 .mbn-item--active i { color: #c9a96e; }
 
-@media (max-width: 900px) {
-  .mobile-bottom-nav { display: block; }
+@media (max-width: 992px) {
+  .mobile-bottom-nav { display: block !important; }
 }
 
 /* ── Responsive ─────────────────────────────────────────────────── */
@@ -581,7 +586,7 @@
 }
 
 /* ── Navegación móvil: solo logo en el header ──────────────────── */
-@media (max-width: 900px) {
+@media (max-width: 992px) {
   /* Ocultar botón hamburguesa y nav completo — la barra inferior maneja todo */
   .menu-toggle { display: none !important; }
   .nav-links    { display: none !important; }
