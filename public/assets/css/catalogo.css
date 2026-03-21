@@ -5,6 +5,7 @@
       background: #1a1a1a;
       color: #e0e0e0;
       line-height: 1.6;
+      overflow-x: hidden;
     }
 
     /* =========================
@@ -116,6 +117,7 @@
        CONTENIDO
        ========================= */
     .container {
+      width: 100%;
       max-width: 1400px;
       margin: 0 auto;
       padding: 60px 40px;
@@ -533,7 +535,7 @@
       .product-info { padding: 10px; }
       .product-name { font-size: 13px; }
       .product-price { font-size: 17px; }
-      .product-image { aspect-ratio: 3/4; }
+      .product-image { aspect-ratio: 1/1; } /* cuadrado en móvil: equilibra imagen vs texto */
     }
 
     @media (max-width: 420px) {

@@ -10,6 +10,7 @@ body {
   background: #1a1a1a;
   color: #e0e0e0;
   line-height: 1.6;
+  overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -115,6 +116,7 @@ h1, h2, h3, h4, h5, h6 { margin-bottom: 0; }
    LAYOUT
    =================================================== */
 .container {
+  width: 100%;
   max-width: 1400px;
   margin: 0 auto;
   padding: 60px 40px;
