@@ -2,6 +2,8 @@
 # WOODEN HOUSE - GITIGNORE
 # ================================================
 
+.claude/
+
 # ── NUNCA SUBIR — Credenciales y datos sensibles ─────────────────
 .env
 .env.local
