@@ -51,11 +51,16 @@ function obtenerClavesPublicasFirebase(): array {
         CURLOPT_TIMEOUT        => 8,
         CURLOPT_SSL_VERIFYPEER => true,
     ]);
+    $err  = '';
     $res  = curl_exec($ch);
     $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    if (!$res) $err = curl_error($ch);
     curl_close($ch);
 
-    if ($code !== 200 || !$res) return [];
+    if ($code !== 200 || !$res) {
+        error_log('[Firebase] obtenerClavesPublicas falló: HTTP ' . $code . ' curl_error="' . $err . '"');
+        return [];
+    }
 
     $keys = json_decode($res, true) ?: [];
     file_put_contents($cacheFile, json_encode($keys), LOCK_EX);
@@ -70,58 +75,90 @@ function obtenerClavesPublicasFirebase(): array {
  */
 function verificarTokenFirebase(string $token): ?array {
     $parts = explode('.', $token);
-    if (count($parts) !== 3) return null;
+    if (count($parts) !== 3) {
+        error_log('[Firebase] Token malformado: no tiene 3 partes');
+        return null;
+    }
 
     // Decodificar header y payload
     $headerRaw  = base64_decode(strtr($parts[0], '-_', '+/') . '==');
     $payloadRaw = base64_decode(strtr($parts[1], '-_', '+/') . '==');
     $sigRaw     = base64_decode(strtr($parts[2], '-_', '+/') . '==');
 
-    if (!$headerRaw || !$payloadRaw || !$sigRaw) return null;
+    if (!$headerRaw || !$payloadRaw || !$sigRaw) {
+        error_log('[Firebase] Error decodificando partes del token');
+        return null;
+    }
 
     $header  = json_decode($headerRaw,  true);
     $payload = json_decode($payloadRaw, true);
 
-    if (!is_array($header) || !is_array($payload)) return null;
+    if (!is_array($header) || !is_array($payload)) {
+        error_log('[Firebase] Header o payload no es JSON válido');
+        return null;
+    }
 
     // ── Validaciones básicas del payload ─────────────────────────
     $now = time();
 
     // Expiración
-    if (($payload['exp'] ?? 0) < $now) return null;
+    if (($payload['exp'] ?? 0) < $now) {
+        error_log('[Firebase] Token expirado: exp=' . ($payload['exp'] ?? 0) . ' now=' . $now);
+        return null;
+    }
 
-    // No usar antes de (issued at) - tolerancia de 60 segundos por desfase de reloj
-    if (($payload['iat'] ?? 0) > $now + 60) return null;
+    // No usar antes de (issued at) - tolerancia de 300 segundos por desfase de reloj del servidor
+    if (($payload['iat'] ?? 0) > $now + 300) {
+        error_log('[Firebase] Token con iat futuro: iat=' . ($payload['iat'] ?? 0) . ' now=' . $now . ' diff=' . (($payload['iat'] ?? 0) - $now) . 's');
+        return null;
+    }
 
     // Audience debe ser el Project ID de Firebase
     $aud = $payload['aud'] ?? '';
-    if ($aud !== FIREBASE_PROJECT_ID) return null;
+    if ($aud !== FIREBASE_PROJECT_ID) {
+        error_log('[Firebase] aud incorrecto: esperado="' . FIREBASE_PROJECT_ID . '" recibido="' . $aud . '"');
+        return null;
+    }
 
     // Issuer debe ser el endpoint de Firebase
     $iss = $payload['iss'] ?? '';
-    if ($iss !== 'https://securetoken.google.com/' . FIREBASE_PROJECT_ID) return null;
+    if ($iss !== 'https://securetoken.google.com/' . FIREBASE_PROJECT_ID) {
+        error_log('[Firebase] iss incorrecto: "' . $iss . '"');
+        return null;
+    }
 
     // Subject (= firebase uid) debe existir y no estar vacío
     $sub = $payload['sub'] ?? '';
-    if (empty($sub)) return null;
+    if (empty($sub)) {
+        error_log('[Firebase] sub vacío en el token');
+        return null;
+    }
 
     // ── Verificar firma RSA con clave pública de Google ──────────
     $kid  = $header['kid'] ?? '';     // Key ID: qué clave usó Firebase para firmar
     $keys = obtenerClavesPublicasFirebase();
 
     if (empty($kid) || !isset($keys[$kid])) {
-        // Clave no encontrada (puede ser rotación reciente) - fallback a tokeninfo
+        // Clave no encontrada (puede ser rotación reciente o fallo de red) - fallback a tokeninfo
+        error_log('[Firebase] kid "' . $kid . '" no encontrado en claves locales (' . count($keys) . ' disponibles). Intentando tokeninfo API...');
         return verificarTokenFirebaseViaAPI($token);
     }
 
     $cert    = $keys[$kid];
     $pubKey  = openssl_pkey_get_public($cert);
-    if (!$pubKey) return null;
+    if (!$pubKey) {
+        error_log('[Firebase] openssl_pkey_get_public falló para kid=' . $kid);
+        // Fallback a tokeninfo en caso de fallo de OpenSSL
+        return verificarTokenFirebaseViaAPI($token);
+    }
 
     $data      = $parts[0] . '.' . $parts[1];
     $resultado = openssl_verify($data, $sigRaw, $pubKey, OPENSSL_ALGO_SHA256);
 
-    if ($resultado !== 1) return null;  // Firma inválida
+    if ($resultado !== 1) {
+        error_log('[Firebase] Firma RSA inválida (openssl_verify=' . $resultado . ') para kid=' . $kid);
+        return null;
+    }
 
     $payload['uid'] = $sub;
     return $payload;
@@ -139,16 +176,24 @@ function verificarTokenFirebaseViaAPI(string $token): ?array {
         CURLOPT_TIMEOUT        => 8,
         CURLOPT_SSL_VERIFYPEER => true,
     ]);
+    $err  = '';
     $res  = curl_exec($ch);
     $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    if (!$res) $err = curl_error($ch);
     curl_close($ch);
 
-    if ($code !== 200 || !$res) return null;
+    if ($code !== 200 || !$res) {
+        error_log('[Firebase] tokeninfo API falló: HTTP ' . $code . ' curl_error="' . $err . '"');
+        return null;
+    }
 
     $payload = json_decode($res, true);
     if (!is_array($payload)) return null;
 
-    if (($payload['aud'] ?? '') !== FIREBASE_PROJECT_ID) return null;
+    if (($payload['aud'] ?? '') !== FIREBASE_PROJECT_ID) {
+        error_log('[Firebase] tokeninfo aud incorrecto: "' . ($payload['aud'] ?? '') . '"');
+        return null;
+    }
     if (($payload['exp'] ?? 0) < time()) return null;
 
     $sub = $payload['sub'] ?? '';
