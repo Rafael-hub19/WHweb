@@ -8,6 +8,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <!-- Bootstrap 5 CSS - Grid, utilidades responsive. CSS propio de Wooden House carga después y tiene prioridad en colores -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" crossorigin="anonymous">
+  <link rel="stylesheet" href="./assets/css/styles.css">
   <link rel="stylesheet" href="./assets/css/index.css">
   <link rel="stylesheet" href="./assets/css/modal-auth.css">
   <!-- Bootstrap 5 JS - Solo componentes interactivos (modales, dropdowns). CSS propio de Wooden House tiene prioridad -->
@@ -65,10 +66,12 @@
           <a href="#" class="dropdown-item" id="btnAbrirAuth"
              onclick="AuthModal.open(); return false;">
             <i class="fa-solid fa-user-circle"></i> Clientes
+            <span style="display:block;font-size:11px;color:#888;margin-top:2px;">Ver pedidos, cotizaciones y perfil</span>
           </a>
           <div class="dropdown-divider"></div>
           <a href="/login" class="dropdown-item">
             <i class="fa-solid fa-id-badge"></i> Personal
+            <span style="display:block;font-size:11px;color:#888;margin-top:2px;">Solo para empleados y administradores</span>
           </a>
         </div>
       </div>
@@ -88,6 +91,14 @@
   <!-- ── Acciones rápidas ──────────────────────────────────────── -->
   <div class="quick-actions-section">
     <p class="quick-actions-label">¿Qué deseas hacer?</p>
+    <div class="wh-info-box" style="margin: 0 auto 16px; max-width:780px;">
+      <i class="fa-solid fa-lightbulb"></i>
+      <span>
+        <strong>¿Primera vez aquí?</strong> — Explora el <strong>Catálogo</strong> para ver modelos y precios.
+        Si ya sabes lo que quieres, pide una <strong>Cotización</strong>.
+        Si prefieres asesoría en persona, <strong>Agenda una Cita</strong> y vamos a tu domicilio.
+      </span>
+    </div>
     <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-4 g-3 quick-actions-grid">
       <div class="col">
         <a href="/catalogo" class="quick-action-card h-100">

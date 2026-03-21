@@ -55,7 +55,9 @@ if (!empty($_GET['logout']) || !empty($_SESSION['_just_logged_out'])) {
       </div>
 
       <div class="form-group">
-        <label for="password">Contraseña</label>
+        <label for="password">Contraseña
+          <span class="wh-help" data-tip="Haz clic en el ojo (👁) para mostrar u ocultar la contraseña. Si la olvidaste, usa el enlace '¿Olvidaste tu contraseña?'.">?</span>
+        </label>
         <div class="password-wrap">
           <input id="password" name="password" type="password" placeholder="••••••••" required autocomplete="current-password">
           <button type="button" class="toggle-pass" id="togglePass" aria-label="Mostrar contraseña"><i class="fa-solid fa-eye"></i></button>
@@ -65,7 +67,9 @@ if (!empty($_GET['logout']) || !empty($_SESSION['_just_logged_out'])) {
       <div class="remember-forgot">
         <label class="remember-me">
           <input type="checkbox" id="rememberMe">
-          <span>Recordarme</span>
+          <span>Recordarme
+            <span class="wh-help" data-tip="Mantiene tu sesión activa en este equipo. No marques esta opción en computadoras compartidas o públicas.">?</span>
+          </span>
         </label>
         <a href="#" class="forgot-password" id="forgotLink">¿Olvidaste tu contraseña?</a>
       </div>

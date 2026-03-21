@@ -73,6 +73,7 @@
         <div class="stock-indicator" id="pStockIndicador">
           <span id="pStockIcon"><i class="fa-solid fa-circle-check"></i></span>
           <span id="pStockText"><strong>Disponible</strong> - Fabricación bajo pedido</span>
+          <span class="wh-help" data-tip="Nuestros muebles se fabrican a pedido, por lo que siempre están disponibles. El tiempo de fabricación varía entre 2 y 15 días hábiles según el modelo.">?</span>
         </div>
 
         <div class="description" id="pDesc"></div>
@@ -86,14 +87,19 @@
         <!-- Agregar al carrito -->
         <div class="cart-section">
           <div class="quantity-selector">
-            <span>Cantidad:</span>
+            <span>Cantidad:
+              <span class="wh-help" data-tip="Selecciona cuántas unidades necesitas. Cada mueble se fabrica individualmente bajo pedido.">?</span>
+            </span>
             <button class="quantity-btn" id="btnMinus" type="button" onclick="cambiarCantidad(-1)">−</button>
             <input type="number" class="quantity-input" id="cantidad" value="1" min="1" max="99">
             <button class="quantity-btn" id="btnPlus" type="button" onclick="cambiarCantidad(1)">+</button>
           </div>
           <button class="btn-add-cart" id="btnAddCart" type="button"><i class="fa-solid fa-cart-shopping"></i> Agregar al Carrito</button>
           <a href="/carrito" class="btn-ver-carrito" style="display:none;" id="btnVerCarrito">Ver Carrito →</a>
-          <div class="shipping-note"><i class="fa-solid fa-truck"></i> Envíos en ZMG · Instalación profesional disponible</div>
+          <div class="shipping-note">
+            <i class="fa-solid fa-truck"></i> Envíos en ZMG · Instalación profesional disponible
+            <span class="wh-help wh-help--left" data-tip="Realizamos entregas dentro de la Zona Metropolitana de Guadalajara. La instalación profesional tiene un costo adicional que se muestra en el carrito.">?</span>
+          </div>
         </div>
       </div>
     </div>

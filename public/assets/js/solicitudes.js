@@ -252,6 +252,13 @@ function initFormCotizacion() {
       return;
     }
 
+    // Bloquear si el cliente está logueado pero no ha verificado su correo
+    if (window.AuthModal && AuthModal.isAuthenticated() && !AuthModal.isEmailVerified()) {
+      showAlert('Confirma tu correo electrónico antes de enviar una cotización. Revisa tu bandeja de entrada.', 'error');
+      document.getElementById('whVerifBanner')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
+    }
+
     const btn = form.querySelector('button[type="submit"]');
     btn.disabled    = true;
     btn.innerHTML   = '<i class="fa-solid fa-spinner fa-spin"></i> Enviando...';

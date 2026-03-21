@@ -93,7 +93,10 @@ if (!$paypalId)  error_log('[pago.php] PAYPAL_CLIENT_ID vacío o no definido');
 
 
 
-        <h2 class="section-title"><span><i class="fa-solid fa-credit-card"></i></span> Método de Pago</h2>
+        <h2 class="section-title">
+          <span><i class="fa-solid fa-credit-card"></i></span> Método de Pago
+          <span class="wh-help" data-tip="Elige cómo quieres pagar. Ambas opciones son 100% seguras. Tu información de tarjeta nunca pasa por nuestros servidores — va directo a Stripe/PayPal.">?</span>
+        </h2>
 
         <div class="row g-3 payment-methods">
           <!-- STRIPE -->
@@ -119,7 +122,10 @@ if (!$paypalId)  error_log('[pago.php] PAYPAL_CLIENT_ID vacío o no definido');
         <div id="stripe-section" class="payment-form-section">
           <h3>Datos de Tarjeta</h3>
           <div class="stripe-card-container">
-            <label class="stripe-label">Número de tarjeta, vencimiento y CVV</label>
+            <label class="stripe-label">
+              Número de tarjeta, vencimiento y CVV
+              <span class="wh-help" data-tip="El CVV son los 3 dígitos al reverso de tu tarjeta (4 dígitos en Amex). Este formulario es cifrado por Stripe — nosotros nunca vemos tu número de tarjeta.">?</span>
+            </label>
             <div id="card-element" class="stripe-element">
               <!-- Stripe Elements se monta aquí -->
             </div>
@@ -133,14 +139,16 @@ if (!$paypalId)  error_log('[pago.php] PAYPAL_CLIENT_ID vacío o no definido');
 
         <!-- PAYPAL FORM -->
         <div id="paypal-section" class="payment-form-section" style="display:none;">
-          <h3>Pago con PayPal</h3>
+          <h3>Pago con PayPal
+            <span class="wh-help" data-tip="Puedes pagar con tu saldo de PayPal o con cualquier tarjeta sin necesitar una cuenta PayPal. Es redirigido a los servidores seguros de PayPal.">?</span>
+          </h3>
           <div id="paypal-button-container"></div>
         </div>
 
         <div class="security-badges">
-          <span><i class="fa-solid fa-lock"></i> SSL 256-bit</span>
-          <span><i class="fa-solid fa-circle-check"></i> PCI DSS</span>
-          <span><i class="fa-solid fa-shield-halved"></i> Datos protegidos</span>
+          <span title="Conexión cifrada con SSL de 256 bits — los datos viajan protegidos"><i class="fa-solid fa-lock"></i> SSL 256-bit</span>
+          <span title="Cumplimos con el estándar internacional de seguridad para pagos con tarjeta"><i class="fa-solid fa-circle-check"></i> PCI DSS</span>
+          <span title="No almacenamos ni vemos tus datos de tarjeta en ningún momento"><i class="fa-solid fa-shield-halved"></i> Datos protegidos</span>
         </div>
       </div>
 
@@ -164,6 +172,8 @@ if (!$paypalId)  error_log('[pago.php] PAYPAL_CLIENT_ID vacío o no definido');
   </footer>
 
   <script src="./assets/js/utils.js"></script>
+  <script src="/assets/js/firebase-config.js"></script>
+  <script src="/assets/js/modal-auth.js?v=8"></script>
   <script src="./assets/js/pago.js"></script>
 </body>
 </html>

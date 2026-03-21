@@ -96,35 +96,60 @@
         <i class="fa-solid fa-user-pen"></i> Editar perfil
       </div>
       <div id="mcPerfilAlert" class="mc-alert"></div>
+      <p class="mc-form-hint"><i class="fa-solid fa-circle-info"></i> Completa tu dirección para agilizar cotizaciones y pedidos — no tendrás que escribirla de nuevo.</p>
       <form id="mcPerfilForm" class="mc-form" onsubmit="mcGuardarPerfil(event)">
         <div class="row g-3">
           <div class="col-md-6 mc-form-group">
-            <label>Nombre completo <span class="mc-req">*</span></label>
+            <label>Nombre completo <span class="mc-req">*</span>
+              <span class="mc-tooltip" title="Este nombre aparecerá en tus cotizaciones y pedidos.">
+                <i class="fa-solid fa-circle-question"></i>
+              </span>
+            </label>
             <input type="text" id="pfNombre" name="nombre" required minlength="2" maxlength="120">
           </div>
           <div class="col-md-6 mc-form-group">
-            <label>Teléfono</label>
-            <input type="tel" id="pfTelefono" name="telefono" maxlength="20">
+            <label>Teléfono
+              <span class="mc-tooltip" title="Te contactaremos aquí para coordinar entregas o instalación.">
+                <i class="fa-solid fa-circle-question"></i>
+              </span>
+            </label>
+            <input type="tel" id="pfTelefono" name="telefono" maxlength="20" placeholder="10 dígitos">
           </div>
           <div class="col-12 mc-form-group">
-            <label>Dirección</label>
-            <input type="text" id="pfDireccion" name="direccion" maxlength="255" placeholder="Calle y número">
+            <label>Calle y número
+              <span class="mc-tooltip" title="Escribe solo la calle y número exterior/interior. La colonia va en el campo siguiente.">
+                <i class="fa-solid fa-circle-question"></i>
+              </span>
+            </label>
+            <input type="text" id="pfDireccion" name="direccion" maxlength="255" placeholder="Ej: Av. Lázaro Cárdenas 1234 Int. 5">
           </div>
           <div class="col-md-6 mc-form-group">
-            <label>Colonia</label>
-            <input type="text" id="pfColonia" name="colonia" maxlength="120">
+            <label>Colonia
+              <span class="mc-tooltip" title="Nombre de tu colonia o fraccionamiento.">
+                <i class="fa-solid fa-circle-question"></i>
+              </span>
+            </label>
+            <input type="text" id="pfColonia" name="colonia" maxlength="120" placeholder="Ej: Col. Chapalita">
           </div>
           <div class="col-md-6 mc-form-group">
-            <label>Municipio / Alcaldía</label>
-            <input type="text" id="pfMunicipio" name="municipio" maxlength="100">
+            <label>Municipio / Alcaldía
+              <span class="mc-tooltip" title="En Jalisco generalmente es Guadalajara, Zapopan, Tlaquepaque, etc.">
+                <i class="fa-solid fa-circle-question"></i>
+              </span>
+            </label>
+            <input type="text" id="pfMunicipio" name="municipio" maxlength="100" placeholder="Ej: Zapopan">
           </div>
           <div class="col-md-6 mc-form-group">
             <label>Ciudad</label>
-            <input type="text" id="pfCiudad" name="ciudad" maxlength="100">
+            <input type="text" id="pfCiudad" name="ciudad" maxlength="100" placeholder="Ej: Guadalajara">
           </div>
           <div class="col-md-6 mc-form-group">
-            <label>Código postal</label>
-            <input type="text" id="pfCP" name="cp" maxlength="10">
+            <label>Código postal
+              <span class="mc-tooltip" title="Tu CP de 5 dígitos. Lo usamos para calcular el costo de envío.">
+                <i class="fa-solid fa-circle-question"></i>
+              </span>
+            </label>
+            <input type="text" id="pfCP" name="cp" maxlength="10" placeholder="Ej: 45040">
           </div>
         </div>
         <div class="mc-form-actions">

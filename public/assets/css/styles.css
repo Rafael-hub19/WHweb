@@ -234,3 +234,114 @@ button {
   .breadcrumb { padding: 8px 12px; }
   .breadcrumb-current { max-width: 130px; }
 }
+
+/* ════════════════════════════════════════════════════════════════
+   SISTEMA GLOBAL DE AYUDA / TOOLTIPS
+   Uso: <span class="wh-help" data-tip="Texto de ayuda">?</span>
+   ════════════════════════════════════════════════════════════════ */
+
+/* Icono de ayuda ─────────────────────────────────────────────── */
+.wh-help {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: rgba(201,169,110,0.18);
+  border: 1px solid rgba(201,169,110,0.45);
+  color: #c9a96e;
+  font-size: 10px;
+  font-weight: 700;
+  font-style: normal;
+  cursor: help;
+  user-select: none;
+  position: relative;
+  vertical-align: middle;
+  margin-left: 5px;
+  flex-shrink: 0;
+  transition: background 0.2s, border-color 0.2s;
+}
+.wh-help:hover,
+.wh-help.wh-help--open {
+  background: rgba(201,169,110,0.35);
+  border-color: #c9a96e;
+}
+
+/* Burbuja del tooltip ────────────────────────────────────────── */
+.wh-help::after {
+  content: attr(data-tip);
+  position: absolute;
+  bottom: calc(100% + 10px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: #242424;
+  color: #e8d9c0;
+  border: 1px solid #555;
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 12px;
+  font-weight: 400;
+  font-style: normal;
+  white-space: normal;
+  width: 230px;
+  line-height: 1.55;
+  box-shadow: 0 8px 28px rgba(0,0,0,0.6);
+  z-index: 2000;
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.18s ease, visibility 0.18s ease;
+}
+/* Flechita */
+.wh-help::before {
+  content: '';
+  position: absolute;
+  bottom: calc(100% + 4px);
+  left: 50%;
+  transform: translateX(-50%);
+  border: 6px solid transparent;
+  border-top-color: #555;
+  z-index: 2001;
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.18s ease, visibility 0.18s ease;
+}
+.wh-help:hover::after,
+.wh-help:hover::before,
+.wh-help.wh-help--open::after,
+.wh-help.wh-help--open::before {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* Variante hacia arriba del tooltip para iconos en la parte inferior */
+.wh-help.wh-help--up::after  { bottom: auto; top: calc(100% + 10px); }
+.wh-help.wh-help--up::before { bottom: auto; top: calc(100% + 4px); border-top-color: transparent; border-bottom-color: #555; }
+
+/* Variante izquierda — cuando el icono está en el borde derecho */
+.wh-help.wh-help--left::after  { left: auto; right: 0; transform: none; }
+.wh-help.wh-help--left::before { left: auto; right: 5px; transform: none; }
+
+/* Caja de información (bloque, no inline) ────────────────────── */
+.wh-info-box {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  background: rgba(201,169,110,0.07);
+  border-left: 3px solid #c9a96e;
+  border-radius: 0 8px 8px 0;
+  padding: 11px 14px;
+  font-size: 13px;
+  color: #b09878;
+  line-height: 1.55;
+  margin: 10px 0;
+}
+.wh-info-box i { color: #c9a96e; margin-top: 1px; flex-shrink: 0; }
+.wh-info-box strong { color: #d4b98a; }
+
+/* Soporte touch (móvil) — JS activa/desactiva .wh-help--open */
+@media (hover: none) {
+  .wh-help { cursor: pointer; }
+}

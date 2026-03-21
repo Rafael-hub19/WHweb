@@ -42,18 +42,22 @@
       <div class="search-bar">
         <input type="text" id="buscar-producto" placeholder="Buscar por nombre, características...">
         <button id="btn-buscar" class="btn-buscar"><i class="fa-solid fa-magnifying-glass"></i> Buscar</button>
+        <span class="wh-help" data-tip="Busca por nombre del mueble, material (madera, MDF…) o característica. Puedes combinar palabras.">?</span>
       </div>
 
       <div class="d-flex align-items-center flex-wrap gap-3 filters-row">
         <div id="categorias-filtro" class="d-flex flex-wrap gap-2 filters">
           <button class="filter-btn active" onclick="filtrarPorCategoria(null, this)">Todos</button>
         </div>
-        <select id="ordenar-por" class="select-ordenar">
-          <option value="recientes">Más recientes</option>
-          <option value="precio-asc">Precio: menor a mayor</option>
-          <option value="precio-desc">Precio: mayor a menor</option>
-          <option value="nombre">Nombre A-Z</option>
-        </select>
+        <div style="display:flex;align-items:center;gap:4px;">
+          <select id="ordenar-por" class="select-ordenar">
+            <option value="recientes">Más recientes</option>
+            <option value="precio-asc">Precio: menor a mayor</option>
+            <option value="precio-desc">Precio: mayor a menor</option>
+            <option value="nombre">Nombre A-Z</option>
+          </select>
+          <span class="wh-help" data-tip="Cambia el orden en que se muestran los productos. El filtro de categoría y la búsqueda se aplican en conjunto.">?</span>
+        </div>
       </div>
     </div>
 

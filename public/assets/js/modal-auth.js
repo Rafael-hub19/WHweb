@@ -19,6 +19,7 @@
   let _callback        = null;   // función a ejecutar tras autenticación
   let _firebaseApp     = null;
   let _firebaseAuth    = null;
+  let _verifPollTimer  = null;   // setInterval de polling de verificación
 
   /* ── Crear estructura HTML del modal ─────────────────────────── */
   function _crearModal() {
@@ -427,6 +428,49 @@
     }
   }
 
+  /* ── Polling automático de verificación de correo ───────────── */
+  // Firebase no tiene webhooks como Stripe/PayPal, pero podemos consultar
+  // cada pocos segundos si el usuario ya verificó. Cuando detecta el cambio,
+  // actualiza la UI sin que el usuario tenga que refrescar la página.
+  function _iniciarPollingVerificacion() {
+    if (_verifPollTimer) return;
+    _verifPollTimer = setInterval(async () => {
+      try {
+        const auth = await _getAuth();
+        const user = auth.currentUser;
+        if (!user) { _detenerPollingVerificacion(); return; }
+        await user.reload();  // pide el estado actualizado a Firebase
+        if (user.emailVerified) {
+          _detenerPollingVerificacion();
+          // Notificar al backend para actualizar la sesión
+          try {
+            const token = await user.getIdToken(true);
+            await fetch('/api/auth.php?action=cliente-email-verificado', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              credentials: 'same-origin',
+              body: JSON.stringify({ firebase_token: token }),
+            });
+          } catch (_) {}
+          _emailVerificado = true;
+          document.getElementById('whVerifBanner')?.remove();
+          // Toast de confirmación (no hace falta recargar la página)
+          const toast = document.createElement('div');
+          toast.className = 'wh-toast-verificado';
+          toast.innerHTML = '<i class="fa-solid fa-circle-check"></i> ¡Correo verificado! Ya puedes completar tus compras.';
+          document.body.appendChild(toast);
+          setTimeout(() => toast.remove(), 5000);
+          // Notificar al resto de la página
+          document.dispatchEvent(new CustomEvent('wh:email-verificado', { detail: _cliente }));
+        }
+      } catch (_) { /* ignorar errores de red */ }
+    }, 4000);  // consulta cada 4 segundos
+  }
+
+  function _detenerPollingVerificacion() {
+    if (_verifPollTimer) { clearInterval(_verifPollTimer); _verifPollTimer = null; }
+  }
+
   /* ── Banner de correo no verificado ─────────────────────────── */
   function _mostrarBannerVerificacion() {
     if (document.getElementById('whVerifBanner')) return;
@@ -452,6 +496,8 @@
     const nav = document.querySelector('.header-nav');
     if (nav) nav.insertAdjacentElement('afterend', banner);
     else document.body.insertAdjacentElement('afterbegin', banner);
+    // Iniciar polling automático: detecta la verificación sin recargar
+    _iniciarPollingVerificacion();
   }
 
   window._authReenviarBanner = async function(e) {
@@ -491,6 +537,7 @@
               body: JSON.stringify({ firebase_token: token }),
             });
           } catch (_) {}
+          _detenerPollingVerificacion();
           _emailVerificado = true;
           document.getElementById('whVerifBanner')?.remove();
           return;
@@ -703,6 +750,7 @@
 
   /* ── Logout ──────────────────────────────────────────────────── */
   window._authLogout = async function () {
+    _detenerPollingVerificacion();
     try {
       const auth = await _getAuth();
       const { signOut } = await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js');
@@ -813,6 +861,30 @@
   document.addEventListener('DOMContentLoaded', () => {
     _actualizarMbnCartBadge(); // mostrar badge del carrito inmediatamente
     AuthModal.verificar();
+    _initTooltipsTouchSupport();
   });
+
+  /* ── Soporte touch para tooltips .wh-help (móvil) ───────────── */
+  function _initTooltipsTouchSupport() {
+    // En dispositivos táctiles, tap abre/cierra el tooltip
+    // ya que hover no funciona en móvil
+    document.addEventListener('click', function (e) {
+      const tip = e.target.closest('.wh-help');
+      if (tip) {
+        e.preventDefault();
+        e.stopPropagation();
+        const isOpen = tip.classList.toggle('wh-help--open');
+        // Cerrar todos los demás
+        if (isOpen) {
+          document.querySelectorAll('.wh-help--open').forEach(t => {
+            if (t !== tip) t.classList.remove('wh-help--open');
+          });
+        }
+        return;
+      }
+      // Tap fuera cierra todos
+      document.querySelectorAll('.wh-help--open').forEach(t => t.classList.remove('wh-help--open'));
+    });
+  }
 
 })();

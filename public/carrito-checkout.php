@@ -70,7 +70,10 @@
 
             <!-- Tipo de entrega -->
             <div class="section-card">
-                <h3 class="section-title"><span class="section-icon"><i class="fa-solid fa-truck"></i></span> Tipo de entrega</h3>
+                <h3 class="section-title">
+                  <span class="section-icon"><i class="fa-solid fa-truck"></i></span> Tipo de entrega
+                  <span class="wh-help" data-tip="Elige cómo quieres recibir tus muebles. Puedes recogerlos gratis en nuestra sucursal o solicitar envío a domicilio dentro del área metropolitana de Guadalajara.">?</span>
+                </h3>
                 <div class="delivery-options">
                     <div class="option-card selected" id="optionRecoger" onclick="seleccionarEntrega('recoger')">
                         <input type="radio" name="tipoEntrega" value="recoger" checked>
@@ -102,7 +105,10 @@
 
             <!-- Instalación -->
             <div class="section-card">
-                <h3 class="section-title"><span class="section-icon"><i class="fa-solid fa-wrench"></i></span> Servicios adicionales</h3>
+                <h3 class="section-title">
+                  <span class="section-icon"><i class="fa-solid fa-wrench"></i></span> Servicios adicionales
+                  <span class="wh-help" data-tip="La instalación profesional incluye colocación del mueble, conexión hidráulica del lavabo y ajustes finales. Se aplica un cargo de $1,500 por mueble instalado.">?</span>
+                </h3>
                 <div class="delivery-options">
 
                     <div class="option-card selected" id="optionSinInstalacion" onclick="seleccionarInstalacion(false)">
@@ -139,7 +145,10 @@
 
             <!-- ── SELECTOR DE FECHA ──────────────────────────── -->
             <div class="section-card">
-                <h3 class="section-title"><span class="section-icon"><i class="fa-solid fa-calendar-days"></i></span> Fecha de entrega</h3>
+                <h3 class="section-title">
+                  <span class="section-icon"><i class="fa-solid fa-calendar-days"></i></span> Fecha de entrega
+                  <span class="wh-help" data-tip="Selecciona el día preferido para recibir tu pedido. Solo aparecen los días disponibles según la capacidad del taller. Si la fecha que necesitas no aparece, contáctanos.">?</span>
+                </h3>
 
                 <div class="date-info">
                     <strong><i class="fa-solid fa-clock"></i> Fabricación bajo pedido — entrega estimada en 2 días hábiles</strong>
@@ -174,7 +183,10 @@
 
             <!-- Datos de contacto -->
             <div class="section-card">
-                <h3 class="section-title"><span class="section-icon"><i class="fa-solid fa-user"></i></span> Datos de contacto</h3>
+                <h3 class="section-title">
+                  <span class="section-icon"><i class="fa-solid fa-user"></i></span> Datos de contacto
+                  <span class="wh-help" data-tip="Usamos estos datos para confirmar tu pedido y coordinar la entrega. Si ya tienes cuenta, tus datos se rellenan automáticamente.">?</span>
+                </h3>
                 <form id="formularioCliente" novalidate>
                   <!-- Anti-bot honeypot: invisible para humanos, bots lo llenan -->
                   <div style="position:absolute;left:-9999px;top:-9999px;opacity:0;height:0;overflow:hidden;" aria-hidden="true">
@@ -183,22 +195,30 @@
                     <input type="text" name="_hp" tabindex="-1" autocomplete="off">
                   </div>
                     <div class="form-group">
-                        <label>Nombre completo <span class="required">*</span></label>
+                        <label>Nombre completo <span class="required">*</span>
+                          <span class="wh-help" data-tip="Escribe tu nombre tal como aparece en tu identificación oficial.">?</span>
+                        </label>
                         <input type="text" id="clienteNombre" placeholder="Juan Pérez López" required>
                     </div>
                     <div class="row g-3 form-row">
                         <div class="col-md-6 form-group">
-                            <label>Teléfono de contacto <span class="required">*</span></label>
+                            <label>Teléfono de contacto <span class="required">*</span>
+                              <span class="wh-help" data-tip="Te llamaremos o enviaremos WhatsApp para coordinar la entrega. Mínimo 10 dígitos.">?</span>
+                            </label>
                             <input type="tel" id="clienteTelefono" placeholder="33 1234 5678" required>
                         </div>
                         <div class="col-md-6 form-group">
-                            <label>Correo electrónico <span class="required">*</span></label>
+                            <label>Correo electrónico <span class="required">*</span>
+                              <span class="wh-help" data-tip="Enviaremos la confirmación del pedido y número de seguimiento a este correo.">?</span>
+                            </label>
                             <input type="email" id="clienteCorreo" placeholder="correo@ejemplo.com" required>
                         </div>
                     </div>
                     <div class="form-row">
                         <div class="form-group">
-                            <label>Confirmar correo electrónico <span class="required">*</span></label>
+                            <label>Confirmar correo electrónico <span class="required">*</span>
+                              <span class="wh-help" data-tip="Escribe el mismo correo otra vez para asegurarnos de que no haya errores de escritura.">?</span>
+                            </label>
                             <input type="email" id="clienteCorreoConfirm" placeholder="correo@ejemplo.com" required autocomplete="off" autocorrect="off" spellcheck="false">
                             <div class="help-text">Escribe tu correo nuevamente para confirmarlo</div>
                         </div>
@@ -206,9 +226,15 @@
 
                     <!-- Dirección (solo si es envío) -->
                     <div id="seccionDireccion">
+                        <div class="wh-info-box" style="margin-bottom:14px;">
+                          <i class="fa-solid fa-location-dot"></i>
+                          <span>La siguiente dirección es <strong>donde entregaremos tu pedido</strong>. Asegúrate de que sea correcta.</span>
+                        </div>
                         <div class="form-group">
-                            <label>Calle y número <span class="required">*</span></label>
-                            <input type="text" id="clienteDireccion" placeholder="Ej. Av. Chapultepec 1234" required>
+                            <label>Calle y número <span class="required">*</span>
+                              <span class="wh-help" data-tip="Solo la calle y el número exterior/interior. La colonia va en el campo siguiente.">?</span>
+                            </label>
+                            <input type="text" id="clienteDireccion" placeholder="Ej. Av. Chapultepec 1234 Int. 5" required>
                         </div>
                         <div class="row g-3 form-row">
                             <div class="col-md-6 form-group">
@@ -227,13 +253,17 @@
                             </div>
                         </div>
                         <div class="form-group">
-                            <label>Código Postal <span class="required">*</span></label>
+                            <label>Código Postal <span class="required">*</span>
+                              <span class="wh-help" data-tip="Tu CP de 5 dígitos. Lo usamos para confirmar que la dirección está dentro de nuestra zona de entrega (ZMG).">?</span>
+                            </label>
                             <input type="text" id="clienteCP" placeholder="45000" required maxlength="5">
                         </div>
                         <div class="form-group">
-                            <label>Referencias adicionales</label>
+                            <label>Referencias adicionales
+                              <span class="wh-help" data-tip="Describe referencias para encontrar tu domicilio: color de la fachada, entre qué calles está, si hay portón o reja, etc.">?</span>
+                            </label>
                             <textarea id="clienteNotas" rows="3"
-                                placeholder="Entre calles X y Y, portón negro…"></textarea>
+                                placeholder="Entre calles X y Y, portón negro, casa color beige…"></textarea>
                             <div class="help-text">Ayúdanos a encontrar tu domicilio</div>
                         </div>
                     </div>

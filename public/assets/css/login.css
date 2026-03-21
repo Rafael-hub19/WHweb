@@ -277,4 +277,31 @@
       .login-container input { padding: 11px 14px; font-size: 14px; }
       .btn-login { padding: 12px; font-size: 15px; }
     }
+
+/* ── Tooltips de ayuda (misma definición que styles.css) ─────── */
+.wh-help {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 15px; height: 15px; border-radius: 50%;
+  background: rgba(201,169,110,0.18); border: 1px solid rgba(201,169,110,0.45);
+  color: #c9a96e; font-size: 10px; font-weight: 700; cursor: help;
+  position: relative; vertical-align: middle; margin-left: 4px; flex-shrink: 0;
+}
+.wh-help::after {
+  content: attr(data-tip); position: absolute; bottom: calc(100% + 8px); left: 50%;
+  transform: translateX(-50%); background: #1e1e1e; color: #e8d9c0;
+  border: 1px solid #555; border-radius: 8px; padding: 9px 13px; font-size: 12px;
+  font-weight: 400; white-space: normal; width: 220px; line-height: 1.5;
+  box-shadow: 0 8px 28px rgba(0,0,0,0.6); z-index: 2000; pointer-events: none;
+  opacity: 0; visibility: hidden; transition: opacity 0.18s, visibility 0.18s;
+}
+.wh-help::before {
+  content: ''; position: absolute; bottom: calc(100% + 2px); left: 50%;
+  transform: translateX(-50%); border: 6px solid transparent;
+  border-top-color: #555; z-index: 2001; pointer-events: none;
+  opacity: 0; visibility: hidden; transition: opacity 0.18s, visibility 0.18s;
+}
+.wh-help:hover::after, .wh-help:hover::before,
+.wh-help.wh-help--open::after, .wh-help.wh-help--open::before {
+  opacity: 1; visibility: visible;
+}
   

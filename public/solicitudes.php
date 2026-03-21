@@ -59,6 +59,10 @@
         <span>Seguimiento</span>
       </button>
     </div>
+    <div class="wh-info-box" style="margin-bottom:0;">
+      <i class="fa-solid fa-circle-info"></i>
+      <span><strong>¿Qué sección usar?</strong> — <strong>Cotización:</strong> si ya sabes lo que quieres y necesitas precio. <strong>Agendar Cita:</strong> si prefieres que vayamos a medir y asesorarte en persona. <strong>Seguimiento:</strong> para consultar el estado de una solicitud ya enviada.</span>
+    </div>
 
     <!-- TAB 1: COTIZACIÓN -->
     <div id="tab-cotizacion" class="tab-content active">
@@ -130,7 +134,9 @@
           <h3 class="section-title"><i class="fa-solid fa-ruler-combined"></i> Especificaciones del Proyecto</h3>
           <div class="row g-3">
             <div class="col-md-6 form-group">
-              <label>Modelo de Mueble <span class="required">*</span></label>
+              <label>Modelo de Mueble <span class="required">*</span>
+                <span class="wh-help" data-tip="Si no estás seguro del modelo, selecciona 'Diseño Personalizado' y descríbelo en el campo de descripción. Puedes ver los modelos en nuestro catálogo.">?</span>
+              </label>
               <select name="modeloMueble" required>
                 <option value="">Selecciona una opción</option>
                 <option value="sevilla">Modelo Sevilla</option>
@@ -151,7 +157,9 @@
             </div>
 
             <div class="col-md-6 form-group">
-              <label>¿Tienes las medidas?</label>
+              <label>¿Tienes las medidas?
+                <span class="wh-help" data-tip="Si tienes medidas aproximadas también puedes indicarlas — no necesitan ser exactas para obtener una cotización inicial.">?</span>
+              </label>
               <select name="tieneMedidas" id="tieneMedidas">
                 <option value="si">Sí, tengo las medidas</option>
                 <option value="aproximadas">Tengo medidas aproximadas</option>
@@ -171,7 +179,9 @@
             </div>
 
             <div class="col-md-6 form-group">
-              <label>Presupuesto Estimado</label>
+              <label>Presupuesto Estimado
+                <span class="wh-help" data-tip="Es opcional y confidencial. Nos permite enfocar la propuesta en opciones que se ajusten a tu inversión sin mostrarte alternativas fuera de rango.">?</span>
+              </label>
               <select name="presupuesto">
                 <option value="">Selecciona un rango</option>
                 <option value="5-20">$5,000 - $20,000</option>
@@ -182,7 +192,9 @@
             </div>
 
             <div class="col-md-6 form-group">
-              <label>Tiempo estimado de necesidad</label>
+              <label>Tiempo estimado de necesidad
+                <span class="wh-help" data-tip="Indícanos si tienes urgencia. Si necesitas el mueble antes de un mes, lo priorizamos en el taller.">?</span>
+              </label>
               <select name="urgencia">
                 <option value="">Selecciona un plazo</option>
                 <option value="urgente">Menos de 1 mes</option>
@@ -284,12 +296,16 @@
           <h3 class="section-title"><i class="fa-solid fa-calendar-days"></i> Fecha y Hora</h3>
           <div class="row g-3">
             <div class="col-md-6 form-group">
-              <label>Fecha Preferida <span class="required">*</span></label>
+              <label>Fecha Preferida <span class="required">*</span>
+                <span class="wh-help" data-tip="Elige el día que más te convenga. Solo aparecen días hábiles (lunes a viernes). Si necesitas fin de semana, contáctanos directamente.">?</span>
+              </label>
               <input type="date" name="fecha" id="fechaCita" required onchange="cargarSlotsDisponibles(this.value)">
             </div>
 
             <div class="col-12 form-group">
-              <label>Horarios Disponibles <span class="required">*</span></label>
+              <label>Horarios Disponibles <span class="required">*</span>
+                <span class="wh-help" data-tip="Los horarios en verde están disponibles. Los grises ya fueron reservados por otros clientes. Selecciona uno para agendarlo.">?</span>
+              </label>
               <div class="time-slots" id="timeSlots">
                 <div style="color:var(--muted,#888);font-size:14px;padding:10px;grid-column:1/-1;">
                   Selecciona una fecha para ver horarios disponibles
