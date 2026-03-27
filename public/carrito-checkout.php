@@ -1,8 +1,18 @@
 <?php
 require_once dirname(__DIR__) . '/includes/config.php';
-// El carrito puede verse sin autenticación (contenido es local/sessionStorage).
-// La protección real está en /pago (requiere sesión + correo verificado)
-// y en los endpoints de API (requieren token Firebase válido).
+
+// ── Guarda de acceso: carrito requiere sesión activa ─────────────────────────
+if (empty($_SESSION['cliente_id'])) {
+    $_SESSION['_flash'] = ['msg' => 'Debes iniciar sesión para ver tu carrito.'];
+    header('Location: /inicio');
+    exit;
+}
+if (empty($_SESSION['cliente_email_verified'])) {
+    $_SESSION['_flash'] = ['msg' => 'Debes verificar tu correo electrónico antes de continuar. Revisa tu bandeja de entrada.'];
+    header('Location: /inicio');
+    exit;
+}
+
 header('Content-Type: text/html; charset=utf-8');
 ?>
 <!DOCTYPE html>

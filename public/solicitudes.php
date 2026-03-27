@@ -3,11 +3,13 @@ require_once dirname(__DIR__) . '/includes/config.php';
 
 // ── Guarda de acceso: solicitudes requiere sesión activa y correo verificado ──
 if (empty($_SESSION['cliente_id'])) {
-    header('Location: /catalogo');
+    $_SESSION['_flash'] = ['msg' => 'Debes iniciar sesión para acceder a las solicitudes.'];
+    header('Location: /inicio');
     exit;
 }
 if (empty($_SESSION['cliente_email_verified'])) {
-    header('Location: /catalogo');
+    $_SESSION['_flash'] = ['msg' => 'Debes verificar tu correo electrónico antes de realizar solicitudes. Revisa tu bandeja de entrada.'];
+    header('Location: /inicio');
     exit;
 }
 ?>
