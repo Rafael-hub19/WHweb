@@ -386,6 +386,94 @@ service apache2 restart
 
 ---
 
+## Seguridad y correcciones críticas (v7 — 2026-03-27)
+
+### Guardas de acceso server-side en páginas protegidas
+
+**Problema detectado:** Un usuario con cuenta no verificada podía navegar directamente a `/pago` y `/solicitudes` omitiendo cualquier validación de JavaScript.
+
+**Corrección:**
+- `pago.php` — Verifica `$_SESSION['cliente_id']` y `$_SESSION['cliente_email_verified']` al inicio del archivo PHP. Si alguno falta, redirige con `header('Location: ...')` antes de emitir cualquier HTML. Sin sesión → `/catalogo`; sesión sin correo verificado → `/carrito`.
+- `solicitudes.php` — Convertida de HTML puro a PHP: ahora incluye `config.php` y valida sesión + verificación de correo. Sin sesión o sin correo verificado → `/catalogo`.
+- `carrito-checkout.php` — Incluye `config.php` para iniciar sesión PHP correctamente (la protección real está en `/pago` y en los endpoints API).
+
+### Timeout de inactividad de sesión (2 minutos)
+
+**Problema detectado:** Una sesión podía mantenerse activa indefinidamente si el usuario no cerraba sesión explícitamente.
+
+**Corrección (`includes/config.php`):**
+- Constante `SESSION_IDLE_TIMEOUT = 120` (2 minutos, fácil de cambiar).
+- En cada request PHP se compara `time() - $_SESSION['_last_activity']` con el timeout. Si se supera, la sesión se destruye completamente (`session_unset` + `session_destroy`) y se crea una nueva.
+- Timeout absoluto adicional de 2 horas — aunque haya actividad constante, la sesión se renueva.
+- La marca `_last_activity` se actualiza en cada petición válida.
+
+### Cookie de sesión expira al cerrar el navegador
+
+**Problema detectado:** La cookie de sesión tenía `lifetime = 7200` segundos (2 horas). En computadoras compartidas (laboratorio), el segundo usuario heredaba la sesión del primero sin necesidad de autenticarse.
+
+**Corrección (`includes/config.php`):**
+- Cambiado a `lifetime = 0` — la cookie es de tipo *session cookie* y el navegador la elimina al cerrarse, por lo que cada apertura del navegador es una sesión limpia.
+
+### Sanitización de campos de entrada
+
+**Corrección:**
+- `catalogo.js` — El buscador elimina en tiempo real los caracteres `< > " ' & ; { } ( ) [ ] \ `` ` y limita el texto a 100 caracteres antes de enviarlo al API.
+- `modal-auth.js` — Los campos de nombre y correo ya tenían validación en tiempo real; se conservó y reforzó.
+
+### Verificación de correo requerida para agregar al carrito
+
+**Corrección (`catalogo.js`):**
+- `agregarAlCarrito()` verifica `AuthModal.isAuthenticated()` y `AuthModal.isEmailVerified()`. Si el cliente está autenticado pero su correo no está verificado, muestra un error y bloquea la adición al carrito.
+
+### Modal de autenticación estático
+
+**Corrección (`modal-auth.js` v9):**
+- Eliminado el listener `click` en el fondo del overlay que cerraba el modal accidentalmente. Ahora solo se cierra con el botón `×` o programáticamente.
+
+### Campos del formulario de registro se limpian tras registrarse
+
+**Corrección (`modal-auth.js` v9):**
+- Al mostrar la pantalla de verificación de correo, se llama `formReg.reset()` para borrar nombre, correo y contraseñas del formulario.
+
+### Usuario de base de datos con permisos mínimos
+
+**Acción requerida — ejecutar en MySQL como `root`:**
+```sql
+-- Crear usuario dedicado para la app (ajusta nombre y contraseña)
+CREATE USER IF NOT EXISTS 'whapp_user'@'%' IDENTIFIED BY 'TuContraseñaSegura123!';
+GRANT SELECT, INSERT, UPDATE, DELETE ON wooden_house.* TO 'whapp_user'@'%';
+FLUSH PRIVILEGES;
+```
+Actualizar `.env`: `DB_USER=whapp_user` / `DB_PASS=TuContraseñaSegura123!`
+
+El usuario de app **nunca** puede ejecutar `DROP TABLE`, `ALTER TABLE`, `CREATE USER` ni acceder a otras bases de datos.
+
+---
+
+## Correcciones de responsivo y UX móvil (v6 — 2026-03-27)
+
+### Catálogo — layout en pantalla completa y grid corregido
+
+**Problema:** En pantallas anchas (>1400 px) el catálogo mostraba grandes márgenes laterales vacíos ("efecto zoom"). En teléfonos, las tarjetas de producto aparecían en 2 columnas de ~160 px, demasiado estrechas.
+
+**Corrección (`catalogo.css` v5):**
+- Contenedor cambiado de `max-width: 1400px` a `max-width: 100%` con `padding: clamp(20px, 4vw, 80px)`.
+- Grid de productos:
+  - `> 768 px` — `auto-fill, minmax(260px, 1fr)` (escritorio)
+  - `≤ 768 px` — `repeat(2, 1fr)` (tablets)
+  - `≤ 480 px` — `1fr` columna única (teléfonos: tarjetas a pantalla completa con imagen 16:9)
+- Eliminadas media queries duplicadas y contradictorias (480 px, 420 px, 380 px, 640 px se consolidaron en 2 breakpoints limpios).
+
+### Barra de navegación móvil — `position: fixed` reforzado
+
+**Corrección (`modal-auth.css` v3):**
+- Agregado `!important` a `position: fixed`, `bottom`, `left`, `right`, `width: 100%` y `z-index: 9999`.
+- `transform: translateZ(0)` fuerza la barra a su propia capa de composición, inmune a transforms de elementos padre.
+- `min-height: 56px` garantiza que nunca colapse visualmente.
+- Breakpoint cambiado de `max-width: 900px` a `max-width: 992px` (alineado con Bootstrap `md`).
+
+---
+
 ## Mejoras de UX y diseño responsivo (v4 — 2026-03-14)
 
 ### Logout siempre visible — mini-menú de cuenta

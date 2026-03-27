@@ -1,3 +1,16 @@
+<?php
+require_once dirname(__DIR__) . '/includes/config.php';
+
+// ── Guarda de acceso: solicitudes requiere sesión activa y correo verificado ──
+if (empty($_SESSION['cliente_id'])) {
+    header('Location: /catalogo');
+    exit;
+}
+if (empty($_SESSION['cliente_email_verified'])) {
+    header('Location: /catalogo');
+    exit;
+}
+?>
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -421,7 +434,7 @@
   </nav>
 
   <script src="./assets/js/firebase-config.js"></script>
-  <script src="./assets/js/modal-auth.js?v=8"></script>
+  <script src="./assets/js/modal-auth.js?v=9"></script>
   <script src="./assets/js/solicitudes.js"></script>
 </body>
 </html>

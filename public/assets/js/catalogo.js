@@ -198,17 +198,27 @@ function initBusqueda() {
   const input = document.getElementById('buscar-producto');
   const btn   = document.getElementById('btn-buscar');
   if (input) {
+    // Bloquear caracteres especiales peligrosos en tiempo real
+    input.addEventListener('input', function () {
+      this.value = this.value.replace(/[<>"'&;{}()[\]\\`]/g, '');
+      debounce(ejecutarBusqueda, 500)();
+    });
     input.addEventListener('keydown', (e) => {
       if (e.key === 'Enter') ejecutarBusqueda();
     });
-    input.addEventListener('input', debounce(ejecutarBusqueda, 500));
   }
   if (btn) btn.addEventListener('click', ejecutarBusqueda);
 }
 
 function ejecutarBusqueda() {
   const input = document.getElementById('buscar-producto');
-  state.filtro.busqueda = (input?.value || '').trim();
+  // Sanitizar: eliminar caracteres especiales y limitar longitud
+  const valor = (input?.value || '')
+    .replace(/[<>"'&;{}()[\]\\`]/g, '')
+    .trim()
+    .substring(0, 100);
+  if (input) input.value = valor;
+  state.filtro.busqueda = valor;
   cargarProductos(true);
 }
 
@@ -240,6 +250,12 @@ function agregarAlCarritoBtn(btn) {
 }
 
 function agregarAlCarrito(id, nombre, precio, imagen) {
+  // Bloquear si el cliente está autenticado pero su correo no está verificado
+  if (typeof AuthModal !== 'undefined' && AuthModal.isAuthenticated() && !AuthModal.isEmailVerified()) {
+    showToast('<i class="fa-solid fa-triangle-exclamation"></i> Confirma tu correo antes de agregar al carrito', 'error');
+    return;
+  }
+
   let carrito = JSON.parse(sessionStorage.getItem('wh_carrito') || '[]');
   const exist = carrito.find(i => i.id === id);
   if (exist) {

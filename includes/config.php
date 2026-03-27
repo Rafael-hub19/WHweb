@@ -123,20 +123,58 @@ if (session_status() === PHP_SESSION_NONE) {
         $cookieDomain = ''; // Sin atributo domain → el navegador usa el hostname actual
     }
 
+    // lifetime = 0 → la cookie de sesión expira al cerrar el navegador.
+    // Así cada visita nueva (nueva pestaña o navegador cerrado) arranca sin sesión previa,
+    // lo que evita que datos de otro usuario persistan en computadoras compartidas.
     session_set_cookie_params([
-        'lifetime' => 7200,
+        'lifetime' => 0,
         'path'     => '/',
         'domain'   => $cookieDomain,  // .muebleswh.com — funciona en www y sin www
         'secure'   => $isHttps,
         'httponly'  => true,
         'samesite' => 'Lax',
     ]);
+
+    // Inactividad máxima permitida: 2 minutos (120 seg) — configurable aquí
+    define('SESSION_IDLE_TIMEOUT', 120);
+
+    // Máximo de vida absoluta del lado servidor: 2 horas
+    ini_set('session.gc_maxlifetime', 7200);
+
     session_start();
 
-    // Regenerar ID de sesión en cada request para evitar session fixation
+    // Regenerar ID de sesión en la primera visita (evita session fixation)
     if (empty($_SESSION['_initiated'])) {
         session_regenerate_id(true);
-        $_SESSION['_initiated'] = true;
+        $_SESSION['_initiated']     = true;
+        $_SESSION['_created']       = time();
+        $_SESSION['_last_activity'] = time();
+    }
+
+    // ── Timeout por inactividad (2 minutos sin peticiones = cierre de sesión) ──
+    if (isset($_SESSION['_last_activity'])
+        && (time() - $_SESSION['_last_activity']) > SESSION_IDLE_TIMEOUT) {
+        session_unset();
+        session_destroy();
+        session_start();
+        session_regenerate_id(true);
+        $_SESSION['_initiated']     = true;
+        $_SESSION['_created']       = time();
+        $_SESSION['_last_activity'] = time();
+    } else {
+        // Actualizar marca de última actividad en cada request
+        $_SESSION['_last_activity'] = time();
+    }
+
+    // ── Timeout absoluto: destruir sesiones de más de 2 horas ────────────────
+    if (isset($_SESSION['_created']) && (time() - $_SESSION['_created']) > 7200) {
+        session_unset();
+        session_destroy();
+        session_start();
+        session_regenerate_id(true);
+        $_SESSION['_initiated']     = true;
+        $_SESSION['_created']       = time();
+        $_SESSION['_last_activity'] = time();
     }
 }
 

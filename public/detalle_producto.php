@@ -148,7 +148,7 @@
   </nav>
 
   <script src="/assets/js/firebase-config.js"></script>
-  <script src="/assets/js/modal-auth.js?v=8"></script>
+  <script src="/assets/js/modal-auth.js?v=9"></script>
   <script src="/assets/js/detalle_producto.js"></script>
 </body>
 </html>

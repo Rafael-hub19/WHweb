@@ -1,6 +1,17 @@
 <?php
 require_once dirname(__DIR__) . '/includes/config.php';
 
+// ── Guarda de acceso: pago requiere sesión activa y correo verificado ──────
+if (empty($_SESSION['cliente_id'])) {
+    header('Location: /catalogo');
+    exit;
+}
+if (empty($_SESSION['cliente_email_verified'])) {
+    // Tiene cuenta pero no verificó correo → regresar al carrito con aviso
+    header('Location: /carrito');
+    exit;
+}
+
 /**
  * Helpers para no reventar si falta alguna constante/variable en config.php
  */
@@ -173,7 +184,7 @@ if (!$paypalId)  error_log('[pago.php] PAYPAL_CLIENT_ID vacío o no definido');
 
   <script src="./assets/js/utils.js"></script>
   <script src="/assets/js/firebase-config.js"></script>
-  <script src="/assets/js/modal-auth.js?v=8"></script>
+  <script src="/assets/js/modal-auth.js?v=9"></script>
   <script src="./assets/js/pago.js"></script>
 </body>
 </html>

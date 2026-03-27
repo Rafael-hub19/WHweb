@@ -139,10 +139,8 @@
 
     document.body.insertAdjacentHTML('beforeend', html);
 
-    // Cerrar al hacer clic en el fondo
-    document.getElementById('authModalOverlay').addEventListener('click', function (e) {
-      if (e.target === this) AuthModal.close();
-    });
+    // El modal es estático: NO se cierra al hacer clic en el fondo
+    // (solo con el botón × o programáticamente)
 
     // Sanitización y validación en tiempo real de todos los campos
     _initCamposModal();
@@ -701,6 +699,10 @@
       // Ocultar login y mostrar pantalla de verificación
       document.getElementById('authViewLogin').style.display       = 'none';
       document.getElementById('authViewVerificacion').style.display = 'block';
+
+      // Limpiar todos los campos del formulario de registro
+      const formReg = document.querySelector('#authFormRegistro form');
+      if (formReg) formReg.reset();
     } catch (e) {
       const map = {
         'auth/email-already-in-use': 'Ese correo ya tiene una cuenta. Inicia sesión.',

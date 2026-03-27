@@ -1,4 +1,10 @@
-<?php header('Content-Type: text/html; charset=utf-8'); ?>
+<?php
+require_once dirname(__DIR__) . '/includes/config.php';
+// El carrito puede verse sin autenticación (contenido es local/sessionStorage).
+// La protección real está en /pago (requiere sesión + correo verificado)
+// y en los endpoints de API (requieren token Firebase válido).
+header('Content-Type: text/html; charset=utf-8');
+?>
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -338,7 +344,7 @@
 
 <script src="./assets/js/utils.js"></script>
 <script src="./assets/js/firebase-config.js"></script>
-<script src="./assets/js/modal-auth.js?v=8"></script>
+<script src="./assets/js/modal-auth.js?v=9"></script>
 <script src="./assets/js/carrito.js"></script>
 <script src="./assets/js/checkout.js"></script>
 </body>

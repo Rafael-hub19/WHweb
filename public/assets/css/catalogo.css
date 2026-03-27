@@ -529,37 +529,25 @@
       .filters { justify-content: center; }
     }
 
-    @media (max-width: 480px) {
-      .product-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
-      .product-card { border-radius: 12px; }
-      .product-info { padding: 10px; }
-      .product-name { font-size: 13px; }
-      .product-price { font-size: 17px; }
-      .product-image { aspect-ratio: 1/1; } /* cuadrado en móvil: equilibra imagen vs texto */
-    }
-
-    @media (max-width: 420px) {
-      .btn-details { width: 100%; text-align: center; }
-      .product-price-section { justify-content: center; }
-    }
-    /* ── RESPONSIVE EXTRA ───────────────────── */
-    @media (max-width: 640px) {
-      .product-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+    /* ── Tablets (640px – 992px): 2 columnas ──────────────────── */
+    @media (max-width: 768px) {
+      .product-grid { grid-template-columns: repeat(2, 1fr); gap: 14px; }
       .product-name { font-size: 14px; }
       .price { font-size: 17px; }
       .product-actions { flex-direction: column; gap: 6px; }
       .btn-details, .btn-add-cart { width: 100%; justify-content: center; }
     }
 
-    @media (max-width: 380px) {
-      .product-grid { grid-template-columns: 1fr; }
-      .container { padding: 30px 14px; }
-    }
-
-    /* ── Compacto 480px ──────────────────────────────── */
+    /* ── Teléfonos (≤ 480px): 1 columna para que las tarjetas se vean completas ── */
     @media (max-width: 480px) {
-      .container { padding: 12px 10px 20px; }
+      .container { padding: 12px 10px 80px; }
       .page-title { font-size: 20px; margin-bottom: 10px; }
+      .product-grid { grid-template-columns: 1fr; gap: 12px; }
+      .product-card { border-radius: 12px; }
+      .product-info { padding: 12px; }
+      .product-image { aspect-ratio: 16/9; }
+      .product-actions { flex-direction: row; gap: 8px; }
+      .btn-details, .btn-add-cart { width: auto; flex: 1; justify-content: center; }
       .search-bar { gap: 8px; }
       .search-bar input { font-size: 14px; padding: 10px 12px; }
       .btn-buscar { padding: 10px 14px; font-size: 13px; }

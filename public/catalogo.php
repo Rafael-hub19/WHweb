@@ -10,7 +10,7 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" crossorigin="anonymous">
   <link rel="stylesheet" href="./assets/css/variables.css">
   <link rel="stylesheet" href="./assets/css/styles.css?v=2">
-  <link rel="stylesheet" href="./assets/css/catalogo.css?v=4">
+  <link rel="stylesheet" href="./assets/css/catalogo.css?v=5">
   <link rel="stylesheet" href="./assets/css/modal-auth.css?v=3">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <!-- Bootstrap 5 JS - Solo componentes interactivos (modales, dropdowns). CSS propio de Wooden House tiene prioridad -->
@@ -99,7 +99,7 @@
   </nav>
 
   <script src="./assets/js/firebase-config.js"></script>
-  <script src="./assets/js/modal-auth.js?v=8"></script>
-  <script src="./assets/js/catalogo.js"></script>
+  <script src="./assets/js/modal-auth.js?v=9"></script>
+  <script src="./assets/js/catalogo.js?v=2"></script>
 </body>
 </html>
