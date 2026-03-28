@@ -247,11 +247,13 @@ document.addEventListener('wh:autenticado', function (e) {
   const cliente = e.detail;
   if (!cliente) return;
 
+  // Partículas a ignorar al calcular iniciales — declaradas aquí para que estén disponibles en todo el listener
+  const _ptcls = new Set(['de','del','la','las','los','el','y','e','von','van','da','das','dos','di','le','les']);
+
   // Actualizar botón principal del dropdown
   const btn = document.getElementById('cuentaDropdownBtn');
   if (btn) {
-    const _ptcls = new Set(['de','del','la','las','los','el','y','e','von','van','da','das','dos','di','le','les']);
-  const iniciales = (cliente.nombre || '?').trim().split(/\s+/).filter(p => p && !_ptcls.has(p.toLowerCase()))
+    const iniciales = (cliente.nombre || '?').trim().split(/\s+/).filter(p => p && !_ptcls.has(p.toLowerCase()))
       .slice(0, 2).map(p => p[0].toUpperCase()).join('');
     const primerNombre = (cliente.nombre || '').trim().split(/\s+/)[0];
     btn.innerHTML = `

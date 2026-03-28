@@ -533,7 +533,7 @@ if (!empty($_SESSION['_flash'])) {
 
   <script src="./assets/js/firebase-config.js"></script>
   <script src="./assets/js/modal-auth.js?v=9"></script>
-  <script src="./assets/js/index.js"></script>
+  <script src="./assets/js/index.js?v=2"></script>
 
 </body>
 </html>
