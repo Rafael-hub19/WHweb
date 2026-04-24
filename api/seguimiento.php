@@ -29,6 +29,20 @@ if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
     echo json_encode(['success' => false, 'error' => 'Solo GET permitido']); exit;
 }
 
+// Rate limit: 20 consultas por IP cada 60 segundos — previene enumeración de folios
+$ip       = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+$rlFile   = sys_get_temp_dir() . '/wh_rl_' . md5('seguimiento' . $ip) . '.json';
+$now      = time();
+$rlData   = file_exists($rlFile) ? (json_decode(file_get_contents($rlFile), true) ?? []) : [];
+$rlData   = array_filter($rlData, fn($t) => ($now - $t) < 60);
+if (count($rlData) >= 20) {
+    http_response_code(429);
+    echo json_encode(['success' => false, 'error' => 'Demasiadas consultas. Espera un momento e intenta de nuevo.']);
+    exit;
+}
+$rlData[] = $now;
+@file_put_contents($rlFile, json_encode(array_values($rlData)), LOCK_EX);
+
 $numero = trim(strtoupper($_GET['numero'] ?? ''));
 if (!$numero) {
     echo json_encode(['success' => false, 'error' => 'Parámetro numero requerido']); exit;

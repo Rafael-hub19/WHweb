@@ -154,9 +154,13 @@ switch ($action) {
         $payload = verificarTokenFirebase($firebaseToken);
         if (!$payload) jsonError('Token de Firebase inválido o expirado', 401);
         $uid = $payload['uid'] ?? '';
-        // Bloquear cuentas del personal: deben usar el acceso de personal
+        // Si es cuenta de personal, crear sesión de staff y redirigir a su panel
         if (!empty($uid) && esPersonal($uid)) {
-            jsonError('Esta cuenta es de acceso al personal. Usa la opción "Personal" del menú.', 403);
+            $usuario = obtenerUsuarioPorFirebaseUid($uid);
+            if (!$usuario) jsonError('Tu cuenta de personal no está activa. Contacta al administrador.', 403);
+            _crearSesion($usuario);
+            $redirect = $usuario['rol'] === 'administrador' ? '/admin' : '/empleado';
+            jsonSuccess(['redirect' => $redirect, 'tipo' => 'personal', 'rol' => $usuario['rol']]);
         }
         $cliente = $uid ? obtenerClientePorFirebaseUid($uid) : null;
         // Auto-registrar si no existe pero tiene email en el token

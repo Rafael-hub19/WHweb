@@ -36,13 +36,8 @@
 
     <!-- Vista: no autenticado -->
     <div id="authViewLogin">
-      <h2 class="auth-modal-title" id="authModalTitle">Continuar con tu cuenta</h2>
-      <p class="auth-modal-subtitle" id="authModalSubtitle">Inicia sesión o crea tu cuenta para continuar</p>
-
-      <div class="auth-tabs">
-        <button class="auth-tab-btn active" onclick="_authSetTab('login')" id="tabBtnLogin">Iniciar sesión</button>
-        <button class="auth-tab-btn" onclick="_authSetTab('registro')" id="tabBtnRegistro">Crear cuenta</button>
-      </div>
+      <h2 class="auth-modal-title" id="authModalTitle">Iniciar sesión</h2>
+      <p class="auth-modal-subtitle" id="authModalSubtitle">Accede a tu cuenta para continuar</p>
 
       <div id="authAlert" class="auth-alert"></div>
 
@@ -212,14 +207,16 @@
     }
   }
 
-  /* ── Navegación entre tabs ───────────────────────────────────── */
+  /* ── Cambiar entre vista login y registro ────────────────────── */
   window._authSetTab = function (tab) {
     _authClearAlert();
     const isLogin = tab === 'login';
     document.getElementById('authFormLogin').style.display    = isLogin ? '' : 'none';
     document.getElementById('authFormRegistro').style.display = isLogin ? 'none' : '';
-    document.getElementById('tabBtnLogin').classList.toggle('active', isLogin);
-    document.getElementById('tabBtnRegistro').classList.toggle('active', !isLogin);
+    const title    = document.getElementById('authModalTitle');
+    const subtitle = document.getElementById('authModalSubtitle');
+    if (title)    title.textContent    = isLogin ? 'Iniciar sesión' : 'Crear cuenta';
+    if (subtitle) subtitle.textContent = isLogin ? 'Accede a tu cuenta para continuar' : 'Crea tu cuenta gratuita';
   };
 
   /* ── Obtener instancia de Firebase Auth ──────────────────────── */
@@ -568,6 +565,8 @@
       const token = await cred.user.getIdToken();
       const data  = await _llamarBackend('cliente-login', token);
       if (!data.success) throw new Error(data.error || 'Error al iniciar sesión');
+      // Personal (admin/empleado): redirigir a su panel
+      if (data.redirect) { window.location.href = data.redirect; return; }
       _onAutenticado(data.cliente, cred.user.emailVerified);
     } catch (e) {
       const map = {
@@ -580,10 +579,8 @@
       const msg = e.message || '';
       if (_esFalloDeConexion(e)) {
         _authShowAlert('Sin conexión. Verifica tu internet e intenta de nuevo.', 'error');
-      } else if (msg.includes('personal') || msg.includes('Personal')) {
-        _authShowAlert('Esa cuenta es de acceso al personal. Usa la opción "Personal" del menú.', 'error');
       } else {
-        _authShowAlert(map[e.code] || (msg.startsWith('Error') ? msg : 'Error al iniciar sesión. Intenta de nuevo.'), 'error');
+        _authShowAlert(map[e.code] || (msg.startsWith('Error') ? msg : 'Correo o contraseña incorrectos. Intenta de nuevo.'), 'error');
       }
     } finally {
       _authSetLoading('btnLoginSubmit', false);

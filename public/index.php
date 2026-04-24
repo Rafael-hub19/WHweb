@@ -479,10 +479,15 @@ if (!empty($_SESSION['_flash'])) {
 
   <!-- Footer -->
   <div class="footer">
-    <p>&copy; 2025 Wooden House. Todos los derechos reservados.</p>
+    <p>&copy; 2026 Wooden House. Todos los derechos reservados.</p>
     <p style="margin-top:10px;">Muebles de madera a medida en Guadalajara, Jalisco</p>
     <p style="margin-top:10px; font-size:14px;">
       <a href="mailto:ventas@muebleswh.com" style="color:#8b7355; text-decoration:none;">ventas@muebleswh.com</a>
+    </p>
+    <p style="margin-top:8px; font-size:12px;">
+      <a href="/terminos" style="color:#8b7355; text-decoration:none;">Términos y Condiciones</a>
+      &nbsp;·&nbsp;
+      <a href="/terminos#privacidad" style="color:#8b7355; text-decoration:none;">Aviso de Privacidad</a>
     </p>
   </div>
 

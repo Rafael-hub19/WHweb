@@ -1,6 +1,12 @@
 // ── Wooden House — Pago (Stripe + PayPal) ────────────────────────
 const API_BASE = '/api';
 
+function esc(str) {
+  return String(str ?? '')
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
 let stripe, cardElement;
 let pedidoCreado = null;
 let metodoPago   = 'card';
@@ -69,7 +75,7 @@ function cargarResumen() {
   if (itemsEl) {
     itemsEl.innerHTML = carrito.map(i => `
       <div class="summary-item">
-        <span>${i.nombre} × ${i.cantidad}</span>
+        <span>${esc(i.nombre)} × ${Number(i.cantidad)}</span>
         <span>${formatCurrency(i.precio * i.cantidad)}</span>
       </div>`).join('');
   }

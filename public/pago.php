@@ -180,7 +180,12 @@ if (!$paypalId)  error_log('[pago.php] PAYPAL_CLIENT_ID vacío o no definido');
   </div>
 
   <footer class="footer">
-    <p><i class="fa-solid fa-shield-halved" style="color:#4caf50;"></i> Pago 100% seguro &nbsp;|&nbsp; <i class="fa-solid fa-lock" style="color:#8b7355;"></i> SSL 256-bit &nbsp;|&nbsp; Wooden House &copy; 2025</p>
+    <p><i class="fa-solid fa-shield-halved" style="color:#4caf50;"></i> Pago 100% seguro &nbsp;|&nbsp; <i class="fa-solid fa-lock" style="color:#8b7355;"></i> SSL 256-bit &nbsp;|&nbsp; Wooden House &copy; 2026</p>
+    <p style="margin-top:8px; font-size:12px;">
+      <a href="/terminos" style="color:#8b7355; text-decoration:none;">Términos y Condiciones</a>
+      &nbsp;·&nbsp;
+      <a href="/terminos#privacidad" style="color:#8b7355; text-decoration:none;">Aviso de Privacidad</a>
+    </p>
   </footer>
 
   <script src="./assets/js/utils.js"></script>

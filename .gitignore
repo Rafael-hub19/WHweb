@@ -117,6 +117,7 @@ firebase-emulators/
 *.pages
 *.numbers
 *.key
+*.csv
 
 # ── NOTAS Y ARCHIVOS PERSONALES ──────────────────────────────────
 NOTAS.md

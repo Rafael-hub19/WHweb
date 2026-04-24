@@ -183,6 +183,11 @@ header('Content-Type: text/html; charset=utf-8');
     <a href="mailto:ventas@muebleswh.com" style="color:var(--color-primary)">ventas@muebleswh.com</a> |
     <a href="tel:3317054017" style="color:var(--color-primary)">33 1705 4017</a>
   </p>
+  <p style="margin-top:8px; font-size:12px;">
+    <a href="/terminos" style="color:var(--color-primary); text-decoration:none;">Términos y Condiciones</a>
+    &nbsp;·&nbsp;
+    <a href="/terminos#privacidad" style="color:var(--color-primary); text-decoration:none;">Aviso de Privacidad</a>
+  </p>
 </div>
 
 <!-- Barra de navegación fija móvil -->
