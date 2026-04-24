@@ -43,15 +43,18 @@
 
 /* ── Encabezado ──────────────────────────────────────────────────── */
 .auth-modal-logo {
-  text-align: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
   margin-bottom: 10px;
-  line-height: 0;
 }
 
 .auth-modal-logo img {
-  max-width: 100%;
+  display: block;
   height: 90px;
+  max-width: 100%;
   object-fit: contain;
+  margin: 0 auto;
 }
 
 .auth-modal-title {

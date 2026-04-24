@@ -33,7 +33,7 @@
     </button>
 
     <div class="auth-modal-logo">
-      <img src="/assets/img/logo-login.png" alt="Wooden House" style="height:90px;object-fit:contain;">
+      <img src="/assets/img/logo-login.png" alt="Wooden House">
     </div>
 
     <!-- Vista: no autenticado -->
