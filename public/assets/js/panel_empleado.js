@@ -940,10 +940,9 @@ async function logout() {
     if (typeof firebaseAuth !== 'undefined') await firebaseAuth.signOut();
   } catch(e) {}
   await fetch('/api/auth.php?action=logout', { method: 'POST', credentials: 'same-origin' }).catch(() => {});
-  sessionStorage.setItem('wh_just_logged_out', '1'); // login.js lee esto y no auto-redirige
   sessionStorage.removeItem('wh_firebase_token');
   sessionStorage.removeItem('wh_usuario');
-  window.location.replace('/login?logout=1');
+  window.location.replace('/inicio');
 }
 
 // ── Pedidos ───────────────────────────────────────────────────
@@ -1329,7 +1328,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let initialized = false;
     firebaseAuth.onAuthStateChanged(user => {
       if (!initialized) { initialized = true; return; } // ignorar primer disparo al cargar
-      if (!user) window.location.href = '/login?logout=1';
+      if (!user) window.location.replace('/inicio');
     });
   }
 

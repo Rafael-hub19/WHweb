@@ -1677,8 +1677,9 @@ async function logoutAdmin() {
     else if (typeof firebaseAuth !== 'undefined') await firebaseAuth.signOut();
   } catch(e) {}
   await fetch('/api/auth.php?action=logout', { method: 'POST', credentials: 'same-origin' });
-  sessionStorage.setItem('wh_just_logged_out', '1');
-  window.location.replace('/login?logout=1');
+  sessionStorage.removeItem('wh_firebase_token');
+  sessionStorage.removeItem('wh_usuario');
+  window.location.replace('/inicio');
 }
 
 // ── KPIs - Cargar desde API real ──────────────────────
@@ -2317,7 +2318,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if (typeof firebaseAuth !== 'undefined') {
     firebaseAuth.onAuthStateChanged(async (user) => {
       if (!user) {
-        window.location.replace('/login?logout=1');
+        window.location.replace('/inicio');
       }
     });
   }
