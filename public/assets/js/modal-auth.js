@@ -32,7 +32,9 @@
       <i class="fa-solid fa-xmark"></i>
     </button>
 
-    <div class="auth-modal-logo"><span class="logo-text">WH</span></div>
+    <div class="auth-modal-logo">
+      <img src="/assets/img/logo-login.png" alt="Wooden House" style="height:90px;object-fit:contain;">
+    </div>
 
     <!-- Vista: no autenticado -->
     <div id="authViewLogin">
