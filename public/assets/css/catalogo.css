@@ -519,6 +519,10 @@
     /* =========================
        RESPONSIVE + HAMBURGUESA
        ========================= */
+    @media (max-width: 900px) {
+      .nav-links { display: none !important; }
+    }
+
     @media (max-width: 992px) {
       .header-nav { padding: 10px 16px; }
       .container { padding: 16px 14px; }

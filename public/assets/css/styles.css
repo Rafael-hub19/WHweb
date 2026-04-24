@@ -218,6 +218,7 @@ button {
 @media (max-width: 900px) {
   /* Header compacto — barra inferior maneja la navegación en móvil */
   .header-nav { padding: 10px 16px; }
+  .nav-links { display: none; }
   .footer { padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px)); }
 }
 
