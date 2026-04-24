@@ -102,6 +102,22 @@ firebase-emulators/
 *.rar
 *.7z
 
+# ── DOCUMENTOS DE OFFICE Y PDF ───────────────────────────────────
+*.pdf
+*.doc
+*.docx
+*.xls
+*.xlsx
+*.xlsm
+*.ppt
+*.pptx
+*.odt
+*.ods
+*.odp
+*.pages
+*.numbers
+*.key
+
 # ── NOTAS Y ARCHIVOS PERSONALES ──────────────────────────────────
 NOTAS.md
 TODO.md

@@ -1,4 +1,4 @@
-/* =========================
+﻿/* =========================
        UTIL
     ========================= */
     const $ = (sel, root=document) => root.querySelector(sel);
@@ -1236,6 +1236,102 @@
         showNotification('<i class="fa-solid fa-check"></i> CSV exportado correctamente (ábrelo con Excel)', 'success');
       } catch(e) {
         showNotification('Error al generar reporte: ' + e.message, 'error');
+      }
+    }
+    async function exportReportXLSX(){
+      showNotification('<i class="fa-solid fa-spinner fa-spin"></i> Generando Excel...', 'info');
+      try {
+        const hoy   = new Date().toISOString().slice(0, 10);
+        const desde = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().slice(0, 10);
+
+        const [resResult, prodResult, cotResult, citasResult] = await Promise.allSettled([
+          apiFetch(`${API_BASE}/reportes.php?tipo=resumen`),
+          apiFetch(`${API_BASE}/reportes.php?tipo=productos&desde=${desde}&hasta=${hoy}&limit=50`),
+          apiFetch(`${API_BASE}/reportes.php?tipo=cotizaciones&desde=${desde}&hasta=${hoy}`),
+          apiFetch(`${API_BASE}/reportes.php?tipo=citas&desde=${desde}&hasta=${hoy}`),
+        ]);
+
+        if (typeof XLSX === 'undefined') {
+          showNotification('Librería XLSX no disponible. Intenta recargar la página.', 'error');
+          return;
+        }
+
+        const wb = XLSX.utils.book_new();
+        const fecha = new Date().toLocaleDateString('es-MX');
+
+        // Hoja 1: Resumen general
+        const resumenData = [
+          ['Reporte Wooden House', fecha],
+          [],
+          ['RESUMEN GENERAL', 'Valor'],
+        ];
+        if (resResult.status === 'fulfilled' && resResult.value?.success) {
+          const r = resResult.value;
+          resumenData.push(['Ventas del mes (MXN)',     r.ingresos_mes       || 0]);
+          resumenData.push(['Pedidos del mes',           r.pedidos_mes        || 0]);
+          resumenData.push(['Total pedidos historico',   r.total_pedidos      || 0]);
+          resumenData.push(['Pedidos pendientes',        r.pedidos_pendientes || 0]);
+          resumenData.push(['Cotizaciones nuevas',       r.cotizaciones_nuevas|| 0]);
+          resumenData.push(['Productos activos',         r.productos_activos  || 0]);
+          resumenData.push(['Citas hoy',                 r.citas_hoy          || 0]);
+        }
+        const ws1 = XLSX.utils.aoa_to_sheet(resumenData);
+        ws1['!cols'] = [{wch: 30}, {wch: 18}];
+        XLSX.utils.book_append_sheet(wb, ws1, 'Resumen');
+
+        // Hoja 2: Productos mas vendidos
+        const prodData = [['Producto', 'Unidades vendidas', 'Ingresos (MXN)', '# Pedidos']];
+        if (prodResult.status === 'fulfilled' && prodResult.value?.success) {
+          (prodResult.value.productos || []).forEach(p => {
+            prodData.push([
+              p.nombre_producto,
+              p.unidades_vendidas  || 0,
+              p.ingresos_generados || 0,
+              p.num_pedidos        || 0,
+            ]);
+          });
+        }
+        const ws2 = XLSX.utils.aoa_to_sheet(prodData);
+        ws2['!cols'] = [{wch: 36}, {wch: 18}, {wch: 18}, {wch: 12}];
+        XLSX.utils.book_append_sheet(wb, ws2, 'Productos');
+
+        // Hoja 3: Cotizaciones
+        const cotData = [['Metrica', 'Valor']];
+        if (cotResult.status === 'fulfilled' && cotResult.value?.success) {
+          const c = cotResult.value;
+          cotData.push(['Conversion historica %',  String(c.conversion_pct || 0) + '%']);
+          cotData.push(['Total historico',          c.total_historico || 0]);
+          cotData.push(['Respondidas / cerradas',   c.respondidas     || 0]);
+          if (c.funnel) {
+            cotData.push(['Nuevas (periodo)',        c.funnel.nueva       || 0]);
+            cotData.push(['En revision (periodo)',   c.funnel.en_revision || 0]);
+            cotData.push(['Respondidas (periodo)',   c.funnel.respondida  || 0]);
+            cotData.push(['Cerradas (periodo)',      c.funnel.cerrada     || 0]);
+          }
+        }
+        const ws3 = XLSX.utils.aoa_to_sheet(cotData);
+        ws3['!cols'] = [{wch: 28}, {wch: 14}];
+        XLSX.utils.book_append_sheet(wb, ws3, 'Cotizaciones');
+
+        // Hoja 4: Citas
+        const citasData = [['Metrica', 'Valor']];
+        if (citasResult.status === 'fulfilled' && citasResult.value?.success) {
+          const s = citasResult.value.resumen || {};
+          citasData.push(['Total citas (periodo)', s.total         || 0]);
+          citasData.push(['Mediciones',             s.mediciones    || 0]);
+          citasData.push(['Instalaciones',          s.instalaciones || 0]);
+          citasData.push(['Confirmadas',            s.confirmadas   || 0]);
+          citasData.push(['Completadas',            s.completadas   || 0]);
+          citasData.push(['Canceladas',             s.canceladas    || 0]);
+        }
+        const ws4 = XLSX.utils.aoa_to_sheet(citasData);
+        ws4['!cols'] = [{wch: 26}, {wch: 14}];
+        XLSX.utils.book_append_sheet(wb, ws4, 'Citas');
+
+        XLSX.writeFile(wb, `reporte_wooden_house_${hoy}.xlsx`);
+        showNotification('<i class="fa-solid fa-check"></i> Excel (.xlsx) exportado correctamente', 'success');
+      } catch(e) {
+        showNotification('Error al generar Excel: ' + e.message, 'error');
       }
     }
 

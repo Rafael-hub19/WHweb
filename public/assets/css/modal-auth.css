@@ -218,6 +218,21 @@
   to   { opacity: 1; transform: translateY(0); }
 }
 
+/* ── Cambio de tab (¿Ya tienes cuenta? / ¿No tienes cuenta?) ─────── */
+.auth-switch-link {
+  text-align: center;
+  margin-top: 18px;
+  font-size: 13px;
+  color: #888;
+}
+.auth-switch-link a {
+  color: #c9a96e;
+  text-decoration: none;
+  font-weight: 600;
+  transition: color 0.2s;
+}
+.auth-switch-link a:hover { color: #e0c080; text-decoration: underline; }
+
 /* ── Pie de modal ────────────────────────────────────────────────── */
 .auth-modal-footer {
   text-align: center;
@@ -567,10 +582,30 @@
   cursor: pointer;
   font-family: inherit;
 }
-.mbn-item i { font-size: 20px; }
+.mbn-item i { font-size: 20px; transition: color 0.15s; }
 .mbn-item:hover, .mbn-item:active { color: #c9a96e; }
-.mbn-item--active { color: #c9a96e; }
+
+/* Página actual — barra indicadora + dorado */
+.mbn-item--active {
+  color: #c9a96e;
+  position: relative;
+}
+.mbn-item--active::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 36px;
+  height: 3px;
+  background: #c9a96e;
+  border-radius: 0 0 4px 4px;
+}
 .mbn-item--active i { color: #c9a96e; }
+
+/* CTA en inicio (énfasis sin indicador de página actual) */
+.mbn-item--cta { color: #c9a96e; }
+.mbn-item--cta i { color: #c9a96e; }
 
 @media (max-width: 992px) {
   .mobile-bottom-nav { display: block !important; }

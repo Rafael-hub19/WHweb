@@ -21,6 +21,7 @@ Incluye catálogo, carrito, cuentas de cliente, proceso de pago, cotizaciones, s
 | Pasarela 2 | PayPal JS SDK v5 + REST API v2 |
 | Correos | SMTP directo desde PHP (Brevo/Gmail compatible) |
 | Iconos | Font Awesome 6.5.1 (cdnjs.cloudflare.com) |
+| Exportación Excel | SheetJS (xlsx) 0.20.3 — genera archivos `.xlsx` reales |
 | Servidor | Apache 2.4+ con mod_rewrite |
 | Control versiones | Git + GitHub |
 
@@ -335,6 +336,58 @@ service apache2 restart
 
 ---
 
+## Mejoras de UX y exportación real (v8 — 2026-04-23)
+
+### Exportación real .xlsx en reportes del admin
+
+**Problema:** El botón "Exportar Excel" generaba un archivo `.csv` que Excel abría, pero no era formato nativo `.xlsx`.
+
+**Corrección (`panel_administrador.php`, `panel_administrador.js`):**
+- Agregada librería **SheetJS 0.20.3** vía CDN.
+- La función `exportReportXLSX()` genera un archivo `.xlsx` real con **4 hojas separadas**: Resumen general, Productos más vendidos, Cotizaciones y Citas.
+- Cada hoja tiene anchos de columna configurados (`!cols`) para legibilidad.
+- El botón ahora muestra ícono de Excel y descarga `reporte_wooden_house_YYYY-MM-DD.xlsx`.
+- La función original `exportReportCSV()` se conserva internamente como respaldo.
+
+### Logo clickeable como regreso al inicio
+
+**Problema:** El logo en catálogo, solicitudes, carrito, mi-cuenta y detalle\_producto no era clickeable y los usuarios no sabían cómo regresar al inicio.
+
+**Corrección (5 archivos PHP):**
+- Envuelto el `<img>` del logo en `<a href="/inicio" aria-label="...">` en: `catalogo.php`, `solicitudes.php`, `carrito-checkout.php`, `mi-cuenta.php`, `detalle_producto.php`.
+- `pago.php` ya tenía esta implementación.
+
+### Widget guía flotante "¿Cómo comprar?"
+
+**Problema:** Usuarios nuevos no entendían el flujo de compra (explorar → crear cuenta → carrito → pagar).
+
+**Corrección (`styles.css`, `index.php`, `catalogo.php`):**
+- Botón flotante fijo en esquina inferior derecha visible en inicio y catálogo.
+- Al hacer clic, abre un modal animado con 4 pasos ilustrados con íconos.
+- El modal del inicio explica el proceso general; el del catálogo explica los pasos específicos desde el catálogo.
+- Cierra con clic en el fondo, con botón `×` o con tecla `Escape`.
+
+### Navegación más descriptiva
+
+**Corrección (múltiples páginas):**
+- En catálogo: "Solicitudes" → **"Cotización y Citas"** con subtítulo "Pide precio o agenda visita".
+- En carrito: link de regreso cambiado a **"← Seguir comprando"**.
+- En detalle de producto: nav muestra **"← Catálogo"** como regreso claro.
+- Atributos `title` agregados a todos los enlaces de navegación.
+
+### Login simplificado con acceso a registro de clientes
+
+**Problema:** El formulario de login de personal tenía el checkbox "Recordarme" innecesario, y clientes que llegaban a `/login` no tenían forma de crear su cuenta.
+
+**Corrección (`login.php`, `login.css`, `modal-auth.js`, `index.php`):**
+- Removido el checkbox "Recordarme" del formulario.
+- El link "¿Olvidaste tu contraseña?" queda solo, alineado a la derecha.
+- Agregado botón **"Regístrate aquí"** al fondo del formulario que redirige a `/inicio?registro=1`.
+- En `index.php`, el parámetro `?registro=1` detecta y abre automáticamente el `AuthModal` en la pestaña de **Crear cuenta**.
+- Agregado método `AuthModal.openRegistro()` que abre el modal directamente en la pestaña de registro.
+
+---
+
 ## Correcciones y mejoras (v5 — 2026-03-17)
 
 ### Sincronización de datos de contacto al perfil del cliente
@@ -644,7 +697,7 @@ Todos los servicios externos están explícitamente permitidos. Si ves errores C
 - Gestión de productos (CRUD + galería Firebase Storage + especificaciones)
 - Gestión de empleados (crear/editar en Firebase Auth + MySQL, activar/desactivar)
 - Gestión de capacidad de producción por semana
-- Reportes avanzados: resumen, pedidos por período, productos más vendidos, ingresos, clientes (exportable CSV/PDF)
+- Reportes avanzados: resumen, pedidos por período, productos más vendidos, ingresos, clientes (exportable **.xlsx real** vía SheetJS + PDF)
 - Análisis financiero
 - **Clientes Registrados:** lista completa con historial, total gastado, pedidos y cotizaciones por cliente
 - **Ofertas & Marketing:** CRUD de descuentos (porcentaje, monto fijo, envío gratis), códigos de cupón con vigencia y usos máximos
@@ -720,7 +773,7 @@ Todos los servicios externos están explícitamente permitidos. Si ves errores C
 - Los paneles de admin y empleado requieren sesión activa de Firebase Auth
 - **Los clientes usan la misma Firebase Auth** pero se almacenan en tabla `clientes`, no en `usuarios_personal`
 - Las sesiones PHP distinguen entre personal (`usuario_id`, `usuario_rol`) y clientes (`cliente_id`, `cliente_rol`)
-- El modal de auth del cliente se activa con `AuthModal.open(callback)` desde cualquier página
+- El modal de auth del cliente se activa con `AuthModal.open(callback)` desde cualquier página; usa `AuthModal.openRegistro()` para abrirlo directamente en la pestaña de registro
 - La sección "Proyectos Realizados" del index está hardcodeada en `index.php`
 - Los logs del servidor se guardan en `logs/` (ignorado en `.gitignore`)
 - El `firebase/` completo está **fuera de `public/`** — no es accesible desde el navegador

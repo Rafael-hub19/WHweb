@@ -462,7 +462,7 @@ unset($_usuario);
           <div class="section-header">
             <h2 class="section-title">Controles</h2>
             <div style="display:flex; gap:8px; flex-wrap:wrap;">
-              <button class="btn btn-secondary" onclick="exportReportCSV()"><i class="fa-solid fa-file-csv"></i> Exportar Excel (CSV)</button>
+              <button class="btn btn-secondary" onclick="exportReportXLSX()"><i class="fa-solid fa-file-excel"></i> Exportar Excel (.xlsx)</button>
               <button class="btn btn-secondary" onclick="printReportPDF()"><i class="fa-solid fa-file-pdf"></i> Exportar PDF</button>
             </div>
           </div>
@@ -1068,9 +1068,11 @@ unset($_usuario);
 
 
   <!-- jsPDF: generación de reportes en PDF -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" 
-          integrity="sha512-qZvrmS2ekKPF2mSznTQsxqPgnpkI4DNTlrdUmTzrDgektczlKNRRhy5X5AAOnx5S09ydFYWWNSfcEqDTTHgtNA==" 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"
+          integrity="sha512-qZvrmS2ekKPF2mSznTQsxqPgnpkI4DNTlrdUmTzrDgektczlKNRRhy5X5AAOnx5S09ydFYWWNSfcEqDTTHgtNA=="
           crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <!-- SheetJS: exportación real .xlsx -->
+  <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
   <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>

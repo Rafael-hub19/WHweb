@@ -62,6 +62,9 @@
             <a href="#" class="auth-forgot-link" onclick="_authResetPassword(event)">¿Olvidaste tu contraseña?</a>
           </div>
         </form>
+        <div class="auth-switch-link">
+          ¿No tienes cuenta? <a href="#" onclick="_authSetTab('registro'); return false;">Regístrate aquí</a>
+        </div>
       </div>
 
       <!-- Formulario de registro -->
@@ -85,6 +88,9 @@
           </div>
           <button type="submit" class="btn-auth-primary" id="btnRegSubmit">Crear cuenta</button>
         </form>
+        <div class="auth-switch-link">
+          ¿Ya tienes cuenta? <a href="#" onclick="_authSetTab('login'); return false;">Inicia sesión aquí</a>
+        </div>
       </div>
 
       <div class="auth-modal-footer">
@@ -265,41 +271,9 @@
     return msg.includes('failed to fetch') || msg.includes('dynamically imported') || msg.includes('load failed') || msg.includes('networkerror');
   }
 
-  /* ── Mini menú para usuario NO autenticado (Clientes / Personal) ── */
-  function _toggleGuestMenu(btn) {
-    const existing = document.querySelector('.auth-mini-menu');
-    if (existing) { existing.remove(); btn.classList.remove('menu-open'); return; }
-
-    btn.classList.add('menu-open');
-    const menu = document.createElement('div');
-    menu.className = 'auth-mini-menu';
-    menu.innerHTML = `
-      <div class="auth-mini-header">
-        <strong>Mi cuenta</strong>
-        <span>¿Cómo deseas entrar?</span>
-      </div>
-      <button class="auth-mini-item" id="_guestBtnClientes">
-        <i class="fa-solid fa-user-circle"></i> Clientes
-      </button>
-      <div class="auth-mini-divider"></div>
-      <a href="/login" class="auth-mini-item">
-        <i class="fa-solid fa-id-badge"></i> Personal
-      </a>`;
-    btn.appendChild(menu);
-
-    menu.querySelector('#_guestBtnClientes').addEventListener('click', () => {
-      menu.remove(); btn.classList.remove('menu-open');
-      AuthModal.open();
-    });
-
-    function _close(e) {
-      if (!btn.contains(e.target)) { menu.remove(); btn.classList.remove('menu-open'); document.removeEventListener('click', _close); }
-    }
-    setTimeout(() => document.addEventListener('click', _close), 0);
-    function _esc(e) {
-      if (e.key === 'Escape') { menu.remove(); btn.classList.remove('menu-open'); document.removeEventListener('keydown', _esc); }
-    }
-    document.addEventListener('keydown', _esc);
+  /* ── Abrir modal directamente cuando el usuario NO está autenticado ── */
+  function _toggleGuestMenu() {
+    AuthModal.open();
   }
 
   /* ── Mini menú de cuenta (para páginas sin dropdown en nav) ─────── */
@@ -379,9 +353,9 @@
         btn.onclick = (e) => { e.stopPropagation(); _toggleAuthMiniMenu(btn); };
       } else {
         btn.classList.remove('autenticado');
-        btn.innerHTML = `<i class="fa-solid fa-user"></i> Mi cuenta <i class="fa-solid fa-chevron-down nav-auth-chevron-sm"></i>`;
-        btn.title = '';
-        btn.onclick = (e) => { e.stopPropagation(); _toggleGuestMenu(btn); };
+        btn.innerHTML = `<i class="fa-solid fa-user"></i> Iniciar sesión`;
+        btn.title = 'Iniciar sesión o crear cuenta';
+        btn.onclick = (e) => { e.stopPropagation(); AuthModal.open(); };
       }
     });
 
@@ -394,9 +368,9 @@
         mbnBtn.style.color = '#c9a96e';
         mbnBtn.onclick = () => { window.location.href = '/mi-cuenta'; };
       } else {
-        mbnBtn.innerHTML = `<i class="fa-solid fa-user"></i><span>Mi cuenta</span>`;
+        mbnBtn.innerHTML = `<i class="fa-solid fa-user"></i><span>Iniciar sesión</span>`;
         mbnBtn.style.color = '';
-        mbnBtn.onclick = (e) => { e.stopPropagation(); _toggleGuestMenu(mbnBtn); };
+        mbnBtn.onclick = () => { AuthModal.open(); };
       }
     }
 
@@ -790,6 +764,11 @@
       }
     },
 
+    openRegistro(callback) {
+      this.open(callback);
+      setTimeout(() => { if (window._authSetTab) window._authSetTab('registro'); }, 60);
+    },
+
     close() {
       const overlay = document.getElementById('authModalOverlay');
       if (overlay) {
@@ -835,10 +814,10 @@
 
     isEmailVerified() { return _emailVerificado !== false; },
 
-    // Para el botón Mi cuenta de la barra móvil
+    // Para el botón de la barra móvil
     openMenuMovil(btn) {
       if (_cliente) { window.location.href = '/mi-cuenta'; }
-      else { _toggleGuestMenu(btn || document.querySelector('.mobile-bottom-nav .mbn-item:last-child')); }
+      else { AuthModal.open(); }
     },
 
     // Actualizar badge del carrito en barra móvil (llamar desde carrito.js tras cambios)

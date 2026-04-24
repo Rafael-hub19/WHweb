@@ -64,23 +64,26 @@ if (!empty($_GET['logout']) || !empty($_SESSION['_just_logged_out'])) {
         </div>
       </div>
 
-      <div class="remember-forgot">
-        <label class="remember-me">
-          <input type="checkbox" id="rememberMe">
-          <span>Recordarme
-            <span class="wh-help" data-tip="Mantiene tu sesión activa en este equipo. No marques esta opción en computadoras compartidas o públicas.">?</span>
-          </span>
-        </label>
+      <div class="forgot-row">
         <a href="#" class="forgot-password" id="forgotLink">¿Olvidaste tu contraseña?</a>
       </div>
 
-      <button type="submit" class="btn-login" id="btnLogin">Iniciar Sesión</button>
+      <button type="submit" class="btn-login" id="btnLogin">
+        <i class="fa-solid fa-right-to-bracket"></i> Iniciar Sesión
+      </button>
     </form>
 
     <div class="divider">Solo para personal autorizado</div>
 
+    <div class="register-section">
+      <p class="register-text">¿Eres cliente y no tienes cuenta?</p>
+      <a href="/inicio?registro=1" class="register-link">
+        <i class="fa-solid fa-user-plus"></i> Regístrate aquí
+      </a>
+    </div>
+
     <div class="back-to-site">
-      <a href="index.php">← Volver al sitio web</a>
+      <a href="/inicio">← Volver al sitio web</a>
     </div>
   </div>
 

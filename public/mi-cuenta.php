@@ -31,16 +31,18 @@ header('Content-Type: text/html; charset=utf-8');
 <!-- ── Header ──────────────────────────────────────────────────── -->
 <div class="header-nav">
   <div class="logo">
-    <img src="/assets/img/logo-header.png" alt="Wooden House" style="height:80px;">
+    <a href="/inicio" aria-label="Wooden House – ir al inicio" style="display:block;line-height:0;">
+      <img src="/assets/img/logo-header.png" alt="Wooden House" style="height:80px;">
+    </a>
   </div>
   <div class="nav-links" id="navLinks">
-    <a href="/inicio">Inicio</a>
-    <a href="/catalogo">Catálogo</a>
-    <a href="/solicitudes">Solicitudes</a>
-    <a href="/carrito" class="cart-icon" aria-label="Ver carrito">
+    <a href="/inicio" title="Volver al inicio">Inicio</a>
+    <a href="/catalogo" title="Ver catálogo de muebles">Catálogo</a>
+    <a href="/solicitudes" title="Pedir cotización o agendar cita">Cotización y Citas</a>
+    <a href="/carrito" class="cart-icon" aria-label="Ver carrito" title="Ver mi carrito">
       <i class="fa-solid fa-cart-shopping"></i>
     </a>
-    <button class="btn-cuenta-nav autenticado" onclick="AuthModal.open()">
+    <button class="btn-cuenta-nav autenticado" title="Ver mi cuenta">
       <i class="fa-solid fa-user-circle"></i> Mi cuenta
     </button>
   </div>

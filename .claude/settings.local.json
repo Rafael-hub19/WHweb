@@ -8,7 +8,9 @@
       "Bash(xargs grep:*)",
       "Bash(sed -i 's/modal-auth\\\\.js?v=8/modal-auth.js?v=9/g' carrito-checkout.php catalogo.php detalle_producto.php index.php mi-cuenta.php pago.php solicitudes.php)",
       "Bash(sed -i 's/catalogo\\\\.css?v=4/catalogo.css?v=5/g' catalogo.php)",
-      "Bash(grep '\\\\.php$')"
+      "Bash(grep '\\\\.php$')",
+      "Bash(python -c ':*)",
+      "Bash(xargs wc *)"
     ]
   }
 }

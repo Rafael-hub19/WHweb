@@ -79,26 +79,10 @@ if (!empty($_SESSION['_flash'])) {
         <span class="cart-badge" id="cartCount">0</span>
       </a>
 
-      <!-- Dropdown Mi cuenta: clientes + acceso personal -->
-      <div class="nav-item nav-dropdown cuenta-dropdown" id="cuentaDropdown">
-        <button class="nav-dropdown-btn" id="cuentaDropdownBtn"
-                aria-haspopup="true" aria-expanded="false">
-          <span><i class="fa-solid fa-user"></i> Mi cuenta</span>
-          <i class="fa-solid fa-chevron-down nav-chevron"></i>
-        </button>
-        <div class="dropdown-menu cuenta-menu" id="cuentaDropdownMenu" role="menu">
-          <a href="#" class="dropdown-item" id="btnAbrirAuth"
-             onclick="AuthModal.open(); return false;">
-            <i class="fa-solid fa-user-circle"></i> Clientes
-            <span style="display:block;font-size:11px;color:#888;margin-top:2px;">Ver pedidos, cotizaciones y perfil</span>
-          </a>
-          <div class="dropdown-divider"></div>
-          <a href="/login" class="dropdown-item">
-            <i class="fa-solid fa-id-badge"></i> Personal
-            <span style="display:block;font-size:11px;color:#888;margin-top:2px;">Solo para empleados y administradores</span>
-          </a>
-        </div>
-      </div>
+      <!-- Botón de cuenta — modal-auth.js actualiza su estado automáticamente -->
+      <button class="btn-cuenta-nav" id="cuentaDropdownBtn" title="Iniciar sesión o ver mi cuenta">
+        <i class="fa-solid fa-user"></i> Iniciar sesión
+      </button>
 
     </nav>
   </div>
@@ -505,7 +489,7 @@ if (!empty($_SESSION['_flash'])) {
   <!-- ── Barra de navegación fija móvil ──────────────────────────── -->
   <nav class="mobile-bottom-nav" aria-label="Navegación rápida">
     <div class="mobile-bottom-nav-inner">
-      <a href="/catalogo" class="mbn-item mbn-item--cta">
+      <a href="/catalogo" class="mbn-item">
         <i class="fa-solid fa-store"></i>
         <span>Catálogo</span>
       </a>
@@ -531,9 +515,85 @@ if (!empty($_SESSION['_flash'])) {
     </div>
   </nav>
 
+  <!-- ══ GUÍA FLOTANTE "¿Cómo comprar?" ══════════════════════════════ -->
+  <button class="wh-guide-btn" id="whGuideBtn" aria-label="¿Cómo comprar?" onclick="document.getElementById('whGuideModal').classList.add('open')">
+    <i class="fa-solid fa-circle-question"></i>
+    <span class="wh-guide-btn-label">¿Cómo comprar?</span>
+  </button>
+
+  <div class="wh-guide-modal" id="whGuideModal" onclick="if(event.target===this)this.classList.remove('open')">
+    <div class="wh-guide-content" role="dialog" aria-modal="true" aria-labelledby="whGuideHeading">
+      <button class="wh-guide-close" onclick="document.getElementById('whGuideModal').classList.remove('open')" aria-label="Cerrar">×</button>
+      <h2 class="wh-guide-title" id="whGuideHeading"><i class="fa-solid fa-cart-shopping"></i> ¿Cómo comprar?</h2>
+      <p class="wh-guide-subtitle">Es muy fácil, sigue estos 4 pasos:</p>
+      <div class="wh-guide-steps">
+        <div class="wh-guide-step">
+          <div class="wh-step-num">1</div>
+          <div class="wh-step-icon"><i class="fa-solid fa-store"></i></div>
+          <div class="wh-step-info">
+            <strong>Explora el catálogo</strong>
+            <span>Ve fotos, medidas y precios de todos nuestros muebles</span>
+          </div>
+        </div>
+        <div class="wh-guide-step">
+          <div class="wh-step-num">2</div>
+          <div class="wh-step-icon"><i class="fa-solid fa-user-plus"></i></div>
+          <div class="wh-step-info">
+            <strong>Crea tu cuenta gratis</strong>
+            <span>Solo necesitas tu correo y una contraseña. ¡Tarda menos de 1 minuto!</span>
+          </div>
+        </div>
+        <div class="wh-guide-step">
+          <div class="wh-step-num">3</div>
+          <div class="wh-step-icon"><i class="fa-solid fa-cart-plus"></i></div>
+          <div class="wh-step-info">
+            <strong>Agrega al carrito y pide tu fecha</strong>
+            <span>Elige si quieres recoger o envío a domicilio, y si quieres instalación</span>
+          </div>
+        </div>
+        <div class="wh-guide-step">
+          <div class="wh-step-num">4</div>
+          <div class="wh-step-icon"><i class="fa-solid fa-credit-card"></i></div>
+          <div class="wh-step-info">
+            <strong>Paga seguro y recibe tu folio</strong>
+            <span>Tarjeta o PayPal. Te mandamos confirmación por correo al instante</span>
+          </div>
+        </div>
+      </div>
+      <div class="wh-guide-actions">
+        <a href="/catalogo" class="wh-guide-cta" onclick="document.getElementById('whGuideModal').classList.remove('open')">
+          <i class="fa-solid fa-store"></i> Ver Catálogo
+        </a>
+        <a href="/solicitudes" class="wh-guide-cta wh-guide-cta--alt" onclick="document.getElementById('whGuideModal').classList.remove('open')">
+          <i class="fa-solid fa-file-invoice"></i> Pedir Cotización
+        </a>
+      </div>
+      <p class="wh-guide-note"><i class="fa-solid fa-headset"></i> ¿Tienes dudas? Escríbenos por WhatsApp o correo y te ayudamos</p>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('keydown', function(e){
+      if(e.key === 'Escape') document.getElementById('whGuideModal').classList.remove('open');
+    });
+  </script>
+
   <script src="./assets/js/firebase-config.js"></script>
   <script src="./assets/js/modal-auth.js?v=9"></script>
   <script src="./assets/js/index.js?v=2"></script>
+
+  <script>
+    // Abrir modal de registro si viene desde login con ?registro=1
+    if (new URLSearchParams(location.search).get('registro') === '1') {
+      window.addEventListener('load', function () {
+        setTimeout(function () {
+          if (window.AuthModal && typeof AuthModal.openRegistro === 'function') {
+            AuthModal.openRegistro();
+          }
+        }, 400);
+      });
+    }
+  </script>
 
 </body>
 </html>

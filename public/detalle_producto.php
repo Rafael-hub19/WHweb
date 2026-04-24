@@ -20,13 +20,15 @@
 
   <div class="header-nav">
     <div class="logo">
-      <img src="/assets/img/logo-header.png" alt="Wooden House" style="height:80px;">
+      <a href="/inicio" aria-label="Wooden House – ir al inicio" style="display:block;line-height:0;">
+        <img src="/assets/img/logo-header.png" alt="Wooden House" style="height:80px;">
+      </a>
     </div>
     <div class="nav-links" id="navLinks">
-      <a href="/inicio">Inicio</a>
-      <a href="/solicitudes">Solicitudes</a>
-      <a href="/catalogo">Catálogo</a>
-      <a href="/carrito" class="cart-icon" id="cartIcon">
+      <a href="/inicio" title="Volver al inicio">Inicio</a>
+      <a href="/catalogo" title="Ver todos los muebles">← Catálogo</a>
+      <a href="/solicitudes" title="Pedir cotización o agendar cita">Cotización y Citas</a>
+      <a href="/carrito" class="cart-icon" id="cartIcon" title="Ver mi carrito">
         <i class="fa-solid fa-cart-shopping"></i> <span class="cart-badge" id="cartCount">0</span>
       </a>
     </div>

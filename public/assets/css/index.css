@@ -1018,11 +1018,6 @@ a.service-card {
   color: #c9a96e;
 }
 
-.mbn-item--cta {
-  color: #c9a96e;
-}
-
-.mbn-item--cta i { color: #c9a96e; }
 
 @media (max-width: 480px) {
   .quick-actions-section { padding: 16px 14px 20px; }

@@ -21,16 +21,20 @@
   <!-- Header Navigation -->
   <div class="header-nav">
     <div class="logo">
-      <img src="/assets/img/logo-header.png" alt="Wooden House" style="height:80px;">
+      <a href="/inicio" aria-label="Wooden House – ir al inicio" style="display:block;line-height:0;">
+        <img src="/assets/img/logo-header.png" alt="Wooden House" style="height:80px;">
+      </a>
     </div>
     <div class="nav-links" id="navLinks">
-      <a href="/inicio">Inicio</a>
-      <a href="/solicitudes">Solicitudes</a>
-      <a href="/carrito" class="cart-icon" id="cartIcon">
+      <a href="/inicio" title="Volver al inicio">Inicio</a>
+      <a href="/solicitudes" title="Pedir cotización o agendar una cita de medición">
+        <span class="nav-link-desc">Cotización y Citas<small>Pide precio o agenda visita</small></span>
+      </a>
+      <a href="/carrito" class="cart-icon" id="cartIcon" title="Ver mi carrito de compras">
         <i class="fa-solid fa-cart-shopping"></i> <span class="cart-badge" id="cartCount">0</span>
       </a>
-      <button class="btn-cuenta-nav" onclick="AuthModal.open()">
-        <i class="fa-solid fa-user"></i> Mi cuenta
+      <button class="btn-cuenta-nav" title="Iniciar sesión o ver mi cuenta">
+        <i class="fa-solid fa-user"></i> Iniciar sesión
       </button>
     </div>
   </div>
@@ -97,6 +101,66 @@
       <button class="mbn-item" onclick="AuthModal.openMenuMovil(this)"><i class="fa-solid fa-user"></i><span>Mi cuenta</span></button>
     </div>
   </nav>
+
+  <!-- ══ GUÍA FLOTANTE "¿Cómo comprar?" ══════════════════════════════ -->
+  <button class="wh-guide-btn" id="whGuideBtn" aria-label="¿Cómo comprar?" onclick="document.getElementById('whGuideCatModal').classList.add('open')">
+    <i class="fa-solid fa-circle-question"></i>
+    <span class="wh-guide-btn-label">¿Cómo comprar?</span>
+  </button>
+
+  <div class="wh-guide-modal" id="whGuideCatModal" onclick="if(event.target===this)this.classList.remove('open')">
+    <div class="wh-guide-content" role="dialog" aria-modal="true">
+      <button class="wh-guide-close" onclick="document.getElementById('whGuideCatModal').classList.remove('open')" aria-label="Cerrar">×</button>
+      <h2 class="wh-guide-title"><i class="fa-solid fa-cart-shopping"></i> ¿Cómo comprar?</h2>
+      <p class="wh-guide-subtitle">Estás en el catálogo. Aquí puedes ver todos los muebles:</p>
+      <div class="wh-guide-steps">
+        <div class="wh-guide-step">
+          <div class="wh-step-num">1</div>
+          <div class="wh-step-icon"><i class="fa-solid fa-magnifying-glass"></i></div>
+          <div class="wh-step-info">
+            <strong>Busca el mueble que quieres</strong>
+            <span>Usa la barra de búsqueda o los filtros de categoría de arriba</span>
+          </div>
+        </div>
+        <div class="wh-guide-step">
+          <div class="wh-step-num">2</div>
+          <div class="wh-step-icon"><i class="fa-solid fa-cart-plus"></i></div>
+          <div class="wh-step-info">
+            <strong>Haz clic en "Agregar al carrito"</strong>
+            <span>Puedes agregar varios productos antes de pagar</span>
+          </div>
+        </div>
+        <div class="wh-guide-step">
+          <div class="wh-step-num">3</div>
+          <div class="wh-step-icon"><i class="fa-solid fa-user-plus"></i></div>
+          <div class="wh-step-info">
+            <strong>Crea tu cuenta o inicia sesión</strong>
+            <span>Necesitas una cuenta gratis para finalizar la compra</span>
+          </div>
+        </div>
+        <div class="wh-guide-step">
+          <div class="wh-step-num">4</div>
+          <div class="wh-step-icon"><i class="fa-solid fa-credit-card"></i></div>
+          <div class="wh-step-info">
+            <strong>Paga y recibe tu número de pedido</strong>
+            <span>Con ese número puedes rastrear tu pedido en cualquier momento</span>
+          </div>
+        </div>
+      </div>
+      <div class="wh-guide-actions">
+        <a href="/solicitudes" class="wh-guide-cta wh-guide-cta--alt" onclick="document.getElementById('whGuideCatModal').classList.remove('open')">
+          <i class="fa-solid fa-file-invoice"></i> ¿Prefiero cotizar primero
+        </a>
+      </div>
+      <p class="wh-guide-note"><i class="fa-solid fa-circle-info"></i> Si no sabes el precio exacto o quieres medidas especiales, pide una cotización gratis</p>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('keydown', function(e){
+      if(e.key === 'Escape') document.getElementById('whGuideCatModal').classList.remove('open');
+    });
+  </script>
 
   <script src="./assets/js/firebase-config.js"></script>
   <script src="./assets/js/modal-auth.js?v=9"></script>

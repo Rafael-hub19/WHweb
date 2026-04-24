@@ -36,14 +36,15 @@ header('Content-Type: text/html; charset=utf-8');
 <!-- ── Header ───────────────────────────────────────────────────── -->
 <div class="header-nav">
     <div class="logo">
-      <img src="/assets/img/logo-header.png" alt="Wooden House" style="height:80px;">
+      <a href="/inicio" aria-label="Wooden House – ir al inicio" style="display:block;line-height:0;">
+        <img src="/assets/img/logo-header.png" alt="Wooden House" style="height:80px;">
+      </a>
     </div>
 <div class="nav-links" id="navLinks">
-        <a href="/inicio">Inicio</a>
-        <a href="/solicitudes">Solicitudes</a>
-        <a href="/catalogo">Catálogo</a>
-        <button class="btn-cuenta-nav" onclick="AuthModal.open()">
-            <i class="fa-solid fa-user"></i> Mi cuenta
+        <a href="/inicio" title="Volver al inicio">Inicio</a>
+        <a href="/catalogo" title="Seguir comprando en el catálogo">← Seguir comprando</a>
+        <button class="btn-cuenta-nav" title="Iniciar sesión o ver mi cuenta">
+            <i class="fa-solid fa-user"></i> Iniciar sesión
         </button>
     </div>
 </div>
