@@ -14,11 +14,15 @@
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
+html { overflow-x: hidden; width: 100%; }
+
 body {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   background: #1a1a1a;
   color: #e0e0e0;
   line-height: 1.6;
+  overflow-x: hidden;
+  width: 100%;
 }
 
 /* Neutralizar colores de Bootstrap Reboot */
@@ -1039,4 +1043,18 @@ a.service-card {
   .footer { padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px)); }
   /* Push quick-actions hidden on very small where bottom nav covers same actions */
   body { padding-bottom: 0; }
+}
+
+@media (max-width: 380px) {
+  .header-nav { padding: 8px 10px; }
+  .container { padding: 12px 10px; }
+  .hero { padding: 30px 12px; }
+  .hero h1 { font-size: 22px; }
+  .hero p  { font-size: 14px; }
+  .footer  { padding: 16px 10px; padding-bottom: calc(70px + env(safe-area-inset-bottom, 0px)); }
+}
+
+@media (hover: none) {
+  .service-card:hover,
+  .reason-card:hover { transform: none !important; box-shadow: none !important; }
 }

@@ -8,8 +8,9 @@
   <title>Términos y Condiciones – Wooden House</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" crossorigin="anonymous">
   <link rel="stylesheet" href="./assets/css/variables.css">
-  <link rel="stylesheet" href="./assets/css/styles.css">
-  <link rel="stylesheet" href="./assets/css/terminos.css">
+  <link rel="stylesheet" href="./assets/css/styles.css?v=4">
+  <link rel="stylesheet" href="./assets/css/terminos.css?v=2">
+  <link rel="stylesheet" href="./assets/css/modal-auth.css?v=4">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 </head>
 <body>
@@ -291,6 +292,17 @@
     <a href="tel:3317054017">33 1705 4017</a>
   </p>
 </div>
+
+<!-- Barra de navegación fija móvil -->
+<nav class="mobile-bottom-nav" aria-label="Navegación rápida">
+  <div class="mobile-bottom-nav-inner">
+    <a href="/inicio"      class="mbn-item"><i class="fa-solid fa-house"></i><span>Inicio</span></a>
+    <a href="/catalogo"    class="mbn-item"><i class="fa-solid fa-store"></i><span>Catálogo</span></a>
+    <a href="/solicitudes" class="mbn-item"><i class="fa-solid fa-file-invoice"></i><span>Cotización</span></a>
+    <a href="/carrito"     class="mbn-item"><span class="mbn-icon-wrap"><i class="fa-solid fa-cart-shopping"></i><span class="mbn-cart-badge"></span></span><span>Carrito</span></a>
+    <button class="mbn-item" onclick="AuthModal && AuthModal.openMenuMovil(this)"><i class="fa-solid fa-user"></i><span>Mi cuenta</span></button>
+  </div>
+</nav>
 
 </body>
 </html>

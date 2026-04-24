@@ -1,11 +1,14 @@
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
+        html { overflow-x: hidden; width: 100%; }
+
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: #1a1a1a;
             color: #e0e0e0;
             line-height: 1.6;
             overflow-x: hidden;
+            width: 100%;
         }
 
         /* Neutralizar colores de Bootstrap Reboot */
@@ -1100,4 +1103,24 @@
     .btn-checkout { padding: 14px; font-size: 16px; margin-top: 16px; }
     .fecha-resumen-box { font-size: 12px; padding: 10px 12px; }
     .secure-note { font-size: 12px; }
+}
+
+@media (max-width: 380px) {
+    .container { padding: 12px 8px; }
+    .cart-item { padding: 8px 6px; gap: 8px; }
+    .cart-item-image { width: 58px; height: 72px; }
+    .cart-item-name { font-size: 13px; }
+    .cart-item-price { font-size: 16px; }
+    .section-title { font-size: 13px; gap: 6px; }
+    .btn-checkout { font-size: 15px; }
+    .summary-total span:last-child { font-size: 20px; }
+    .steps-indicator { display: none; }
+    .semanas-grid { grid-template-columns: 1fr; }
+    .page-title { font-size: 18px; }
+}
+
+@media (hover: none) {
+    .semana-card:hover:not(.agotada) { transform: none !important; }
+    .option-card:hover { transform: none !important; border-color: transparent; }
+    .btn-checkout:hover { transform: none; }
 }

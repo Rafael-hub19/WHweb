@@ -366,7 +366,7 @@
 
 /* ── Responsive ─────────────────────────────────────────────────── */
 @media (max-width: 900px) {
-  .mc-container { padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px)); padding: 16px 14px; }
+  .mc-container { padding: 16px 14px; padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px)); }
   .mc-logout-btn { margin-left: 0; margin-top: 8px; width: 100%; justify-content: center; }
 }
 @media (max-width: 640px) {
@@ -400,6 +400,21 @@
   .mc-pedido-status { font-size: 11px; padding: 3px 8px; }
   .mc-stat-value { font-size: 20px; }
   .mc-stat { padding: 10px 8px; }
+}
+
+@media (max-width: 380px) {
+  .mc-container { padding: 8px 6px; }
+  .mc-tab { padding: 6px 8px; font-size: 11px; }
+  .mc-name { font-size: 16px; }
+  .mc-form-group input,
+  .mc-form-group select,
+  .mc-form-group textarea { font-size: 13px; padding: 9px 10px; }
+  .mc-stat-value { font-size: 18px; }
+  .mc-pedido-card { padding: 8px; gap: 8px; }
+}
+
+@media (hover: none) {
+  .btn-mc-primary:hover:not(:disabled) { transform: none; box-shadow: none; }
 }
 
 /* ── Tooltips de ayuda ──────────────────────────────────────────── */

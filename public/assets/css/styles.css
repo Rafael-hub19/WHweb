@@ -9,6 +9,8 @@ html {
   font-size: 16px;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+  width: 100%;
 }
 
 body {
@@ -17,6 +19,7 @@ body {
   color: var(--color-text-main, #e0e0e0);
   line-height: var(--line-height-base, 1.6);
   overflow-x: hidden;
+  width: 100%;
 }
 
 img, video {
@@ -285,7 +288,7 @@ button {
   font-weight: 400;
   font-style: normal;
   white-space: normal;
-  width: 230px;
+  width: clamp(160px, 80vw, 230px);
   line-height: 1.55;
   box-shadow: 0 8px 28px rgba(0,0,0,0.6);
   z-index: 2000;
