@@ -119,6 +119,9 @@ firebase-emulators/
 *.key
 *.csv
 
+# ── DIAGRAMAS (solo locales) ──────────────────────────────────────
+DIAGRAMAS/
+
 # ── NOTAS Y ARCHIVOS PERSONALES ──────────────────────────────────
 NOTAS.md
 TODO.md
