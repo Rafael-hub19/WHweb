@@ -1360,6 +1360,19 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  // Limpiar actividad y notificaciones con más de 7 días de antigüedad
+  (function limpiarActividadVieja() {
+    const limite = Date.now() - 7 * 24 * 60 * 60 * 1000;
+    const act = getActivity().filter(a => {
+      try { return new Date(a.at).getTime() > limite; } catch(e) { return false; }
+    });
+    saveActivity(act);
+    const notifs = getNotifs().filter(n => {
+      try { return new Date(n.at).getTime() > limite; } catch(e) { return false; }
+    });
+    saveNotifs(notifs);
+  })();
+
   setTimeout(cargarNombreEmpleado, 200);
   setTimeout(refreshKpisAPI, 400);
   setTimeout(fetchNotificationsFromAPI, 800);

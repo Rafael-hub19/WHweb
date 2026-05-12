@@ -1689,27 +1689,31 @@ async function refreshKPIsFromAPI() {
     if (!data.success) return;
 
     const r = data;
-    // Ventas del mes
-    const ventasEl = document.getElementById('kpiVentasMes');
-    if (ventasEl) ventasEl.textContent = new Intl.NumberFormat('es-MX', {style:'currency',currency:'MXN'}).format(r.ingresos_mes || 0);
+    const fmt = v => new Intl.NumberFormat('es-MX', {style:'currency',currency:'MXN'}).format(v || 0);
 
-    // Pedidos
+    const ventasEl = document.getElementById('kpiVentasMes');
+    if (ventasEl) ventasEl.textContent = fmt(r.ingresos_mes);
+
+    const hintVentas = document.getElementById('kpiVentasHint');
+    if (hintVentas) hintVentas.textContent = `${r.pedidos_mes || 0} pedidos este mes`;
+
     const pedEl = document.getElementById('kpiPedidos');
     if (pedEl) pedEl.textContent = r.total_pedidos || 0;
 
-    // Clientes (proxy: pedidos totales únicos)
-    const cliEl = document.getElementById('kpiClientes');
-    if (cliEl) cliEl.textContent = r.total_pedidos || 0;
+    const pedHint = document.getElementById('kpiPedidosHint');
+    if (pedHint) pedHint.textContent = `${r.pedidos_pendientes || 0} pendientes`;
 
-    // Productos
+    const cliEl = document.getElementById('kpiClientes');
+    if (cliEl) cliEl.textContent = r.clientes_unicos || 0;
+
+    const cliHint = document.getElementById('kpiClientesHint');
+    if (cliHint) cliHint.textContent = `${r.clientes_mes || 0} nuevos este mes`;
+
     const prodEl = document.getElementById('kpiProductos');
     if (prodEl) prodEl.textContent = r.productos_activos || 0;
 
-    const hintEl = document.getElementById('kpiVentasHint');
-    if (hintEl) hintEl.textContent = `${r.pedidos_mes || 0} pedidos este mes`;
-
     const stockEl = document.getElementById('kpiStockLow');
-    if (stockEl) stockEl.textContent = `${r.pedidos_pendientes || 0} pendientes`;
+    if (stockEl) stockEl.textContent = `${r.cotizaciones_nuevas || 0} cotizaciones sin atender`;
 
     // Actividad reciente
     const actEl = document.getElementById('actividadReciente');
@@ -2245,14 +2249,20 @@ async function cargarReportesAPI() {
       // Actualizar KPIs del dashboard también
       const ventasEl = document.getElementById('kpiVentasMes');
       if (ventasEl) ventasEl.textContent = money(r.ingresos_mes || 0);
-      const pedEl = document.getElementById('kpiPedidos');
-      if (pedEl) pedEl.textContent = r.total_pedidos || 0;
-      const prodEl = document.getElementById('kpiProductos');
-      if (prodEl) prodEl.textContent = r.productos_activos || 0;
       const hintEl = document.getElementById('kpiVentasHint');
       if (hintEl) hintEl.textContent = `${r.pedidos_mes || 0} pedidos este mes`;
+      const pedEl = document.getElementById('kpiPedidos');
+      if (pedEl) pedEl.textContent = r.total_pedidos || 0;
+      const pedHint = document.getElementById('kpiPedidosHint');
+      if (pedHint) pedHint.textContent = `${r.pedidos_pendientes || 0} pendientes`;
+      const cliEl = document.getElementById('kpiClientes');
+      if (cliEl) cliEl.textContent = r.clientes_unicos || 0;
+      const cliHint = document.getElementById('kpiClientesHint');
+      if (cliHint) cliHint.textContent = `${r.clientes_mes || 0} nuevos este mes`;
+      const prodEl = document.getElementById('kpiProductos');
+      if (prodEl) prodEl.textContent = r.productos_activos || 0;
       const stockEl = document.getElementById('kpiStockLow');
-      if (stockEl) stockEl.textContent = `${r.pedidos_pendientes || 0} pendientes`;
+      if (stockEl) stockEl.textContent = `${r.cotizaciones_nuevas || 0} cotizaciones sin atender`;
     }
 
     // ── Conversión de cotizaciones ────────────────────────
@@ -2660,7 +2670,6 @@ function _autoRefreshAdmin() {
     else if (section === 'citas'     && typeof renderCalendar === 'function')     renderCalendar();
     else if (section === 'dashboard') {
       if(typeof refreshKPIsFromAPI === 'function') refreshKPIsFromAPI();
-      if(typeof refreshKPIs === 'function') refreshKPIs();
     }
   } catch(e) { console.warn('[autoRefresh] Error en sección', section, e); }
 }

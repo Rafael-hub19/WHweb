@@ -21,27 +21,33 @@ switch ($tipo) {
         $hoy  = date('Y-m-d');
         $mes  = date('Y-m-01');
 
-        $totalPedidos = (int)(dbRow("SELECT COUNT(*) AS n FROM pedidos")['n'] ?? 0);
-        $pedidosMes   = (int)(dbRow("SELECT COUNT(*) AS n FROM pedidos WHERE DATE(fecha_creacion) >= ?", [$mes])['n'] ?? 0);
-        $ingresosMes  = (float)(dbRow("SELECT SUM(total) AS s FROM pedidos WHERE DATE(fecha_creacion) >= ? AND estado NOT IN ('cancelado')", [$mes])['s'] ?? 0);
-        $pendientes   = (int)(dbRow("SELECT COUNT(*) AS n FROM pedidos WHERE estado = 'pendiente'")['n'] ?? 0);
-        $citasHoy     = (int)(dbRow("SELECT COUNT(*) AS n FROM citas WHERE DATE(fecha_cita) = ?", [$hoy])['n'] ?? 0);
-        $cotNuevas    = (int)(dbRow("SELECT COUNT(*) AS n FROM cotizaciones WHERE estado = 'nueva'")['n'] ?? 0);
-        $productosAct = (int)(dbRow("SELECT COUNT(*) AS n FROM productos WHERE activo = 1")['n'] ?? 0);
+        $totalPedidos     = (int)(dbRow("SELECT COUNT(*) AS n FROM pedidos")['n'] ?? 0);
+        $pedidosMes       = (int)(dbRow("SELECT COUNT(*) AS n FROM pedidos WHERE DATE(fecha_creacion) >= ?", [$mes])['n'] ?? 0);
+        $ingresosMes      = (float)(dbRow("SELECT SUM(total) AS s FROM pedidos WHERE DATE(fecha_creacion) >= ? AND estado NOT IN ('cancelado')", [$mes])['s'] ?? 0);
+        $pendientes       = (int)(dbRow("SELECT COUNT(*) AS n FROM pedidos WHERE estado = 'pendiente'")['n'] ?? 0);
+        $pendientesMes    = (int)(dbRow("SELECT COUNT(*) AS n FROM pedidos WHERE estado = 'pendiente' AND DATE(fecha_creacion) >= ?", [$mes])['n'] ?? 0);
+        $citasHoy         = (int)(dbRow("SELECT COUNT(*) AS n FROM citas WHERE DATE(fecha_cita) = ?", [$hoy])['n'] ?? 0);
+        $cotNuevas        = (int)(dbRow("SELECT COUNT(*) AS n FROM cotizaciones WHERE estado = 'nueva'")['n'] ?? 0);
+        $productosAct     = (int)(dbRow("SELECT COUNT(*) AS n FROM productos WHERE activo = 1")['n'] ?? 0);
+        $clientesUnicos   = (int)(dbRow("SELECT COUNT(DISTINCT correo_cliente) AS n FROM pedidos WHERE estado NOT IN ('cancelado')")['n'] ?? 0);
+        $clientesMes      = (int)(dbRow("SELECT COUNT(DISTINCT correo_cliente) AS n FROM pedidos WHERE DATE(fecha_creacion) >= ? AND estado NOT IN ('cancelado')", [$mes])['n'] ?? 0);
 
         $estadosPedidos = dbRows(
             "SELECT estado, COUNT(*) AS total FROM pedidos GROUP BY estado ORDER BY total DESC"
         );
 
         jsonSuccess([
-            'total_pedidos'      => $totalPedidos,
-            'pedidos_mes'        => $pedidosMes,
-            'ingresos_mes'       => $ingresosMes,
-            'pedidos_pendientes' => $pendientes,
-            'citas_hoy'          => $citasHoy,
-            'cotizaciones_nuevas'=> $cotNuevas,
-            'productos_activos'  => $productosAct,
-            'estados_pedidos'    => $estadosPedidos,
+            'total_pedidos'       => $totalPedidos,
+            'pedidos_mes'         => $pedidosMes,
+            'ingresos_mes'        => $ingresosMes,
+            'pedidos_pendientes'  => $pendientes,
+            'pedidos_pendientes_mes' => $pendientesMes,
+            'citas_hoy'           => $citasHoy,
+            'cotizaciones_nuevas' => $cotNuevas,
+            'productos_activos'   => $productosAct,
+            'clientes_unicos'     => $clientesUnicos,
+            'clientes_mes'        => $clientesMes,
+            'estados_pedidos'     => $estadosPedidos,
         ]);
         break;
 
