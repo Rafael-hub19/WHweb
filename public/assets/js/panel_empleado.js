@@ -232,9 +232,10 @@ function renderActivity(){
 function refreshKpisFromPedidosTable(){
   const rows = document.querySelectorAll('#pedidosTable tr');
   let pendientes = 0;
-  rows.forEach(r => { if(r.dataset.status === 'pending') pendientes++; });
+  rows.forEach(r => { if(r.dataset.status === 'pendiente') pendientes++; });
   const el = document.getElementById('kpiPendientes');
-  if(el) el.textContent = String(pendientes);
+  // Solo actualizar si hay filas cargadas para no sobreescribir con 0
+  if(el && rows.length > 0) el.textContent = String(pendientes);
 }
 
 // ================== PEDIDOS: FILTROS ==================
@@ -1326,14 +1327,14 @@ async function cargarNombreEmpleado() {
 async function refreshKpisAPI() {
   try {
     const data = await apiFetch(`${API_BASE}/reportes.php?tipo=resumen`);
-    if (!data.success) return;
+    if (!data.success) { console.warn('[KPI] API error:', data.error); return; }
     const kpiPend = document.getElementById('kpiPendientes');
     if (kpiPend) kpiPend.textContent = data.pedidos_pendientes ?? 0;
     const kpiCitas = document.getElementById('kpiCitasHoy');
     if (kpiCitas) kpiCitas.textContent = data.citas_hoy ?? 0;
     const kpiCot = document.getElementById('kpiCotNuevas');
     if (kpiCot) kpiCot.textContent = data.cotizaciones_nuevas ?? 0;
-  } catch(e) {}
+  } catch(e) { console.error('[KPI] refreshKpisAPI falló:', e.message); }
 }
 
 // ── AUTO-POLLING cada 30 segundos ────────────────────────────
