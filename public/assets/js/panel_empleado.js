@@ -139,7 +139,7 @@ function renderNotifPanel(){
 }
 
 function openNotifPanel(){
-  renderNotifPanel();
+  fetchNotificationsFromAPI().then(() => renderNotifPanel());
   notifPanel?.classList.add('open');
 }
 function closeNotifPanel(){
@@ -161,6 +161,33 @@ function pushNotif(title, meta){
 function markNotifAsRead(){
   setUnread(false);
   showNotification('<i class="fa-solid fa-check"></i> Notificaciones marcadas como leídas', 'success');
+}
+
+// ── Cargar notificaciones desde la API (Firestore) ─────────────
+async function fetchNotificationsFromAPI() {
+  try {
+    const res = await fetch('/api/notificaciones.php?destino=todos', { credentials: 'same-origin' });
+    if (!res.ok) return;
+    const json = await res.json();
+    const items = json.notificaciones ?? [];
+    if (!items.length) return;
+
+    const current = getNotifs();
+    const currentIds = new Set(current.map(n => n.id).filter(Boolean));
+    let hasNew = false;
+
+    items.slice(0, 20).forEach(n => {
+      if (n.id && currentIds.has(n.id)) return;
+      const fecha = n.fecha ? new Date(n.fecha).toLocaleString('es-MX') : new Date().toLocaleString('es-MX');
+      current.unshift({ id: n.id, title: n.titulo, meta: n.mensaje, at: fecha });
+      hasNew = true;
+    });
+
+    if (hasNew) {
+      saveNotifs(current.slice(0, 20));
+      setUnread(true);
+    }
+  } catch (e) { /* silencioso */ }
 }
 
 // ================== DASH: ACTIVIDAD RECIENTE ==================
@@ -1334,11 +1361,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
   setTimeout(cargarNombreEmpleado, 200);
   setTimeout(refreshKpisAPI, 400);
+  setTimeout(fetchNotificationsFromAPI, 800);
   showSection('dashboard');
 
   // Iniciar auto-polling
   window._currentSection = 'dashboard';
   window._autoRefreshInterval = setInterval(_autoRefresh, 30000);
+  setInterval(fetchNotificationsFromAPI, 60000);
 
   // Pausar polling cuando la pestaña no está visible (ahorra requests innecesarios)
   document.addEventListener('visibilitychange', () => {

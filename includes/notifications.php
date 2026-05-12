@@ -51,9 +51,17 @@ function crearNotificacionFirestore(string $tipo, string $titulo, string $mensaj
         CURLOPT_HTTPHEADER     => ['Content-Type: application/json'],
         CURLOPT_TIMEOUT        => 5,
     ]);
-    curl_exec($ch);
+    $body = curl_exec($ch);
     $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $err  = curl_error($ch);
     curl_close($ch);
+
+    if ($code !== 200 && $code !== 201) {
+        appLog('error', '[Firestore] crearNotificacion falló', [
+            'tipo' => $tipo, 'http' => $code, 'curl_err' => $err,
+            'body' => substr((string)$body, 0, 300),
+        ]);
+    }
     return $code === 200 || $code === 201;
 }
 

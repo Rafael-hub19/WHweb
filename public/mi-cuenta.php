@@ -38,7 +38,9 @@ header('Content-Type: text/html; charset=utf-8');
   <div class="nav-links" id="navLinks">
     <a href="/inicio" title="Volver al inicio">Inicio</a>
     <a href="/catalogo" title="Ver catálogo de muebles">Catálogo</a>
-    <a href="/solicitudes" title="Pedir cotización o agendar cita">Cotización y Citas</a>
+    <a href="/solicitudes" title="Pedir cotización o agendar una cita de medición">
+      <span class="nav-link-desc">Cotización y Citas<small>Pide precio o agenda visita</small></span>
+    </a>
     <a href="/carrito" class="cart-icon" aria-label="Ver carrito" title="Ver mi carrito">
       <i class="fa-solid fa-cart-shopping"></i>
     </a>

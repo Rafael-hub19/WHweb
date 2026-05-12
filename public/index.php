@@ -72,7 +72,9 @@ if (!empty($_SESSION['_flash'])) {
       </div>
 
       <a href="/catalogo" class="nav-link-item">Catálogo</a>
-      <a href="/solicitudes" class="nav-link-item">Solicitudes</a>
+      <a href="/solicitudes" title="Pedir cotización o agendar una cita de medición">
+        <span class="nav-link-desc">Cotización y Citas<small>Pide precio o agenda visita</small></span>
+      </a>
 
       <a href="/carrito" class="cart-icon" id="cartIcon" aria-label="Ver carrito">
         <i class="fa-solid fa-cart-shopping"></i>

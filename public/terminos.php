@@ -25,7 +25,9 @@
   <div class="nav-links">
     <a href="/inicio"><i class="fa-solid fa-house"></i> Inicio</a>
     <a href="/catalogo">Catálogo</a>
-    <a href="/solicitudes">Cotización y Citas</a>
+    <a href="/solicitudes" title="Pedir cotización o agendar una cita de medición">
+      <span class="nav-link-desc">Cotización y Citas<small>Pide precio o agenda visita</small></span>
+    </a>
   </div>
 </div>
 
