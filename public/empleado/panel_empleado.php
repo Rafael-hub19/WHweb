@@ -314,39 +314,70 @@ unset($_usuario);
     </main>
   </div>
 
-  <!-- MODAL: Detalle Pedido (con TIMELINE) -->
-  <div class="modal" id="pedidoModal">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h3 class="modal-title">Detalle del Pedido <span id="pDetId" style="color:var(--muted2); font-weight:900;"></span></h3>
-        <button class="modal-close" onclick="closeModal('pedidoModal')">×</button>
+  <!-- ═══ MODAL: DETALLE PEDIDO (empleado) ══════════════════════ -->
+  <div class="modal" id="empPedidoDetalleModal">
+    <div class="modal-content" style="max-width:750px;">
+      <div class="modal-header" style="background:var(--accent);color:#fff;border-radius:8px 8px 0 0;margin:-18px -18px 16px;padding:16px 18px;">
+        <h3 class="modal-title" style="color:#fff;">
+          <i class="fa-solid fa-box"></i> Detalle del Pedido
+          <span id="emp_ped_folio" style="font-weight:900;margin-left:8px;opacity:.85;"></span>
+        </h3>
+        <button class="modal-close" onclick="closeModal('empPedidoDetalleModal')" style="color:#fff;">×</button>
       </div>
-
-      <div class="row g-2 mb-2">
-        <div class="col-6">
-          <div class="form-label">Cliente</div>
-          <div style="color:var(--muted2); font-size:13px;" id="pDetCliente">—</div>
-        </div>
-        <div class="col-6">
-          <div class="form-label">Producto</div>
-          <div style="color:var(--muted2); font-size:13px;" id="pDetProducto">—</div>
-        </div>
-        <div class="col-6">
-          <div class="form-label">Fecha de entrega</div>
-          <div style="color:var(--muted2); font-size:13px;" id="pDetEntrega">—</div>
-        </div>
-        <div class="col-6">
-          <div class="form-label">Total</div>
-          <div style="color:var(--accent); font-size:14px; font-weight:900;" id="pDetTotal">—</div>
-        </div>
+      <div id="emp_ped_body" style="max-height:70vh;overflow-y:auto;overflow-x:hidden;">
+        <div style="text-align:center;padding:40px;color:var(--muted);"><i class="fa-solid fa-spinner fa-spin fa-2x"></i></div>
       </div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end;padding:12px 0 0;margin-top:4px;border-top:1px solid var(--border);">
+        <button class="btn btn-secondary" onclick="closeModal('empPedidoDetalleModal')">Cerrar</button>
+        <button class="btn btn-primary" onclick="openUpdateFromPedidoModal()">
+          <i class="fa-solid fa-pen"></i> Actualizar Estado
+        </button>
+      </div>
+    </div>
+  </div>
 
-      <div class="form-label">Seguimiento (4 etapas)</div>
-      <div class="timeline" id="pTimeline"></div>
+  <!-- ═══ MODAL: DETALLE CITA (empleado) ═════════════════════════ -->
+  <div class="modal" id="empCitaDetalleModal">
+    <div class="modal-content" style="max-width:600px;">
+      <div class="modal-header" style="background:#3d4d8b;color:#fff;border-radius:8px 8px 0 0;margin:-18px -18px 16px;padding:16px 18px;">
+        <h3 class="modal-title" style="color:#fff;">
+          <i class="fa-solid fa-calendar-days"></i> Detalle de Cita
+          <span id="emp_cita_folio" style="font-weight:900;margin-left:8px;opacity:.85;"></span>
+        </h3>
+        <button class="modal-close" onclick="closeModal('empCitaDetalleModal')" style="color:#fff;">×</button>
+      </div>
+      <div id="emp_cita_body" style="max-height:70vh;overflow-y:auto;overflow-x:hidden;">
+        <div style="text-align:center;padding:40px;color:var(--muted);"><i class="fa-solid fa-spinner fa-spin fa-2x"></i></div>
+      </div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:space-between;align-items:center;padding:12px 0 0;margin-top:4px;border-top:1px solid var(--border);">
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <button class="btn btn-secondary btn-small" onclick="confirmarCita(window._empCitaId);closeModal('empCitaDetalleModal');cargarCitasAPI();">✅ Confirmar</button>
+          <button class="btn btn-secondary btn-small" onclick="completarCita(window._empCitaId);closeModal('empCitaDetalleModal');cargarCitasAPI();">🏁 Completar</button>
+        </div>
+        <button class="btn btn-secondary" onclick="closeModal('empCitaDetalleModal')">Cerrar</button>
+      </div>
+    </div>
+  </div>
 
-      <div style="display:flex; gap:8px; justify-content:flex-end; flex-wrap:wrap;">
-        <button class="btn btn-secondary" onclick="closeModal('pedidoModal')">Cerrar</button>
-        <button class="btn btn-primary" onclick="openUpdateFromPedidoModal()">Actualizar</button>
+  <!-- ═══ MODAL: DETALLE COTIZACIÓN (empleado) ═══════════════════ -->
+  <div class="modal" id="empCotDetalleModal">
+    <div class="modal-content" style="max-width:650px;">
+      <div class="modal-header" style="background:#1e5c22;color:#fff;border-radius:8px 8px 0 0;margin:-18px -18px 16px;padding:16px 18px;">
+        <h3 class="modal-title" style="color:#fff;">
+          <i class="fa-solid fa-briefcase"></i> Detalle de Cotización
+          <span id="emp_cot_folio" style="font-weight:900;margin-left:8px;opacity:.85;"></span>
+        </h3>
+        <button class="modal-close" onclick="closeModal('empCotDetalleModal')" style="color:#fff;">×</button>
+      </div>
+      <div id="emp_cot_body" style="max-height:70vh;overflow-y:auto;overflow-x:hidden;">
+        <div style="text-align:center;padding:40px;color:var(--muted);"><i class="fa-solid fa-spinner fa-spin fa-2x"></i></div>
+      </div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:space-between;align-items:center;padding:12px 0 0;margin-top:4px;border-top:1px solid var(--border);">
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <button class="btn btn-secondary btn-small" onclick="actualizarCotizacion(window._empCotId,'en_revision');closeModal('empCotDetalleModal');cargarCotizacionesAPI();">📋 En Revisión</button>
+          <button class="btn btn-secondary btn-small" onclick="actualizarCotizacion(window._empCotId,'respondida');closeModal('empCotDetalleModal');cargarCotizacionesAPI();">✅ Respondida</button>
+        </div>
+        <button class="btn btn-secondary" onclick="closeModal('empCotDetalleModal')">Cerrar</button>
       </div>
     </div>
   </div>

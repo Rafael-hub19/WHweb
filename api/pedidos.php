@@ -139,7 +139,7 @@ switch ($method) {
         $costoInstalacion = !empty($body['incluye_instalacion'])
             ? (COSTO_INSTALACION * $totalMuebles)
             : 0;
-        $descuento        = sanitizeFloat($body['descuento'] ?? 0);
+        $descuento        = max(0, sanitizeFloat($body['descuento'] ?? 0));
         $total            = $subtotal + $costoEnvio + $costoInstalacion - $descuento;
 
         $numeroPedido = generarNumeroPedido();
@@ -161,6 +161,7 @@ switch ($method) {
             if (($limite - $cargaDia) >= $totalProductos) $fechaEst = $fechaClienteRaw;
         }
 
+        $pedidoId = 0;
         try {
             db()->beginTransaction();
 

@@ -25,6 +25,10 @@ function escapeHtml(str){
     .replaceAll("'","&#039;");
 }
 
+function money(n){
+  return Number(n||0).toLocaleString('es-MX',{style:'currency',currency:'MXN'});
+}
+
 // ================== MENÚ HAMBURGUESA (MÓVIL) ==================
 const menuToggle = document.getElementById('menuToggle');
 const navLinks = document.getElementById('navLinks');
@@ -320,7 +324,7 @@ function openUpdateFromRow(btn){
 }
 
 function openUpdateFromPedidoModal(){
-  closeModal('pedidoModal');
+  closeModal('empPedidoDetalleModal');
   if(currentPedidoRow) openUpdateWithRow(currentPedidoRow);
 }
 
@@ -1103,208 +1107,215 @@ async function cargarCotizacionesAPI() {
 // ════════════════════════════════════════════════════════════════
 
 async function verDetallePedidoEmp(id) {
-  // Reutilizar el modal existente pedidoModal del empleado con datos de API
-  const modal = document.getElementById('pedidoModal');
-  if (!modal) return;
-  // Limpiar campos básicos mientras carga
-  document.getElementById('pDetId').textContent = '#' + id;
-  document.getElementById('pDetCliente').textContent = '...';
-  document.getElementById('pDetProducto').textContent = '...';
-  document.getElementById('pDetEntrega').textContent = '...';
-  document.getElementById('pDetTotal').textContent = '...';
-  openModal('pedidoModal');
+  const body  = document.getElementById('emp_ped_body');
+  const folio = document.getElementById('emp_ped_folio');
+  openModal('empPedidoDetalleModal');
+  body.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted);"><i class="fa-solid fa-spinner fa-spin fa-2x"></i></div>';
+
+  const tr = document.querySelector(`tr[data-id="${id}"]`);
+  if (tr) currentPedidoRow = tr;
 
   try {
     const data = await apiFetch(`${API_BASE}/pedidos.php?id=${id}`);
-    if (!data.success || !data.pedido) return;
+    if (!data.success || !data.pedido) throw new Error(data.error || 'No encontrado');
     const p = data.pedido;
 
-    document.getElementById('pDetId').textContent = p.numero_pedido;
-    document.getElementById('pDetCliente').textContent = p.nombre_cliente + (p.correo_cliente ? ` — ${p.correo_cliente}` : '');
+    folio.textContent = p.numero_pedido;
 
-    // Productos
-    const items = p.items || [];
-    const prods = items.map(i => `${i.nombre_producto||i.producto_nombre||'Producto'} x${i.cantidad}`).join(', ') || '—';
-    document.getElementById('pDetProducto').textContent = prods;
-    document.getElementById('pDetEntrega').textContent = p.fecha_estimada || '—';
-    document.getElementById('pDetTotal').textContent = '$' + parseFloat(p.total||0).toLocaleString('es-MX');
-    renderPedidoTimeline(timelineStageFromStatus(p.estado));
-
-    // Datos adicionales — agregar dinámicamente debajo del modal si hay espacio
-    const extraId = 'pedidoExtraInfo';
-    let extra = document.getElementById(extraId);
-    if (!extra) {
-      extra = document.createElement('div');
-      extra.id = extraId;
-      extra.style.cssText = 'margin-top:12px;padding:12px;background:#faf6f0;border-radius:6px;font-size:13px;';
-      modal.querySelector('.modal-content').insertBefore(extra, modal.querySelector('.modal-content').lastElementChild);
+    if (currentPedidoRow) {
+      currentPedidoRow.dataset.status  = p.estado;
+      currentPedidoRow.dataset.entrega = p.tipo_entrega || '';
     }
-    extra.innerHTML = `
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-        <div><span style="color:var(--muted);">Teléfono:</span><br><strong>${escapeHtml(p.telefono_cliente||'—')}</strong></div>
-        <div><span style="color:var(--muted);">Entrega:</span><br><strong>${p.tipo_entrega==='recoger'?'🏪 Recoge en tienda':'🚚 Envío'}</strong></div>
-        ${p.tipo_entrega!=='recoger'&&(p.direccion_envio||p.colonia_envio||p.ciudad_envio)?`<div style="grid-column:1/-1;"><span style="color:var(--muted);">Dirección de entrega:</span><br><strong>${escapeHtml([p.direccion_envio,p.colonia_envio?'Col. '+p.colonia_envio:'',p.ciudad_envio,p.municipio_envio?'Mpio. '+p.municipio_envio:'',p.cp_envio?'CP '+p.cp_envio:''].filter(Boolean).join(', '))}</strong></div>`:''}
-        <div><span style="color:var(--muted);">Instalación:</span><br><strong>${parseInt(p.incluye_instalacion)?'✅ Incluye':'❌ No incluye'}</strong></div>
-        <div><span style="color:var(--muted);">Estado:</span><br><strong>${p.estado}</strong></div>
-        ${items.length>1?`<div style="grid-column:1/-1;"><span style="color:var(--muted);">Todos los productos:</span><br>${items.map(i=>`<span style="display:inline-block;background:#eee;border-radius:4px;padding:2px 8px;margin:2px;font-size:12px;">${escapeHtml(i.nombre_producto||i.producto_nombre||'?')} ×${i.cantidad}</span>`).join('')}</div>`:''}
-        ${p.cliente_id?`<div style="grid-column:1/-1;margin-top:4px;"><span style="background:#e8f5e9;color:#2E7D32;border-radius:12px;padding:3px 10px;font-size:11px;font-weight:700;"><i class="fa-solid fa-user-check"></i> Cliente registrado #${p.cliente_id}</span></div>`:''}
+
+    const estadoLabels = { pendiente:'Pendiente',pagado:'Pagado ✓',en_produccion:'En Producción 🔨',listo:'Listo 📦',entregado:'Entregado ✅',cancelado:'Cancelado ❌' };
+    const estadoColors = { pendiente:'#c8860a',pagado:'#4a7c8b',en_produccion:'#7c5c8b',listo:'#3d8b6a',entregado:'#4a8b5a',cancelado:'#8b4a4a' };
+    const est   = p.estado || 'pendiente';
+    const color = estadoColors[est] || 'var(--accent)';
+    const label = estadoLabels[est] || est;
+
+    let entrega;
+    if (p.tipo_entrega === 'recoger') {
+      entrega = '🏪 Recoge en tienda';
+    } else {
+      const partesDireccion = [
+        p.direccion_envio,
+        p.colonia_envio   ? `Col. ${p.colonia_envio}` : '',
+        p.ciudad_envio,
+        p.municipio_envio ? `Mpio. ${p.municipio_envio}` : '',
+        p.cp_envio        ? `CP ${p.cp_envio}` : '',
+      ].filter(Boolean).join(', ');
+      entrega = `🚚 Envío — ${partesDireccion || 'Sin dirección'}`;
+    }
+    const instalacion = parseInt(p.incluye_instalacion) ? '✅ Incluye instalación' : '❌ Sin instalación';
+
+    const items = p.items || [];
+    const itemsHtml = items.length
+      ? `<table style="width:100%;border-collapse:collapse;font-size:12px;margin-top:8px;">
+          <thead><tr style="background:var(--bg);">
+            <th style="padding:8px 6px;text-align:left;color:var(--accent);border-bottom:1px solid var(--border);">Producto</th>
+            <th style="padding:8px 6px;text-align:center;color:var(--accent);border-bottom:1px solid var(--border);">Cant.</th>
+            <th style="padding:8px 6px;text-align:right;color:var(--accent);border-bottom:1px solid var(--border);">P. Unit.</th>
+            <th style="padding:8px 6px;text-align:right;color:var(--accent);border-bottom:1px solid var(--border);">Total</th>
+          </tr></thead>
+          <tbody>${items.map(i=>`
+            <tr style="border-bottom:1px solid var(--border);">
+              <td style="padding:8px 6px;color:var(--muted2);">${escapeHtml(i.nombre_producto||i.producto_nombre||'Producto')}</td>
+              <td style="padding:8px 6px;text-align:center;color:var(--muted2);">${i.cantidad}</td>
+              <td style="padding:8px 6px;text-align:right;color:var(--muted2);">${money(i.precio_unitario)}</td>
+              <td style="padding:8px 6px;text-align:right;font-weight:700;color:var(--accent);">${money(i.total_linea||i.precio_unitario*i.cantidad)}</td>
+            </tr>`).join('')}
+          </tbody>
+        </table>`
+      : '<p style="color:var(--muted);font-style:italic;font-size:12px;padding:8px 0;">Sin productos registrados</p>';
+
+    const pagos = p.pagos || [];
+    const pagosHtml = pagos.length
+      ? pagos.map(pg=>`<div style="display:flex;justify-content:space-between;font-size:12px;padding:6px 0;border-bottom:1px solid var(--border);color:var(--muted2);">
+          <span>${pg.metodo_pago||'Pago'} — ${(pg.fecha_creacion||'').substring(0,10)}</span>
+          <span style="font-weight:700;color:var(--ok);">${money(pg.monto||0)}</span>
+        </div>`).join('')
+      : '<p style="color:var(--muted);font-style:italic;font-size:12px;padding:6px 0;">Sin pagos registrados</p>';
+
+    body.innerHTML = `
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px;margin-bottom:18px;">
+        <span style="background:${color}30;color:${color};padding:5px 14px;border-radius:20px;font-weight:700;font-size:13px;border:1px solid ${color}50;">${label}</span>
+        <div style="text-align:right;">
+          <div style="font-size:22px;font-weight:900;color:var(--accent);">${money(p.total)}</div>
+          <div style="font-size:11px;color:var(--muted);">Sub ${money(p.subtotal)} + Envío ${money(p.costo_envio)} + Inst. ${money(p.costo_instalacion)}</div>
+        </div>
+      </div>
+
+      <div style="background:var(--bg);border-left:3px solid var(--accent);border-radius:6px;padding:12px;margin-bottom:14px;">
+        <div style="font-weight:700;color:var(--accent);margin-bottom:8px;font-size:11px;text-transform:uppercase;letter-spacing:.8px;">Cliente</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:12px;color:var(--muted2);">
+          <div><span style="color:var(--muted);display:block;font-size:10px;">Nombre</span><strong>${escapeHtml(p.nombre_cliente)}</strong></div>
+          <div><span style="color:var(--muted);display:block;font-size:10px;">Teléfono</span><strong>${escapeHtml(p.telefono_cliente||'—')}</strong></div>
+          <div><span style="color:var(--muted);display:block;font-size:10px;">Correo</span><strong>${escapeHtml(p.correo_cliente)}</strong></div>
+          <div><span style="color:var(--muted);display:block;font-size:10px;">Fecha estimada</span><strong>${p.fecha_estimada||'—'}</strong></div>
+          <div style="grid-column:1/-1;"><span style="color:var(--muted);display:block;font-size:10px;">Entrega</span><strong>${entrega}</strong></div>
+          <div style="grid-column:1/-1;"><span style="color:var(--muted);display:block;font-size:10px;">Instalación</span><strong>${instalacion}</strong></div>
+          ${p.notas?`<div style="grid-column:1/-1;"><span style="color:var(--muted);display:block;font-size:10px;">Notas</span><strong>${escapeHtml(p.notas)}</strong></div>`:''}
+          ${p.cliente_id?`<div style="grid-column:1/-1;margin-top:4px;"><span style="background:#2d6a3f20;color:#2d6a3f;border-radius:12px;padding:3px 10px;font-size:11px;font-weight:700;"><i class="fa-solid fa-user-check"></i> Cliente registrado #${p.cliente_id}</span></div>`:''}
+        </div>
+      </div>
+
+      <div style="margin-bottom:14px;">
+        <div style="font-weight:700;color:var(--accent);margin-bottom:6px;font-size:11px;text-transform:uppercase;letter-spacing:.8px;">Productos del Pedido</div>
+        ${itemsHtml}
+      </div>
+
+      <div>
+        <div style="font-weight:700;color:var(--accent);margin-bottom:6px;font-size:11px;text-transform:uppercase;letter-spacing:.8px;">Historial de Pagos</div>
+        ${pagosHtml}
       </div>
     `;
-  } catch(e) { console.error('Error cargando pedido:', e); }
+  } catch(e) {
+    body.innerHTML = `<div style="color:var(--danger);padding:20px;text-align:center;"><i class="fa-solid fa-circle-exclamation"></i> Error: ${e.message}</div>`;
+  }
 }
 
 async function verDetalleCitaEmp(id) {
-  // Crear modal temporal si no existe uno específico para citas
-  let modal = document.getElementById('citaDetalleEmpModal');
-  if (!modal) {
-    modal = document.createElement('div');
-    modal.id = 'citaDetalleEmpModal';
-    modal.className = 'modal';
-    modal.innerHTML = `
-      <div class="modal-content" style="max-width:560px;">
-        <div class="modal-header" style="background:#5C6BC0;color:#fff;border-radius:8px 8px 0 0;">
-          <h3 class="modal-title" style="color:#fff;"><i class="fa-solid fa-calendar-days"></i> Detalle de Cita <span id="emp_cita_folio" style="opacity:.8;"></span></h3>
-          <button class="modal-close" onclick="closeModal('citaDetalleEmpModal')" style="color:#fff;">×</button>
-        </div>
-        <div id="emp_cita_body" style="padding:20px;max-height:70vh;overflow-y:auto;"></div>
-        <div style="display:flex;gap:8px;justify-content:space-between;flex-wrap:wrap;padding:12px 20px;border-top:1px solid #eee;">
-          <div style="display:flex;gap:6px;flex-wrap:wrap;">
-            <button class="btn btn-secondary btn-small" onclick="confirmarCita(window._empCitaId);closeModal('citaDetalleEmpModal');cargarCitasAPI();">✅ Confirmar</button>
-            <button class="btn btn-secondary btn-small" onclick="completarCita(window._empCitaId);closeModal('citaDetalleEmpModal');cargarCitasAPI();">🏁 Completar</button>
-          </div>
-          <button class="btn btn-secondary" onclick="closeModal('citaDetalleEmpModal')">Cerrar</button>
-        </div>
-      </div>`;
-    document.body.appendChild(modal);
-    modal.addEventListener('click', e => { if(e.target===modal) modal.classList.remove('active'); });
-  }
-
   const body  = document.getElementById('emp_cita_body');
   const folio = document.getElementById('emp_cita_folio');
   window._empCitaId = id;
-  body.innerHTML = '<div style="text-align:center;padding:30px;color:#888;"><i class="fa-solid fa-spinner fa-spin fa-2x"></i></div>';
-  openModal('citaDetalleEmpModal');
+  openModal('empCitaDetalleModal');
+  body.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted);"><i class="fa-solid fa-spinner fa-spin fa-2x"></i></div>';
 
   try {
     const data = await apiFetch(`${API_BASE}/citas.php?id=${id}`);
-    if (!data.success || !data.cita) throw new Error('No encontrada');
+    if (!data.success || !data.cita) throw new Error(data.error || 'No encontrada');
     const c = data.cita;
     folio.textContent = c.numero_cita;
 
-    const estLabels = { nueva:'Nueva 🆕', confirmada:'Confirmada ✅', completada:'Completada 🏁', cancelada:'Cancelada ❌' };
-    const estColors = { nueva:'#1565C0', confirmada:'#2E7D32', completada:'#5C3D11', cancelada:'#B71C1C' };
-    const tipoLabels = { medicion:'Medición 📐', instalacion:'Instalación 🔧', otro:'Otro' };
+    const estLabels = { nueva:'Nueva 🆕',confirmada:'Confirmada ✅',completada:'Completada 🏁',cancelada:'Cancelada ❌' };
+    const estColors = { nueva:'#4a7c8b',confirmada:'#4a8b5a',completada:'#8b7355',cancelada:'#8b4a4a' };
+    const tipoLabels = { medicion:'Medición 📐',instalacion:'Instalación 🔧',otro:'Otro' };
     const est = c.estado || 'nueva';
 
     body.innerHTML = `
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:8px;">
-        <span style="background:${estColors[est]}22;color:${estColors[est]};padding:5px 14px;border-radius:20px;font-weight:700;font-size:13px;">${estLabels[est]||est}</span>
-        <span style="font-size:12px;color:#888;">Registrada: ${(c.fecha_creacion||'').substring(0,10)}</span>
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:18px;">
+        <span style="background:${estColors[est]||'var(--accent)'}30;color:${estColors[est]||'var(--accent)'};padding:5px 14px;border-radius:20px;font-weight:700;font-size:13px;border:1px solid ${estColors[est]||'var(--accent)'}50;">${estLabels[est]||est}</span>
+        <span style="font-size:11px;color:var(--muted);">Registrada: ${(c.fecha_creacion||'').substring(0,10)}</span>
       </div>
-      <div style="background:#f0f4ff;border-left:3px solid #5C6BC0;border-radius:4px;padding:12px;margin-bottom:12px;">
-        <div style="font-weight:700;color:#5C6BC0;font-size:12px;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;">Fecha y Tipo</div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:13px;">
-          <div><span style="color:#888;">📅 Fecha:</span><br><strong style="font-size:15px;">${c.fecha_cita||'—'}</strong></div>
-          <div><span style="color:#888;">🕐 Horario:</span><br><strong style="font-size:15px;">${c.rango_horario||'Por confirmar'}</strong></div>
-          <div><span style="color:#888;">Tipo:</span><br><strong>${tipoLabels[c.tipo]||c.tipo||'—'}</strong></div>
+
+      <div style="background:var(--bg);border-left:3px solid #4a7c8b;border-radius:6px;padding:12px;margin-bottom:14px;">
+        <div style="font-weight:700;color:#5b9aad;margin-bottom:8px;font-size:11px;text-transform:uppercase;letter-spacing:.8px;">Fecha y Tipo</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:12px;color:var(--muted2);">
+          <div><span style="color:var(--muted);display:block;font-size:10px;">📅 Fecha</span><strong style="font-size:15px;">${c.fecha_cita||'—'}</strong></div>
+          <div><span style="color:var(--muted);display:block;font-size:10px;">🕐 Horario</span><strong style="font-size:15px;">${c.rango_horario||'Por confirmar'}</strong></div>
+          <div><span style="color:var(--muted);display:block;font-size:10px;">Tipo</span><strong>${tipoLabels[c.tipo]||c.tipo||'—'}</strong></div>
+          <div><span style="color:var(--muted);display:block;font-size:10px;">Folio</span><strong>${c.numero_cita}</strong></div>
         </div>
       </div>
-      <div style="background:#faf6f0;border-left:3px solid var(--accent);border-radius:4px;padding:12px;">
-        <div style="font-weight:700;color:var(--accent);font-size:12px;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;">Cliente</div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:13px;">
-          <div><span style="color:#888;">Nombre:</span><br><strong>${escapeHtml(c.nombre_cliente)}</strong></div>
-          <div><span style="color:#888;">Teléfono:</span><br><strong>${escapeHtml(c.telefono_cliente||'—')}</strong></div>
-          <div style="grid-column:1/-1;"><span style="color:#888;">Correo:</span><br><strong>${escapeHtml(c.correo_cliente)}</strong></div>
-          <div style="grid-column:1/-1;"><span style="color:#888;">📍 Dirección:</span><br><strong>${escapeHtml(c.direccion||'Sin especificar')}</strong></div>
-          ${c.notas?`<div style="grid-column:1/-1;"><span style="color:#888;">Notas:</span><br>${escapeHtml(c.notas)}</div>`:''}
-          ${c.cliente_id?`<div style="grid-column:1/-1;margin-top:4px;"><span style="background:#e8f5e9;color:#2E7D32;border-radius:12px;padding:3px 10px;font-size:11px;font-weight:700;"><i class="fa-solid fa-user-check"></i> Cliente registrado #${c.cliente_id}</span></div>`:''}
+
+      <div style="background:var(--bg);border-left:3px solid var(--accent);border-radius:6px;padding:12px;">
+        <div style="font-weight:700;color:var(--accent);margin-bottom:8px;font-size:11px;text-transform:uppercase;letter-spacing:.8px;">Cliente</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:12px;color:var(--muted2);">
+          <div><span style="color:var(--muted);display:block;font-size:10px;">Nombre</span><strong>${escapeHtml(c.nombre_cliente)}</strong></div>
+          <div><span style="color:var(--muted);display:block;font-size:10px;">Teléfono</span><strong>${escapeHtml(c.telefono_cliente||'—')}</strong></div>
+          <div style="grid-column:1/-1;"><span style="color:var(--muted);display:block;font-size:10px;">Correo</span><strong>${escapeHtml(c.correo_cliente)}</strong></div>
+          <div style="grid-column:1/-1;"><span style="color:var(--muted);display:block;font-size:10px;">📍 Dirección</span><strong>${escapeHtml(c.direccion||'Sin especificar')}</strong></div>
+          ${c.notas?`<div style="grid-column:1/-1;"><span style="color:var(--muted);display:block;font-size:10px;">Notas</span><strong>${escapeHtml(c.notas)}</strong></div>`:''}
+          ${c.cliente_id?`<div style="grid-column:1/-1;margin-top:4px;"><span style="background:#2d6a3f20;color:#2d6a3f;border-radius:12px;padding:3px 10px;font-size:11px;font-weight:700;"><i class="fa-solid fa-user-check"></i> Cliente registrado #${c.cliente_id}</span></div>`:''}
         </div>
-      </div>`;
+      </div>
+    `;
   } catch(e) {
-    body.innerHTML = `<div style="color:#c62828;padding:20px;text-align:center;">${e.message}</div>`;
+    body.innerHTML = `<div style="color:var(--danger);padding:20px;text-align:center;"><i class="fa-solid fa-circle-exclamation"></i> Error: ${e.message}</div>`;
   }
 }
 
 async function verDetalleCotEmp(id) {
-  let modal = document.getElementById('cotDetalleEmpModal');
-  if (!modal) {
-    modal = document.createElement('div');
-    modal.id = 'cotDetalleEmpModal';
-    modal.className = 'modal';
-    modal.innerHTML = `
-      <div class="modal-content" style="max-width:600px;">
-        <div class="modal-header" style="background:#2E7D32;color:#fff;border-radius:8px 8px 0 0;">
-          <h3 class="modal-title" style="color:#fff;"><i class="fa-solid fa-briefcase"></i> Detalle de Cotización <span id="emp_cot_folio" style="opacity:.8;"></span></h3>
-          <button class="modal-close" onclick="closeModal('cotDetalleEmpModal')" style="color:#fff;">×</button>
-        </div>
-        <div id="emp_cot_body" style="padding:20px;max-height:70vh;overflow-y:auto;"></div>
-        <div style="display:flex;gap:8px;justify-content:space-between;flex-wrap:wrap;padding:12px 20px;border-top:1px solid #eee;">
-          <div style="display:flex;gap:6px;flex-wrap:wrap;">
-            <button class="btn btn-secondary btn-small" onclick="actualizarCotizacion(window._empCotId,'en_revision');closeModal('cotDetalleEmpModal');cargarCotizacionesAPI();">📋 En revisión</button>
-            <button class="btn btn-secondary btn-small" onclick="actualizarCotizacion(window._empCotId,'respondida');closeModal('cotDetalleEmpModal');cargarCotizacionesAPI();">✅ Respondida</button>
-          </div>
-          <button class="btn btn-secondary" onclick="closeModal('cotDetalleEmpModal')">Cerrar</button>
-        </div>
-      </div>`;
-    document.body.appendChild(modal);
-    modal.addEventListener('click', e => { if(e.target===modal) modal.classList.remove('active'); });
-  }
-
   const body  = document.getElementById('emp_cot_body');
   const folio = document.getElementById('emp_cot_folio');
   window._empCotId = id;
-  body.innerHTML = '<div style="text-align:center;padding:30px;color:#888;"><i class="fa-solid fa-spinner fa-spin fa-2x"></i></div>';
-  openModal('cotDetalleEmpModal');
+  openModal('empCotDetalleModal');
+  body.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted);"><i class="fa-solid fa-spinner fa-spin fa-2x"></i></div>';
 
   try {
     const data = await apiFetch(`${API_BASE}/cotizaciones.php?id=${id}`);
-    if (!data.success || !data.cotizacion) throw new Error('No encontrada');
+    if (!data.success || !data.cotizacion) throw new Error(data.error || 'No encontrada');
     const cot = data.cotizacion;
     folio.textContent = cot.numero_cotizacion;
 
-    const estLabels = { nueva:'Nueva 🆕', en_revision:'En Revisión 📋', respondida:'Respondida ✅', cerrada:'Cerrada 🔒' };
-    const estColors = { nueva:'#1565C0', en_revision:'#F57F17', respondida:'#2E7D32', cerrada:'#757575' };
-    const tipoMap = {
-      sevilla:'Modelo Sevilla', roma:'Modelo Roma', edinburgo:'Modelo Edinburgo',
-      singapur:'Modelo Singapur', sydney:'Modelo Sydney', palermo:'Modelo Palermo',
-      budapest:'Modelo Budapest', quebec:'Modelo Quebec', toronto:'Modelo Toronto',
-      amsterdam:'Modelo Amsterdam', oslo:'Mueble Oslo', paris:'Muebles Paris',
-      tokio:'Mueble Tokio', personalizado:'Diseño Personalizado',
-      baño:'Baño', sala:'Sala', recamara:'Recámara', estudio:'Estudio', cocina:'Cocina', closet:'Closet',
-    };
+    const estLabels = { nueva:'Nueva 🆕',en_revision:'En Revisión 📋',respondida:'Respondida ✅',cerrada:'Cerrada 🔒' };
+    const estColors = { nueva:'#4a7c8b',en_revision:'#8b7355',respondida:'#4a8b5a',cerrada:'#555' };
     const est = cot.estado || 'nueva';
-    const tipoLabel = tipoMap[cot.modelo_mueble] || (cot.modelo_mueble || 'No especificado');
 
     body.innerHTML = `
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:8px;">
-        <span style="background:${estColors[est]}22;color:${estColors[est]};padding:5px 14px;border-radius:20px;font-weight:700;font-size:13px;">${estLabels[est]||est}</span>
-        <span style="font-size:12px;color:#888;">Creada: ${(cot.fecha_creacion||'').substring(0,10)}</span>
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:18px;">
+        <span style="background:${estColors[est]||'var(--accent)'}30;color:${estColors[est]||'var(--accent)'};padding:5px 14px;border-radius:20px;font-weight:700;font-size:13px;border:1px solid ${estColors[est]||'var(--accent)'}50;">${estLabels[est]||est}</span>
+        <span style="font-size:11px;color:var(--muted);">Creada: ${(cot.fecha_creacion||'').substring(0,10)}</span>
       </div>
-      <div style="background:#faf6f0;border-left:3px solid var(--accent);border-radius:4px;padding:12px;margin-bottom:12px;">
-        <div style="font-weight:700;color:var(--accent);font-size:12px;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;">Cliente</div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:13px;">
-          <div><span style="color:#888;">Nombre:</span><br><strong>${escapeHtml(cot.nombre_cliente)}</strong></div>
-          <div><span style="color:#888;">Teléfono:</span><br><strong>${escapeHtml(cot.telefono_cliente||'—')}</strong></div>
-          <div style="grid-column:1/-1;"><span style="color:#888;">Correo:</span><br><strong>${escapeHtml(cot.correo_cliente)}</strong></div>
-          ${cot.cliente_id?`<div style="grid-column:1/-1;margin-top:4px;"><span style="background:#e8f5e9;color:#2E7D32;border-radius:12px;padding:3px 10px;font-size:11px;font-weight:700;"><i class="fa-solid fa-user-check"></i> Cliente registrado #${cot.cliente_id}</span></div>`:''}
+
+      <div style="background:var(--bg);border-left:3px solid var(--accent);border-radius:6px;padding:12px;margin-bottom:14px;">
+        <div style="font-weight:700;color:var(--accent);margin-bottom:8px;font-size:11px;text-transform:uppercase;letter-spacing:.8px;">Cliente</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:12px;color:var(--muted2);">
+          <div><span style="color:var(--muted);display:block;font-size:10px;">Nombre</span><strong>${escapeHtml(cot.nombre_cliente)}</strong></div>
+          <div><span style="color:var(--muted);display:block;font-size:10px;">Teléfono</span><strong>${escapeHtml(cot.telefono_cliente||'—')}</strong></div>
+          <div style="grid-column:1/-1;"><span style="color:var(--muted);display:block;font-size:10px;">Correo</span><strong>${escapeHtml(cot.correo_cliente)}</strong></div>
+          ${cot.cliente_id?`<div style="grid-column:1/-1;margin-top:4px;"><span style="background:#2d6a3f20;color:#2d6a3f;border-radius:12px;padding:3px 10px;font-size:11px;font-weight:700;"><i class="fa-solid fa-user-check"></i> Cliente registrado #${cot.cliente_id}</span></div>`:''}
         </div>
       </div>
-      <div style="background:#f0fff4;border-left:3px solid #2E7D32;border-radius:4px;padding:12px;">
-        <div style="font-weight:700;color:#2E7D32;font-size:12px;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;">Solicitud</div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:13px;">
-          <div><span style="color:#888;">Tipo:</span><br><strong>${escapeHtml(tipoLabel)}</strong></div>
-          <div><span style="color:#888;">Presupuesto:</span><br><strong>${escapeHtml(cot.rango_presupuesto||'No especificado')}</strong></div>
-          <div><span style="color:#888;">Medidas:</span><br><strong>${parseInt(cot.tiene_medidas)?'✅ Tiene medidas':'❌ Sin medidas'}</strong></div>
-          <div><span style="color:#888;">Instalación:</span><br><strong>${parseInt(cot.requiere_instalacion)?'✅ Requiere':'❌ No requiere'}</strong></div>
-          ${cot.medidas?`<div style="grid-column:1/-1;"><span style="color:#888;">Medidas:</span><br><strong>${escapeHtml(cot.medidas)}</strong></div>`:''}
+
+      <div style="background:var(--bg);border-left:3px solid var(--ok);border-radius:6px;padding:12px;">
+        <div style="font-weight:700;color:var(--ok);margin-bottom:8px;font-size:11px;text-transform:uppercase;letter-spacing:.8px;">Especificaciones</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:12px;color:var(--muted2);">
+          <div><span style="color:var(--muted);display:block;font-size:10px;">Modelo de mueble</span><strong>${escapeHtml(cot.modelo_mueble||'No especificado')}</strong></div>
+          <div><span style="color:var(--muted);display:block;font-size:10px;">Presupuesto</span><strong>${escapeHtml(cot.rango_presupuesto||'No especificado')}</strong></div>
+          <div><span style="color:var(--muted);display:block;font-size:10px;">Tiene medidas</span><strong>${parseInt(cot.tiene_medidas)?'✅ Sí':'❌ No'}</strong></div>
+          <div><span style="color:var(--muted);display:block;font-size:10px;">Requiere instalación</span><strong>${parseInt(cot.requiere_instalacion)?'✅ Sí':'❌ No'}</strong></div>
+          ${cot.medidas?`<div style="grid-column:1/-1;"><span style="color:var(--muted);display:block;font-size:10px;">Medidas</span><strong>${escapeHtml(cot.medidas)}</strong></div>`:''}
           <div style="grid-column:1/-1;">
-            <span style="color:#888;">Descripción:</span><br>
-            <div style="background:#fff;border:1px solid #e0e0e0;border-radius:4px;padding:10px;margin-top:4px;line-height:1.6;">${escapeHtml(cot.descripcion_solicitud||'—')}</div>
+            <span style="color:var(--muted);display:block;font-size:10px;margin-bottom:4px;">Descripción de la solicitud</span>
+            <div style="background:var(--panel);border:1px solid var(--border);border-radius:6px;padding:10px;line-height:1.6;color:var(--muted2);">${escapeHtml(cot.descripcion_solicitud||'—')}</div>
           </div>
+          ${cot.notas_admin?`<div style="grid-column:1/-1;"><span style="color:var(--muted);display:block;font-size:10px;margin-bottom:4px;">Notas internas</span><div style="background:var(--panel);border:1px solid var(--warn);border-radius:6px;padding:10px;color:var(--muted2);">${escapeHtml(cot.notas_admin)}</div></div>`:''}
         </div>
-      </div>`;
+      </div>
+    `;
   } catch(e) {
-    body.innerHTML = `<div style="color:#c62828;padding:20px;text-align:center;">${e.message}</div>`;
+    body.innerHTML = `<div style="color:var(--danger);padding:20px;text-align:center;"><i class="fa-solid fa-circle-exclamation"></i> Error: ${e.message}</div>`;
   }
 }
 

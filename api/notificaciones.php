@@ -41,7 +41,7 @@ switch ($method) {
                     'referencia' => $fields['referencia']['stringValue'] ?? '',
                     'destino'    => $fields['destino']['stringValue'] ?? 'todos',
                     'leida'      => ($fields['leida']['booleanValue'] ?? false) === true,
-                    'fecha'      => $fields['fecha']['stringValue'] ?? '',
+                    'fecha'      => $fields['fecha']['timestampValue'] ?? $fields['fecha']['stringValue'] ?? '',
                 ];
                 if ($destino === 'todos' || $notif['destino'] === $destino || $notif['destino'] === 'todos') {
                     $notificaciones[] = $notif;
@@ -71,7 +71,8 @@ switch ($method) {
     case 'PUT':
         // Marcar como leída
         if (!$id) jsonError('ID requerido', 400);
-        $ok = firestoreEscribir('notificaciones', $id, ['leida' => true, 'fecha' => date('c')]);
+        if (!preg_match('/^[a-zA-Z0-9_-]{1,128}$/', $id)) jsonError('ID inválido', 422);
+        $ok = marcarNotificacionLeida($id);
         if ($ok) {
             jsonSuccess(['mensaje' => 'Notificación marcada como leída']);
         } else {
