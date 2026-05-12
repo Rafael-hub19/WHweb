@@ -48,6 +48,7 @@ unset($_usuario);
         <span class="badge-dot" id="notifDot"></span>
       </button>
 
+
       <div class="user-info">
         <div class="user-avatar">JP</div>
         <span id="empNombreHeader">Cargando...</span>
@@ -59,12 +60,16 @@ unset($_usuario);
   <!-- PANEL NOTIFICACIONES -->
   <div class="notif-panel" id="notifPanel">
     <div class="notif-head">
-      <span>Notificaciones</span>
-      <button class="btn btn-secondary btn-small" onclick="markNotifAsRead()">Marcar leídas</button>
+      <div class="notif-head-title">
+        <i class="fa-solid fa-bell"></i>
+        Notificaciones
+      </div>
+      <div class="notif-head-actions">
+        <button class="btn btn-secondary btn-small" onclick="markAllNotifRead()" title="Marcar todas como leídas"><i class="fa-solid fa-check-double"></i></button>
+        <button class="btn btn-secondary btn-small" onclick="clearAllNotifs()" title="Limpiar todo" style="color:var(--danger,#e57373);"><i class="fa-solid fa-trash"></i></button>
+      </div>
     </div>
-    <div class="notif-body" id="notifBody">
-      <div style="color: var(--muted); font-size: 12px;">Sin notificaciones.</div>
-    </div>
+    <div class="notif-body" id="notifBody"></div>
   </div>
 
   <!-- MENÚ HAMBURGUESA (MÓVIL) -->
@@ -392,15 +397,13 @@ unset($_usuario);
 
       <div class="form-group">
         <label class="form-label">Estado</label>
-        <select class="form-select" id="uStatus">
-          <option value="pending">Pendiente</option>
-          <option value="progress">En proceso</option>
-          <option value="install">Instalación</option>
-          <option value="completed">Completado</option>
+        <select class=”form-select” id=”uStatus”>
+          <option value=”pendiente”>Pendiente</option>
+          <option value=”en_produccion”>En Producción</option>
+          <option value=”listo”>Listo para entrega</option>
+          <option value=”entregado”>Entregado</option>
+          <option value=”cancelado”>Cancelado</option>
         </select>
-        <div style="color:var(--muted); font-size:11px; margin-top:6px;">
-          * “Instalación” es una etapa visual del timeline (para cumplir el seguimiento de 4 etapas).
-        </div>
       </div>
 
       <div class="form-group">

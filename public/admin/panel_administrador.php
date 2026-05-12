@@ -45,10 +45,29 @@ unset($_usuario);
   </div>
 
     <div class="user-info">
+      <button class="icon-btn" id="notifBtn" aria-label="Notificaciones" title="Notificaciones">
+        <i class="fa-solid fa-bell"></i>
+        <span class="badge-dot" id="notifDot"></span>
+      </button>
       <div class="user-avatar">AD</div>
       <span>Administrador</span>
       <button class="logout-btn" onclick="logoutAdmin()">Salir</button>
     </div>
+  </div>
+
+  <!-- PANEL NOTIFICACIONES -->
+  <div class="notif-panel" id="notifPanel">
+    <div class="notif-head">
+      <div class="notif-head-title">
+        <i class="fa-solid fa-bell"></i>
+        Notificaciones
+      </div>
+      <div class="notif-head-actions">
+        <button class="btn btn-secondary btn-small" onclick="markAllNotifRead()" title="Marcar todas como leídas"><i class="fa-solid fa-check-double"></i></button>
+        <button class="btn btn-secondary btn-small" onclick="clearAllNotifs()" title="Limpiar todo" style="color:var(--danger,#e57373);"><i class="fa-solid fa-trash"></i></button>
+      </div>
+    </div>
+    <div class="notif-body" id="notifBody"></div>
   </div>
 
   <!-- MENÚ HAMBURGUESA (tablet/móvil) -->

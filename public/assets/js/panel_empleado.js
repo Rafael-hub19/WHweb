@@ -50,8 +50,7 @@ document.addEventListener('click', (e) => {
     const inside = e.target.closest('#navLinks') || e.target.closest('#menuToggle');
     if (!inside) setMenuOpen(false);
   }
-  const notifPanel = document.getElementById('notifPanel');
-  if (notifPanel?.classList.contains('open')) {
+  if (document.getElementById('notifPanel')?.classList.contains('open')) {
     const insideN = e.target.closest('#notifPanel') || e.target.closest('#notifBtn');
     if (!insideN) closeNotifPanel();
   }
@@ -110,36 +109,86 @@ document.querySelectorAll('.modal').forEach(modal => {
 });
 
 // ================== NOTIFICACIONES (PANEL) ==================
-const notifBtn = document.getElementById('notifBtn');
+const notifBody  = document.getElementById('notifBody');
+const notifDot   = document.getElementById('notifDot');
+const notifBtn   = document.getElementById('notifBtn');
 const notifPanel = document.getElementById('notifPanel');
-const notifBody = document.getElementById('notifBody');
-const notifDot = document.getElementById('notifDot');
 
-const NOTIF_KEY = 'wh_emp_notifs';
+const NOTIF_KEY        = 'wh_emp_notifs';
 const NOTIF_UNREAD_KEY = 'wh_emp_notifs_unread';
+
+const NOTIF_ICONS = {
+  pedido:      { icon:'fa-box',          color:'var(--accent)' },
+  cita:        { icon:'fa-calendar-days',color:'#4a7c8b' },
+  cotizacion:  { icon:'fa-briefcase',    color:'#4a8b5a' },
+  pago:        { icon:'fa-credit-card',  color:'#7c5c8b' },
+  sistema:     { icon:'fa-gear',         color:'var(--muted2)' },
+};
 
 function getNotifs(){ return JSON.parse(localStorage.getItem(NOTIF_KEY) || '[]'); }
 function saveNotifs(list){ localStorage.setItem(NOTIF_KEY, JSON.stringify(list)); }
-
-function setUnread(on){
-  localStorage.setItem(NOTIF_UNREAD_KEY, on ? '1' : '0');
-  notifDot?.classList.toggle('on', on);
+function getUnreadCount(){ return parseInt(localStorage.getItem(NOTIF_UNREAD_KEY) || '0'); }
+function setUnreadCount(n){
+  const count = Math.max(0, n);
+  localStorage.setItem(NOTIF_UNREAD_KEY, String(count));
+  if (!notifDot) return;
+  if (count === 0) {
+    notifDot.classList.remove('on');
+    notifBtn?.classList.remove('has-notif');
+  } else {
+    notifDot.textContent = count > 9 ? '9+' : count;
+    notifDot.classList.add('on');
+    notifBtn?.classList.add('has-notif');
+  }
 }
-function getUnread(){ return localStorage.getItem(NOTIF_UNREAD_KEY) === '1'; }
+
+function _notifTypeClass(tipo){
+  const t = (tipo||'').toLowerCase();
+  if(t.includes('pedido')) return 'type-pedido';
+  if(t.includes('cita'))   return 'type-cita';
+  if(t.includes('cotiz'))  return 'type-cotizacion';
+  if(t.includes('pago'))   return 'type-pago';
+  return '';
+}
+function _notifIconHtml(tipo){
+  const t = (tipo||'').toLowerCase();
+  let key = 'sistema';
+  if(t.includes('pedido')) key='pedido';
+  else if(t.includes('cita'))  key='cita';
+  else if(t.includes('cotiz')) key='cotizacion';
+  else if(t.includes('pago'))  key='pago';
+  const cfg = NOTIF_ICONS[key];
+  return `<div class="notif-icon" style="color:${cfg.color};border-color:${cfg.color}40;">
+    <i class="fa-solid ${cfg.icon}"></i>
+  </div>`;
+}
 
 function renderNotifPanel(){
-  const list = getNotifs().slice(0, 12);
+  if (!notifBody) return;
+  const list = getNotifs().slice(0, 20);
   if(!list.length){
-    notifBody.innerHTML = '<div style="color: var(--muted); font-size: 12px;">Sin notificaciones.</div>';
+    notifBody.innerHTML = `<div class="notif-empty">
+      <i class="fa-solid fa-bell-slash"></i>
+      <span>Sin notificaciones</span>
+    </div>`;
     return;
   }
-  notifBody.innerHTML = list.map(n => `
-    <div class="notif-item">
-      <div class="t">${escapeHtml(n.title)}</div>
-      <div class="m">${escapeHtml(n.meta || '')}</div>
-      <div style="color: var(--muted); font-size: 11px;">${escapeHtml(n.at)}</div>
-    </div>
-  `).join('');
+  const unreadCount = getUnreadCount();
+  notifBody.innerHTML = list.map((n, i) => {
+    const isUnread = i < unreadCount;
+    const typeClass = _notifTypeClass(n.tipo || n.title);
+    return `<div class="notif-item ${typeClass}${isUnread?' unread':''}">
+      ${_notifIconHtml(n.tipo || n.title)}
+      <div class="notif-content">
+        <div class="t">${escapeHtml(n.title)}</div>
+        ${n.meta ? `<div class="m">${escapeHtml(n.meta)}</div>` : ''}
+        <div class="notif-item-foot">
+          <span class="at">${escapeHtml(n.at)}</span>
+          ${isUnread ? '<span class="notif-nueva">Nueva</span>' : ''}
+        </div>
+      </div>
+    </div>`;
+  }).join('');
 }
 
 function openNotifPanel(){
@@ -150,27 +199,34 @@ function closeNotifPanel(){
   notifPanel?.classList.remove('open');
 }
 
-notifBtn?.addEventListener('click', () => {
+notifBtn?.addEventListener('click', e => {
+  e.stopPropagation();
   notifPanel?.classList.contains('open') ? closeNotifPanel() : openNotifPanel();
 });
 
-function pushNotif(title, meta){
+function pushNotif(title, meta, tipo=''){
   const list = getNotifs();
-  list.unshift({ title, meta, at: new Date().toLocaleString('es-MX') });
-  saveNotifs(list);
-  setUnread(true);
+  list.unshift({ title, meta, tipo, at: new Date().toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit'}) + ' ' + new Date().toLocaleDateString('es-MX') });
+  saveNotifs(list.slice(0,30));
+  setUnreadCount(getUnreadCount() + 1);
   renderNotifPanel();
 }
 
-function markNotifAsRead(){
-  setUnread(false);
-  showNotification('<i class="fa-solid fa-check"></i> Notificaciones marcadas como leídas', 'success');
+function markAllNotifRead(){
+  setUnreadCount(0);
+  renderNotifPanel();
+}
+
+function clearAllNotifs(){
+  saveNotifs([]);
+  setUnreadCount(0);
+  renderNotifPanel();
 }
 
 // ── Cargar notificaciones desde la API (Firestore) ─────────────
 async function fetchNotificationsFromAPI() {
   try {
-    const res = await fetch('/api/notificaciones.php?destino=todos', { credentials: 'same-origin' });
+    const res = await fetch('/api/notificaciones.php?destino=empleado', { credentials: 'same-origin' });
     if (!res.ok) return;
     const json = await res.json();
     const items = json.notificaciones ?? [];
@@ -178,18 +234,20 @@ async function fetchNotificationsFromAPI() {
 
     const current = getNotifs();
     const currentIds = new Set(current.map(n => n.id).filter(Boolean));
-    let hasNew = false;
+    let newCount = 0;
 
     items.slice(0, 20).forEach(n => {
       if (n.id && currentIds.has(n.id)) return;
-      const fecha = n.fecha ? new Date(n.fecha).toLocaleString('es-MX') : new Date().toLocaleString('es-MX');
-      current.unshift({ id: n.id, title: n.titulo, meta: n.mensaje, at: fecha });
-      hasNew = true;
+      const fecha = n.fecha
+        ? new Date(n.fecha).toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit'}) + ' ' + new Date(n.fecha).toLocaleDateString('es-MX')
+        : new Date().toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit'}) + ' ' + new Date().toLocaleDateString('es-MX');
+      current.unshift({ id: n.id, title: n.titulo, meta: n.mensaje, tipo: n.tipo||'', at: fecha });
+      newCount++;
     });
 
-    if (hasNew) {
-      saveNotifs(current.slice(0, 20));
-      setUnread(true);
+    if (newCount > 0) {
+      saveNotifs(current.slice(0, 30));
+      setUnreadCount(getUnreadCount() + newCount);
     }
   } catch (e) { /* silencioso */ }
 }
@@ -331,7 +389,7 @@ function openUpdateFromPedidoModal(){
 function openUpdateWithRow(tr){
   const id = tr.dataset.id;
   const entrega = tr.dataset.entrega || '';
-  const status = tr.dataset.status || 'pending';
+  const status = tr.dataset.status || 'pendiente';
 
   document.getElementById('uId').textContent = '#' + id;
   document.getElementById('uEntrega').value = entrega;
@@ -342,46 +400,51 @@ function openUpdateWithRow(tr){
 }
 
 function statusLabel(status){
-  if(status === 'pending') return 'Pendiente';
-  if(status === 'progress') return 'En Proceso';
-  if(status === 'install') return 'Instalación';
-  if(status === 'completed') return 'Completado';
-  return 'Pendiente';
+  const map = { pendiente:'Pendiente', pagado:'Pagado', en_produccion:'En Producción', listo:'Listo', entregado:'Entregado', cancelado:'Cancelado' };
+  return map[status] || status;
 }
 
 function statusBadgeClass(status){
-  if(status === 'pending') return 'status-pending';
-  if(status === 'progress') return 'status-progress';
-  if(status === 'install') return 'status-progress';
-  if(status === 'completed') return 'status-completed';
+  if(status === 'pendiente')     return 'status-pending';
+  if(status === 'pagado')        return 'status-progress';
+  if(status === 'en_produccion') return 'status-progress';
+  if(status === 'listo')         return 'status-progress';
+  if(status === 'entregado')     return 'status-completed';
+  if(status === 'cancelado')     return 'status-disabled';
   return 'status-pending';
 }
 
-function applyPedidoUpdate(){
+async function applyPedidoUpdate(){
   if(!currentPedidoRow) return;
 
-  const newStatus = document.getElementById('uStatus').value;
+  const newStatus  = document.getElementById('uStatus').value;
   const newEntrega = document.getElementById('uEntrega').value;
-  const notas = document.getElementById('uNotas').value.trim();
-
-  const id = currentPedidoRow.dataset.id;
-
-  currentPedidoRow.dataset.status = newStatus;
-  if(newEntrega) currentPedidoRow.dataset.entrega = newEntrega;
-
-  const tds = currentPedidoRow.querySelectorAll('td');
-  if(tds[3] && newEntrega) tds[3].textContent = fmtISOtoDMY(newEntrega);
-  if(tds[4]){
-    const cls = statusBadgeClass(newStatus);
-    tds[4].innerHTML = `<span class="status-badge ${cls}">${statusLabel(newStatus)}</span>`;
-  }
-
-  const meta = `Estado: ${statusLabel(newStatus)}${newEntrega ? ' | Entrega: ' + fmtISOtoDMY(newEntrega) : ''}${notas ? ' | Nota: ' + notas : ''}`;
-  addActivity(`<i class="fa-solid fa-box"></i> Pedido #${id} actualizado`, meta);
-  pushNotif(`Pedido #${id} actualizado`, meta);
+  const notas      = document.getElementById('uNotas').value.trim();
+  const id         = currentPedidoRow.dataset.id;
 
   closeModal('updatePedidoModal');
-  showNotification('<i class="fa-solid fa-check"></i> Pedido actualizado', 'success');
+
+  try {
+    const payload = { estado: newStatus };
+    if(newEntrega) payload.fecha_estimada = newEntrega;
+    if(notas)      payload.notas          = notas;
+
+    const data = await apiFetch(`${API_BASE}/pedidos.php?id=${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(payload),
+    });
+
+    if(data.success){
+      showNotification('<i class="fa-solid fa-circle-check"></i> Pedido actualizado', 'success');
+      addActivity(`<i class="fa-solid fa-box"></i> Pedido #${id} actualizado`, `Estado: ${statusLabel(newStatus)}`);
+      pushNotif(`Pedido #${id} actualizado`, `Estado: ${statusLabel(newStatus)}`);
+      cargarPedidosEmpleadoAPI();
+    } else {
+      showNotification('<i class="fa-solid fa-circle-xmark"></i> ' + (data.error || 'Error al guardar'), 'error');
+    }
+  } catch(e) {
+    showNotification('<i class="fa-solid fa-circle-xmark"></i> Error de conexión', 'error');
+  }
 
   refreshKpisFromPedidosTable();
   renderActivity();
@@ -989,7 +1052,7 @@ async function cargarPedidosEmpleadoAPI() {
     const clsMap = { pendiente:'status-pending', pagado:'status-progress', en_produccion:'status-progress', listo:'status-info', entregado:'status-completed', cancelado:'status-disabled' };
 
     tbody.innerHTML = (data.pedidos || []).map(p => `
-      <tr data-status="${p.estado}" data-id="${p.id}">
+      <tr data-status="${p.estado}" data-id="${p.id}" data-entrega="${p.fecha_estimada||''}">
         <td>${p.numero_pedido}</td>
         <td>${escapeHtml(p.nombre_cliente)}${p.cliente_id?` <span style="background:#e8f5e9;color:#2E7D32;border-radius:10px;padding:1px 7px;font-size:10px;font-weight:700;vertical-align:middle;" title="Cliente registrado #${p.cliente_id}"><i class="fa-solid fa-user-check"></i> #${p.cliente_id}</span>`:''}</td>
         <td>${p.correo_cliente}</td>
@@ -1017,9 +1080,13 @@ async function actualizarEstadoPedidoEmp(id, estado) {
       method: 'PUT',
       body: JSON.stringify({ estado }),
     });
-    if (data.success) showNotification('✅ Estado del pedido actualizado', 'success');
-    else showNotification('<i class="fa-solid fa-xmark"></i> ' + (data.error || 'Error'), 'error');
-  } catch(e) { showNotification('<i class="fa-solid fa-xmark"></i> Error de conexión', 'error'); }
+    if (data.success) {
+      showNotification('<i class="fa-solid fa-circle-check"></i> Estado actualizado', 'success');
+      cargarPedidosEmpleadoAPI();
+    } else {
+      showNotification('<i class="fa-solid fa-circle-xmark"></i> ' + (data.error || 'Error'), 'error');
+    }
+  } catch(e) { showNotification('<i class="fa-solid fa-circle-xmark"></i> Error de conexión', 'error'); }
 }
 
 // ── Citas ─────────────────────────────────────────────────────
@@ -1391,7 +1458,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Iniciar auto-polling
   window._currentSection = 'dashboard';
-  window._autoRefreshInterval = setInterval(_autoRefresh, 30000);
+  window._autoRefreshInterval = setInterval(_autoRefresh, 8000);
   setInterval(fetchNotificationsFromAPI, 60000);
 
   // Pausar polling cuando la pestaña no está visible (ahorra requests innecesarios)
@@ -1401,7 +1468,7 @@ document.addEventListener('DOMContentLoaded', () => {
     } else {
       // Al volver a la pestaña, refrescar inmediatamente y reiniciar ciclo
       _autoRefresh();
-      window._autoRefreshInterval = setInterval(_autoRefresh, 30000);
+      window._autoRefreshInterval = setInterval(_autoRefresh, 8000);
     }
   });
 });

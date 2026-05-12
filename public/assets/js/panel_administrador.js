@@ -25,6 +25,152 @@
     function clamp(n, a, b){ return Math.max(a, Math.min(b, n)); }
 
     /* =========================
+       NOTIFICACIONES (PANEL)
+    ========================= */
+    const NOTIF_KEY_ADM        = 'wh_adm_notifs';
+    const NOTIF_UNREAD_KEY_ADM = 'wh_adm_notifs_unread';
+
+    const NOTIF_ICONS_ADM = {
+      pedido:     { icon:'fa-box',           color:'var(--accent)' },
+      cita:       { icon:'fa-calendar-days', color:'#4a7c8b' },
+      cotizacion: { icon:'fa-briefcase',     color:'#4a8b5a' },
+      pago:       { icon:'fa-credit-card',   color:'#7c5c8b' },
+      sistema:    { icon:'fa-gear',          color:'var(--muted2)' },
+    };
+
+    function getNotifs(){ return JSON.parse(localStorage.getItem(NOTIF_KEY_ADM) || '[]'); }
+    function saveNotifs(list){ localStorage.setItem(NOTIF_KEY_ADM, JSON.stringify(list)); }
+    function getUnreadCount(){ return parseInt(localStorage.getItem(NOTIF_UNREAD_KEY_ADM) || '0'); }
+    function setUnreadCount(n){
+      const count = Math.max(0, n);
+      localStorage.setItem(NOTIF_UNREAD_KEY_ADM, String(count));
+      const dot = document.getElementById('notifDot');
+      const btn = document.getElementById('notifBtn');
+      if (!dot) return;
+      if (count === 0) {
+        dot.classList.remove('on');
+        btn?.classList.remove('has-notif');
+      } else {
+        dot.textContent = count > 9 ? '9+' : count;
+        dot.classList.add('on');
+        btn?.classList.add('has-notif');
+      }
+    }
+    function _notifTypeClass(tipo){
+      const t = (tipo||'').toLowerCase();
+      if(t.includes('pedido')) return 'type-pedido';
+      if(t.includes('cita'))   return 'type-cita';
+      if(t.includes('cotiz'))  return 'type-cotizacion';
+      if(t.includes('pago'))   return 'type-pago';
+      return '';
+    }
+    function _notifIconHtml(tipo){
+      const t = (tipo||'').toLowerCase();
+      let key = 'sistema';
+      if(t.includes('pedido')) key='pedido';
+      else if(t.includes('cita'))  key='cita';
+      else if(t.includes('cotiz')) key='cotizacion';
+      else if(t.includes('pago'))  key='pago';
+      const cfg = NOTIF_ICONS_ADM[key];
+      return `<div class="notif-icon" style="color:${cfg.color};border-color:${cfg.color}40;">
+        <i class="fa-solid ${cfg.icon}"></i>
+      </div>`;
+    }
+    function renderNotifPanel(){
+      const notifBody = document.getElementById('notifBody');
+      if (!notifBody) return;
+      const list = getNotifs().slice(0, 20);
+      if(!list.length){
+        notifBody.innerHTML = `<div class="notif-empty">
+          <i class="fa-solid fa-bell-slash"></i>
+          <span>Sin notificaciones</span>
+        </div>`;
+        return;
+      }
+      const unreadCount = getUnreadCount();
+      notifBody.innerHTML = list.map((n, i) => {
+        const isUnread = i < unreadCount;
+        const typeClass = _notifTypeClass(n.tipo || n.title);
+        return `<div class="notif-item ${typeClass}${isUnread?' unread':''}">
+          ${_notifIconHtml(n.tipo || n.title)}
+          <div class="notif-content">
+            <div class="t">${escapeHtml(n.title)}</div>
+            ${n.meta ? `<div class="m">${escapeHtml(n.meta)}</div>` : ''}
+            <div class="notif-item-foot">
+              <span class="at">${escapeHtml(n.at)}</span>
+              ${isUnread ? '<span class="notif-nueva">Nueva</span>' : ''}
+            </div>
+          </div>
+        </div>`;
+      }).join('');
+    }
+    function openNotifPanel(){
+      fetchNotificationsFromAPI().then(() => renderNotifPanel());
+      document.getElementById('notifPanel')?.classList.add('open');
+    }
+    function closeNotifPanel(){
+      document.getElementById('notifPanel')?.classList.remove('open');
+    }
+    function markAllNotifRead(){
+      setUnreadCount(0);
+      renderNotifPanel();
+    }
+    function clearAllNotifs(){
+      saveNotifs([]);
+      setUnreadCount(0);
+      renderNotifPanel();
+    }
+    function pushNotif(title, meta, tipo=''){
+      const list = getNotifs();
+      const at = new Date().toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit'}) + ' ' + new Date().toLocaleDateString('es-MX');
+      list.unshift({ title, meta, tipo, at });
+      saveNotifs(list.slice(0, 30));
+      setUnreadCount(getUnreadCount() + 1);
+      renderNotifPanel();
+    }
+    async function fetchNotificationsFromAPI(){
+      try {
+        const res = await fetch('/api/notificaciones.php?destino=admin', { credentials:'same-origin' });
+        if (!res.ok) return;
+        const json = await res.json();
+        const items = json.notificaciones ?? [];
+        if (!items.length) return;
+        const current = getNotifs();
+        const currentIds = new Set(current.map(n => n.id).filter(Boolean));
+        let newCount = 0;
+        items.slice(0, 20).forEach(n => {
+          if (n.id && currentIds.has(n.id)) return;
+          const d = n.fecha ? new Date(n.fecha) : new Date();
+          const at = d.toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit'}) + ' ' + d.toLocaleDateString('es-MX');
+          current.unshift({ id: n.id, title: n.titulo, meta: n.mensaje, tipo: n.tipo||'', at });
+          newCount++;
+        });
+        if (newCount > 0) {
+          saveNotifs(current.slice(0, 30));
+          setUnreadCount(getUnreadCount() + newCount);
+        }
+      } catch(e){ /* silencioso */ }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const notifBtn = document.getElementById('notifBtn');
+      notifBtn?.addEventListener('click', e => {
+        e.stopPropagation();
+        document.getElementById('notifPanel')?.classList.contains('open') ? closeNotifPanel() : openNotifPanel();
+      });
+      document.addEventListener('click', e => {
+        if(document.getElementById('notifPanel')?.classList.contains('open')){
+          const inside = e.target.closest('#notifPanel') || e.target.closest('#notifBtn');
+          if(!inside) closeNotifPanel();
+        }
+      });
+      // Init badge from storage
+      setUnreadCount(getUnreadCount());
+      setTimeout(fetchNotificationsFromAPI, 1000);
+      setInterval(fetchNotificationsFromAPI, 60000);
+    });
+
+    /* =========================
        NAVEGACIÓN / MENÚ
     ========================= */
     const navLinks = $('#navLinks');
@@ -2663,14 +2809,13 @@ async function toggleBloqueoDia(fecha, estaBloqueado) {
 function _autoRefreshAdmin() {
   const section = window._currentSection || 'dashboard';
   try {
-    if      (section === 'pedidos'   && typeof cargarPedidosAPI === 'function')   cargarPedidosAPI();
-    else if (section === 'catalogo'  && typeof cargarProductosAPI === 'function') cargarProductosAPI().then(() => { if(typeof renderCatalogo==='function') renderCatalogo(); });
-    else if (section === 'empleados' && typeof cargarEmpleadosAPI === 'function') cargarEmpleadosAPI();
-    else if (section === 'reportes'  && typeof cargarReportesAPI === 'function')  cargarReportesAPI();
-    else if (section === 'citas'     && typeof renderCalendar === 'function')     renderCalendar();
-    else if (section === 'dashboard') {
-      if(typeof refreshKPIsFromAPI === 'function') refreshKPIsFromAPI();
-    }
+    if      (section === 'pedidos'      && typeof cargarPedidosAPI === 'function')          cargarPedidosAPI();
+    else if (section === 'cotizaciones' && typeof cargarCotizacionesAPI === 'function')     cargarCotizacionesAPI();
+    else if (section === 'citas'        && typeof cargarCitasCalendarioAPI === 'function')  cargarCitasCalendarioAPI();
+    else if (section === 'catalogo'     && typeof cargarProductosAPI === 'function')        cargarProductosAPI().then(() => { if(typeof renderCatalogo==='function') renderCatalogo(); });
+    else if (section === 'empleados'    && typeof cargarEmpleadosAPI === 'function')        cargarEmpleadosAPI();
+    else if (section === 'reportes'     && typeof cargarReportesAPI === 'function')         cargarReportesAPI();
+    else if (section === 'dashboard'    && typeof refreshKPIsFromAPI === 'function')        refreshKPIsFromAPI();
   } catch(e) { console.warn('[autoRefresh] Error en sección', section, e); }
 }
 
@@ -2679,7 +2824,7 @@ document.addEventListener('DOMContentLoaded', () => {
   window._currentSection = 'dashboard';
 
   // Iniciar ciclo de auto-polling
-  window._adminRefreshInterval = setInterval(_autoRefreshAdmin, 30000);
+  window._adminRefreshInterval = setInterval(_autoRefreshAdmin, 8000);
 
   // Pausar cuando la pestaña no es visible, reanudar al volver
   document.addEventListener('visibilitychange', () => {
@@ -2687,7 +2832,7 @@ document.addEventListener('DOMContentLoaded', () => {
       clearInterval(window._adminRefreshInterval);
     } else {
       _autoRefreshAdmin();
-      window._adminRefreshInterval = setInterval(_autoRefreshAdmin, 30000);
+      window._adminRefreshInterval = setInterval(_autoRefreshAdmin, 8000);
     }
   });
 });
