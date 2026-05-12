@@ -276,4 +276,3 @@ if (typeof module !== 'undefined' && module.exports) {
   };
 }
 
-console.log('[OK] utils.js cargado correctamente');

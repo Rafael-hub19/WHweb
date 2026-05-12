@@ -43,7 +43,6 @@ function initFirebase() {
     window.firebaseStorage = firebaseStorage;
   }
 
-  console.log('[OK] Firebase inicializado');
   return true;
 }
 

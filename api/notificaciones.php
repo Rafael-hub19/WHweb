@@ -8,7 +8,9 @@ $id     = trim($_GET['id'] ?? '');
 switch ($method) {
     case 'GET':
         // Leer notificaciones de Firestore via REST
+        $destinosValidos = ['todos', 'admin', 'empleado'];
         $destino = trim($_GET['destino'] ?? 'todos');
+        if (!in_array($destino, $destinosValidos, true)) $destino = 'todos';
         $projectId = FIREBASE_PROJECT_ID;
         $apiKey    = FIREBASE_API_KEY;
 

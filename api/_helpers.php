@@ -133,3 +133,10 @@ function checkRateLimit(string $key, int $maxRequests = 60, int $windowSec = 60)
     $data[] = $now;
     file_put_contents($file, json_encode(array_values($data)), LOCK_EX);
 }
+
+// ── Honeypot anti-spam ────────────────────────────────────────────
+function checkHoneypot(array $body): void {
+    if (!empty($body['_hp']) || !empty($body['website']) || !empty($body['url'])) {
+        jsonError('Error de validación', 422);
+    }
+}

@@ -100,7 +100,7 @@ header('Content-Type: text/html; charset=utf-8');
                                 <span class="option-price">GRATIS</span>
                             </div>
                             <div class="option-description">
-                                <i class="fa-solid fa-location-dot"></i> Av. Chapultepec #1234, Col. Americana, Guadalajara
+                                <i class="fa-solid fa-location-dot"></i> <?= htmlspecialchars(SITE_ADDRESS) ?>
                             </div>
                         </div>
                     </div>
@@ -110,7 +110,7 @@ header('Content-Type: text/html; charset=utf-8');
                         <div class="option-content">
                             <div class="option-header">
                                 <span class="option-title">Envío a domicilio</span>
-                                <span class="option-price" id="precioEnvioLabel">$500</span>
+                                <span class="option-price" id="precioEnvioLabel">$<?= number_format(COSTO_ENVIO, 0) ?></span>
                             </div>
                             <div class="option-description">
                                 Entregamos en tu domicilio en Guadalajara y área metropolitana.
@@ -124,7 +124,7 @@ header('Content-Type: text/html; charset=utf-8');
             <div class="section-card">
                 <h3 class="section-title">
                   <span class="section-icon"><i class="fa-solid fa-wrench"></i></span> Servicios adicionales
-                  <span class="wh-help" data-tip="La instalación profesional incluye colocación del mueble, conexión hidráulica del lavabo y ajustes finales. Se aplica un cargo de $1,500 por mueble instalado.">?</span>
+                  <span class="wh-help" data-tip="La instalación profesional incluye colocación del mueble, conexión hidráulica del lavabo y ajustes finales. Se aplica un cargo de $<?= number_format(COSTO_INSTALACION, 0) ?> por mueble instalado.">?</span>
                 </h3>
                 <div class="delivery-options">
 
@@ -146,12 +146,12 @@ header('Content-Type: text/html; charset=utf-8');
                         <div class="option-content">
                             <div class="option-header">
                                 <span class="option-title">Instalación profesional</span>
-                                <span class="option-price" id="precioInstalacionLabel">+ $1,500</span>
+                                <span class="option-price" id="precioInstalacionLabel">+ $<?= number_format(COSTO_INSTALACION, 0) ?></span>
                             </div>
                             <div class="option-description">
                                 Instalación por expertos, incluye conexión de lavabo y ajustes finales.
                                 <span id="notaInstalacion" style="display:block;margin-top:6px;color:#8b7355;font-size:12px;font-weight:600;">
-                                    <i class="fa-solid fa-circle-info"></i> $1,500 por mueble
+                                    <i class="fa-solid fa-circle-info"></i> $<?= number_format(COSTO_INSTALACION, 0) ?> por mueble
                                 </span>
                             </div>
                         </div>

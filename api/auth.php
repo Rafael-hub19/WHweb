@@ -24,10 +24,7 @@ switch ($action) {
 
         $body = getJsonBody();
 
-        // ── ANTI-BOT: Honeypot ────────────────────────────────────
-        if (!empty($body['_hp']) || !empty($body['website'])) {
-            jsonError('Credenciales inválidas', 401);
-        }
+        checkHoneypot($body);
 
         $firebaseToken = trim($body['firebase_token'] ?? '');
         if (empty($firebaseToken)) {
@@ -115,7 +112,7 @@ switch ($action) {
         if ($method !== 'POST') jsonError('Método no permitido', 405);
         checkRateLimit('cliente_registro', 5, 60);
         $body = getJsonBody();
-        if (!empty($body['_hp'])) jsonError('Error de validación', 422);
+        checkHoneypot($body);
         $firebaseToken = trim($body['firebase_token'] ?? '');
         if (empty($firebaseToken)) jsonError('firebase_token requerido', 422);
         $payload = verificarTokenFirebase($firebaseToken);
@@ -148,7 +145,7 @@ switch ($action) {
         if ($method !== 'POST') jsonError('Método no permitido', 405);
         checkRateLimit('cliente_login', 10, 60);
         $body = getJsonBody();
-        if (!empty($body['_hp'])) jsonError('Error de validación', 422);
+        checkHoneypot($body);
         $firebaseToken = trim($body['firebase_token'] ?? '');
         if (empty($firebaseToken)) jsonError('firebase_token requerido', 422);
         $payload = verificarTokenFirebase($firebaseToken);

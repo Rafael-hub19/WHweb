@@ -13,8 +13,6 @@ const AppState = {
  * Inicializar aplicación cuando carga el DOM
  */
 document.addEventListener('DOMContentLoaded', () => {
-  console.log('[INIT] Wooden House App Iniciada');
-  
   // Cargar estado del carrito desde localStorage
   cargarCarritoDesdeStorage();
   
@@ -311,4 +309,3 @@ window.WoodenHouse = {
   apiRequest
 };
 
-console.log('[OK] Wooden House App Ready');

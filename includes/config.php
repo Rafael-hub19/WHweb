@@ -100,8 +100,9 @@ define('DIAS_FABRICACION',    (int)   env('DIAS_FABRICACION',   15)); // 15 día
 define('LIMITE_DIA',          (int)   env('LIMITE_DIA',          10)); // máximo productos por día en producción
 define('MARGEN_HABILES',      (int)   env('MARGEN_HABILES',        2)); // días hábiles mínimos para fabricación
 define('SITE_NAME',         'Wooden House');
-define('SITE_PHONE',        env('SITE_PHONE', '33 1705 4017'));
-define('SITE_EMAIL',        env('SITE_EMAIL', 'contacto@woodenhouse.com'));
+define('SITE_PHONE',        env('SITE_PHONE',   '33 1705 4017'));
+define('SITE_EMAIL',        env('SITE_EMAIL',   'contacto@woodenhouse.com'));
+define('SITE_ADDRESS',      env('SITE_ADDRESS', 'Av. Chapultepec #1234, Col. Americana, Guadalajara'));
 
 // ── Sesión segura ─────────────────────────────────────────────────
 if (session_status() === PHP_SESSION_NONE) {

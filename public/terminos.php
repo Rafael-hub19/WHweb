@@ -156,9 +156,9 @@
     <h2><i class="fa-solid fa-truck"></i> 7. Envíos y entregas</h2>
     <ul>
       <li><strong>Recoger en sucursal:</strong> sin costo adicional en nuestras instalaciones en Guadalajara, Jalisco. El cliente será notificado cuando su pedido esté listo.</li>
-      <li><strong>Envío a domicilio:</strong> disponible en Guadalajara y Zona Metropolitana. Costo de envío: <strong>$500 MXN</strong>. El tiempo estimado de entrega es de <strong>2 a 5 días hábiles</strong> a partir del pago confirmado.</li>
+      <li><strong>Envío a domicilio:</strong> disponible en Guadalajara y Zona Metropolitana. Costo de envío: <strong>$<?= number_format(COSTO_ENVIO, 0) ?> MXN</strong>. El tiempo estimado de entrega es de <strong>2 a 5 días hábiles</strong> a partir del pago confirmado.</li>
       <li><strong>Envío gratuito</strong> en pedidos superiores a <strong>$5,000 MXN</strong>.</li>
-      <li><strong>Instalación profesional:</strong> servicio adicional de <strong>$1,500 MXN</strong> por mueble, incluye conexión de lavabo y ajustes finales.</li>
+      <li><strong>Instalación profesional:</strong> servicio adicional de <strong>$<?= number_format(COSTO_INSTALACION, 0) ?> MXN</strong> por mueble, incluye conexión de lavabo y ajustes finales.</li>
     </ul>
     <p>
       Los tiempos de entrega son estimados y pueden variar por factores externos ajenos al control de Wooden House

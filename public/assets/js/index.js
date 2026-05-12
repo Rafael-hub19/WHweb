@@ -243,4 +243,3 @@ function formatDate(dateString) {
 // El estado del botón de cuenta lo gestiona completamente modal-auth.js
 // mediante _actualizarNavBtn() y el evento wh:autenticado.
 
-console.log('[OK] index.js cargado');
