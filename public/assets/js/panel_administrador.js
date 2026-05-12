@@ -29,6 +29,7 @@
     ========================= */
     const NOTIF_KEY_ADM        = 'wh_adm_notifs';
     const NOTIF_UNREAD_KEY_ADM = 'wh_adm_notifs_unread';
+    const NOTIF_SEEN_KEY_ADM   = 'wh_adm_notifs_seen';
 
     const NOTIF_ICONS_ADM = {
       pedido:     { icon:'fa-box',           color:'var(--accent)' },
@@ -115,7 +116,15 @@
       setUnreadCount(0);
       renderNotifPanel();
     }
+    function _getSeenIds(){ return new Set(JSON.parse(localStorage.getItem(NOTIF_SEEN_KEY_ADM) || '[]')); }
+    function _addSeenIds(ids){
+      const seen = _getSeenIds();
+      ids.forEach(id => seen.add(id));
+      localStorage.setItem(NOTIF_SEEN_KEY_ADM, JSON.stringify([...seen].slice(0, 200)));
+    }
     function clearAllNotifs(){
+      const ids = getNotifs().map(n => n.id).filter(Boolean);
+      if(ids.length) _addSeenIds(ids);
       saveNotifs([]);
       setUnreadCount(0);
       renderNotifPanel();
@@ -135,11 +144,11 @@
         const json = await res.json();
         const items = json.notificaciones ?? [];
         if (!items.length) return;
-        const current = getNotifs();
-        const currentIds = new Set(current.map(n => n.id).filter(Boolean));
+        const current  = getNotifs();
+        const knownIds = new Set([...current.map(n => n.id), ..._getSeenIds()].filter(Boolean));
         let newCount = 0;
         items.slice(0, 20).forEach(n => {
-          if (n.id && currentIds.has(n.id)) return;
+          if (n.id && knownIds.has(n.id)) return;
           const d = n.fecha ? new Date(n.fecha) : new Date();
           const at = d.toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit'}) + ' ' + d.toLocaleDateString('es-MX');
           current.unshift({ id: n.id, title: n.titulo, meta: n.mensaje, tipo: n.tipo||'', at });
@@ -152,9 +161,14 @@
       } catch(e){ /* silencioso */ }
     }
 
+    // Exponer al scope global para los onclick inline del HTML
+    window.markAllNotifRead = markAllNotifRead;
+    window.clearAllNotifs   = clearAllNotifs;
+    window.openNotifPanel   = openNotifPanel;
+    window.closeNotifPanel  = closeNotifPanel;
+
     document.addEventListener('DOMContentLoaded', () => {
-      const notifBtn = document.getElementById('notifBtn');
-      notifBtn?.addEventListener('click', e => {
+      document.getElementById('notifBtn')?.addEventListener('click', e => {
         e.stopPropagation();
         document.getElementById('notifPanel')?.classList.contains('open') ? closeNotifPanel() : openNotifPanel();
       });
@@ -164,7 +178,6 @@
           if(!inside) closeNotifPanel();
         }
       });
-      // Init badge from storage
       setUnreadCount(getUnreadCount());
       setTimeout(fetchNotificationsFromAPI, 1000);
       setInterval(fetchNotificationsFromAPI, 60000);

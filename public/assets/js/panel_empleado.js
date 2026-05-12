@@ -116,6 +116,7 @@ const notifPanel = document.getElementById('notifPanel');
 
 const NOTIF_KEY        = 'wh_emp_notifs';
 const NOTIF_UNREAD_KEY = 'wh_emp_notifs_unread';
+const NOTIF_SEEN_KEY   = 'wh_emp_notifs_seen';
 
 const NOTIF_ICONS = {
   pedido:      { icon:'fa-box',          color:'var(--accent)' },
@@ -217,7 +218,16 @@ function markAllNotifRead(){
   renderNotifPanel();
 }
 
+function _getSeenIds(){ return new Set(JSON.parse(localStorage.getItem(NOTIF_SEEN_KEY) || '[]')); }
+function _addSeenIds(ids){
+  const seen = _getSeenIds();
+  ids.forEach(id => seen.add(id));
+  localStorage.setItem(NOTIF_SEEN_KEY, JSON.stringify([...seen].slice(0, 200)));
+}
+
 function clearAllNotifs(){
+  const ids = getNotifs().map(n => n.id).filter(Boolean);
+  if(ids.length) _addSeenIds(ids);
   saveNotifs([]);
   setUnreadCount(0);
   renderNotifPanel();
@@ -232,16 +242,15 @@ async function fetchNotificationsFromAPI() {
     const items = json.notificaciones ?? [];
     if (!items.length) return;
 
-    const current = getNotifs();
-    const currentIds = new Set(current.map(n => n.id).filter(Boolean));
+    const current   = getNotifs();
+    const knownIds  = new Set([...current.map(n => n.id), ..._getSeenIds()].filter(Boolean));
     let newCount = 0;
 
     items.slice(0, 20).forEach(n => {
-      if (n.id && currentIds.has(n.id)) return;
-      const fecha = n.fecha
-        ? new Date(n.fecha).toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit'}) + ' ' + new Date(n.fecha).toLocaleDateString('es-MX')
-        : new Date().toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit'}) + ' ' + new Date().toLocaleDateString('es-MX');
-      current.unshift({ id: n.id, title: n.titulo, meta: n.mensaje, tipo: n.tipo||'', at: fecha });
+      if (n.id && knownIds.has(n.id)) return;
+      const d = n.fecha ? new Date(n.fecha) : new Date();
+      const at = d.toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit'}) + ' ' + d.toLocaleDateString('es-MX');
+      current.unshift({ id: n.id, title: n.titulo, meta: n.mensaje, tipo: n.tipo||'', at });
       newCount++;
     });
 
@@ -251,6 +260,12 @@ async function fetchNotificationsFromAPI() {
     }
   } catch (e) { /* silencioso */ }
 }
+
+// Exponer al scope global para onclick inline del HTML
+window.markAllNotifRead = markAllNotifRead;
+window.clearAllNotifs   = clearAllNotifs;
+window.openNotifPanel   = openNotifPanel;
+window.closeNotifPanel  = closeNotifPanel;
 
 // ================== DASH: ACTIVIDAD RECIENTE ==================
 const ACT_KEY = 'wh_emp_activity';
@@ -982,7 +997,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // El calendario se pobla desde la API vía cargarCitasParaCalendario()
 
-  setUnread(getUnread());
+  setUnreadCount(getUnreadCount());
   refreshKpisFromPedidosTable();
 
   setTimeout(() => showNotification('Bienvenido', 'success'), 400);
