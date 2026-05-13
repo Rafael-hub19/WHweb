@@ -757,6 +757,9 @@ img, video { max-width: 100%; height: auto; }
   animation: none;
 }
 
+.social-link.tiktok { background: linear-gradient(135deg, #010101, #2f2f2f); }
+.social-link.tiktok:hover { background: linear-gradient(135deg, #2f2f2f, #010101); }
+
 /* ── Footer ──────────────────────────────────────────────────────── */
 .footer {
   background: #2d2d2d;
