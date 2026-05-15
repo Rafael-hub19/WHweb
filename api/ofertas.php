@@ -1,16 +1,5 @@
 <?php
-/**
- * api/ofertas.php — Gestión de ofertas y promociones
- *
- * GET    /api/ofertas.php              → Admin: listar todas
- * GET    /api/ofertas.php?id=X         → Admin: oferta individual
- * POST   /api/ofertas.php              → Admin: crear oferta
- * PUT    /api/ofertas.php?id=X         → Admin: actualizar
- * DELETE /api/ofertas.php?id=X         → Admin: eliminar
- * GET    /api/ofertas.php?action=activas  → Público: ofertas vigentes
- * POST   /api/ofertas.php?action=validar  → Público: validar código promo
- */
-
+// api/ofertas.php — Gestión de ofertas y promociones
 require_once __DIR__ . '/_helpers.php';
 
 $method = $_SERVER['REQUEST_METHOD'];

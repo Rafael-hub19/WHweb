@@ -6,7 +6,6 @@ $id     = isset($_GET['id']) ? sanitizeInt($_GET['id']) : null;
 
 switch ($method) {
     case 'GET':
-        // Búsqueda pública por número de cita (para seguimiento)
         if (!empty($_GET['numero_cita']) && !$id) {
             $num = trim($_GET['numero_cita']);
             if (!preg_match('/^CIT-\d{4}-\d{6}$/i', $num)) jsonError('Formato inválido', 422);
@@ -55,7 +54,7 @@ switch ($method) {
         break;
 
     case 'POST':
-        checkRateLimit('citas_post', 5, 60); // máx 5 citas por minuto por IP
+        checkRateLimit('citas_post', 5, 60);
         $body = getJsonBody();
         requireFields($body, ['nombre_cliente', 'correo_cliente', 'telefono_cliente', 'fecha_cita', 'tipo']);
 
@@ -64,16 +63,12 @@ switch ($method) {
             jsonSuccess(['numero_cita' => 'CIT-' . date('Y') . '-000000', 'mensaje' => 'Agendado']);
         }
 
-        // ── Validaciones de formato (TODOS los campos) ────────────
-        // Email: formato estricto + sin SQL chars
         $emailCita = strtolower(trim($body['correo_cliente']));
         if (!isValidEmail($emailCita)) jsonError('Correo electrónico inválido', 422);
         if (strpbrk($emailCita, "'\"`;\\\n\r") !== false) jsonError('Correo electrónico contiene caracteres no permitidos', 422);
 
-        // Teléfono
         if (!isValidPhone($body['telefono_cliente'])) jsonError('Teléfono inválido (mínimo 10 dígitos)', 422);
 
-        // Longitudes máximas
         if (mb_strlen($body['nombre_cliente']) > 150) jsonError('Nombre demasiado largo', 422);
         if (mb_strlen($body['direccion'] ?? '') > 255) jsonError('Dirección demasiado larga', 422);
         if (mb_strlen($body['colonia']   ?? '') > 120) jsonError('Colonia demasiado larga', 422);
@@ -119,7 +114,6 @@ switch ($method) {
         }
         $citaId = dbInsert('citas', $datosCita);
 
-        // Sincronizar datos de contacto/dirección al perfil del cliente registrado
         if ($clienteSession) {
             $profileUpdate = [];
             if (!empty($body['telefono_cliente']))                 $profileUpdate['telefono']  = sanitize($body['telefono_cliente']);
@@ -135,7 +129,6 @@ switch ($method) {
         }
 
         try {
-            // Firebase Cloud Function enviará correos al cliente y al admin
             notificarNuevaCita([
                 'id'               => $citaId,
                 'numero_cita'      => $numeroCita,

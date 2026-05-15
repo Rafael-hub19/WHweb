@@ -1,7 +1,4 @@
 <?php
-// =============================================================
-// Wooden House - Funciones de Utilidad
-// =============================================================
 require_once __DIR__ . '/config.php';
 
 // ---- Respuestas JSON ----
@@ -98,7 +95,7 @@ function fechaEstimadaPedido(int $diasHabiles = DIAS_FABRICACION): string {
     $added = 0;
     while ($added < $diasHabiles) {
         $fecha->modify('+1 day');
-        $dow = (int)$fecha->format('N'); // 1=Mon, 7=Sun
+        $dow = (int)$fecha->format('N');
         if ($dow < 6) $added++;
     }
     return $fecha->format('Y-m-d');
@@ -144,23 +141,15 @@ function getIdFromUrl(): ?int {
 }
 
 // ── Alias de compatibilidad ────────────────────────────────────────
-
-/**
- * logError — alias de appLog para compatibilidad
- */
 function logError(string $message, array $context = []): void {
     appLog('error', $message, $context);
 }
 
-/**
- * formatMoney — formatea un número como moneda MXN
- */
 function formatMoney(float $amount): string {
     return '$' . number_format($amount, 2);
 }
 
 function firestoreEscribir(string $coleccion, string $docId, array $datos): bool {
-    // Delegamos a la función real si existe
     if (function_exists('crearNotificacionFirestore')) {
         return crearNotificacionFirestore(
             $datos['tipo'] ?? 'general',
@@ -176,15 +165,13 @@ function firestoreEscribir(string $coleccion, string $docId, array $datos): bool
 function calcularFechaInteligente(string $tipoEntrega, string $cp, int $numProductos): string {
     // Usar las constantes globales de config.php para que todo el sistema
     // use el mismo límite de capacidad diaria
-    $LIMITE     = defined('LIMITE_DIA')    ? LIMITE_DIA    : 10;  // máx productos por día
-    $MARGEN     = defined('MARGEN_HABILES') ? MARGEN_HABILES : 2;  // días hábiles mínimos desde hoy
-    $MAX_BUSCAR = 60;   // límite de días a revisar hacia adelante
+    $LIMITE     = defined('LIMITE_DIA')    ? LIMITE_DIA    : 10;
+    $MARGEN     = defined('MARGEN_HABILES') ? MARGEN_HABILES : 2;
+    $MAX_BUSCAR = 60;
 
-    // Fecha mínima = hoy + MARGEN días hábiles
     $hoy    = new DateTime();
     $minima = calcularFechaMinHabil($hoy, $MARGEN);
 
-    // Cargar carga actual por día (suma de cantidades de pedidos activos)
     $hasta = (clone $hoy)->modify("+{$MAX_BUSCAR} days")->format('Y-m-d');
     $rows  = dbRows(
         "SELECT p.fecha_estimada,
@@ -199,7 +186,6 @@ function calcularFechaInteligente(string $tipoEntrega, string $cp, int $numProdu
         [$minima->format('Y-m-d'), $hasta]
     );
 
-    // Indexar: $carga[fecha][tipo][cp] = total_productos
     $carga = [];
     foreach ($rows as $r) {
         $f  = $r['fecha_estimada'];
@@ -208,7 +194,6 @@ function calcularFechaInteligente(string $tipoEntrega, string $cp, int $numProdu
         $carga[$f][$t][$c] = ($carga[$f][$t][$c] ?? 0) + (int)$r['total_productos'];
     }
 
-    // Cargar días bloqueados
     $bloqueados = dbRows(
         "SELECT fecha FROM dias_bloqueados WHERE fecha BETWEEN ? AND ?",
         [$minima->format('Y-m-d'), $hasta]
@@ -229,7 +214,6 @@ function calcularFechaInteligente(string $tipoEntrega, string $cp, int $numProdu
         // Solo días hábiles (lun-vie) no bloqueados
         if ($dow <= 5 && !isset($bloqueadosSet[$ymd])) {
 
-            // Carga total del día sin importar tipo o zona
             $totalDia = 0;
             foreach ($carga[$ymd] ?? [] as $tipos) {
                 foreach ($tipos as $prod) { $totalDia += $prod; }
@@ -238,23 +222,19 @@ function calcularFechaInteligente(string $tipoEntrega, string $cp, int $numProdu
             $espacioGeneral = ($LIMITE - $totalDia) >= $numProductos;
 
             if ($espacioGeneral) {
-                // Guardar el primer día disponible en general
                 if ($fechaGeneral === null) $fechaGeneral = $ymd;
 
-                // Para domicilio: ¿hay pedidos del mismo CP en este día?
                 if ($tipoEntrega === 'envio' && !empty($cp)) {
                     $yaHayMismoCP = isset($carga[$ymd]['envio'][$cp]);
                     if ($yaHayMismoCP && $fechaZona === null) {
-                        $fechaZona = $ymd;  // ideal: mismo día y misma zona
+                        $fechaZona = $ymd;
                     }
                 }
             }
 
-            // Si ya tenemos ambas opciones, parar búsqueda
             if ($fechaGeneral !== null && ($tipoEntrega !== 'envio' || !empty($cp) === false || $fechaZona !== null)) {
                 break;
             }
-            // Para tienda basta con el primer día libre
             if ($tipoEntrega === 'recoger' && $fechaGeneral !== null) {
                 break;
             }
@@ -264,7 +244,6 @@ function calcularFechaInteligente(string $tipoEntrega, string $cp, int $numProdu
         $dias++;
     }
 
-    // Decidir qué fecha usar
     if ($tipoEntrega === 'envio' && $fechaZona !== null) {
         return $fechaZona;   // agrupa con pedidos de la misma zona
     }

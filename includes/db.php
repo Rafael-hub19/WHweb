@@ -1,7 +1,5 @@
 <?php
-// =============================================================
-// Wooden House - Capa de Base de Datos (PDO Singleton)
-// =============================================================
+// includes/db.php — PDO Singleton
 require_once __DIR__ . '/config.php';
 
 class Database {

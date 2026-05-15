@@ -219,7 +219,6 @@
       const el = $('#' + section + '-section');
       if(el) el.classList.remove('hidden');
 
-      // sidebar active
       $$('.sidebar-item').forEach(item => item.classList.remove('active'));
       const sid = ev?.target?.closest?.('.sidebar-item');
       if (sid) sid.classList.add('active');
@@ -228,14 +227,12 @@
         if (fallback) fallback.classList.add('active');
       }
 
-      // nav-links active
       $$('#navLinks a').forEach(a => a.classList.remove('active'));
       const navA = document.querySelector(`#navLinks a[data-section="${section}"]`);
       if (navA) navA.classList.add('active');
 
       closeNav();
 
-      // Registrar sección activa para el auto-polling
       window._currentSection = section;
 
       if(section === 'citas')     cargarCitasCalendarioAPI();
@@ -265,7 +262,6 @@
        NOTIFICACIONES
     ========================= */
     function showNotification(message, type='info'){
-      // Eliminar notificaciones previas
       document.querySelectorAll('.notification').forEach(n => n.remove());
       const icons = {
         success: 'fa-circle-check',
@@ -324,16 +320,15 @@
        CALENDARIO
     ========================= */
     let calYear  = new Date().getFullYear();
-    let calMonth = new Date().getMonth(); // 0-indexed, mes actual
+    let calMonth = new Date().getMonth();
     // Citas cargadas desde la API — sin localStorage, datos reales de MySQL
     let _citasCache = [];
 
     async function cargarCitasCalendarioAPI() {
       try {
-        // Cargar citas del mes actual y el siguiente para el calendario
         const hoy = new Date();
-        const desde = `${hoy.getFullYear()}-01-01`; // desde inicio del año
-        const hasta = `${hoy.getFullYear()}-12-31`; // hasta fin del año
+        const desde = `${hoy.getFullYear()}-01-01`;
+        const hasta = `${hoy.getFullYear()}-12-31`;
         const data = await apiFetch(`${API_BASE}/citas.php?limit=200&fecha_desde=${desde}&fecha_hasta=${hasta}`);
         if (data.success && data.citas) {
           _citasCache = data.citas.map(c => ({
@@ -657,7 +652,6 @@
     }
 
     function getProductos(){
-      // Siempre usar los datos de la API (array en memoria)
       return window._apiProductos || [];
     }
     function setProductos(list){
@@ -701,7 +695,6 @@
       let list = getProductos();
 
       if (list.length === 0) {
-        // Aún no hay datos — mostrar loading
         if (catalogCards) catalogCards.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:#888;"><i class="fa-solid fa-spinner fa-spin"></i> Cargando productos...</div>';
         return;
       }
@@ -788,7 +781,6 @@
       const isEdit = mode === 'edit';
       document.getElementById('productoModalTitle').textContent = isEdit ? 'Editar Producto' : 'Nuevo Producto';
 
-      // Limpiar todos los campos
       ['p_nombre','p_categoria','p_badge','p_estado','p_precio','p_descLarga',
        'p_tipo_instalacion','p_largo','p_alto','p_fondo','p_ovalin','p_monomando',
        'p_incluye','p_espejo','p_imgs_urls'].forEach(fieldId => {
@@ -807,7 +799,6 @@
       }
 
       if (isEdit) {
-        // Buscar en cache local primero
         let p = getProductos().find(x => String(x.id) === String(id));
         if (!p) { showNotification('No se encontro el producto', 'error'); return; }
 
@@ -815,7 +806,6 @@
         try {
           const detalle = await apiFetch(`${API_BASE}/productos.php?id=${id}`);
           if (detalle.success && detalle.producto) {
-            // Mezclar datos del detalle con el producto local
             p = {
               ...p,
               imagenes: detalle.producto.imagenes || [],
@@ -838,7 +828,6 @@
         setVal('p_precio',    p.precio || p.precio_base || 0);
         setVal('p_descLarga', p.descripcion || '');
 
-        // Leer specs especificas del array de especificaciones
         const specs = p.especificaciones || [];
         const getSpec = (keyword) => {
           const s = specs.find(x => x.clave && x.clave.toLowerCase().includes(keyword.toLowerCase()));
@@ -853,7 +842,6 @@
         setVal('p_incluye',   getSpec('incluye') || 'Cespol de PBC - Contra canasta');
         setVal('p_espejo',    getSpec('espejo') || '');
 
-        // Cargar imagenes existentes en preview
         const imgUrls = p.imagenes
           ? p.imagenes.map(img => img.url_imagen)
           : (p.imagen_principal ? [p.imagen_principal] : []);
@@ -898,13 +886,11 @@
       if (precio <= 0)  { showNotification('El precio debe ser mayor a 0', 'error'); return; }
       if (!descLarga)   { showNotification('Falta la descripcion del producto', 'error'); return; }
 
-      // Subir imagenes nuevas a Firebase si hay archivos pendientes
       let imagenesUrls = (document.getElementById('p_imgs_urls')?.value || '')
         .split('\n').map(u => u.trim()).filter(Boolean);
 
       const filesNew = window._imgFilesPending || [];
       if (filesNew.length > 0) {
-        // Validar tamaño antes de subir (máx 5MB por imagen)
         const MAX_SIZE = 5 * 1024 * 1024;
         const oversized = filesNew.filter(f => f.size > MAX_SIZE);
         if (oversized.length > 0) {
@@ -922,7 +908,6 @@
 
       const imagenes = imagenesUrls.map(url => ({ url }));
 
-      // Construir especificaciones desde los campos especificos
       const tipoInst  = (document.getElementById('p_tipo_instalacion')?.value || '').trim();
       const largo     = (document.getElementById('p_largo')?.value  || '').trim();
       const alto      = (document.getElementById('p_alto')?.value   || '').trim();
@@ -1502,7 +1487,6 @@
           const hoy = new Date().toLocaleDateString('es-MX', { year:'numeric', month:'long', day:'numeric' });
           const W = doc.internal.pageSize.getWidth();
 
-          // Encabezado
           doc.setFillColor(26, 26, 26);
           doc.rect(0, 0, W, 28, 'F');
           doc.setTextColor(139, 115, 85);
@@ -1516,7 +1500,6 @@
 
           let y = 36;
 
-          // KPIs principales
           const kpis = [
             { label: 'Ventas del Mes',   id: 'kpiVentasMes'    },
             { label: 'Pedidos del Mes',  id: 'kpiPedidosMes'   },
@@ -1546,7 +1529,6 @@
           if (kpis.length % 2 !== 0) y += 20;
           y += 6;
 
-          // Tabla pedidos recientes
           const rows = document.querySelectorAll('#tablaPedidos tbody tr');
           if (rows.length > 0) {
             doc.setFontSize(13); doc.setFont('helvetica', 'bold');
@@ -1586,7 +1568,6 @@
             });
           }
 
-          // Pie de pagina
           doc.setFontSize(8); doc.setTextColor(100, 100, 100);
           doc.text('Wooden House - muebleswh.com', 14, 290);
           doc.text('Pagina 1', W - 14, 290, { align: 'right' });
@@ -1774,12 +1755,10 @@
       renderCalendar();
       refreshKPIs();
       drawDashboardCharts();
-      // Cargar productos y categorías desde la API al iniciar
       cargarProductosAPI().then(() => {
         renderCatalogo();
       }).catch(e => console.warn('No se pudieron cargar productos:', e));
       setTimeout(() => showNotification('Bienvenido, Administrador', 'success'), 450);
-      // Cargar datos reales del backend cuando Firebase confirme la sesión
       if (typeof firebaseAuth !== 'undefined') {
         firebaseAuth.onAuthStateChanged(async (user) => {
           if (user) {
@@ -1887,7 +1866,6 @@ async function refreshKPIsFromAPI() {
   } catch (e) { console.warn('KPIs API error:', e); }
 }
 
-// Llamar al cargar dashboard
 document.addEventListener('DOMContentLoaded', () => {
   setTimeout(refreshKPIsFromAPI, 500);
 });
@@ -2483,7 +2461,6 @@ function setText(id, val) {
 
 // Cargar al inicio si ya estamos en dashboard
 document.addEventListener('DOMContentLoaded', () => {
-  // Verificar autenticación
   if (typeof firebaseAuth !== 'undefined') {
     firebaseAuth.onAuthStateChanged(async (user) => {
       if (!user) {
@@ -2493,7 +2470,6 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   setTimeout(refreshKPIsFromAPI, 300);
 
-  // Email de empleado: bloquear caracteres inválidos mientras escribe + validar al blur
   const empCorreo = document.getElementById('emp_correo');
   if (empCorreo) {
     empCorreo.addEventListener('input', function () {
@@ -2541,7 +2517,6 @@ async function guardarEmpleado() {
   };
   if (errBox) errBox.style.display = 'none';
 
-  // Validaciones
   if (!nombre) { showErr('Ingresa el nombre completo'); return; }
   const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (!correo || !emailRe.test(correo)) { showErr('Correo electrónico inválido. Ejemplo: nombre@dominio.com'); return; }
@@ -2551,7 +2526,6 @@ async function guardarEmpleado() {
 
   try {
     if (isEdit) {
-      // Solo actualizar datos en MySQL (nombre, correo, rol)
       const data = await apiFetch(`${API_BASE}/empleados.php?id=${empId}`, {
         method: 'PUT',
         body: JSON.stringify({ nombre_completo: nombre, correo, rol }),
@@ -2560,14 +2534,11 @@ async function guardarEmpleado() {
       showNotification('<i class="fa-solid fa-circle-check"></i> Empleado actualizado', 'success');
 
     } else {
-      // Crear usuario en Firebase Auth desde el navegador
       if (!firebaseAuth) throw new Error('Firebase Auth no disponible');
 
-      // Guardar sesión actual del admin
       const adminUser = firebaseAuth.currentUser;
       if (!adminUser) throw new Error('Sesión expirada, recarga la página');
 
-      // Crear cuenta en Firebase
       const cred = await firebaseAuth.createUserWithEmailAndPassword(correo, pass);
       const nuevoUid = cred.user.uid;
 
@@ -2575,7 +2546,6 @@ async function guardarEmpleado() {
       // Usamos el token guardado en session
       const adminToken = sessionStorage.getItem('wh_firebase_token') || '';
 
-      // Guardar en MySQL
       try {
         const data = await apiFetch(`${API_BASE}/empleados.php`, {
           method: 'POST',

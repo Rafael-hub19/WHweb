@@ -22,13 +22,11 @@ header('Content-Type: text/html; charset=utf-8');
     <link rel="icon" type="image/x-icon" href="/favicon.ico">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Carrito – Wooden House</title>
-    <!-- Bootstrap 5 CSS - Grid, utilidades responsive. CSS propio de Wooden House carga después y tiene prioridad en colores -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" crossorigin="anonymous">
     <link rel="stylesheet" href="./assets/css/variables.css">
     <link rel="stylesheet" href="./assets/css/carrito.css?v=4">
     <link rel="stylesheet" href="./assets/css/modal-auth.css?v=4">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-  <!-- Bootstrap 5 JS - Solo componentes interactivos (modales, dropdowns). CSS propio de Wooden House tiene prioridad -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous" defer></script>
 </head>
 <body>
@@ -77,7 +75,6 @@ header('Content-Type: text/html; charset=utf-8');
         <!-- ── Columna izquierda ───────────────────────────────── -->
         <div class="col-lg-8 cart-items">
 
-            <!-- Productos -->
             <div class="section-card">
                 <h3 class="section-title"><span class="section-icon"><i class="fa-solid fa-bath"></i></span> Productos en tu carrito</h3>
                 <div id="carritoItems">
@@ -85,7 +82,6 @@ header('Content-Type: text/html; charset=utf-8');
                 </div>
             </div>
 
-            <!-- Tipo de entrega -->
             <div class="section-card">
                 <h3 class="section-title">
                   <span class="section-icon"><i class="fa-solid fa-truck"></i></span> Tipo de entrega
@@ -120,7 +116,6 @@ header('Content-Type: text/html; charset=utf-8');
                 </div>
             </div>
 
-            <!-- Instalación -->
             <div class="section-card">
                 <h3 class="section-title">
                   <span class="section-icon"><i class="fa-solid fa-wrench"></i></span> Servicios adicionales
@@ -175,14 +170,12 @@ header('Content-Type: text/html; charset=utf-8');
                     </p>
                 </div>
 
-                <!-- Leyenda -->
                 <div class="disponibilidad-indicator">
                     <span class="dot dot-ok"></span><span>Lugares disponibles</span>
                     <span class="dot dot-medio" style="margin-left:12px"></span><span>Casi lleno</span>
                     <span class="dot dot-lleno" style="margin-left:12px"></span><span>Sin lugares</span>
                 </div>
 
-                <!-- Grid de días (se llena desde la API) -->
                 <div id="semanasGrid" class="semanas-grid">
                     <div class="fecha-loading">Consultando disponibilidad en tiempo real</div>
                 </div>
@@ -198,7 +191,6 @@ header('Content-Type: text/html; charset=utf-8');
                 </div>
             </div>
 
-            <!-- Datos de contacto -->
             <div class="section-card">
                 <h3 class="section-title">
                   <span class="section-icon"><i class="fa-solid fa-user"></i></span> Datos de contacto
@@ -241,7 +233,6 @@ header('Content-Type: text/html; charset=utf-8');
                         </div>
                     </div>
 
-                    <!-- Dirección (solo si es envío) -->
                     <div id="seccionDireccion">
                         <div class="wh-info-box" style="margin-bottom:14px;">
                           <i class="fa-solid fa-location-dot"></i>
@@ -293,9 +284,7 @@ header('Content-Type: text/html; charset=utf-8');
         <div class="cart-summary">
             <h3 class="summary-title"><i class="fa-solid fa-clipboard-list"></i> Resumen del pedido</h3>
 
-            <div id="resumenItems">
-                <!-- Se llena dinámicamente -->
-            </div>
+            <div id="resumenItems"></div>
 
             <div class="summary-item" id="lineaEnvio">
                 <span>Envío a domicilio</span>
@@ -310,7 +299,6 @@ header('Content-Type: text/html; charset=utf-8');
                 <span id="totalFinal">$0</span>
             </div>
 
-            <!-- Semana elegida en el resumen -->
             <div class="fecha-resumen-box" id="fechaResumenBox">
                 <strong><i class="fa-solid fa-calendar-days"></i> Semana de entrega elegida</strong>
                 <span id="fechaResumenTexto">—</span>
@@ -333,7 +321,6 @@ header('Content-Type: text/html; charset=utf-8');
     </div>
 </div>
 
-<!-- Footer -->
 <div class="footer">
     <p>© 2026 Wooden House · Guadalajara, Jalisco</p>
     <p style="margin-top:8px;font-size:14px;">
@@ -347,7 +334,6 @@ header('Content-Type: text/html; charset=utf-8');
     </p>
 </div>
 
-<!-- Barra de navegación fija móvil -->
 <nav class="mobile-bottom-nav" aria-label="Navegación rápida">
   <div class="mobile-bottom-nav-inner">
     <a href="/inicio" class="mbn-item"><i class="fa-solid fa-house"></i><span>Inicio</span></a>

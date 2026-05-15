@@ -1,6 +1,5 @@
 <?php
 // ── Guardia de autenticación server-side ─────────────────────────
-// Si el usuario no tiene sesión PHP válida, redirigir al login
 // Esto se hace ANTES de servir cualquier HTML
 require_once dirname(__DIR__, 2) . "/includes/config.php";
 require_once dirname(__DIR__, 2) . "/includes/db.php";
@@ -25,11 +24,9 @@ unset($_usuario);
   <title>Panel Administrador - Wooden House</title>
 
   
-  <!-- Bootstrap 5 CSS - Grid, utilidades responsive. CSS propio de Wooden House carga después y tiene prioridad en colores -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" crossorigin="anonymous">
   <link rel="stylesheet" href="../assets/css/panel_administrador.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-  <!-- Bootstrap 5 JS - Solo componentes interactivos (modales, dropdowns). CSS propio de Wooden House tiene prioridad -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous" defer></script>
 </head>
 
@@ -55,7 +52,6 @@ unset($_usuario);
     </div>
   </div>
 
-  <!-- PANEL NOTIFICACIONES -->
   <div class="notif-panel" id="notifPanel">
     <div class="notif-head">
       <div class="notif-head-title">
@@ -70,7 +66,6 @@ unset($_usuario);
     <div class="notif-body" id="notifBody"></div>
   </div>
 
-  <!-- MENÚ HAMBURGUESA (tablet/móvil) -->
   <div class="nav-links" id="navLinks" aria-hidden="true">
     <div class="nav-title">
       Menú Admin
@@ -565,7 +560,6 @@ unset($_usuario);
           <input type="hidden" id="p_mode" value="create"/>
           <input type="hidden" id="p_key" value=""/>
 
-          <!-- Fila 1: Nombre + Categoría -->
           <div class="row g-3 form-grid">
             <div class="col-md-6 form-group">
               <label class="form-label">Nombre del modelo *</label>
@@ -606,7 +600,6 @@ unset($_usuario);
               placeholder="Descripción que se muestra en catálogo y detalle del producto."></textarea>
           </div>
 
-          <!-- SECCIÓN: Especificaciones reales del cliente -->
           <div class="section" style="margin-top:16px;">
             <div class="section-header">
               <h2 class="section-title"><i class="fa-solid fa-ruler-combined"></i> Dimensiones y características</h2>
@@ -653,13 +646,11 @@ unset($_usuario);
             </div>
           </div>
 
-          <!-- SECCIÓN: Imágenes con subida a Firebase -->
           <div class="section" style="margin-top:16px;">
             <div class="section-header">
               <h2 class="section-title"><i class="fa-solid fa-images"></i> Imágenes del producto</h2>
             </div>
 
-            <!-- Zona de drag & drop / selección -->
             <div id="imgDropZone" style="
               border:2px dashed var(--border);
               border-radius:10px;
@@ -680,7 +671,6 @@ unset($_usuario);
             <input type="file" id="p_imgs_files" multiple accept="image/*"
                    style="display:none" onchange="previewImages(this.files)"/>
 
-            <!-- Progreso de subida -->
             <div id="imgUploadProgress" style="display:none;margin-top:12px;">
               <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
                 <span style="font-size:12px;color:#ddd;" id="imgProgressLabel">Subiendo...</span>
@@ -691,7 +681,6 @@ unset($_usuario);
               </div>
             </div>
 
-            <!-- Preview de imágenes seleccionadas -->
             <div id="imgPreviewGrid" style="
               display:grid;
               grid-template-columns:repeat(auto-fill,minmax(90px,1fr));
@@ -699,7 +688,6 @@ unset($_usuario);
               margin-top:12px;
             "></div>
 
-            <!-- URLs ya guardadas (para edición) -->
             <textarea id="p_imgs_urls" style="display:none;"></textarea>
             <div class="help" style="margin-top:8px;">La primera imagen será la principal en el catálogo. Puedes reordenar arrastrando.</div>
           </div>
@@ -713,7 +701,6 @@ unset($_usuario);
         </div>
       </div>
 
-      <!-- MODAL: DETALLE -->
       <!-- MODAL: DETALLE -->
       <div class="modal" id="productoDetalleModal">
         <div class="modal-content">
@@ -778,7 +765,6 @@ unset($_usuario);
         <h1 class="page-title"><i class="fa-solid fa-industry"></i> Capacidad del Taller</h1>
         <p class="page-subtitle">Demanda de producción en tiempo real · Gestión de días bloqueados</p>
 
-        <!-- KPIs de capacidad -->
         <div class="row row-cols-2 row-cols-md-4 g-3 stats-grid" style="margin-bottom:24px;">
           <div class="col">
             <div class="stat-card">
@@ -812,7 +798,6 @@ unset($_usuario);
 
         <div class="row g-4 align-items-start">
 
-          <!-- Mapa de carga por día -->
           <div class="col-lg-8">
           <div class="table-card">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px;">
@@ -822,7 +807,6 @@ unset($_usuario);
               </button>
             </div>
 
-            <!-- Leyenda -->
             <div style="display:flex;gap:14px;margin-bottom:16px;flex-wrap:wrap;">
               <span style="font-size:11px;display:flex;align-items:center;gap:5px;color:var(--muted2);">
                 <span style="width:12px;height:12px;border-radius:3px;background:#4a8b5a;display:inline-block;"></span> Libre
@@ -846,7 +830,6 @@ unset($_usuario);
           </div>
           </div><!-- end col-lg-8 -->
 
-          <!-- Panel de bloquear/desbloquear días -->
           <div class="col-lg-4">
           <div class="table-card" style="position:sticky;top:20px;">
             <h3 style="color:var(--accent);font-size:15px;font-weight:800;margin-bottom:16px;">
@@ -874,7 +857,6 @@ unset($_usuario);
               </button>
             </div>
 
-            <!-- Lista de días bloqueados próximos -->
             <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--border);">
               <h4 style="color:var(--muted2);font-size:12px;text-transform:uppercase;letter-spacing:.6px;margin-bottom:12px;">
                 Días bloqueados próximos
@@ -905,7 +887,6 @@ unset($_usuario);
             </div>
           </div>
 
-          <!-- Stats rápidas -->
           <div class="row row-cols-2 g-3 stats-grid" style="margin-bottom:20px;" id="clientesStatsRow">
             <div class="col">
               <div class="stat-card">
@@ -1004,7 +985,6 @@ unset($_usuario);
           </div>
         </div>
 
-        <!-- Nota informativa -->
         <div class="section" style="margin-top:16px;">
           <div class="section-header"><h2 class="section-title"><i class="fa-solid fa-lightbulb"></i> ¿Cómo funcionan los códigos?</h2></div>
           <div style="color:var(--muted);font-size:13px;line-height:1.7;">
@@ -1086,13 +1066,10 @@ unset($_usuario);
   </div>
 
 
-  <!-- jsPDF: generación de reportes en PDF -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"
           integrity="sha512-qZvrmS2ekKPF2mSznTQsxqPgnpkI4DNTlrdUmTzrDgektczlKNRRhy5X5AAOnx5S09ydFYWWNSfcEqDTTHgtNA=="
           crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-  <!-- SheetJS: exportación real .xlsx -->
   <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
-  <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>

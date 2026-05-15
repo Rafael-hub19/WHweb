@@ -1,14 +1,5 @@
 <?php
-/**
- * api/clientes.php — Endpoints de clientes (e-commerce)
- *
- * GET  /api/clientes.php               → Admin: listar clientes
- * GET  /api/clientes.php?id=X          → Admin: cliente con historial
- * PUT  /api/clientes.php?id=X          → Cliente: actualizar su perfil
- * GET  /api/clientes.php?action=mis-pedidos → Cliente: sus pedidos
- * GET  /api/clientes.php?action=mis-datos   → Cliente: sus datos
- */
-
+// api/clientes.php — Endpoints de clientes (e-commerce)
 require_once __DIR__ . '/_helpers.php';
 
 $method = $_SERVER['REQUEST_METHOD'];
@@ -54,7 +45,6 @@ if ($method === 'GET' && !$id && !$action) {
         $params = [$like, $like, $like, $like];
     }
 
-    // Verificar si la columna cliente_id existe en pedidos antes de hacer el JOIN
     $tieneClienteId = false;
     try {
         dbRow("SELECT cliente_id FROM pedidos LIMIT 1");

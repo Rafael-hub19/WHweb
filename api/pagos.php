@@ -61,16 +61,14 @@ if ($action === 'stripe_confirm') {
             dbQuery("UPDATE pagos SET estado = 'aprobado' WHERE referencia_externa = ?", [$piId]);
             dbUpdate('pedidos', ['estado' => 'pagado'], 'id = ?', [$pedidoId]);
             $pedido = dbRow("SELECT * FROM pedidos WHERE id = ?", [$pedidoId]);
-            // Enviar notificación solo si el webhook aún no lo hizo (notificacion_enviada = 0)
-            // Esto cubre el caso donde los webhooks no están configurados (entorno local/test)
-            if ($pedido && empty($pedido['notificacion_enviada'])) {
+            // Atómico: solo el primer proceso que llegue envía la notificación (evita duplicados)
+            if ($pedido && dbUpdate('pedidos', ['notificacion_enviada' => 1], 'id = ? AND notificacion_enviada = 0', [$pedidoId]) > 0) {
                 try {
                     $pedido['items']          = dbRows("SELECT nombre_producto, cantidad, precio_unitario FROM detalle_pedido WHERE pedido_id = ?", [$pedidoId]);
                     $pedido['metodo_pago']    = 'Stripe';
                     $pedido['referencia_pago'] = $piId;
                     $pedido['fecha_pago']      = date('d/m/Y H:i');
                     notificarNuevoPedido($pedido);
-                    dbUpdate('pedidos', ['notificacion_enviada' => 1], 'id = ?', [$pedidoId]);
                 } catch (Exception $e) {
                     appLog('warning', 'Notif stripe confirm fallback error', ['error' => $e->getMessage()]);
                 }
@@ -105,15 +103,13 @@ if ($action === 'stripe_webhook') {
             if ($pago) {
                 dbUpdate('pedidos', ['estado' => 'pagado'], 'id = ?', [$pago['pedido_id']]);
                 $pedido = dbRow("SELECT * FROM pedidos WHERE id = ?", [$pago['pedido_id']]);
-                if ($pedido && empty($pedido['notificacion_enviada'])) {
+                if ($pedido && dbUpdate('pedidos', ['notificacion_enviada' => 1], 'id = ? AND notificacion_enviada = 0', [$pago['pedido_id']]) > 0) {
                     try {
                         $pedido['items']           = dbRows("SELECT nombre_producto, cantidad, precio_unitario FROM detalle_pedido WHERE pedido_id = ?", [$pago['pedido_id']]);
                         $pedido['metodo_pago']     = 'Stripe';
                         $pedido['referencia_pago'] = $piId;
                         $pedido['fecha_pago']       = date('d/m/Y H:i');
                         notificarNuevoPedido($pedido);
-                        // Marcar como notificado para evitar duplicados si el webhook se reintenta
-                        dbUpdate('pedidos', ['notificacion_enviada' => 1], 'id = ?', [$pago['pedido_id']]);
                     } catch (Exception $e) {
                         appLog('error', 'Notif stripe webhook error', ['error' => $e->getMessage()]);
                     }
@@ -157,14 +153,13 @@ if ($action === 'paypal_webhook') {
                 if ($pago) {
                     dbUpdate('pedidos', ['estado' => 'pagado'], 'id = ?', [$pago['pedido_id']]);
                     $pedido = dbRow("SELECT * FROM pedidos WHERE id = ?", [$pago['pedido_id']]);
-                    if ($pedido && empty($pedido['notificacion_enviada'])) {
+                    if ($pedido && dbUpdate('pedidos', ['notificacion_enviada' => 1], 'id = ? AND notificacion_enviada = 0', [$pago['pedido_id']]) > 0) {
                         try {
                             $pedido['items']           = dbRows("SELECT nombre_producto, cantidad, precio_unitario FROM detalle_pedido WHERE pedido_id = ?", [$pago['pedido_id']]);
                             $pedido['metodo_pago']     = 'PayPal';
                             $pedido['referencia_pago'] = $captureId ?: $orderId;
                             $pedido['fecha_pago']       = date('d/m/Y H:i');
                             notificarNuevoPedido($pedido);
-                            dbUpdate('pedidos', ['notificacion_enviada' => 1], 'id = ?', [$pago['pedido_id']]);
                         } catch (Exception $e) {
                             appLog('error', 'Notif paypal webhook error', ['error' => $e->getMessage()]);
                         }
@@ -250,8 +245,8 @@ if ($action === 'paypal_capturar') {
             dbQuery("UPDATE pagos SET estado = 'aprobado' WHERE referencia_externa = ?", [$orderId]);
             dbUpdate('pedidos', ['estado' => 'pagado'], 'id = ?', [$pedidoId]);
             $pedido = dbRow("SELECT * FROM pedidos WHERE id = ?", [$pedidoId]);
-            // Enviar notificación solo si el webhook aún no lo hizo
-            if ($pedido && empty($pedido['notificacion_enviada'])) {
+            // Atómico: solo el primer proceso que llegue envía la notificación (evita duplicados)
+            if ($pedido && dbUpdate('pedidos', ['notificacion_enviada' => 1], 'id = ? AND notificacion_enviada = 0', [$pedidoId]) > 0) {
                 try {
                     $captureId = $capture['purchase_units'][0]['payments']['captures'][0]['id'] ?? $orderId;
                     $pedido['items']           = dbRows("SELECT nombre_producto, cantidad, precio_unitario FROM detalle_pedido WHERE pedido_id = ?", [$pedidoId]);
@@ -259,7 +254,6 @@ if ($action === 'paypal_capturar') {
                     $pedido['referencia_pago'] = $captureId;
                     $pedido['fecha_pago']      = date('d/m/Y H:i');
                     notificarNuevoPedido($pedido);
-                    dbUpdate('pedidos', ['notificacion_enviada' => 1], 'id = ?', [$pedidoId]);
                 } catch (Exception $e) {
                     appLog('warning', 'Notif paypal capturar fallback error', ['error' => $e->getMessage()]);
                 }

@@ -1,13 +1,4 @@
 <?php
-/**
- * auth.php - Autenticación Firebase + MySQL
- * 
- * Flujo:
- * 1. Frontend hace signIn con Firebase → recibe ID Token (JWT firmado por Google)
- * 2. Backend verifica el JWT contra las CLAVES PÚBLICAS de Google (no las nuestras)
- * 3. Si es válido, busca el firebase_uid en usuarios_personal de MySQL
- * 4. Si existe y está activo → crea sesión PHP
- */
 
 if (!defined('WH_LOADED')) {
     require_once __DIR__ . '/config.php';
@@ -21,7 +12,6 @@ function getBearerToken(): ?string {
     $auth = $headers['Authorization'] ?? $headers['authorization'] ?? '';
     if (preg_match('/^Bearer\s+(.+)$/i', trim($auth), $m)) {
         $token = trim($m[1]);
-        // Validación básica de formato JWT (3 partes base64url)
         if (substr_count($token, '.') === 2 && strlen($token) < 4096) {
             return $token;
         }
@@ -29,11 +19,6 @@ function getBearerToken(): ?string {
     return null;
 }
 
-/**
- * Obtener las claves públicas de Firebase desde Google
- * Firebase firma sus ID tokens con RSA-256 usando rotación de claves
- * Esta función las obtiene con caché de archivo para no llamar Google en cada request
- */
 function obtenerClavesPublicasFirebase(): array {
     $cacheFile = sys_get_temp_dir() . '/wh_firebase_keys.json';
     $cacheAge  = file_exists($cacheFile) ? (time() - filemtime($cacheFile)) : PHP_INT_MAX;
@@ -67,12 +52,6 @@ function obtenerClavesPublicasFirebase(): array {
     return $keys;
 }
 
-/**
- * Verificar un ID Token de Firebase con las claves públicas de Google
- * Esta es la forma CORRECTA y SEGURA (sin SDK)
- * 
- * @return array|null  El payload decodificado, o null si es inválido
- */
 function verificarTokenFirebase(string $token): ?array {
     $parts = explode('.', $token);
     if (count($parts) !== 3) {
@@ -80,7 +59,6 @@ function verificarTokenFirebase(string $token): ?array {
         return null;
     }
 
-    // Decodificar header y payload
     $headerRaw  = base64_decode(strtr($parts[0], '-_', '+/') . '==');
     $payloadRaw = base64_decode(strtr($parts[1], '-_', '+/') . '==');
     $sigRaw     = base64_decode(strtr($parts[2], '-_', '+/') . '==');
@@ -98,10 +76,7 @@ function verificarTokenFirebase(string $token): ?array {
         return null;
     }
 
-    // ── Validaciones básicas del payload ─────────────────────────
     $now = time();
-
-    // Expiración
     if (($payload['exp'] ?? 0) < $now) {
         error_log('[Firebase] Token expirado: exp=' . ($payload['exp'] ?? 0) . ' now=' . $now);
         return null;
@@ -114,21 +89,18 @@ function verificarTokenFirebase(string $token): ?array {
         error_log('[Firebase] Aviso: iat futuro ' . $iatDiff . 's — verificar NTP del servidor');
     }
 
-    // Audience debe ser el Project ID de Firebase
     $aud = $payload['aud'] ?? '';
     if ($aud !== FIREBASE_PROJECT_ID) {
         error_log('[Firebase] aud incorrecto: esperado="' . FIREBASE_PROJECT_ID . '" recibido="' . $aud . '"');
         return null;
     }
 
-    // Issuer debe ser el endpoint de Firebase
     $iss = $payload['iss'] ?? '';
     if ($iss !== 'https://securetoken.google.com/' . FIREBASE_PROJECT_ID) {
         error_log('[Firebase] iss incorrecto: "' . $iss . '"');
         return null;
     }
 
-    // Subject (= firebase uid) debe existir y no estar vacío
     $sub = $payload['sub'] ?? '';
     if (empty($sub)) {
         error_log('[Firebase] sub vacío en el token');
@@ -136,7 +108,7 @@ function verificarTokenFirebase(string $token): ?array {
     }
 
     // ── Verificar firma RSA con clave pública de Google ──────────
-    $kid  = $header['kid'] ?? '';     // Key ID: qué clave usó Firebase para firmar
+    $kid  = $header['kid'] ?? '';
     $keys = obtenerClavesPublicasFirebase();
 
     if (empty($kid) || !isset($keys[$kid])) {
@@ -149,7 +121,6 @@ function verificarTokenFirebase(string $token): ?array {
     $pubKey  = openssl_pkey_get_public($cert);
     if (!$pubKey) {
         error_log('[Firebase] openssl_pkey_get_public falló para kid=' . $kid);
-        // Fallback a tokeninfo en caso de fallo de OpenSSL
         return verificarTokenFirebaseViaAPI($token);
     }
 
@@ -165,10 +136,6 @@ function verificarTokenFirebase(string $token): ?array {
     return $payload;
 }
 
-/**
- * Fallback: verificar via Google tokeninfo endpoint
- * Más lento pero útil cuando las claves están rotando
- */
 function verificarTokenFirebaseViaAPI(string $token): ?array {
     $url = 'https://oauth2.googleapis.com/tokeninfo?id_token=' . urlencode($token);
     $ch  = curl_init($url);
@@ -206,12 +173,7 @@ function verificarTokenFirebaseViaAPI(string $token): ?array {
 
 // ── Consulta MySQL ────────────────────────────────────────────────
 
-/**
- * Buscar usuario por firebase_uid en MySQL
- * Solo devuelve usuarios activos con los campos necesarios (sin exponer todo)
- */
 function obtenerUsuarioPorFirebaseUid(string $uid): ?array {
-    // Validar que el UID tenga formato Firebase válido (alfanumérico, 28 chars)
     if (!preg_match('/^[a-zA-Z0-9]{20,128}$/', $uid)) return null;
 
     return dbRow(
@@ -226,17 +188,14 @@ function obtenerUsuarioPorFirebaseUid(string $uid): ?array {
 // ── Middlewares de autenticación ──────────────────────────────────
 
 function requerirAutenticacion(): array {
-    // 1. ¿Hay sesión PHP válida? Verificar también que no haya expirado
     if (!empty($_SESSION['usuario_id']) && !empty($_SESSION['_csrf'])) {
         $now = time();
-        // Timeout absoluto: 8 horas desde login
-        if (!empty($_SESSION['_login_time']) && ($now - $_SESSION['_login_time']) > 28800) {
-            _destruirSesion();
+        if (!empty($_SESSION['_usuario_login_time']) && ($now - $_SESSION['_usuario_login_time']) > 28800) {
+            _destruirSesionPersonal();
             jsonError('Sesión expirada. Por favor inicia sesión nuevamente.', 401);
         }
-        // Timeout de inactividad: 2 horas
         if (!empty($_SESSION['_last_activity']) && ($now - $_SESSION['_last_activity']) > 7200) {
-            _destruirSesion();
+            _destruirSesionPersonal();
             jsonError('Sesión expirada por inactividad.', 401);
         }
         $_SESSION['_last_activity'] = $now;
@@ -248,29 +207,19 @@ function requerirAutenticacion(): array {
             [$_SESSION['usuario_id']]
         );
         if ($usuario) return $usuario;
-        // Sesión corrupta o usuario desactivado
         _destruirSesion();
     }
 
-    // 2. ¿Hay Bearer token (llamadas desde JS)?
     $token = getBearerToken();
-    if (!$token) {
-        jsonError('No autenticado', 401);
-    }
+    if (!$token) jsonError('No autenticado', 401);
 
     $payload = verificarTokenFirebase($token);
-    if (!$payload) {
-        jsonError('Token inválido o expirado', 401);
-    }
+    if (!$payload) jsonError('Token inválido o expirado', 401);
 
     $uid     = $payload['uid'] ?? '';
     $usuario = $uid ? obtenerUsuarioPorFirebaseUid($uid) : null;
+    if (!$usuario) jsonError('Usuario no autorizado en el sistema', 403);
 
-    if (!$usuario) {
-        jsonError('Usuario no autorizado en el sistema', 403);
-    }
-
-    // Crear sesión
     _crearSesion($usuario);
     return $usuario;
 }
@@ -307,19 +256,20 @@ function sesionActiva(): ?array {
 
 function _crearSesion(array $usuario): void {
     session_regenerate_id(true);
-    $_SESSION['usuario_id']     = $usuario['id'];
-    $_SESSION['usuario_rol']    = $usuario['rol'];
-    $_SESSION['_csrf']          = bin2hex(random_bytes(32));
-    $_SESSION['_login_time']    = time();
-    $_SESSION['_last_activity'] = time();
-    // Renovar CSRF en cada sesión nueva
-    setcookie('XSRF-TOKEN', $_SESSION['_csrf'], [
-        'expires'  => 0,
-        'path'     => '/',
-        'secure'   => true,
-        'httponly' => false,   // JS necesita leerla para enviarla en headers
-        'samesite' => 'Strict',
-    ]);
+    $_SESSION['usuario_id']          = $usuario['id'];
+    $_SESSION['usuario_rol']         = $usuario['rol'];
+    $_SESSION['_usuario_login_time'] = time();
+    // Solo regenerar CSRF si no hay sesión de cliente activa en paralelo
+    if (empty($_SESSION['cliente_id'])) {
+        $_SESSION['_csrf'] = bin2hex(random_bytes(32));
+        setcookie('XSRF-TOKEN', $_SESSION['_csrf'], [
+            'expires'  => 0,
+            'path'     => '/',
+            'secure'   => true,
+            'httponly' => false,
+            'samesite' => 'Strict',
+        ]);
+    }
 }
 
 function _destruirSesion(): void {
@@ -328,11 +278,9 @@ function _destruirSesion(): void {
         $p = session_get_cookie_params();
         setcookie(session_name(), '', time() - 86400,
             $p['path'], $p['domain'], $p['secure'], $p['httponly']);
-        // Eliminar también la cookie CSRF
         setcookie('XSRF-TOKEN', '', time() - 86400, '/', $p['domain'], true, false);
     }
     session_destroy();
-    // Regenerar ID para que la sesión anterior quede inválida
     if (session_status() === PHP_SESSION_NONE) session_start();
     session_regenerate_id(true);
     session_destroy();
@@ -340,6 +288,38 @@ function _destruirSesion(): void {
 
 function cerrarSesion(): void {
     _destruirSesion();
+}
+
+// Cierra SOLO la sesión de cliente; conserva la sesión de personal si existe
+function _destruirSesionCliente(): void {
+    unset(
+        $_SESSION['cliente_id'],
+        $_SESSION['cliente_uid'],
+        $_SESSION['cliente_rol'],
+        $_SESSION['cliente_email_verified'],
+        $_SESSION['_cliente_login_time']
+    );
+    if (empty($_SESSION['usuario_id'])) {
+        $p = session_get_cookie_params();
+        setcookie('XSRF-TOKEN', '', time() - 86400, '/', $p['domain'], true, false);
+        unset($_SESSION['_csrf']);
+        session_regenerate_id(true);
+    }
+}
+
+// Cierra SOLO la sesión de personal; conserva la sesión de cliente si existe
+function _destruirSesionPersonal(): void {
+    unset(
+        $_SESSION['usuario_id'],
+        $_SESSION['usuario_rol'],
+        $_SESSION['_usuario_login_time']
+    );
+    if (empty($_SESSION['cliente_id'])) {
+        $p = session_get_cookie_params();
+        setcookie('XSRF-TOKEN', '', time() - 86400, '/', $p['domain'], true, false);
+        unset($_SESSION['_csrf']);
+        session_regenerate_id(true);
+    }
 }
 
 // ── Generar y validar token CSRF ──────────────────────────────────
@@ -357,11 +337,7 @@ function verificarCsrfToken(string $token): bool {
     return !empty($esperado) && hash_equals($esperado, $token);
 }
 
-// ════════════════════════════════════════════════════════════════
-// AUTENTICACIÓN DE CLIENTES (E-commerce)
-// Los clientes usan Firebase Auth pero se almacenan en 'clientes'
-// Claves de sesión distintas: cliente_id, cliente_rol
-// ════════════════════════════════════════════════════════════════
+// ── Autenticación de clientes (e-commerce) ───────────────────────
 
 function obtenerClientePorFirebaseUid(string $uid): ?array {
     if (!preg_match('/^[a-zA-Z0-9]{20,128}$/', $uid)) return null;
@@ -372,10 +348,6 @@ function obtenerClientePorFirebaseUid(string $uid): ?array {
     );
 }
 
-/**
- * Verifica si un firebase_uid pertenece a un usuario del personal.
- * Usado para bloquear que cuentas de personal se registren como clientes.
- */
 function esPersonal(string $uid): bool {
     if (!preg_match('/^[a-zA-Z0-9]{20,128}$/', $uid)) return false;
     return (bool) dbRow(
@@ -390,8 +362,7 @@ function registrarCliente(array $data): ?array {
     $correo = trim($data['correo'] ?? '');
     if (empty($uid) || empty($nombre) || empty($correo)) return null;
     if (!filter_var($correo, FILTER_VALIDATE_EMAIL)) return null;
-    // Seguridad: nunca registrar una cuenta de personal como cliente
-    if (esPersonal($uid)) return null;
+    if (esPersonal($uid)) return null;  // nunca registrar personal como cliente
     try {
         dbQuery(
             "INSERT INTO clientes (firebase_uid, nombre, correo, telefono)
@@ -408,23 +379,25 @@ function registrarCliente(array $data): ?array {
 
 function _crearSesionCliente(array $cliente): void {
     session_regenerate_id(true);
-    $_SESSION['cliente_id']     = $cliente['id'];
-    $_SESSION['cliente_uid']    = $cliente['firebase_uid'];
-    $_SESSION['cliente_rol']    = 'cliente';
-    $_SESSION['_csrf']          = bin2hex(random_bytes(32));
-    $_SESSION['_login_time']    = time();
-    $_SESSION['_last_activity'] = time();
-    setcookie('XSRF-TOKEN', $_SESSION['_csrf'], [
-        'expires' => 0, 'path' => '/', 'secure' => true,
-        'httponly' => false, 'samesite' => 'Strict',
-    ]);
+    $_SESSION['cliente_id']          = $cliente['id'];
+    $_SESSION['cliente_uid']         = $cliente['firebase_uid'];
+    $_SESSION['cliente_rol']         = 'cliente';
+    $_SESSION['_cliente_login_time'] = time();
+    // Solo regenerar CSRF si no hay sesión de personal activa en paralelo
+    if (empty($_SESSION['usuario_id'])) {
+        $_SESSION['_csrf'] = bin2hex(random_bytes(32));
+        setcookie('XSRF-TOKEN', $_SESSION['_csrf'], [
+            'expires' => 0, 'path' => '/', 'secure' => true,
+            'httponly' => false, 'samesite' => 'Strict',
+        ]);
+    }
 }
 
 function sesionClienteActiva(): ?array {
     if (empty($_SESSION['cliente_id']) || ($_SESSION['cliente_rol'] ?? '') !== 'cliente') return null;
     $now = time();
-    if (!empty($_SESSION['_login_time']) && ($now - $_SESSION['_login_time']) > 28800) { _destruirSesion(); return null; }
-    if (!empty($_SESSION['_last_activity']) && ($now - $_SESSION['_last_activity']) > 7200) { _destruirSesion(); return null; }
+    if (!empty($_SESSION['_cliente_login_time']) && ($now - $_SESSION['_cliente_login_time']) > 28800) { _destruirSesionCliente(); return null; }
+    if (!empty($_SESSION['_last_activity']) && ($now - $_SESSION['_last_activity']) > 7200) { _destruirSesionCliente(); return null; }
     $_SESSION['_last_activity'] = $now;
     return dbRow(
         "SELECT id, firebase_uid, nombre, correo, telefono, direccion, colonia, municipio, ciudad, cp

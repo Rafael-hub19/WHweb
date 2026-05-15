@@ -13,9 +13,7 @@ if (empty($_SESSION['cliente_email_verified'])) {
     exit;
 }
 
-/**
- * Helpers para no reventar si falta alguna constante/variable en config.php
- */
+// Fallback si faltan constantes en config.php
 $stripePk  = defined('STRIPE_PUBLIC_KEY') ? STRIPE_PUBLIC_KEY : '';
 $paypalId  = defined('PAYPAL_CLIENT_ID')  ? PAYPAL_CLIENT_ID  : '';
 $paypalEnv = defined('PAYPAL_MODE')       ? PAYPAL_MODE       : 'sandbox';
@@ -31,7 +29,6 @@ if (!$paypalId)  error_log('[pago.php] PAYPAL_CLIENT_ID vacío o no definido');
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Proceso de Pago - Wooden House</title>
 
-  <!-- (Opcional) favicon para evitar 404 -->
   <link rel="icon" href="/assets/img/favicon.ico">
 
   <!-- Credenciales inyectadas desde .env (nunca hardcodeadas) -->
@@ -40,7 +37,6 @@ if (!$paypalId)  error_log('[pago.php] PAYPAL_CLIENT_ID vacío o no definido');
     window.PAYPAL_ENV = "<?= htmlspecialchars($paypalEnv, ENT_QUOTES, 'UTF-8') ?>";
   </script>
 
-  <!-- Stripe JS SDK v3 (oficial) -->
   <script src="https://js.stripe.com/v3/"></script>
 
   <!-- PayPal JS SDK — Client ID inyectado desde .env -->
@@ -53,13 +49,11 @@ if (!$paypalId)  error_log('[pago.php] PAYPAL_CLIENT_ID vacío o no definido');
     id="paypalScript">
   </script>
 
-  <!-- Bootstrap 5 CSS - Grid, utilidades responsive. CSS propio de Wooden House carga después y tiene prioridad en colores -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" crossorigin="anonymous">
   <link rel="stylesheet" href="/assets/css/variables.css">
   <link rel="stylesheet" href="/assets/css/styles.css?v=4">
   <link rel="stylesheet" href="./assets/css/pago.css?v=3">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-  <!-- Bootstrap 5 JS - Solo componentes interactivos (modales, dropdowns). CSS propio de Wooden House tiene prioridad -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous" defer></script>
 </head>
 <body>
@@ -73,7 +67,6 @@ if (!$paypalId)  error_log('[pago.php] PAYPAL_CLIENT_ID vacío o no definido');
     </a>
   </div>
 
-  <!-- Progress Steps -->
   <div class="steps-indicator">
     <div class="step completed">
       <div class="step-number"><i class="fa-solid fa-check"></i></div><span>Carrito</span>
@@ -93,7 +86,6 @@ if (!$paypalId)  error_log('[pago.php] PAYPAL_CLIENT_ID vacío o no definido');
     </div>
 
     <div class="row g-4 payment-container">
-      <!-- Columna izquierda: métodos de pago -->
       <div class="col-lg-8 payment-section">
 
         <!-- Error global visible para todos los métodos de pago -->
@@ -111,7 +103,6 @@ if (!$paypalId)  error_log('[pago.php] PAYPAL_CLIENT_ID vacío o no definido');
         </h2>
 
         <div class="row g-3 payment-methods">
-          <!-- STRIPE -->
           <div class="col-6">
             <div class="payment-option selected h-100" data-method="card" id="opt-card">
               <div class="payment-icon"><i class="fa-solid fa-credit-card"></i></div>
@@ -120,7 +111,6 @@ if (!$paypalId)  error_log('[pago.php] PAYPAL_CLIENT_ID vacío o no definido');
             </div>
           </div>
 
-          <!-- PAYPAL -->
           <div class="col-6">
             <div class="payment-option h-100" data-method="paypal" id="opt-paypal">
               <div class="payment-icon"><i class="fab fa-paypal"></i></div>
@@ -130,7 +120,6 @@ if (!$paypalId)  error_log('[pago.php] PAYPAL_CLIENT_ID vacío o no definido');
           </div>
         </div>
 
-        <!-- STRIPE FORM -->
         <div id="stripe-section" class="payment-form-section">
           <h3>Datos de Tarjeta</h3>
           <div class="stripe-card-container">
@@ -138,9 +127,7 @@ if (!$paypalId)  error_log('[pago.php] PAYPAL_CLIENT_ID vacío o no definido');
               Número de tarjeta, vencimiento y CVV
               <span class="wh-help" data-tip="El CVV son los 3 dígitos al reverso de tu tarjeta (4 dígitos en Amex). Este formulario es cifrado por Stripe — nosotros nunca vemos tu número de tarjeta.">?</span>
             </label>
-            <div id="card-element" class="stripe-element">
-              <!-- Stripe Elements se monta aquí -->
-            </div>
+            <div id="card-element" class="stripe-element"></div>
             <div id="card-errors" class="card-error" role="alert"></div>
           </div>
           <button id="btnStripe" class="btn-pay btn-stripe" disabled>
@@ -149,7 +136,6 @@ if (!$paypalId)  error_log('[pago.php] PAYPAL_CLIENT_ID vacío o no definido');
           </button>
         </div>
 
-        <!-- PAYPAL FORM -->
         <div id="paypal-section" class="payment-form-section" style="display:none;">
           <h3>Pago con PayPal
             <span class="wh-help" data-tip="Puedes pagar con tu saldo de PayPal o con cualquier tarjeta sin necesitar una cuenta PayPal. Es redirigido a los servidores seguros de PayPal.">?</span>
@@ -164,7 +150,6 @@ if (!$paypalId)  error_log('[pago.php] PAYPAL_CLIENT_ID vacío o no definido');
         </div>
       </div>
 
-      <!-- Columna derecha: resumen del pedido -->
       <div class="col-lg-4 order-summary">
         <h2 class="section-title"><i class="fa-solid fa-clipboard-list"></i> Resumen del Pedido</h2>
         <div id="cart-items-summary"></div>

@@ -15,12 +15,10 @@ if (!empty($_SESSION['_flash'])) {
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Wooden House - Muebles de Madera a Medida en Guadalajara</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-  <!-- Bootstrap 5 CSS - Grid, utilidades responsive. CSS propio de Wooden House carga después y tiene prioridad en colores -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" crossorigin="anonymous">
   <link rel="stylesheet" href="./assets/css/styles.css?v=4">
   <link rel="stylesheet" href="./assets/css/index.css">
   <link rel="stylesheet" href="./assets/css/modal-auth.css?v=4">
-  <!-- Bootstrap 5 JS - Solo componentes interactivos (modales, dropdowns). CSS propio de Wooden House tiene prioridad -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous" defer></script>
 </head>
 
@@ -33,7 +31,6 @@ if (!empty($_SESSION['_flash'])) {
     <button class="wh-alerta-cerrar" onclick="this.parentElement.remove()" aria-label="Cerrar">×</button>
   </div>
   <script>
-    // Auto-ocultar la alerta después de 6 segundos
     setTimeout(function() {
       var a = document.getElementById('whAlerta');
       if (a) { a.style.transition = 'opacity .4s'; a.style.opacity = '0'; setTimeout(function(){ a.remove(); }, 400); }
@@ -51,7 +48,6 @@ if (!empty($_SESSION['_flash'])) {
 
     <nav class="nav-links" id="navLinks" aria-label="Navegación principal">
 
-      <!-- Inicio con submenú desplegable -->
       <div class="nav-item nav-dropdown" id="navDropdown">
         <button class="nav-dropdown-btn" id="dropdownBtn"
                 aria-haspopup="true" aria-expanded="false"
@@ -153,10 +149,8 @@ if (!empty($_SESSION['_flash'])) {
     </div>
   </div>
 
-  <!-- Container principal -->
   <div class="container">
 
-    <!-- About Section -->
     <div class="about-box">
       <h2>¿Quiénes Somos?</h2>
       <p>
@@ -171,7 +165,6 @@ if (!empty($_SESSION['_flash'])) {
       </p>
     </div>
 
-    <!-- Services Section -->
     <div id="servicios">
       <h2 class="section-title"><i class="fa-solid fa-screwdriver-wrench"></i> Nuestros Servicios</h2>
       <div class="row row-cols-1 row-cols-md-3 g-4 mb-5">
@@ -202,7 +195,6 @@ if (!empty($_SESSION['_flash'])) {
       </div>
     </div>
 
-    <!-- Why Choose Us -->
     <div>
       <h2 class="section-title"><i class="fa-solid fa-star"></i> ¿Por Qué Elegirnos?</h2>
       <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 g-4 mb-5">
@@ -245,7 +237,6 @@ if (!empty($_SESSION['_flash'])) {
       </div>
     </div>
 
-    <!-- Process -->
     <div>
       <h2 class="section-title"><i class="fa-solid fa-clipboard-list"></i> Proceso de Trabajo</h2>
       <div class="row row-cols-2 row-cols-sm-3 row-cols-lg-5 g-5 mb-5">
@@ -288,7 +279,6 @@ if (!empty($_SESSION['_flash'])) {
       </div>
     </div>
 
-    <!-- Projects Gallery -->
     <div id="proyectos">
       <h2 class="section-title"><i class="fa-solid fa-sparkles"></i> Proyectos Realizados</h2>
 
@@ -345,7 +335,6 @@ if (!empty($_SESSION['_flash'])) {
       </div>
     </div>
 
-    <!-- Call to Action -->
     <div class="cta-section">
       <h2><i class="fa-solid fa-house"></i> ¿Listo para Transformar tu Espacio?</h2>
       <p>Contáctanos hoy y recibe una cotización personalizada sin compromiso</p>
@@ -355,7 +344,6 @@ if (!empty($_SESSION['_flash'])) {
       </div>
     </div>
 
-    <!-- FAQ Section -->
     <div class="faq-section">
       <h2 class="section-title"><i class="fa-solid fa-circle-question"></i> Preguntas Frecuentes</h2>
 
@@ -401,7 +389,6 @@ if (!empty($_SESSION['_flash'])) {
 
     </div>
 
-    <!-- Contact Section -->
     <div id="contacto">
       <h2 class="section-title"><i class="fa-solid fa-phone"></i> Información de Contacto</h2>
       <div class="row row-cols-1 row-cols-sm-2 g-4 mb-5">
@@ -440,7 +427,6 @@ if (!empty($_SESSION['_flash'])) {
       </div>
     </div>
 
-    <!-- Map Section -->
     <div class="map-section">
       <h2><i class="fa-solid fa-location-dot"></i> Nuestra Ubicación</h2>
       <p>Servicio de entrega e instalación en toda la Zona Metropolitana de Guadalajara</p>
@@ -454,7 +440,6 @@ if (!empty($_SESSION['_flash'])) {
       </div>
     </div>
 
-    <!-- Social Media -->
     <div class="social-section">
       <h3><i class="fa-solid fa-globe"></i> Síguenos en Redes Sociales</h3>
       <p style="color:#a0a0a0; margin-bottom:20px;">Mantente al día con nuestros proyectos más recientes</p>
@@ -484,7 +469,6 @@ if (!empty($_SESSION['_flash'])) {
 
   </div><!-- /container -->
 
-  <!-- Footer -->
   <div class="footer">
     <p>&copy; 2026 Wooden House. Todos los derechos reservados.</p>
     <p style="margin-top:10px;">Muebles de madera a medida en Guadalajara, Jalisco</p>
@@ -595,7 +579,6 @@ if (!empty($_SESSION['_flash'])) {
   <script src="./assets/js/index.js?v=2"></script>
 
   <script>
-    // Abrir modal de registro si viene desde login con ?registro=1
     if (new URLSearchParams(location.search).get('registro') === '1') {
       window.addEventListener('load', function () {
         setTimeout(function () {

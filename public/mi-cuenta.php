@@ -17,7 +17,6 @@ header('Content-Type: text/html; charset=utf-8');
   <link rel="icon" type="image/x-icon" href="/favicon.ico">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Mi Cuenta – Wooden House</title>
-  <!-- Bootstrap 5 CSS - Grid, utilidades responsive. CSS propio de Wooden House carga después y tiene prioridad en colores -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" crossorigin="anonymous">
   <link rel="stylesheet" href="./assets/css/variables.css">
   <link rel="stylesheet" href="./assets/css/styles.css?v=4">
@@ -53,13 +52,11 @@ header('Content-Type: text/html; charset=utf-8');
 <!-- ── Main ────────────────────────────────────────────────────── -->
 <div class="mc-container" id="mcContainer">
 
-  <!-- Estado: cargando / no autenticado -->
   <div id="mcLoading" class="mc-loading">
     <div class="mc-spinner"></div>
     <p>Verificando sesión…</p>
   </div>
 
-  <!-- Estado: no autenticado -->
   <div id="mcNoAuth" style="display:none;" class="mc-noauth">
     <div class="mc-noauth-icon"><i class="fa-solid fa-user-lock"></i></div>
     <h2>Inicia sesión para ver tu cuenta</h2>
@@ -69,10 +66,8 @@ header('Content-Type: text/html; charset=utf-8');
     </button>
   </div>
 
-  <!-- Contenido: autenticado -->
   <div id="mcContent" style="display:none;">
 
-    <!-- Encabezado del perfil + Cerrar sesión visible -->
     <div class="mc-profile-header">
       <div class="mc-avatar" id="mcAvatar">U</div>
       <div class="mc-profile-info">
@@ -85,7 +80,6 @@ header('Content-Type: text/html; charset=utf-8');
       </button>
     </div>
 
-    <!-- Tabs de contenido -->
     <div class="mc-tabs">
       <button class="mc-tab active" data-tab="pedidos" onclick="mcShowTab('pedidos')">
         <i class="fa-solid fa-box"></i> Mis pedidos
@@ -95,7 +89,6 @@ header('Content-Type: text/html; charset=utf-8');
       </button>
     </div>
 
-    <!-- Tab: Pedidos -->
     <div id="mcTabPedidos" class="mc-tab-content active">
       <div class="mc-section-title">
         <i class="fa-solid fa-box"></i> Historial de pedidos
@@ -105,7 +98,6 @@ header('Content-Type: text/html; charset=utf-8');
       </div>
     </div>
 
-    <!-- Tab: Perfil -->
     <div id="mcTabPerfil" class="mc-tab-content" style="display:none;">
       <div class="mc-section-title">
         <i class="fa-solid fa-user-pen"></i> Editar perfil
@@ -178,7 +170,6 @@ header('Content-Type: text/html; charset=utf-8');
   </div><!-- /mcContent -->
 </div>
 
-<!-- Footer -->
 <div class="footer">
   <p>© 2026 Wooden House · Guadalajara, Jalisco</p>
   <p style="margin-top:8px;font-size:14px;">
@@ -192,7 +183,6 @@ header('Content-Type: text/html; charset=utf-8');
   </p>
 </div>
 
-<!-- Barra de navegación fija móvil -->
 <nav class="mobile-bottom-nav" aria-label="Navegación rápida">
   <div class="mobile-bottom-nav-inner">
     <a href="/inicio" class="mbn-item"><i class="fa-solid fa-house"></i><span>Inicio</span></a>

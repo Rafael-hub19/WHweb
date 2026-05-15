@@ -1,16 +1,5 @@
 <?php
-/**
- * notifications.php — Wooden House
- *
- * Todas las notificaciones y correos se manejan via Firebase Cloud Functions.
- * PHP solo escribe documentos en Firestore — Firebase hace el resto.
- *
- * Flujos conservados del original:
- *   notificarNuevoPedido     → Firebase envía emailPedidoConfirmado al cliente
- *   notificarCambioPedido    → Firebase envía emailEstadoPedido al cliente
- *   notificarNuevaCotizacion → Firebase envía emailCotizacionRecibida al cliente + emailAdminNuevoEvento al admin
- *   notificarNuevaCita       → Firebase envía emailCitaConfirmada al cliente + emailAdminNuevoEvento al admin
- */
+// notifications.php — PHP escribe en Firestore; Firebase Cloud Functions envía los correos
 
 if (!defined('WH_LOADED')) {
     require_once __DIR__ . '/config.php';
@@ -120,13 +109,8 @@ function marcarNotificacionLeida(string $docId): bool {
 
 // ================================================================
 // NOTIFICACIONES COMPUESTAS
-// Mismos flujos que el original — ahora via Firestore → Firebase CF
 // ================================================================
 
-/**
- * Nuevo pedido / pago confirmado
- * Firebase CF envía: emailPedidoConfirmado → cliente
- */
 function notificarNuevoPedido(array $pedido): void {
     crearNotificacionFirestore(
         'nuevo_pedido',
@@ -164,10 +148,6 @@ function notificarNuevoPedido(array $pedido): void {
     );
 }
 
-/**
- * Estado de pedido actualizado por admin
- * Firebase CF envía: emailEstadoPedido → cliente
- */
 function notificarCambioPedido(array $pedido, string $estadoAnterior): void {
     crearNotificacionFirestore(
         'estado_pedido',
@@ -187,11 +167,6 @@ function notificarCambioPedido(array $pedido, string $estadoAnterior): void {
     );
 }
 
-/**
- * Nueva cotización recibida
- * Firebase CF envía: emailCotizacionRecibida → cliente
- *                    emailAdminNuevoEvento('cotizacion') → admin
- */
 function notificarNuevaCotizacion(array $cot): void {
     crearNotificacionFirestore(
         'nueva_cotizacion',
@@ -212,10 +187,6 @@ function notificarNuevaCotizacion(array $cot): void {
     );
 }
 
-/**
- * Cotización respondida por el admin
- * Firebase CF envía: emailCotizacionRespondida → cliente
- */
 function notificarCotizacionRespondida(array $cot): void {
     crearNotificacionFirestore(
         'cotizacion_respondida',
@@ -235,11 +206,6 @@ function notificarCotizacionRespondida(array $cot): void {
     );
 }
 
-/**
- * Nueva cita agendada
- * Firebase CF envía: emailCitaConfirmada → cliente
- *                    emailAdminNuevoEvento('cita') → admin
- */
 function notificarNuevaCita(array $cita): void {
     crearNotificacionFirestore(
         'nueva_cita',

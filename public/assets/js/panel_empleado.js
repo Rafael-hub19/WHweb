@@ -87,12 +87,10 @@ function showSection(section){
     if (onclick.includes(`showSection('${section}'`)) item.classList.add('active');
   });
 
-  // Guardar sección actual para auto-polling inteligente
   window._currentSection = section;
 
   if(section === 'inventario'){  bootstrapInventoryFromTableIfEmpty(); renderInventory(); }
   if(section === 'calendario'){
-    // Sincronizar citas de la API con el calendario local
     cargarCitasParaCalendario().then(() => { buildCalendar(); renderNext7(); });
   }
   if(section === 'dashboard'){   refreshKpisFromPedidosTable(); renderActivity(); refreshKpisAPI(); }
@@ -904,7 +902,6 @@ function deleteEvent(id){
 
 // ================== FORM HANDLERS — conectados a la API ==================
 async function saveCita() {
-  // Recoger datos del modal de nueva cita
   const nombre   = document.getElementById('citaNombre')?.value?.trim();
   const correo   = document.getElementById('citaCorreo')?.value?.trim();
   const telefono = document.getElementById('citaTelefono')?.value?.trim();
@@ -912,7 +909,6 @@ async function saveCita() {
   const horario  = document.getElementById('citaHorario')?.value || 'Por confirmar';
   const tipo     = document.getElementById('citaTipo')?.value || 'medicion';
   const notas    = document.getElementById('citaNotas')?.value?.trim() || '';
-
   if (!nombre || !correo || !fecha) {
     showNotification('Completa nombre, correo y fecha', 'error'); return;
   }
@@ -964,12 +960,10 @@ async function saveCotizacion() {
   } catch(e) { showNotification('Error de conexión', 'error'); }
 }
 
-// Cargar citas de la API y sincronizar con el calendario local
 async function cargarCitasParaCalendario() {
   try {
     const data = await apiFetch(`${API_BASE}/citas.php?limit=50`);
     if (!data.success || !data.citas?.length) return;
-    // Fusionar citas de la API en el calendario (no duplicar por id)
     const existentes = getCalEvents();
     const idsExistentes = new Set(existentes.map(e => e.apiId).filter(Boolean));
     const nuevos = data.citas
@@ -994,8 +988,6 @@ document.addEventListener('DOMContentLoaded', () => {
     bootstrapInventoryFromTableIfEmpty();
     renderInventory();
   }
-
-  // El calendario se pobla desde la API vía cargarCitasParaCalendario()
 
   setUnreadCount(getUnreadCount());
   refreshKpisFromPedidosTable();
@@ -1044,7 +1036,6 @@ async function apiFetch(url, options = {}) {
 // ── FIX LOGOUT: usar replace() y flag sessionStorage para que login.js no auto-redirija ──
 async function logout() {
   if (!confirm('¿Cerrar sesión?')) return;
-  // Detener auto-polling antes de salir
   if (window._autoRefreshInterval) clearInterval(window._autoRefreshInterval);
   try {
     if (typeof firebaseAuth !== 'undefined') await firebaseAuth.signOut();
@@ -1444,7 +1435,6 @@ function _autoRefresh() {
 
 // ── INIT (segundo DOMContentLoaded - API layer) ───────────────
 document.addEventListener('DOMContentLoaded', () => {
-  // Verificar auth con Firebase
   if (typeof firebaseAuth !== 'undefined') {
     let initialized = false;
     firebaseAuth.onAuthStateChanged(user => {
@@ -1453,7 +1443,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Limpiar actividad y notificaciones con más de 7 días de antigüedad
   (function limpiarActividadVieja() {
     const limite = Date.now() - 7 * 24 * 60 * 60 * 1000;
     const act = getActivity().filter(a => {
@@ -1471,7 +1460,6 @@ document.addEventListener('DOMContentLoaded', () => {
   setTimeout(fetchNotificationsFromAPI, 800);
   showSection('dashboard');
 
-  // Iniciar auto-polling
   window._currentSection = 'dashboard';
   window._autoRefreshInterval = setInterval(_autoRefresh, 8000);
   setInterval(fetchNotificationsFromAPI, 60000);
@@ -1481,7 +1469,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (document.hidden) {
       clearInterval(window._autoRefreshInterval);
     } else {
-      // Al volver a la pestaña, refrescar inmediatamente y reiniciar ciclo
       _autoRefresh();
       window._autoRefreshInterval = setInterval(_autoRefresh, 8000);
     }

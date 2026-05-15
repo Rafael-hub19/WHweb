@@ -8,7 +8,6 @@ if (requestMethod() !== 'GET') jsonError('Método no permitido', 405);
 
 $tipo = $_GET['tipo'] ?? 'resumen';
 
-// Solo admin puede ver reportes financieros detallados
 if (in_array($tipo, ['ingresos', 'clientes']) && !$esAdmin) {
     jsonError('Acceso denegado: se requiere rol administrador', 403);
 }

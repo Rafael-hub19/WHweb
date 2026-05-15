@@ -7,7 +7,6 @@ $numero = isset($_GET['numero']) ? trim($_GET['numero'])      : null;
 
 switch ($method) {
     case 'GET':
-        // Búsqueda pública por número de cotización (para seguimiento sin login)
         if ($numero && !$id) {
             if (!preg_match('/^COT-\d{4,}-\d+$/i', $numero)) {
                 jsonError('Formato de número inválido', 422);
@@ -46,7 +45,7 @@ switch ($method) {
         break;
 
     case 'POST':
-        checkRateLimit('cotizaciones_post', 5, 60); // máx 5 cotizaciones por minuto por IP
+        checkRateLimit('cotizaciones_post', 5, 60);
         $body = getJsonBody();
         requireFields($body, ['nombre_cliente', 'correo_cliente', 'telefono_cliente', 'descripcion_solicitud']);
 
@@ -55,16 +54,12 @@ switch ($method) {
             jsonSuccess(['numero_cotizacion' => 'COT-' . date('Y') . '-000000', 'mensaje' => 'Enviado']);
         }
 
-        // ── Validaciones de formato (TODOS los campos) ────────────
-        // Email: formato estricto + sin caracteres SQL
         $emailCot = strtolower(trim($body['correo_cliente']));
         if (!isValidEmail($emailCot)) jsonError('Correo electrónico inválido', 422);
         if (strpbrk($emailCot, "'\"`;\\\n\r") !== false) jsonError('Correo electrónico contiene caracteres no permitidos', 422);
 
-        // Teléfono
         if (!isValidPhone($body['telefono_cliente'])) jsonError('Teléfono inválido (mínimo 10 dígitos)', 422);
 
-        // Longitudes máximas
         if (mb_strlen($body['nombre_cliente'])        > 150)  jsonError('Nombre demasiado largo', 422);
         if (mb_strlen($body['descripcion_solicitud']) > 2000) jsonError('Descripción demasiado larga', 422);
         if (mb_strlen($body['medidas']              ?? '') > 600)  jsonError('Medidas demasiado largas', 422);
@@ -72,7 +67,6 @@ switch ($method) {
         if (mb_strlen($body['colonia']              ?? '') > 120)  jsonError('Colonia demasiado larga', 422);
         if (mb_strlen($body['municipio']            ?? '') > 100)  jsonError('Municipio demasiado largo', 422);
 
-        // Campos de selección: validar contra lista permitida
         $tiposValidos = [
             'sevilla','roma','edinburgo','singapur','sydney','palermo',
             'budapest','quebec','toronto','amsterdam','oslo','paris','tokio',
@@ -102,7 +96,6 @@ switch ($method) {
         }
         if ($extra) $descripcionCompleta .= ' | ' . implode(' | ', $extra);
 
-        // Campos de dirección (ahora en columnas propias)
         $direccionCot = sanitize($body['direccion'] ?? '');
         $coloniaCot   = sanitize($body['colonia']   ?? '');
         $municipioCot = sanitize($body['municipio'] ?? '');
@@ -135,7 +128,6 @@ switch ($method) {
         }
         $cotId = dbInsert('cotizaciones', $datosCot);
 
-        // Sincronizar datos de contacto/dirección al perfil del cliente registrado
         if ($clienteSession) {
             $profileUpdate = [];
             if (!empty($body['telefono_cliente']))       $profileUpdate['telefono']  = sanitize($body['telefono_cliente']);
@@ -151,7 +143,6 @@ switch ($method) {
         }
 
         try {
-            // Firebase Cloud Function enviará correos al cliente y al admin
             notificarNuevaCotizacion([
                 'id'               => $cotId,
                 'numero_cotizacion' => $numCot,
@@ -183,7 +174,6 @@ switch ($method) {
         if (isset($body['notas_admin'])) $update['notas_admin'] = sanitize($body['notas_admin']);
         if ($update) dbUpdate('cotizaciones', $update, 'id = ?', [$id]);
 
-        // Notificar al cliente cuando el admin responde la cotización
         if (!empty($update['estado']) && $update['estado'] === 'respondida'
             && $cotActual['estado'] !== 'respondida') {
             try {

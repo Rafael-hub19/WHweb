@@ -9,7 +9,6 @@ document.addEventListener('DOMContentLoaded', () => {
   renderizarCarrito();
   actualizarResumen();
 
-  // Notificar si el carrito fue recuperado de la sesión anterior
   if (_carritoRecuperado) {
     _carritoRecuperado = false;
     setTimeout(() => {
@@ -72,7 +71,6 @@ function guardarCarrito() {
 }
 
 // ── Sanitización ──────────────────────────────────────────────────
-/** Escapa HTML para insertar texto en el DOM de forma segura */
 function esc(str) {
   return String(str ?? '')
     .replace(/&/g, '&amp;')
@@ -82,7 +80,7 @@ function esc(str) {
     .replace(/'/g, '&#39;');
 }
 
-/** Sanitiza un item del carrito al cargarlo — previene XSS almacenado en sessionStorage */
+// previene XSS almacenado en sessionStorage
 function sanitizarItem(item) {
   const precio   = parseFloat(item.precio);
   const cantidad = parseInt(item.cantidad);
@@ -98,7 +96,7 @@ function sanitizarItem(item) {
   };
 }
 
-/** Permite solo rutas relativas seguras; rechaza javascript:, data:, etc. */
+// Permite solo rutas relativas seguras; rechaza javascript:, data:, etc.
 function sanitizarUrl(url) {
   if (!url || typeof url !== 'string') return '';
   const limpia = url.trim();
@@ -231,19 +229,15 @@ function confirmarVaciarCarrito() {
   if (confirm('¿Vaciar el carrito? Se eliminarán los productos y los datos del formulario.')) {
     carritoItems = [];
 
-    // Limpiar sessionStorage
     sessionStorage.removeItem('wh_carrito');
     sessionStorage.removeItem('wh_checkout');
 
-    // Limpiar localStorage (formulario de contacto, opciones de entrega y backup del carrito)
     ['wh_checkout_form', 'wh_delivery', 'wh_cliente', 'wh_descuento', 'wh_carrito_backup'].forEach(k => localStorage.removeItem(k));
 
-    // Limpiar campos del formulario de contacto si están presentes en el DOM
     ['clienteNombre','clienteTelefono','clienteCorreo',
      'clienteDireccion','clienteCiudad','clienteCP','clienteNotas']
       .forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
 
-    // Resetear selección de fecha
     const semanaSelec = document.getElementById('semanaSeleccionada');
     const fechaSuger  = document.getElementById('fechaSugerida');
     const fechaBox    = document.getElementById('fechaResumenBox');
@@ -253,7 +247,6 @@ function confirmarVaciarCarrito() {
     document.querySelectorAll('.semana-card.seleccionada, .dia-card.seleccionada')
       .forEach(c => c.classList.remove('seleccionada'));
 
-    // Resetear opciones visuales de entrega e instalación a su estado por defecto
     if (typeof seleccionarEntrega    === 'function') seleccionarEntrega('recoger', false);
     if (typeof seleccionarInstalacion === 'function') seleccionarInstalacion(false);
 

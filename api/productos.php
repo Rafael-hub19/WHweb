@@ -8,7 +8,6 @@ switch ($method) {
     // ---- GET: Listar o detalle ----
     case 'GET':
         if ($id) {
-            // Detalle de producto
             $producto = dbRow(
                 "SELECT p.*, c.nombre AS categoria_nombre
                  FROM productos p
@@ -18,13 +17,11 @@ switch ($method) {
             );
             if (!$producto) jsonError('Producto no encontrado', 404);
 
-            // Imágenes
             $imagenes = dbRows(
                 "SELECT id, url_imagen, es_principal, orden FROM imagenes_producto WHERE producto_id = ? ORDER BY es_principal DESC, orden ASC",
                 [$id]
             );
 
-            // Especificaciones
             $specs = dbRows(
                 "SELECT clave, valor FROM especificaciones_producto WHERE producto_id = ? ORDER BY id ASC",
                 [$id]
@@ -37,7 +34,6 @@ switch ($method) {
             jsonSuccess(['producto' => $producto]);
         }
 
-        // Listado con filtros
         $page     = max(1, sanitizeInt($_GET['page'] ?? 1));
         $limit    = min(48, max(1, sanitizeInt($_GET['limit'] ?? 12)));
         $offset   = ($page - 1) * $limit;
@@ -81,13 +77,11 @@ switch ($method) {
         ];
         $orderBy = $orderMap[$orden] ?? 'p.fecha_creacion DESC';
 
-        // Count total
         $total = (int)(dbRow(
             "SELECT COUNT(*) AS n FROM productos p $whereStr",
             $params
         )['n'] ?? 0);
 
-        // Datos
         $params[] = $limit;
         $params[] = $offset;
         $productos = dbRows(
@@ -138,7 +132,6 @@ switch ($method) {
             'activo'           => $activo,
         ]);
 
-        // Imágenes opcionales
         if (!empty($body['imagenes']) && is_array($body['imagenes'])) {
             foreach ($body['imagenes'] as $i => $img) {
                 $url = sanitize($img['url'] ?? $img);
@@ -153,7 +146,6 @@ switch ($method) {
             }
         }
 
-        // Especificaciones opcionales
         if (!empty($body['especificaciones']) && is_array($body['especificaciones'])) {
             foreach ($body['especificaciones'] as $spec) {
                 $clave = sanitize($spec['clave'] ?? $spec['nombre'] ?? '');
@@ -193,7 +185,6 @@ switch ($method) {
         if (empty($update)) jsonError('No hay campos para actualizar', 422);
         dbUpdate('productos', $update, 'id = ?', [$id]);
 
-        // Actualizar imágenes si vienen
         if (isset($body['imagenes']) && is_array($body['imagenes'])) {
             dbQuery("DELETE FROM imagenes_producto WHERE producto_id = ?", [$id]);
             foreach ($body['imagenes'] as $i => $img) {
@@ -209,7 +200,6 @@ switch ($method) {
             }
         }
 
-        // Actualizar especificaciones si vienen
         if (isset($body['especificaciones']) && is_array($body['especificaciones'])) {
             dbQuery("DELETE FROM especificaciones_producto WHERE producto_id = ?", [$id]);
             foreach ($body['especificaciones'] as $spec) {

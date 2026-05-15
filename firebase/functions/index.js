@@ -1,13 +1,4 @@
-/**
- * Firebase Cloud Functions — Wooden House
- *
- * Flujos:
- *   nuevo_pedido     → emailPedidoConfirmado (cliente) + emailAdminNuevoEvento('pedido') (admin)
- *   estado_pedido    → emailEstadoPedido (cliente)
- *   nueva_cotizacion     → emailCotizacionRecibida (cliente) + emailAdminNuevoEvento('cotizacion') (admin)
- *   cotizacion_respondida→ emailCotizacionRespondida (cliente)
- *   nueva_cita           → emailCitaConfirmada (cliente) + emailAdminNuevoEvento('cita') (admin)
- */
+// firebase/functions/index.js — Email triggers via Brevo para pedidos, cotizaciones y citas
 
 const { onDocumentCreated } = require('firebase-functions/v2/firestore');
 const { onSchedule }        = require('firebase-functions/v2/scheduler');
@@ -154,7 +145,6 @@ function emailPedidoConfirmado(pedido) {
 
   const fmt = (n) => `$${Number(n || 0).toLocaleString('es-MX', { minimumFractionDigits: 2 })}`;
 
-  // Tipo de entrega
   const tipoEntrega     = pedido.tipo_entrega || 'envio';
   const costoEnvio      = Number(pedido.costo_envio || 0);
   const etiquetaEntrega = tipoEntrega === 'recoger' ? '🏠 Recoger en tienda' : '🚚 Envío a domicilio';
@@ -171,7 +161,6 @@ function emailPedidoConfirmado(pedido) {
     ? `<span style="color:#3d8b3d;font-weight:600;">Sin costo</span>`
     : `<span style="font-weight:600;">${fmt(costoEnvio)}</span>`;
 
-  // Instalación
   const incluyeInstalacion = pedido.incluye_instalacion;
   const costoInstalacion   = Number(pedido.costo_instalacion || 0);
   const instalacionRow     = incluyeInstalacion
@@ -184,7 +173,6 @@ function emailPedidoConfirmado(pedido) {
         <td style="padding:10px 12px;border-bottom:1px solid #f0e8d8;text-align:right;color:#888;">No incluida</td>
        </tr>`;
 
-  // Subtotal / descuento
   const subtotal  = Number(pedido.subtotal  || 0);
   const descuento = Number(pedido.descuento || 0);
   const total     = Number(pedido.total     || 0);
@@ -580,7 +568,6 @@ exports.onNuevaNotificacion = onDocumentCreated(
       const adminEmail = emailAdminNuevoEvento('pedido', pedido);
 
       await Promise.allSettled([
-        // Cliente
         sendEmail({
           from: emails.pedidos, fromName: 'Wooden House Pedidos',
           to:      pedido.correo_cliente,
@@ -591,7 +578,6 @@ exports.onNuevaNotificacion = onDocumentCreated(
         }).then(() => console.log(`[CF] emailPedidoConfirmado → ${pedido.correo_cliente}`))
           .catch(e => console.error('[CF] Error emailPedidoConfirmado:', e.message)),
 
-        // Admin
         sendEmail({
           from: emails.pedidos, fromName: 'Wooden House Sistema',
           to:      emails.admin,
@@ -632,7 +618,6 @@ exports.onNuevaNotificacion = onDocumentCreated(
       const adminEmail = emailAdminNuevoEvento('cotizacion', cot);
 
       await Promise.allSettled([
-        // Cliente
         sendEmail({
           from: emails.cotizaciones, fromName: 'Wooden House Cotizaciones',
           to:      cot.correo_cliente,
@@ -643,7 +628,6 @@ exports.onNuevaNotificacion = onDocumentCreated(
         }).then(() => console.log(`[CF] emailCotizacionRecibida → ${cot.correo_cliente}`))
           .catch(e => console.error('[CF] Error emailCotizacionRecibida:', e.message)),
 
-        // Admin
         sendEmail({
           from: emails.cotizaciones, fromName: 'Wooden House Sistema',
           to:      emails.admin,
@@ -684,7 +668,6 @@ exports.onNuevaNotificacion = onDocumentCreated(
       const adminEmail = emailAdminNuevoEvento('cita', cita);
 
       await Promise.allSettled([
-        // Cliente
         sendEmail({
           from: emails.citas, fromName: 'Wooden House Citas',
           to:      cita.correo_cliente,
@@ -695,7 +678,6 @@ exports.onNuevaNotificacion = onDocumentCreated(
         }).then(() => console.log(`[CF] emailCitaConfirmada → ${cita.correo_cliente}`))
           .catch(e => console.error('[CF] Error emailCitaConfirmada:', e.message)),
 
-        // Admin
         sendEmail({
           from: emails.citas, fromName: 'Wooden House Sistema',
           to:      emails.admin,

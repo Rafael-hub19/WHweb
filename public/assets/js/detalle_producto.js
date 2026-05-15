@@ -91,30 +91,25 @@ async function cargarProducto() {
 function mostrarProducto() {
   const p = productoActual;
 
-  // Ocultar loading, mostrar contenido
   document.getElementById('loadingState').style.display = 'none';
   document.getElementById('page').style.display = 'block';
 
-  // SEO / Title
   document.title = `${p.nombre} - Wooden House`;
   const breadcrumb = document.getElementById('breadcrumbNombre');
   if (breadcrumb) breadcrumb.textContent = p.nombre;
 
-  // Nombre y categoría
   setText('pNombre', p.nombre);
   const catEl = document.getElementById('pCategoria');
   if (catEl && p.categoria_nombre) {
     catEl.textContent = p.categoria_nombre;
   }
 
-  // Etiqueta
   const etiqEl = document.getElementById('pEtiqueta');
   if (etiqEl && p.etiqueta) {
     etiqEl.textContent = p.etiqueta;
     etiqEl.style.display = 'inline-block';
   }
 
-  // Precio
   setText('pPrecio', formatCurrency(p.precio_base || p.precio));
 
   // Stock — fabricación bajo pedido, siempre disponible
@@ -125,18 +120,15 @@ function mostrarProducto() {
   if (textEl) textEl.innerHTML = '<strong>Disponible</strong> · Fabricación bajo pedido';
   if (btnAdd) { btnAdd.disabled = false; btnAdd.addEventListener('click', agregarAlCarrito); }
 
-  // Descripción
   const descEl = document.getElementById('pDesc');
   if (descEl) descEl.textContent = p.descripcion || '';
 
-  // Especificaciones — layout por secciones segun datos reales del cliente
   const specs = p.especificaciones || [];
   const getSpec = (keyword) => {
     const s = specs.find(x => x.clave && x.clave.toLowerCase().includes(keyword.toLowerCase()));
     return s ? s.valor : null;
   };
 
-  // Features box (resumen visible junto al precio)
   const featuresBox = document.getElementById('featuresBox');
   const pFeatures   = document.getElementById('pFeatures');
   if (featuresBox && pFeatures) {
@@ -165,7 +157,6 @@ function mostrarProducto() {
     }
   }
 
-  // Tab de especificaciones completas — agrupadas por sección
   const specTable = document.getElementById('specTable');
   if (specTable) {
     if (specs.length === 0) {
@@ -238,7 +229,6 @@ function mostrarProducto() {
     }
   }
 
-  // Imágenes
   const imagenes = p.imagenes || [];
   const mainImg  = document.getElementById('mainImage');
   const thumbsEl = document.getElementById('thumbs');
@@ -312,7 +302,6 @@ function agregarAlCarrito() {
   sessionStorage.setItem('wh_carrito', JSON.stringify(carrito));
   initCartBadge();
 
-  // Mostrar botón ver carrito
   const btn = document.getElementById('btnVerCarrito');
   if (btn) btn.style.display = 'inline-block';
 

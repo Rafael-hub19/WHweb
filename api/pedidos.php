@@ -8,7 +8,6 @@ $numero = isset($_GET['numero']) ? trim($_GET['numero'])        : null;
 
 switch ($method) {
     case 'GET':
-        // Seguimiento público por número de pedido
         if ($numero) {
             if (!preg_match('/^WH-\d{4}-\d{6}$/', $numero)) {
                 jsonError('Formato de número inválido', 422);
@@ -31,7 +30,6 @@ switch ($method) {
             jsonSuccess(['pedido' => $pedido]);
         }
 
-        // Seguimiento público por token
         if ($token) {
             $pedido = dbRow(
                 "SELECT id, numero_pedido, nombre_cliente, correo_cliente, telefono_cliente,
@@ -96,7 +94,7 @@ switch ($method) {
         break;
 
     case 'POST':
-        checkRateLimit('pedidos_post', 10, 60); // max 10 pedidos/min por IP
+        checkRateLimit('pedidos_post', 10, 60);
         $body = getJsonBody();
         requireFields($body, ['nombre_cliente', 'correo_cliente', 'items']);
 
@@ -202,7 +200,6 @@ switch ($method) {
                 $datosPedido['municipio_envio'] = $municipioEnvio;
             }
 
-            // Vincular al cliente registrado si tiene sesión activa
             $clienteSession = sesionClienteActiva();
             if ($clienteSession) {
                 $datosPedido['cliente_id'] = $clienteSession['id'];
@@ -210,7 +207,6 @@ switch ($method) {
 
             $pedidoId = dbInsert('pedidos', $datosPedido);
 
-            // Sincronizar datos al perfil del cliente registrado
             if ($clienteSession) {
                 $profileUpdate = [];
                 if (!empty($body['telefono_cliente'])) $profileUpdate['telefono']  = sanitize($body['telefono_cliente']);
@@ -274,7 +270,6 @@ switch ($method) {
 
         if ($update) dbUpdate('pedidos', $update, 'id = ?', [$id]);
 
-        // Notificar cambio de estado al cliente via Firebase
         if (!empty($update['estado']) && $update['estado'] !== $pedido['estado']) {
             try {
                 notificarCambioPedido(array_merge($pedido, $update), $pedido['estado']);

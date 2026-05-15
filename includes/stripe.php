@@ -1,8 +1,5 @@
 <?php
-// =============================================================
-// Wooden House - Stripe PHP Library (via cURL - sin Composer)
-// Implementa Stripe PHP SDK v7 compatible con cURL directo
-// =============================================================
+// includes/stripe.php — Stripe REST API via cURL (sin Composer)
 require_once __DIR__ . '/config.php';
 
 class StripeClient {
@@ -13,9 +10,6 @@ class StripeClient {
         $this->secretKey = $secretKey ?: STRIPE_SECRET_KEY;
     }
 
-    /**
-     * Petición base a Stripe API
-     */
     private function request(string $method, string $endpoint, array $data = []): array {
         $url = $this->apiUrl . $endpoint;
 
@@ -69,10 +63,7 @@ class StripeClient {
         return $decoded;
     }
 
-    /**
-     * Crear Payment Intent
-     * @param int $amountCentavos Monto en centavos MXN (ej: 850000 = $8,500)
-     */
+    // $amountCentavos: centavos MXN (ej: 850000 = $8,500)
     public function crearPaymentIntent(int $amountCentavos, string $currency = 'mxn', array $metadata = []): array {
         $data = [
             'amount'               => $amountCentavos,
@@ -88,30 +79,18 @@ class StripeClient {
         return $this->request('POST', '/payment_intents', $data);
     }
 
-    /**
-     * Obtener Payment Intent por ID
-     */
     public function obtenerPaymentIntent(string $paymentIntentId): array {
         return $this->request('GET', '/payment_intents/' . $paymentIntentId);
     }
 
-    /**
-     * Actualizar metadata de Payment Intent
-     */
     public function actualizarPaymentIntent(string $paymentIntentId, array $data): array {
         return $this->request('POST', '/payment_intents/' . $paymentIntentId, $data);
     }
 
-    /**
-     * Cancelar Payment Intent
-     */
     public function cancelarPaymentIntent(string $paymentIntentId): array {
         return $this->request('POST', '/payment_intents/' . $paymentIntentId . '/cancel');
     }
 
-    /**
-     * Reembolso
-     */
     public function reembolsar(string $paymentIntentId, ?int $amountCentavos = null): array {
         $data = ['payment_intent' => $paymentIntentId];
         if ($amountCentavos !== null) {
@@ -120,19 +99,15 @@ class StripeClient {
         return $this->request('POST', '/refunds', $data);
     }
 
-    /**
-     * Verificar firma de webhook de Stripe
-     */
     public function verificarWebhook(string $payload, string $sigHeader, string $secret = ''): ?array {
         $secret = $secret ?: STRIPE_WEBHOOK_SECRET;
-        $tolerance = 300; // 5 minutos
+        $tolerance = 300;
 
         if (!preg_match('/t=(\d+)/', $sigHeader, $tMatch)) return null;
         $timestamp = (int)$tMatch[1];
 
         if (abs(time() - $timestamp) > $tolerance) return null;
 
-        // Calcular firma esperada
         $signedPayload = $timestamp . '.' . $payload;
         $expectedSig = hash_hmac('sha256', $signedPayload, $secret);
 
@@ -156,7 +131,6 @@ class StripeClient {
     }
 }
 
-// Instancia global
 function stripe(): StripeClient {
     static $instance = null;
     if ($instance === null) $instance = new StripeClient();

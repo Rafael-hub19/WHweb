@@ -89,7 +89,6 @@ function initTabs() {
 
 // ── Validación en tiempo real (feedback visual por campo) ─────────
 function initRealTimeValidation() {
-  // Email: mostrar feedback al salir del campo
   document.querySelectorAll('input[type="email"]').forEach(input => {
     input.addEventListener('blur', function () {
       const val = this.value.trim();
@@ -103,18 +102,14 @@ function initRealTimeValidation() {
       }
     });
     input.addEventListener('input', function () {
-      // Bloquear caracteres que no pueden estar en un email
       this.value = this.value.replace(/[^a-zA-Z0-9._%+\-@]/g, '');
-      // Limpiar error mientras escribe
       clearFieldError(this);
       this.style.borderColor = '';
     });
   });
 
-  // Teléfono: solo permitir caracteres válidos mientras escribe
   document.querySelectorAll('input[type="tel"]').forEach(input => {
     input.addEventListener('input', function () {
-      // Eliminar caracteres no permitidos en tiempo real
       this.value = this.value.replace(/[^0-9\s+\-().]/g, '');
     });
     input.addEventListener('blur', function () {
@@ -130,10 +125,8 @@ function initRealTimeValidation() {
     });
   });
 
-  // Nombre: bloquear caracteres de inyección mientras escribe
   document.querySelectorAll('input[name="nombre"]').forEach(input => {
     input.addEventListener('input', function () {
-      // Eliminar caracteres peligrosos en tiempo real (SQL, HTML, scripts)
       this.value = this.value.replace(/[<>"'`;\\]/g, '');
     });
   });
@@ -168,7 +161,6 @@ function initRealTimeValidation() {
     });
   });
 
-  // Textareas: solo permitir letras, números, acentos y puntuación básica
   document.querySelectorAll('textarea').forEach(area => {
     area.addEventListener('input', function () {
       this.value = this.value
@@ -200,7 +192,6 @@ function initFormCotizacion() {
     e.preventDefault();
     const fd = new FormData(form);
 
-    // Recoger y sanitizar TODOS los campos
     const datos = {
       nombre_cliente:        sanitizeName(fd.get('nombre') || ''),
       correo_cliente:        sanitizeEmail(fd.get('email') || ''),
@@ -224,7 +215,6 @@ function initFormCotizacion() {
       url:     fd.get('url')      || '',
     };
 
-    // Validaciones obligatorias
     if (!datos.nombre_cliente) {
       showAlert('Por favor ingresa tu nombre completo', 'error'); return;
     }
@@ -252,7 +242,6 @@ function initFormCotizacion() {
       return;
     }
 
-    // Bloquear si el cliente está logueado pero no ha verificado su correo
     if (window.AuthModal && AuthModal.isAuthenticated() && !AuthModal.isEmailVerified()) {
       showAlert('Confirma tu correo electrónico antes de enviar una cotización. Revisa tu bandeja de entrada.', 'error');
       document.getElementById('whVerifBanner')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -310,7 +299,6 @@ function initFormCita() {
       showAlert('Por favor selecciona una fecha', 'error'); return;
     }
 
-    // Recoger y sanitizar TODOS los campos
     const datos = {
       nombre_cliente:   sanitizeName(fd.get('nombre') || ''),
       correo_cliente:   sanitizeEmail(fd.get('email') || ''),
@@ -330,7 +318,6 @@ function initFormCita() {
       url:     fd.get('url')      || '',
     };
 
-    // Validaciones obligatorias
     if (!datos.nombre_cliente) {
       showAlert('Por favor ingresa tu nombre completo', 'error'); return;
     }
@@ -455,11 +442,9 @@ function initSeguimiento() {
 
   const input = document.getElementById('trackingNumber');
   if (input) {
-    // Enter lanza la búsqueda
     input.addEventListener('keydown', (e) => {
       if (e.key === 'Enter') { e.preventDefault(); trackOrder(); }
     });
-    // Convertir a mayúsculas mientras se escribe y bloquear caracteres raros
     input.addEventListener('input', function () {
       this.value = this.value.toUpperCase().replace(/[^A-Z0-9\-]/g, '');
     });
@@ -488,7 +473,6 @@ async function trackOrder() {
     return;
   }
 
-  // Estado: buscando
   if (btn) {
     btn.disabled  = true;
     btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Buscando...';
@@ -506,7 +490,6 @@ async function trackOrder() {
 
     const res  = await fetch(endpoint);
 
-    // Verificar que la respuesta sea JSON antes de parsear
     const ct = res.headers.get('content-type') || '';
     if (!ct.includes('application/json')) {
       throw new Error('El servidor no respondió correctamente. Intenta más tarde.');
@@ -542,7 +525,6 @@ async function trackOrder() {
     const color       = estadoColors[est] || '#8b7355';
     const fechaCreada = (item.fecha_creacion || '').substring(0, 10);
 
-    // Timeline para pedidos
     let timelineHtml = '';
     if (data.pedido && est !== 'cancelado') {
       const stages      = ['pendiente','pagado','en_produccion','listo','entregado'];
@@ -567,7 +549,6 @@ async function trackOrder() {
         </div>`;
     }
 
-    // Info grid
     let infoItems = `
       <div class="track-info-item">
         <div class="track-info-label">Cliente</div>
@@ -620,7 +601,6 @@ async function trackOrder() {
         </div>`;
     }
 
-    // Mostrar resultado
     if (resultBox) {
       resultBox.innerHTML = `
         <div class="track-result-card">
@@ -697,7 +677,6 @@ function showAlert(message, type = 'info') {
     }
     return;
   }
-  // Fallback: toast
   const colors = { success:'#27ae60', error:'#e74c3c', info:'#8b7355', warning:'#f39c12' };
   const toast = document.createElement('div');
   toast.innerHTML = message;
@@ -710,39 +689,27 @@ function showAlert(message, type = 'info') {
 }
 
 // =====================================================
-// SANITIZACIÓN Y VALIDACIÓN — aplica a TODOS los campos
+// SANITIZACIÓN Y VALIDACIÓN
 // =====================================================
 
-/**
- * Nombre: letras, números, espacios, acentos, puntuación básica.
- * Bloquea: HTML, SQL injection, scripts.
- */
 function sanitizeName(val, maxLen = 100) {
   if (typeof val !== 'string') return '';
   return val
-    .replace(/<[^>]*>/g, '')                            // quitar etiquetas HTML
-    .replace(/[^a-zA-ZáéíóúüñÁÉÍÓÚÜÑ0-9 .,'\-]/g, '') // solo caracteres válidos en nombres
+    .replace(/<[^>]*>/g, '')
+    .replace(/[^a-zA-ZáéíóúüñÁÉÍÓÚÜÑ0-9 .,'\-]/g, '')
     .substring(0, maxLen)
     .trim();
 }
 
-/**
- * Correo electrónico: normalizar y validar.
- * No se eliminan caracteres especiales legítimos del email (@, ., +, -, _).
- * Se elimina todo lo que no es parte de un email válido.
- */
 function sanitizeEmail(val) {
   if (typeof val !== 'string') return '';
   return val
     .trim()
     .toLowerCase()
-    .replace(/[^a-z0-9._%+\-@]/g, '') // solo caracteres válidos en emails
+    .replace(/[^a-z0-9._%+\-@]/g, '')
     .substring(0, 150);
 }
 
-/**
- * Teléfono: solo números, espacios, +, -, paréntesis.
- */
 function sanitizePhone(val) {
   if (typeof val !== 'string') return '';
   return val
@@ -751,58 +718,39 @@ function sanitizePhone(val) {
     .trim();
 }
 
-/**
- * Texto general (campo corto): bloquea HTML, control chars y caracteres SQL peligrosos.
- * Permite puntuación normal, letras, números, acentos.
- */
 function sanitizeText(val, maxLen = 300) {
   if (typeof val !== 'string') return '';
   return val
-    .replace(/<[^>]*>/g, '')                                    // quitar tags HTML
-    .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '')         // chars de control
-    .replace(/['";`\\]/g, '')                                   // chars SQL peligrosos
+    .replace(/<[^>]*>/g, '')
+    .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '')
+    .replace(/['";`\\]/g, '')
     .substring(0, maxLen)
     .trim();
 }
 
-/**
- * Descripción / texto largo: permite más caracteres pero bloquea inyección.
- * Conserva saltos de línea, comas, puntos, etc. — necesarios en descripciones.
- */
 function sanitizeDescription(val, maxLen = 1000) {
   if (typeof val !== 'string') return '';
   return val
-    .replace(/<[^>]*>/g, '')                            // quitar tags HTML
-    .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '') // chars de control
-    .replace(/['";`\\\\]/g, '')                          // chars SQL peligrosos (comillas, backtick, backslash)
-    .replace(/;\s*(?:DROP|DELETE|INSERT|UPDATE|SELECT|CREATE|ALTER|EXEC)\b/gi, '') // SQL keywords en inyección
+    .replace(/<[^>]*>/g, '')
+    .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '')
+    .replace(/['";`\\\\]/g, '')
+    .replace(/;\s*(?:DROP|DELETE|INSERT|UPDATE|SELECT|CREATE|ALTER|EXEC)\b/gi, '')
     .substring(0, maxLen)
     .trim();
 }
 
-/**
- * Valida correo: formato RFC básico, sin SQL chars.
- */
 function isValidEmail(email) {
   if (typeof email !== 'string') return false;
   const clean = email.trim().toLowerCase();
-  // Verificar que no tiene caracteres SQL peligrosos
   if (/['";`\\]/.test(clean)) return false;
-  // Formato básico: algo@algo.algo
   return /^[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,}$/.test(clean);
 }
 
-/**
- * Valida teléfono: mínimo 10 dígitos.
- */
 function isValidPhone(phone) {
   if (typeof phone !== 'string') return false;
   return phone.replace(/\D/g, '').length >= 10;
 }
 
-/**
- * Escapa HTML para insertar texto en el DOM de forma segura.
- */
 function escapeHtml(str) {
   if (typeof str !== 'string') return '';
   return str
@@ -814,11 +762,6 @@ function escapeHtml(str) {
 }
 
 // ── Pre-llenado de contacto para clientes con sesión ─────────────
-/**
- * Si el cliente tiene sesión activa, oculta la sección de contacto y
- * muestra en su lugar una tarjeta con sus datos ya registrados.
- * Solo se muestran los campos que realmente faltan (p.ej. dirección).
- */
 async function prefillContactoSiLogueado() {
   if (typeof AuthModal === 'undefined') return;
 
@@ -848,11 +791,9 @@ async function prefillContactoSiLogueado() {
     const form = document.getElementById(formId);
     if (!form) return;
 
-    // Sección de contacto = primera .form-section del formulario
     const seccion = form.querySelector('.form-section');
     if (!seccion) return;
 
-    // Pre-llenar campos ocultos para que el submit los recoja
     const setVal = (name, val) => {
       const el = form.querySelector(`[name="${name}"]`);
       if (el && val) { el.value = val; el.setAttribute('data-prefilled', '1'); }
@@ -867,7 +808,6 @@ async function prefillContactoSiLogueado() {
     setVal('ciudad',       cliente.ciudad    || '');
     setVal('cp',           cliente.cp        || '');
 
-    // Construir tarjeta de sesión
     const _partes   = (cliente.nombre || 'C').trim().split(/\s+/).filter(Boolean);
     const inicial   = _partes.length >= 2
         ? (_partes[0][0] + _partes[1][0]).toUpperCase()
@@ -875,7 +815,6 @@ async function prefillContactoSiLogueado() {
     const tieneTel     = !!(cliente.telefono);
     const tieneDireccion = !!(cliente.direccion);
     const perfilCompleto = tieneTel && tieneDireccion;
-    // Línea de dirección corta para la card
     const lineaDireccion = [cliente.direccion, cliente.colonia, cliente.ciudad]
         .filter(Boolean).join(', ');
     const cardHtml  = `
@@ -894,11 +833,9 @@ async function prefillContactoSiLogueado() {
       </div>`;
 
     if (perfilCompleto) {
-      // Perfil completo: ocultar sección y mostrar solo la card
       seccion.style.display = 'none';
       seccion.insertAdjacentHTML('beforebegin', cardHtml);
     } else {
-      // Perfil incompleto: mostrar card como banner + dejar sección visible
       seccion.insertAdjacentHTML('beforebegin', cardHtml);
       const card = document.getElementById(`sesionCard_${formId}`);
       if (card) {
@@ -910,7 +847,6 @@ async function prefillContactoSiLogueado() {
   });
 }
 
-/** Muestra la sección completa de contacto y elimina la tarjeta de sesión */
 function mostrarCamposContacto(formId) {
   const card = document.getElementById(`sesionCard_${formId}`);
   if (card) card.remove();
@@ -924,7 +860,6 @@ function mostrarCamposContacto(formId) {
   }
 }
 
-/** Muestra una tarjeta de sugerencia de inicio de sesión antes del primer .form-section */
 function _mostrarSugerenciaLogin() {
   ['formCotizacion', 'formCita'].forEach(formId => {
     const form = document.getElementById(formId);
@@ -950,7 +885,6 @@ function _mostrarSugerenciaLogin() {
   });
 }
 
-// Exponer funciones globales requeridas por el HTML
 window.selectTime             = selectTime;
 window.trackOrder             = trackOrder;
 window.cargarSlotsDisponibles = cargarSlotsDisponibles;

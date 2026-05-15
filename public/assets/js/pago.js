@@ -26,7 +26,6 @@ function cargarResumen() {
     if (raw) checkout = JSON.parse(raw);
   } catch { /* silent */ }
 
-  // Fallback: construir desde sessionStorage/localStorage
   if (!checkout) {
     const carrito      = JSON.parse(sessionStorage.getItem('wh_carrito') || '[]');
     const deliveryData = JSON.parse(localStorage.getItem('wh_delivery') || '{}');
@@ -80,15 +79,12 @@ function cargarResumen() {
       </div>`).join('');
   }
 
-  // Intentar también datos del formulario del carrito guardado
   let formData = {};
   try { formData = JSON.parse(localStorage.getItem('wh_checkout_form') || '{}'); } catch {}
 
   const clienteNombre   = checkout.nombre_cliente   || formData.nombre   || '';
   const clienteCorreo   = checkout.correo_cliente   || formData.correo   || '';
   const clienteTelefono = checkout.telefono_cliente || formData.telefono || '';
-
-  // Los datos del cliente se toman del checkout/carrito (seccion-cliente eliminada del HTML)
 
   orderData = {
     carrito,
@@ -162,7 +158,6 @@ async function pagarConStripe() {
   try {
     if (!pedidoCreado) pedidoCreado = await crearPedidoEnBD();
 
-    // 1. Crear Payment Intent
     const intentRes  = await fetch(`${API_BASE}/pagos.php?action=stripe_intent`, {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ pedido_id: pedidoCreado.pedido_id }),
@@ -170,13 +165,11 @@ async function pagarConStripe() {
     const intentData = await intentRes.json();
     if (!intentData.success) throw new Error(intentData.error || 'Error al iniciar pago');
 
-    // 2. Confirmar con Stripe SDK
     const result = await stripe.confirmCardPayment(intentData.client_secret, {
       payment_method: { card: cardElement },
     });
     if (result.error) throw new Error(result.error.message);
 
-    // 3. Confirmar con backend
     const confirmRes  = await fetch(`${API_BASE}/pagos.php?action=stripe_confirm`, {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ payment_intent_id: result.paymentIntent.id, pedido_id: pedidoCreado.pedido_id }),
@@ -253,7 +246,6 @@ async function crearPedidoEnBD() {
     showError(msg); throw new Error(msg);
   }
 
-  // Datos del cliente vienen del checkout (carrito/entrega)
   const clienteData = {
     nombre:   orderData.cliente?.nombre   || '',
     correo:   orderData.cliente?.correo   || '',
@@ -311,13 +303,11 @@ function initMetodosPago() {
       metodoPago = opt.dataset.method;
       document.getElementById('stripe-section').style.display  = metodoPago === 'card'   ? 'block' : 'none';
       document.getElementById('paypal-section').style.display  = metodoPago === 'paypal' ? 'block' : 'none';
-      // Limpiar errores al cambiar método
       const errEl = document.getElementById('card-errors');
       if (errEl) { errEl.textContent = ''; errEl.style.display = 'none'; }
     });
   });
 
-  // Seleccionar Stripe por defecto al cargar
   const defaultOpt = document.querySelector('.payment-option[data-method="card"]');
   if (defaultOpt) defaultOpt.click();
 }
@@ -325,7 +315,6 @@ function initMetodosPago() {
 // ── Confirmación ──────────────────────────────────────────────────
 function irAConfirmacion() {
   const pedido = JSON.parse(localStorage.getItem('wh_pedido_creado') || 'null') || pedidoCreado;
-  // Limpiar TODO el storage — carrito, checkout, datos de formulario
   sessionStorage.removeItem('wh_checkout');
   sessionStorage.removeItem('wh_carrito');
   localStorage.removeItem('wh_delivery');
@@ -352,7 +341,6 @@ function formatCurrency(n) {
 }
 
 function showError(msg, type = 'error') {
-  // Mostrar en el área de errores de Stripe si existe
   const errEl = document.getElementById('card-errors');
   if (errEl) {
     errEl.textContent = msg;
@@ -360,7 +348,6 @@ function showError(msg, type = 'error') {
     errEl.style.display = msg ? 'block' : 'none';
     if (msg) errEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   }
-  // También mostrar en área de errores global si existe
   const globalErr = document.getElementById('payment-error-global');
   if (globalErr) {
     globalErr.textContent = msg;
@@ -370,7 +357,7 @@ function showError(msg, type = 'error') {
 }
 
 
-// ── Validación de email RFC (igual que solicitudes.js y checkout.js) ─
+// ── Validación de email RFC ───────────────────────────────────────
 function isValidEmailPago(email) {
   if (typeof email !== 'string') return false;
   const clean = email.trim().toLowerCase();

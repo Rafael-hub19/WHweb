@@ -10,14 +10,12 @@ const estado = {
 const FORM_KEY = 'wh_checkout_form';
 
 // ── Sanitización de campos de usuario ────────────────────────────
-/** Escapa HTML — inserta texto en DOM de forma segura */
 function escHtml(str) {
   return String(str ?? '')
     .replace(/&/g, '&amp;').replace(/</g, '&lt;')
     .replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 }
 
-/** Nombre: solo letras, números, acentos y puntuación básica */
 function sanitizeName(val, max = 150) {
   if (typeof val !== 'string') return '';
   return val
@@ -26,7 +24,6 @@ function sanitizeName(val, max = 150) {
     .substring(0, max).trim();
 }
 
-/** Email: solo caracteres válidos de RFC, sin SQL injection */
 function sanitizeEmail(val) {
   if (typeof val !== 'string') return '';
   return val.trim().toLowerCase()
@@ -34,13 +31,11 @@ function sanitizeEmail(val) {
     .substring(0, 150);
 }
 
-/** Teléfono: solo dígitos, espacios y separadores */
 function sanitizePhone(val) {
   if (typeof val !== 'string') return '';
   return val.replace(/[^0-9\s+\-().]/g, '').substring(0, 20).trim();
 }
 
-/** Texto general: bloquea HTML y caracteres SQL peligrosos */
 function sanitizeText(val, max = 300) {
   if (typeof val !== 'string') return '';
   return val
@@ -50,13 +45,11 @@ function sanitizeText(val, max = 300) {
     .substring(0, max).trim();
 }
 
-/** Código postal: solo dígitos */
 function sanitizeCP(val) {
   if (typeof val !== 'string') return '';
   return val.replace(/\D/g, '').substring(0, 6);
 }
 
-/** Email válido: formato RFC básico + sin SQL chars */
 function isEmailValido(email) {
   if (typeof email !== 'string') return false;
   const clean = email.trim().toLowerCase();
@@ -82,7 +75,6 @@ document.addEventListener('DOMContentLoaded', () => {
             if (el) { el.addEventListener('input', guardarFormulario); el.addEventListener('change', guardarFormulario); }
         });
 
-    // Validación visual en tiempo real
     initValidacionCampos();
 
     const cpInput = document.getElementById('clienteCP');
@@ -98,7 +90,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // ── Validación visual en tiempo real ─────────────────────────────
 function initValidacionCampos() {
-    // Nombre: bloquear caracteres peligrosos mientras escribe
     const nombre = document.getElementById('clienteNombre');
     if (nombre) {
         nombre.addEventListener('input', function () {
@@ -106,7 +97,6 @@ function initValidacionCampos() {
         });
     }
 
-    // Teléfono: solo caracteres válidos
     const tel = document.getElementById('clienteTelefono');
     if (tel) {
         tel.addEventListener('input', function () {
@@ -125,11 +115,9 @@ function initValidacionCampos() {
         tel.addEventListener('input', function () { limpiarErrorCampo(this); this.style.borderColor = ''; });
     }
 
-    // Email: validar al salir del campo + bloquear caracteres inválidos mientras escribe
     const correo = document.getElementById('clienteCorreo');
     if (correo) {
         correo.addEventListener('input', function () {
-            // Bloquear caracteres que nunca pueden ser parte de un email válido
             this.value = this.value.replace(/[^a-zA-Z0-9._%+\-@]/g, '');
             limpiarErrorCampo(this);
             this.style.borderColor = '';
@@ -146,7 +134,6 @@ function initValidacionCampos() {
         });
     }
 
-    // Confirmar correo: no pegar, verificar que coincida
     const correoConfirm = document.getElementById('clienteCorreoConfirm');
     if (correoConfirm) {
         correoConfirm.addEventListener('paste', (e) => e.preventDefault());
@@ -169,7 +156,6 @@ function initValidacionCampos() {
         });
     }
 
-    // Dirección, colonia, ciudad y municipio: bloquear inyección
     ['clienteDireccion','clienteColonia','clienteCiudad','clienteMunicipio'].forEach(id => {
         const el = document.getElementById(id);
         if (el) el.addEventListener('input', function () {
@@ -177,13 +163,11 @@ function initValidacionCampos() {
         });
     });
 
-    // CP: solo dígitos
     const cp = document.getElementById('clienteCP');
     if (cp) cp.addEventListener('input', function () {
         this.value = this.value.replace(/\D/g, '').substring(0, 6);
     });
 
-    // Notas: bloquear tags HTML
     const notas = document.getElementById('clienteNotas');
     if (notas) notas.addEventListener('input', function () {
         this.value = this.value.replace(/<[^>]*>/g, '').replace(/[`\\]/g, '');
@@ -206,8 +190,7 @@ function limpiarErrorCampo(input) {
 
 // ── Persistencia del formulario ───────────────────────────────────
 function guardarFormulario() {
-    // Guardar datos ya sanitizados en localStorage para prevenir XSS almacenado
-    const datos = {
+    const datos = {  // guardar sanitizado para prevenir XSS almacenado
         nombre:      sanitizeName(document.getElementById('clienteNombre')?.value    || ''),
         telefono:    sanitizePhone(document.getElementById('clienteTelefono')?.value  || ''),
         correo:      sanitizeEmail(document.getElementById('clienteCorreo')?.value    || ''),
@@ -264,26 +247,32 @@ async function prefillSiLogueado() {
             return;
         }
 
+        // Identidad: siempre sobreescribir — evita que localStorage de sesión anterior contamine el form
+        const setAuth = (id, val) => {
+            const el = document.getElementById(id);
+            if (el) { el.value = val || ''; if (val) el.setAttribute('data-prefilled', '1'); }
+        };
+        setAuth('clienteNombre',   cliente.nombre   || cliente.displayName || '');
+        setAuth('clienteCorreo',   cliente.correo   || '');
+        setAuth('clienteTelefono', cliente.telefono || '');
+
+        // Dirección: solo rellenar si el campo está vacío
         const set = (id, val) => {
             const el = document.getElementById(id);
             if (el && val && !el.value) { el.value = val; el.setAttribute('data-prefilled', '1'); }
         };
-        set('clienteNombre',    cliente.nombre     || cliente.displayName || '');
-        set('clienteCorreo',    cliente.correo    || '');
-        set('clienteTelefono',  cliente.telefono  || '');
         set('clienteDireccion', cliente.direccion || '');
         set('clienteColonia',   cliente.colonia   || '');
         set('clienteCiudad',    cliente.ciudad    || '');
         set('clienteMunicipio', cliente.municipio || '');
         set('clienteCP',        cliente.cp        || '');
-        // Sync confirm email field if present
-        const correoEl   = document.getElementById('clienteCorreo');
-        const confirmEl  = document.getElementById('clienteCorreoConfirm');
-        if (confirmEl && correoEl && correoEl.value && !confirmEl.value) {
+
+        const correoEl  = document.getElementById('clienteCorreo');
+        const confirmEl = document.getElementById('clienteCorreoConfirm');
+        if (confirmEl && correoEl && correoEl.value) {
             confirmEl.value = correoEl.value;
             confirmEl.setAttribute('data-prefilled', '1');
         }
-        // Persist to localStorage so guardarFormulario keeps it
         guardarFormulario();
         _mostrarSesionCardCarrito(cliente);
     } catch (e) { /* silent */ }
@@ -296,14 +285,12 @@ function _mostrarSesionCardCarrito(cliente) {
 
     const tieneTel = !!(cliente.telefono);
 
-    // Iniciales (dos letras, ignorando partículas como "de", "del", "la", etc.)
     const _ptcls = new Set(['de','del','la','las','los','el','y','e','von','van','da','das','dos','di','le','les']);
     const partes   = (cliente.nombre || '').trim().split(/\s+/).filter(p => p && !_ptcls.has(p.toLowerCase()));
     const iniciales = partes.length >= 2
         ? (partes[0][0] + partes[1][0]).toUpperCase()
         : (partes[0]?.[0] || 'U').toUpperCase();
 
-    // Construir card
     const card = document.createElement('div');
     card.id        = 'sesionCardCarrito';
     card.className = 'sesion-card';
@@ -330,10 +317,8 @@ function _mostrarSesionCardCarrito(cliente) {
     card.appendChild(infoEl);
     card.appendChild(btnEditar);
 
-    // Insertar card antes del formulario
     form.insertAdjacentElement('beforebegin', card);
 
-    // Ocultar campos ya rellenos
     const grpNombre        = document.getElementById('clienteNombre')?.closest('.form-group');
     const grpCorreo        = document.getElementById('clienteCorreo')?.closest('.form-group');
     const grpConfirm       = document.getElementById('clienteCorreoConfirm')?.closest('.form-group');
@@ -342,7 +327,6 @@ function _mostrarSesionCardCarrito(cliente) {
     const rowTelCorreo     = grpTel?.closest('.form-row');
 
     if (tieneTel) {
-        // Perfil completo: ocultar campos ya rellenos (nombre, correo, teléfono)
         if (grpNombre)        grpNombre.style.display        = 'none';
         if (grpCorreo)        grpCorreo.style.display        = 'none';
         if (grpConfirm)       grpConfirm.style.display       = 'none';
@@ -350,8 +334,7 @@ function _mostrarSesionCardCarrito(cliente) {
         if (grpTel)           grpTel.style.display           = 'none';
         if (rowTelCorreo)     rowTelCorreo.style.display     = 'none';
     } else {
-        // Perfil incompleto (sin teléfono): mostrar card solo como banner informativo,
-        // dejar el formulario completo visible para que el usuario llene sus datos
+        // sin teléfono: card como banner, formulario completo sigue visible
         const aviso = document.createElement('div');
         aviso.className = 'sesion-card-aviso';
         aviso.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i> Completa tus datos para continuar';
@@ -361,7 +344,6 @@ function _mostrarSesionCardCarrito(cliente) {
 
 function _restaurarFormCarrito() {
     document.getElementById('sesionCardCarrito')?.remove();
-    // Restaurar visibilidad de todos los grupos del formulario
     const form = document.getElementById('formularioCliente');
     if (!form) return;
     form.querySelectorAll('.form-group, .form-row').forEach(el => {
@@ -450,7 +432,7 @@ function cambiarCantidadItem(idx, delta) {
     sessionStorage.setItem('wh_carrito', JSON.stringify(estado.items));
     renderizarItems();
     actualizarTotales();
-    cargarFechasDisponibles(); // recalcular disponibilidad al cambiar cantidad
+    cargarFechasDisponibles();
 }
 
 function eliminarItemCarrito(idx) {
@@ -458,7 +440,6 @@ function eliminarItemCarrito(idx) {
     if (!item || !confirm(`\u00bfEliminar "${item.nombre}" del carrito?`)) return;
     estado.items.splice(idx, 1);
     sessionStorage.setItem('wh_carrito', JSON.stringify(estado.items));
-    // Si el carrito quedó vacío, limpiar todos los datos guardados
     if (estado.items.length === 0) {
         sessionStorage.removeItem('wh_carrito');
         sessionStorage.removeItem('wh_checkout');
@@ -477,15 +458,13 @@ function eliminarItemCarrito(idx) {
     }
     renderizarItems();
     actualizarTotales();
-    cargarFechasDisponibles(); // recalcular disponibilidad al eliminar
+    cargarFechasDisponibles();
 }
 
-// Vaciar todo el carrito
 function confirmarVaciarCarrito() {
     if (!estado.items.length) return;
     if (!confirm('¿Vaciar el carrito? Se eliminarán todos los productos y tus datos del formulario.')) return;
     estado.items = [];
-    // Limpiar todo el storage
     sessionStorage.removeItem('wh_carrito');
     sessionStorage.removeItem('wh_checkout');
     localStorage.removeItem(FORM_KEY);
@@ -494,12 +473,10 @@ function confirmarVaciarCarrito() {
     localStorage.removeItem('wh_cliente');
     localStorage.removeItem('wh_descuento');
     localStorage.removeItem('wh_carrito_backup');
-    // Limpiar campos del formulario visibles en el DOM (incluyendo confirmación de correo)
     ['clienteNombre','clienteTelefono','clienteCorreo','clienteCorreoConfirm','clienteDireccion','clienteColonia','clienteCiudad','clienteMunicipio','clienteCP','clienteNotas']
         .forEach(id => {
             const el = document.getElementById(id);
             if (el) { el.value = ''; el.style.borderColor = ''; }
-            // Limpiar mensajes de error asociados al campo
             const err = el?.parentNode?.querySelector('.field-error-checkout');
             if (err) err.remove();
         });
@@ -555,9 +532,9 @@ function seleccionarInstalacion(conInstalacion) {
 
 function actualizarTotales() {
     const subtotal       = estado.items.reduce((s, i) => s + i.precio * i.cantidad, 0);
-    const totalMuebles   = estado.items.reduce((s, i) => s + i.cantidad, 0); // suma de todas las cantidades
+    const totalMuebles   = estado.items.reduce((s, i) => s + i.cantidad, 0);
     const costoEnvio     = estado.tipoEntrega === 'envio' ? estado.costos.envio : 0;
-    const costoInstUnit  = estado.costos.instalacion; // $1,500 por mueble
+    const costoInstUnit  = estado.costos.instalacion;
     const costoInst      = estado.instalacion ? costoInstUnit * totalMuebles : 0;
 
     const el      = document.getElementById('totalFinal');
@@ -570,14 +547,12 @@ function actualizarTotales() {
     if (el)      el.textContent = fmt(subtotal + costoEnvio + costoInst);
     if (elEnvio) elEnvio.textContent = costoEnvio > 0 ? fmt(costoEnvio) : 'Gratis';
 
-    // Actualizar resumen de instalación con desglose por cantidad
     if (elInstTotal) elInstTotal.textContent = fmt(costoInst);
     if (elInstLabel && totalMuebles > 1) {
         elInstLabel.textContent = `× ${totalMuebles} muebles`;
     } else if (elInstLabel) {
         elInstLabel.textContent = '';
     }
-    // Precio en la tarjeta de opción
     if (elInstPrecio) {
         elInstPrecio.textContent = totalMuebles > 1
             ? `+ ${fmt(costoInstUnit)} × ${totalMuebles} = ${fmt(costoInst)}`
@@ -603,7 +578,7 @@ async function cargarFechasDisponibles() {
         const params = new URLSearchParams({
             tipo_entrega: estado.tipoEntrega || 'envio',
             cp,
-            cantidad: totalMuebles || 1, // cuántos lugares necesita este pedido
+            cantidad: totalMuebles || 1,
         });
         const res    = await fetch('/api/disponibilidad.php?' + params.toString());
         const data   = await res.json();
@@ -709,14 +684,12 @@ function procederAlPago() {
     if (estado.items.length === 0)   { showToast('Tu carrito está vacío', 'error'); return; }
     if (!estado.semana)              { showToast('Por favor selecciona una fecha de entrega', 'error'); document.getElementById('semanasGrid')?.scrollIntoView({ behavior:'smooth', block:'center' }); return; }
 
-    // Bloquear si el cliente está logueado pero no ha verificado su correo
     if (window.AuthModal && AuthModal.isAuthenticated() && !AuthModal.isEmailVerified()) {
         showToast('Confirma tu correo electrónico antes de completar tu compra. Revisa tu bandeja de entrada.', 'error');
         document.getElementById('whVerifBanner')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
         return;
     }
 
-    // Leer y sanitizar TODOS los campos antes de validar
     const nombre   = sanitizeName(document.getElementById('clienteNombre')?.value    || '');
     const telefono = sanitizePhone(document.getElementById('clienteTelefono')?.value  || '');
     const correo   = sanitizeEmail(document.getElementById('clienteCorreo')?.value    || '');
@@ -810,7 +783,6 @@ function showToast(msg, tipo = 'info') {
 // ── Sugerencia de login para usuarios no logueados ────────────────
 function _mostrarSugerenciaLoginCheckout() {
     if (document.getElementById('loginSuggestCheckout')) return;
-    // Insertar antes del primer campo de datos del cliente
     const ancla = document.getElementById('clienteNombre')?.closest('.form-group') ||
                   document.getElementById('clienteNombre')?.closest('section') ||
                   document.querySelector('.checkout-form, .checkout-section');
@@ -844,7 +816,6 @@ window.cambiarCantidadItem    = cambiarCantidadItem;
 window.eliminarItemCarrito    = eliminarItemCarrito;
 
 // ── Interceptor de autenticación ──────────────────────────────────
-// Requiere que el cliente esté autenticado antes de proceder al pago
 document.addEventListener('DOMContentLoaded', function () {
     const _origProceder = window.procederAlPago;
     if (typeof _origProceder !== 'function') return;

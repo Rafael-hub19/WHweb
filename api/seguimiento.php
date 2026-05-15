@@ -1,14 +1,5 @@
 <?php
-/**
- * api/seguimiento.php — Endpoint público de seguimiento sin autenticación
- * Permite buscar pedidos, citas y cotizaciones por número de folio
- * 
- * GET /api/seguimiento.php?numero=WH-2026-000001  → pedido
- * GET /api/seguimiento.php?numero=CIT-2026-000001 → cita
- * GET /api/seguimiento.php?numero=COT-2026-000001 → cotización
- */
-
-// Suprimir errores PHP antes de cualquier output
+// api/seguimiento.php — Seguimiento público sin autenticación (pedidos, citas, cotizaciones)
 ini_set('display_errors', 0);
 ini_set('display_startup_errors', 0);
 error_reporting(0);

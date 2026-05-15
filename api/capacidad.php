@@ -1,14 +1,5 @@
 <?php
-/**
- * api/capacidad.php — Gestión de capacidad de producción (solo admin)
- * 
- * GET  /api/capacidad.php              → lista semanas configuradas
- * POST /api/capacidad.php              → crear/actualizar semana
- * PUT  /api/capacidad.php?semana=DATE  → actualizar slots de una semana
- * POST /api/capacidad.php?action=generar → generar semanas automáticamente
- * POST /api/capacidad.php?action=bloquear_dia → bloquear día específico
- * DELETE /api/capacidad.php?dia=DATE   → desbloquear día
- */
+// api/capacidad.php — Gestión de capacidad de producción (solo admin)
 
 require_once __DIR__ . '/_helpers.php';
 
@@ -49,14 +40,12 @@ if ($method === 'GET') {
 // ── POST: crear/actualizar semana o acciones especiales ───────────
 if ($method === 'POST') {
 
-    // Acción: generar semanas automáticamente (próximas N semanas)
     if ($action === 'generar') {
         $body    = getJsonBody();
         $semanas = min((int)($body['semanas'] ?? 12), 52);
         $slotsProd  = max(1, (int)($body['slots_produccion'] ?? 3));
         $slotsEnt   = max(1, (int)($body['slots_entrega']    ?? 5));
 
-        // Lunes de la semana actual
         $lunes = new DateTime();
         $dow   = (int)$lunes->format('N');
         if ($dow > 1) $lunes->modify('-' . ($dow - 1) . ' days');
@@ -79,7 +68,6 @@ if ($method === 'POST') {
         jsonSuccess(['creadas' => $creadas, 'mensaje' => "{$creadas} semanas nuevas generadas"]);
     }
 
-    // Acción: bloquear un día específico
     if ($action === 'bloquear_dia') {
         $body   = getJsonBody();
         $fecha  = trim($body['fecha']  ?? '');
@@ -98,7 +86,6 @@ if ($method === 'POST') {
         jsonSuccess(['mensaje' => "Día {$fecha} bloqueado: {$motivo}"]);
     }
 
-    // Crear o actualizar semana
     $body = getJsonBody();
     $semana = trim($body['semana_inicio'] ?? '');
     if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $semana)) {

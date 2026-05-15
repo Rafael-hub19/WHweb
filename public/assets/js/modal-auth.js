@@ -1,25 +1,15 @@
-/**
- * modal-auth.js — Modal de autenticación de clientes
- *
- * Expone window.AuthModal:
- *   AuthModal.open(callback)      → abre el modal; ejecuta callback(cliente) al autenticar
- *   AuthModal.close()             → cierra el modal
- *   AuthModal.logout()            → cierra sesión del cliente
- *   AuthModal.isAuthenticated()   → true si hay sesión activa
- *   AuthModal.getCliente()        → objeto con datos del cliente o null
- *   AuthModal.verificar()         → Promise<cliente|null> verifica sesión con el backend
- */
+// modal-auth.js — Modal de autenticación de clientes (expone window.AuthModal)
 
 (function () {
   'use strict';
 
   /* ── Estado ──────────────────────────────────────────────────── */
-  let _cliente         = null;   // datos del cliente autenticado
-  let _emailVerificado = null;   // null=desconocido, true=verificado, false=no verificado
-  let _callback        = null;   // función a ejecutar tras autenticación
+  let _cliente         = null;
+  let _emailVerificado = null;  // null=desconocido, true=verificado, false=no verificado
+  let _callback        = null;
   let _firebaseApp     = null;
   let _firebaseAuth    = null;
-  let _verifPollTimer  = null;   // setInterval de polling de verificación
+  let _verifPollTimer  = null;
 
   /* ── Crear estructura HTML del modal ─────────────────────────── */
   function _crearModal() {
@@ -36,14 +26,12 @@
       <img src="/assets/img/logo-login.png" alt="Wooden House">
     </div>
 
-    <!-- Vista: no autenticado -->
     <div id="authViewLogin">
       <h2 class="auth-modal-title" id="authModalTitle">Iniciar sesión</h2>
       <p class="auth-modal-subtitle" id="authModalSubtitle">Accede a tu cuenta para continuar</p>
 
       <div id="authAlert" class="auth-alert"></div>
 
-      <!-- Formulario de login -->
       <div id="authFormLogin">
         <form class="auth-form" onsubmit="_authLoginEmail(event)">
           <div class="auth-form-group">
@@ -64,7 +52,6 @@
         </div>
       </div>
 
-      <!-- Formulario de registro -->
       <div id="authFormRegistro" style="display:none;">
         <form class="auth-form" onsubmit="_authRegistroEmail(event)">
           <div class="auth-form-group">
@@ -95,7 +82,6 @@
       </div>
     </div>
 
-    <!-- Vista: verificación de correo pendiente -->
     <div id="authViewVerificacion" style="display:none;">
       <div style="text-align:center; padding: 8px 0 20px;">
         <div style="font-size:52px; margin-bottom:18px;">📧</div>
@@ -121,7 +107,6 @@
       </div>
     </div>
 
-    <!-- Vista: autenticado -->
     <div id="authViewUser" style="display:none;">
       <div class="auth-user-view">
         <div class="auth-user-avatar" id="authUserAvatar">U</div>
@@ -141,37 +126,27 @@
 </div>`;
 
     document.body.insertAdjacentHTML('beforeend', html);
-
-    // El modal es estático: NO se cierra al hacer clic en el fondo
-    // (solo con el botón × o programáticamente)
-
-    // Sanitización y validación en tiempo real de todos los campos
+    // El modal no se cierra al hacer clic en el fondo — solo con × o programáticamente
     _initCamposModal();
   }
 
   /* ── Sanitización en tiempo real del modal ───────────────────── */
   function _initCamposModal() {
-    // Email de login: solo caracteres válidos de email
     const loginEmail = document.getElementById('loginEmail');
     if (loginEmail) loginEmail.addEventListener('input', function () {
       this.value = this.value.replace(/[^a-zA-Z0-9._%+\-@]/g, '');
     });
 
-    // Nombre de registro: solo letras, espacios y acentos
     const regNombre = document.getElementById('regNombre');
     if (regNombre) regNombre.addEventListener('input', function () {
       this.value = this.value.replace(/[^a-zA-ZáéíóúüñÁÉÍÓÚÜÑ\s]/g, '');
     });
 
-    // Email de registro: solo caracteres válidos de email
     const regEmail = document.getElementById('regEmail');
     if (regEmail) regEmail.addEventListener('input', function () {
       this.value = this.value.replace(/[^a-zA-Z0-9._%+\-@]/g, '');
     });
 
-
-
-    // Confirmar contraseña: bloquear pegar + validar coincidencia al salir
     const regConfirmPassword = document.getElementById('regConfirmPassword');
     if (regConfirmPassword) {
       regConfirmPassword.addEventListener('paste', (e) => e.preventDefault());
@@ -224,11 +199,9 @@
   /* ── Obtener instancia de Firebase Auth ──────────────────────── */
   async function _getAuth() {
     if (_firebaseAuth) return _firebaseAuth;
-    // Firebase debe estar cargado por el HTML host
     const { initializeApp, getApps, getApp } = await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js');
     const { getAuth } = await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js');
 
-    // Buscar config de Firebase en window (puesta por firebase-config.js o el host)
     const cfg = window.FIREBASE_CONFIG || window._fbConfig || window.firebaseConfig;
     if (!cfg) throw new Error('firebaseConfig no definida en window');
 
@@ -277,7 +250,6 @@
 
   /* ── Mini menú de cuenta (para páginas sin dropdown en nav) ─────── */
   function _toggleAuthMiniMenu(btn) {
-    // Si ya hay un menú abierto, cerrarlo
     const existing = document.querySelector('.auth-mini-menu');
     if (existing) {
       existing.remove();
@@ -302,7 +274,6 @@
       </button>`;
     btn.appendChild(menu);
 
-    // Cerrar al hacer clic fuera
     function _closeMiniMenu(e) {
       if (!btn.contains(e.target)) {
         menu.remove();
@@ -312,7 +283,6 @@
     }
     setTimeout(() => document.addEventListener('click', _closeMiniMenu), 0);
 
-    // Cerrar con Escape
     function _escKey(e) {
       if (e.key === 'Escape') { menu.remove(); btn.classList.remove('menu-open'); document.removeEventListener('keydown', _escKey); }
     }
@@ -337,7 +307,6 @@
 
   /* ── Actualizar botón de cuenta en el nav ────────────────────── */
   function _actualizarNavBtn() {
-    // Header desktop button
     const btns = document.querySelectorAll('.btn-cuenta-nav');
     btns.forEach(btn => {
       if (_cliente) {
@@ -358,7 +327,6 @@
       }
     });
 
-    // Barra móvil: botón Mi cuenta (último item)
     const mbnBtn = document.querySelector('.mobile-bottom-nav .mbn-item:last-child');
     if (mbnBtn) {
       if (_cliente) {
@@ -383,9 +351,7 @@
     const viewVerif  = document.getElementById('authViewVerificacion');
     if (!viewLogin || !viewUser) return;
 
-    // Ocultar siempre la pantalla de verificación al cambiar de vista
     if (viewVerif) viewVerif.style.display = 'none';
-
     if (_cliente) {
       viewLogin.style.display = 'none';
       viewUser.style.display  = '';
@@ -400,9 +366,7 @@
   }
 
   /* ── Polling automático de verificación de correo ───────────── */
-  // Firebase no tiene webhooks como Stripe/PayPal, pero podemos consultar
-  // cada pocos segundos si el usuario ya verificó. Cuando detecta el cambio,
-  // actualiza la UI sin que el usuario tenga que refrescar la página.
+  // Firebase no tiene webhooks: consultamos cada 4s si el usuario ya verificó
   function _iniciarPollingVerificacion() {
     if (_verifPollTimer) return;
     _verifPollTimer = setInterval(async () => {
@@ -410,10 +374,9 @@
         const auth = await _getAuth();
         const user = auth.currentUser;
         if (!user) { _detenerPollingVerificacion(); return; }
-        await user.reload();  // pide el estado actualizado a Firebase
+        await user.reload();
         if (user.emailVerified) {
           _detenerPollingVerificacion();
-          // Notificar al backend para actualizar la sesión
           try {
             const token = await user.getIdToken(true);
             await fetch('/api/auth.php?action=cliente-email-verificado', {
@@ -425,17 +388,15 @@
           } catch (_) {}
           _emailVerificado = true;
           document.getElementById('whVerifBanner')?.remove();
-          // Toast de confirmación (no hace falta recargar la página)
           const toast = document.createElement('div');
           toast.className = 'wh-toast-verificado';
           toast.innerHTML = '<i class="fa-solid fa-circle-check"></i> ¡Correo verificado! Ya puedes completar tus compras.';
           document.body.appendChild(toast);
           setTimeout(() => toast.remove(), 5000);
-          // Notificar al resto de la página
           document.dispatchEvent(new CustomEvent('wh:email-verificado', { detail: _cliente }));
         }
       } catch (_) { /* ignorar errores de red */ }
-    }, 4000);  // consulta cada 4 segundos
+    }, 4000);
   }
 
   function _detenerPollingVerificacion() {
@@ -463,11 +424,9 @@
           Ya verifiqué
         </button>
       </div>`;
-    // Insertar justo después del header-nav si existe, si no al inicio del body
     const nav = document.querySelector('.header-nav');
     if (nav) nav.insertAdjacentElement('afterend', banner);
     else document.body.insertAdjacentElement('afterbegin', banner);
-    // Iniciar polling automático: detecta la verificación sin recargar
     _iniciarPollingVerificacion();
   }
 
@@ -498,7 +457,6 @@
       if (user) {
         await user.reload();
         if (user.emailVerified) {
-          // Informar al backend para actualizar la sesión
           try {
             const token = await user.getIdToken(true);
             await fetch('/api/auth.php?action=cliente-email-verificado', {
@@ -515,7 +473,6 @@
         }
       }
     } catch (_) {}
-    // Si aún no está verificado, animar el banner para avisar
     const banner = document.getElementById('whVerifBanner');
     if (banner) {
       banner.style.animation = 'none';
@@ -532,13 +489,11 @@
     _emailVerificado = emailVerificado ?? false;
     _actualizarNavBtn();
     _actualizarVistaModal();
-    // Mostrar banner si el correo no está verificado
     if (_emailVerificado === false) {
       _mostrarBannerVerificacion();
     } else {
       document.getElementById('whVerifBanner')?.remove();
     }
-    // Notificar a otras partes de la página (solicitudes, checkout, etc.)
     document.dispatchEvent(new CustomEvent('wh:autenticado', { detail: cliente }));
 
     if (typeof _callback === 'function') {
@@ -567,8 +522,7 @@
       const token = await cred.user.getIdToken();
       const data  = await _llamarBackend('cliente-login', token);
       if (!data.success) throw new Error(data.error || 'Error al iniciar sesión');
-      // Personal (admin/empleado): redirigir a su panel
-      if (data.redirect) { window.location.href = data.redirect; return; }
+      if (data.redirect) { window.location.href = data.redirect; return; }  // personal → su panel
       _onAutenticado(data.cliente, cred.user.emailVerified);
     } catch (e) {
       const map = {
@@ -593,7 +547,6 @@
   let _pendingCliente = null;
   window._authContinuarDespuesDeRegistro = async function () {
     if (_pendingCliente) {
-      // Verificar si el cliente ya confirmó antes de continuar
       let verified = false;
       try {
         const auth = await _getAuth();
@@ -641,7 +594,6 @@
     const confirmPassword = document.getElementById('regConfirmPassword').value;
     if (!nombre || !email || !password || !confirmPassword) return;
 
-    // Verificar que las contraseñas coinciden
     if (password !== confirmPassword) {
       _authShowAlert('Las contraseñas no coinciden', 'error'); return;
     }
@@ -653,7 +605,6 @@
         await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js');
       const cred  = await createUserWithEmailAndPassword(auth, email, password);
 
-      // Enviar correo de verificación
       try {
         await sendEmailVerification(cred.user);
       } catch (verErr) {
@@ -664,16 +615,13 @@
       const data  = await _llamarBackend('cliente-registro', token, { nombre, correo: email });
       if (!data.success) throw new Error(data.error || 'Error al registrarse');
 
-      // Guardar cliente pendiente y mostrar vista de verificación
       _pendingCliente = data.cliente;
       const labelEl = document.getElementById('authVerifEmailLabel');
       if (labelEl) labelEl.textContent = email;
 
-      // Ocultar login y mostrar pantalla de verificación
       document.getElementById('authViewLogin').style.display       = 'none';
       document.getElementById('authViewVerificacion').style.display = 'block';
 
-      // Limpiar todos los campos del formulario de registro
       const formReg = document.querySelector('#authFormRegistro form');
       if (formReg) formReg.reset();
     } catch (e) {
@@ -744,7 +692,6 @@
     _cliente = null;
     _actualizarNavBtn();
     AuthModal.close();
-    // Recargar para limpiar estado de la página
     location.reload();
   };
 
@@ -797,7 +744,7 @@
               const auth = await _getAuth();
               const user = auth.currentUser;
               if (user) { await user.reload(); _emailVerificado = user.emailVerified; }
-              else { _emailVerificado = false; } // sin usuario Firebase: tratar como no verificado
+              else { _emailVerificado = false; }
             } catch (_) { _emailVerificado = false; }
           }
           _actualizarNavBtn();
@@ -813,16 +760,13 @@
 
     isEmailVerified() { return _emailVerificado !== false; },
 
-    // Para el botón de la barra móvil
     openMenuMovil(btn) {
       if (_cliente) { window.location.href = '/mi-cuenta'; }
       else { AuthModal.open(); }
     },
 
-    // Actualizar badge del carrito en barra móvil (llamar desde carrito.js tras cambios)
     actualizarCartBadge() { _actualizarMbnCartBadge(); },
 
-    // Para páginas que necesitan auth antes de continuar
     requireAuth(callback, mensajePersonalizado) {
       if (_cliente) {
         if (typeof callback === 'function') callback(_cliente);
@@ -839,22 +783,19 @@
 
   /* ── Verificar sesión al cargar la página ────────────────────── */
   document.addEventListener('DOMContentLoaded', () => {
-    _actualizarMbnCartBadge(); // mostrar badge del carrito inmediatamente
+    _actualizarMbnCartBadge();
     AuthModal.verificar();
     _initTooltipsTouchSupport();
   });
 
   /* ── Soporte touch para tooltips .wh-help (móvil) ───────────── */
   function _initTooltipsTouchSupport() {
-    // En dispositivos táctiles, tap abre/cierra el tooltip
-    // ya que hover no funciona en móvil
     document.addEventListener('click', function (e) {
       const tip = e.target.closest('.wh-help');
       if (tip) {
         e.preventDefault();
         e.stopPropagation();
         const isOpen = tip.classList.toggle('wh-help--open');
-        // Cerrar todos los demás
         if (isOpen) {
           document.querySelectorAll('.wh-help--open').forEach(t => {
             if (t !== tip) t.classList.remove('wh-help--open');
@@ -862,7 +803,6 @@
         }
         return;
       }
-      // Tap fuera cierra todos
       document.querySelectorAll('.wh-help--open').forEach(t => t.classList.remove('wh-help--open'));
     });
   }

@@ -22,16 +22,13 @@ unset($_usuario);
   <title>Panel Empleado - Wooden House</title>
 
 
-  <!-- Bootstrap 5 CSS - Grid, utilidades responsive. CSS propio de Wooden House carga después y tiene prioridad en colores -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" crossorigin="anonymous">
   <link rel="stylesheet" href="../assets/css/panel_empleado.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-  <!-- Bootstrap 5 JS - Solo componentes interactivos (modales, dropdowns). CSS propio de Wooden House tiene prioridad -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous" defer></script>
 </head>
 
 <body>
-  <!-- HEADER -->
   <div class="header">
     <div class="header-left">
     <button class="menu-toggle" id="menuToggle" aria-label="Abrir menú" aria-expanded="false">
@@ -57,7 +54,6 @@ unset($_usuario);
     </div>
   </div>
 
-  <!-- PANEL NOTIFICACIONES -->
   <div class="notif-panel" id="notifPanel">
     <div class="notif-head">
       <div class="notif-head-title">
@@ -72,7 +68,6 @@ unset($_usuario);
     <div class="notif-body" id="notifBody"></div>
   </div>
 
-  <!-- MENÚ HAMBURGUESA (MÓVIL) -->
   <div class="nav-links" id="navLinks">
     <button class="nav-close" id="navClose" aria-label="Cerrar menú">×</button>
     <div class="nav-title">Panel Empleado</div>
@@ -84,9 +79,7 @@ unset($_usuario);
     <a href="#" data-section="calendario"><i class="fa-solid fa-calendar-check"></i> Mi Calendario</a>
   </div>
 
-  <!-- LAYOUT -->
   <div class="container">
-    <!-- SIDEBAR (DESKTOP) -->
     <aside class="sidebar" id="sidebarDesktop">
       <div class="sidebar-item active" onclick="showSection('dashboard')">
         <span class="icon"><i class="fa-solid fa-chart-bar"></i></span>
@@ -116,7 +109,6 @@ unset($_usuario);
       </div>
     </aside>
 
-    <!-- MAIN -->
     <main class="main-content">
       <!-- DASHBOARD -->
       <div id="dashboard-section" class="content-section">
@@ -627,7 +619,6 @@ unset($_usuario);
   </div>
 
   
-  <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>

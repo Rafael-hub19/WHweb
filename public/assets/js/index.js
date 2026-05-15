@@ -36,19 +36,16 @@ function initMenu() {
     navLinks.classList.contains('open') ? closeNav() : openNav();
   });
 
-  // Cerrar al hacer click fuera
   document.addEventListener('click', function (e) {
     if (!menuToggle.contains(e.target) && !navLinks.contains(e.target)) {
       closeNav();
     }
   });
 
-  // Cerrar con Escape
   document.addEventListener('keydown', function (e) {
     if (e.key === 'Escape') closeNav();
   });
 
-  // Cerrar al hacer click en un enlace simple (no el botón dropdown)
   navLinks.querySelectorAll('a.nav-link-item, a.cart-icon, a.dropdown-item').forEach(item => {
     item.addEventListener('click', function () {
       closeNav();
@@ -65,7 +62,6 @@ function initMenu() {
     const isMobile = window.matchMedia('(max-width: 900px)').matches;
 
     if (isMobile) {
-      // En móvil: acordeón
       const isOpen = navDropdown.classList.toggle('open');
       dropdownBtn.setAttribute('aria-expanded', isOpen);
     } else {
@@ -74,7 +70,6 @@ function initMenu() {
     }
   });
 
-  // Cerrar dropdown al hacer click en un ítem dentro de él
   navDropdown.querySelectorAll('.dropdown-item').forEach(item => {
     item.addEventListener('click', function () {
       navDropdown.classList.remove('open');
@@ -83,7 +78,6 @@ function initMenu() {
     });
   });
 
-  // Cerrar dropdown desktop al hacer click fuera
   document.addEventListener('click', function (e) {
     if (!navDropdown.contains(e.target)) {
       navDropdown.classList.remove('open');
@@ -106,7 +100,6 @@ function initMenu() {
     // En desktop el hover CSS ya lo abre
   });
 
-  // Cerrar al hacer click en ítem
   cuentaDropdown.querySelectorAll('.dropdown-item').forEach(item => {
     item.addEventListener('click', function () {
       cuentaDropdown.classList.remove('open');
@@ -115,7 +108,6 @@ function initMenu() {
     });
   });
 
-  // Cerrar al hacer click fuera
   document.addEventListener('click', function (e) {
     if (!cuentaDropdown.contains(e.target)) {
       cuentaDropdown.classList.remove('open');
@@ -193,13 +185,11 @@ function initVideos() {
     }
 
     if (isTouchDevice) {
-      // Móvil/tablet: inyectar botón play transparente
       const playBtn = document.createElement('div');
       playBtn.className = 'video-play-btn';
       playBtn.innerHTML = '<svg viewBox="0 0 24 24"><polygon points="5,3 19,12 5,21"/></svg>';
       card.appendChild(playBtn);
 
-      // Tap para reproducir/pausar
       card.addEventListener('click', function (e) {
         e.preventDefault();
         if (card.classList.contains('playing')) {
@@ -212,7 +202,6 @@ function initVideos() {
         }
       });
     } else {
-      // Desktop: hover para reproducir/pausar — sin botón de play
       card.addEventListener('mouseenter', function () {
         pauseAll(video);
         video.play().catch(() => {});

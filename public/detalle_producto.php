@@ -6,14 +6,12 @@
   <link rel="icon" type="image/x-icon" href="/favicon.ico">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title id="pageTitle">Producto - Wooden House</title>
-  <!-- Bootstrap 5 CSS - Grid, utilidades responsive. CSS propio de Wooden House carga después y tiene prioridad en colores -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" crossorigin="anonymous">
   <link rel="stylesheet" href="/assets/css/variables.css">
   <link rel="stylesheet" href="/assets/css/styles.css?v=4">
   <link rel="stylesheet" href="/assets/css/detalle_producto.css?v=2">
   <link rel="stylesheet" href="/assets/css/modal-auth.css?v=4">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-  <!-- Bootstrap 5 JS - Solo componentes interactivos (modales, dropdowns). CSS propio de Wooden House tiene prioridad -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous" defer></script>
 </head>
 <body>
@@ -37,25 +35,21 @@
   </div>
 
 
-  <!-- Estado de carga -->
   <div id="loadingState" class="container" style="text-align:center; padding:60px 20px;">
     <div class="spinner-large"></div>
     <p>Cargando producto...</p>
   </div>
 
-  <!-- Error -->
   <div id="errorState" class="container" style="display:none; text-align:center; padding:60px 20px;">
     <p><i class="fa-solid fa-triangle-exclamation"></i> Producto no encontrado o no disponible.</p>
     <a href="/catalogo" class="btn-primary" style="display:inline-block;margin-top:15px;">← Volver al catálogo</a>
   </div>
 
-  <!-- Producto -->
   <div id="page" class="container" style="display:none;">
     <a href="/catalogo" class="btn-back" style="margin-bottom:16px;display:inline-flex;">
       <i class="fa-solid fa-arrow-left"></i> Volver al catálogo
     </a>
     <div class="row g-4 mb-5 product-detail" id="productDetail">
-      <!-- Galería -->
       <div class="col-md-6 gallery">
         <div class="main-image" id="mainImageBox">
           <div class="placeholder-img" id="imgPlaceholder"><i class="fa-solid fa-tree"></i></div>
@@ -64,7 +58,6 @@
         <div class="row row-cols-4 g-2 mt-2 thumbnails" id="thumbs"></div>
       </div>
 
-      <!-- Info del producto -->
       <div class="col-md-6 product-info">
         <div class="product-header">
           <span id="pCategoria" class="product-category-badge"></span>
@@ -82,13 +75,11 @@
 
         <div class="description" id="pDesc"></div>
 
-        <!-- Especificaciones rápidas -->
         <div class="features-box" id="featuresBox" style="display:none;">
           <h3>Características Principales</h3>
           <div id="pFeatures"></div>
         </div>
 
-        <!-- Agregar al carrito -->
         <div class="cart-section">
           <div class="quantity-selector">
             <span>Cantidad:
@@ -108,7 +99,6 @@
       </div>
     </div>
 
-    <!-- Tabs: Especificaciones / más info -->
     <div class="tabs">
       <div class="tabs-header">
         <button class="tab-button active" data-tab="tab-especificaciones" type="button"><i class="fa-solid fa-clipboard-list"></i> Especificaciones</button>
@@ -133,14 +123,12 @@
       </div>
     </div>
 
-    <!-- Más productos -->
     <div class="related-section">
       <h2>Más Productos</h2>
       <div class="related-grid" id="relacionados"></div>
     </div>
   </div>
 
-  <!-- Barra de navegación fija móvil -->
   <nav class="mobile-bottom-nav" aria-label="Navegación rápida">
     <div class="mobile-bottom-nav-inner">
       <a href="/inicio" class="mbn-item"><i class="fa-solid fa-house"></i><span>Inicio</span></a>

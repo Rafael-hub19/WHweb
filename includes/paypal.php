@@ -1,8 +1,5 @@
 <?php
-// =============================================================
-// Wooden House - PayPal REST API v2 (via cURL - sin Composer)
-// Implementa PayPal Orders API v2 (equivalente al SDK oficial)
-// =============================================================
+// includes/paypal.php — PayPal Orders API v2 via cURL (sin Composer)
 require_once __DIR__ . '/config.php';
 
 class PayPalClient {
@@ -18,9 +15,6 @@ class PayPalClient {
         $this->apiUrl       = PAYPAL_API_URL;
     }
 
-    /**
-     * Obtener Access Token (OAuth2 Client Credentials)
-     */
     private function getAccessToken(): string {
         if ($this->accessToken && time() < $this->tokenExpiry) {
             return $this->accessToken;
@@ -55,9 +49,6 @@ class PayPalClient {
         return $this->accessToken;
     }
 
-    /**
-     * Petición base a PayPal API
-     */
     private function request(string $method, string $endpoint, array $body = []): array {
         $token = $this->getAccessToken();
         $url = $this->apiUrl . $endpoint;
@@ -114,13 +105,6 @@ class PayPalClient {
         return $decoded;
     }
 
-    /**
-     * Crear orden de pago (PayPal Orders API v2)
-     * @param float $monto Monto total en MXN
-     * @param string $pedidoNum Número de pedido (referencia)
-     * @param string $returnUrl URL de retorno exitoso
-     * @param string $cancelUrl URL de cancelación
-     */
     public function crearOrden(float $monto, string $pedidoNum, string $returnUrl, string $cancelUrl): array {
         $body = [
             'intent' => 'CAPTURE',
@@ -145,23 +129,14 @@ class PayPalClient {
         return $this->request('POST', '/v2/checkout/orders', $body);
     }
 
-    /**
-     * Capturar pago de una orden aprobada
-     */
     public function capturarOrden(string $orderId): array {
         return $this->request('POST', "/v2/checkout/orders/{$orderId}/capture");
     }
 
-    /**
-     * Obtener detalles de una orden
-     */
     public function obtenerOrden(string $orderId): array {
         return $this->request('GET', "/v2/checkout/orders/{$orderId}");
     }
 
-    /**
-     * Reembolso de una captura
-     */
     public function reembolsar(string $captureId, ?float $monto = null, string $moneda = 'MXN'): array {
         $body = [];
         if ($monto !== null) {
@@ -173,9 +148,6 @@ class PayPalClient {
         return $this->request('POST', "/v2/payments/captures/{$captureId}/refund", $body);
     }
 
-    /**
-     * Extraer URL de aprobación de la respuesta de crear orden
-     */
     public function getApproveUrl(array $orderResponse): ?string {
         foreach ($orderResponse['links'] ?? [] as $link) {
             if ($link['rel'] === 'approve') {
@@ -185,14 +157,7 @@ class PayPalClient {
         return null;
     }
 
-    /**
-     * Verificar firma de webhook de PayPal via API (método oficial)
-     * PayPal no usa HMAC local — verifica contra su propia API
-     *
-     * @param string $payload        Body crudo del request
-     * @param array  $headers        Headers HTTP del request (SERVER vars)
-     * @param string $webhookId      ID del webhook registrado en PayPal Developer Dashboard
-     */
+    // PayPal no usa HMAC local — verifica contra su propia API
     public function verificarWebhook(string $payload, array $headers = [], string $webhookId = ''): ?array {
         $data = json_decode($payload, true);
         if (!is_array($data)) return null;
@@ -205,7 +170,6 @@ class PayPalClient {
             return $data;
         }
 
-        // Extraer headers necesarios para la verificación
         $authAlgo         = $headers['HTTP_PAYPAL_AUTH_ALGO']         ?? $headers['PAYPAL_AUTH_ALGO']         ?? '';
         $certUrl          = $headers['HTTP_PAYPAL_CERT_URL']          ?? $headers['PAYPAL_CERT_URL']          ?? '';
         $transmissionId   = $headers['HTTP_PAYPAL_TRANSMISSION_ID']   ?? $headers['PAYPAL_TRANSMISSION_ID']   ?? '';
@@ -261,7 +225,6 @@ class PayPalClient {
     }
 }
 
-// Instancia global
 function paypal(): PayPalClient {
     static $instance = null;
     if ($instance === null) $instance = new PayPalClient();

@@ -1,13 +1,5 @@
 <?php
-/**
- * api/auth.php - Endpoints de autenticación
- * 
- * POST /api/auth.php?action=login      → login con Firebase token
- * POST /api/auth.php?action=logout     → cerrar sesión
- * GET  /api/auth.php?action=verificar  → verificar sesión activa
- * GET  /api/auth.php?action=perfil     → datos del usuario autenticado
- */
-
+// api/auth.php — Endpoints de autenticación (login, logout, verificar)
 require_once __DIR__ . '/_helpers.php';
 
 $method = $_SERVER['REQUEST_METHOD'];
@@ -19,7 +11,6 @@ switch ($action) {
     case 'login':
         if ($method !== 'POST') jsonError('Método no permitido', 405);
 
-        // Rate limit: máximo 10 intentos de login por minuto por IP
         checkRateLimit('auth_login', 10, 60);
 
         $body = getJsonBody();
@@ -31,10 +22,8 @@ switch ($action) {
             jsonError('firebase_token requerido', 422);
         }
 
-        // Verificar token contra las claves públicas de Google
         $payload = verificarTokenFirebase($firebaseToken);
         if (!$payload) {
-            // Log del intento fallido (sin el token completo, solo parte)
             error_log('Login fallido - token inválido desde IP: ' . ($_SERVER['REMOTE_ADDR'] ?? 'unknown'));
             jsonError('Token de Firebase inválido o expirado', 401);
         }
@@ -44,14 +33,11 @@ switch ($action) {
             jsonError('Token sin identificador de usuario', 401);
         }
 
-        // Buscar en MySQL - aquí es donde se valida que el usuario
-        // esté registrado en el sistema y tenga rol asignado
         $usuario = obtenerUsuarioPorFirebaseUid($uid);
         if (!$usuario) {
             jsonError('Tu cuenta no tiene acceso al panel. Contacta al administrador.', 403);
         }
 
-        // Crear sesión PHP segura
         _crearSesion($usuario);
 
         $redirect = $usuario['rol'] === 'administrador'
@@ -66,14 +52,14 @@ switch ($action) {
                 'rol'    => $usuario['rol'],
             ],
             'redirect' => $redirect,
-            'csrf'     => getCsrfToken(),   // El frontend debe guardar esto
+            'csrf'     => getCsrfToken(),
         ]);
         break;
 
     // ── Logout ────────────────────────────────────────────────────
     case 'logout':
         if ($method !== 'POST') jsonError('Método no permitido', 405);
-        cerrarSesion();
+        _destruirSesionPersonal();
         jsonSuccess(['mensaje' => 'Sesión cerrada']);
         break;
 
@@ -84,7 +70,6 @@ switch ($action) {
             jsonSuccess(['autenticado' => true, 'usuario' => $usuario, 'csrf' => getCsrfToken()]);
         }
 
-        // Intentar con Bearer token (para SPAs)
         $token = getBearerToken();
         if ($token) {
             $payload = verificarTokenFirebase($token);
@@ -151,7 +136,6 @@ switch ($action) {
         $payload = verificarTokenFirebase($firebaseToken);
         if (!$payload) jsonError('Token de Firebase inválido o expirado', 401);
         $uid = $payload['uid'] ?? '';
-        // Si es cuenta de personal, crear sesión de staff y redirigir a su panel
         if (!empty($uid) && esPersonal($uid)) {
             $usuario = obtenerUsuarioPorFirebaseUid($uid);
             if (!$usuario) jsonError('Tu cuenta de personal no está activa. Contacta al administrador.', 403);
@@ -204,7 +188,6 @@ switch ($action) {
         if ($method !== 'POST') jsonError('Método no permitido', 405);
         $cliente = sesionClienteActiva();
         if (!$cliente) jsonError('No autenticado', 401);
-        // Validar con token Firebase fresco que realmente está verificado
         $body = getJsonBody();
         $firebaseToken = trim($body['firebase_token'] ?? '');
         if (empty($firebaseToken)) jsonError('firebase_token requerido', 422);
@@ -219,7 +202,7 @@ switch ($action) {
     // ── Logout de cliente ─────────────────────────────────────────
     case 'cliente-logout':
         if ($method !== 'POST') jsonError('Método no permitido', 405);
-        cerrarSesion();
+        _destruirSesionCliente();
         jsonSuccess(['mensaje' => 'Sesión de cliente cerrada']);
         break;
 

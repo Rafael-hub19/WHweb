@@ -1,7 +1,4 @@
-// =============================================================
-// Wooden House - Firebase Configuration (SDK v10 compat)
-// =============================================================
-
+// public/assets/js/firebase-config.js — Firebase SDK compat init
 const firebaseConfig = {
   apiKey:            "AIzaSyA0G4QZuxw0l7hH82SW_Y8_UurYsqyrMGs",
   authDomain:        "woodenhouse-898de.firebaseapp.com",
@@ -27,17 +24,14 @@ function initFirebase() {
     ? firebase.apps[0]
     : firebase.initializeApp(firebaseConfig);
 
-  // Auth — siempre disponible
   firebaseAuth = firebase.auth();
   window.firebaseAuth = firebaseAuth;
 
-  // Firestore — solo si el SDK fue incluido en la página
   if (typeof firebase.firestore === 'function') {
     firebaseFirestore = firebase.firestore();
     window.firebaseFirestore = firebaseFirestore;
   }
 
-  // Storage — solo si el SDK fue incluido en la página
   if (typeof firebase.storage === 'function') {
     firebaseStorage = firebase.storage();
     window.firebaseStorage = firebaseStorage;

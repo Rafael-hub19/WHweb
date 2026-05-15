@@ -1,7 +1,4 @@
-// =============================================================
-// Wooden House - Login (Firebase Auth + Backend PHP)
-// =============================================================
-
+// public/assets/js/login.js — Login de personal (Firebase Auth + PHP session)
 const loginForm  = document.getElementById('loginForm');
 const alertBox   = document.getElementById('alertBox');
 const btnLogin   = document.getElementById('btnLogin');
@@ -66,7 +63,6 @@ loginForm?.addEventListener('submit', async (e) => {
     const credential = await auth.signInWithEmailAndPassword(email, password);
     const idToken    = await credential.user.getIdToken(true);
 
-    // Verificar con backend PHP
     const res = await fetch('/api/auth.php?action=login', {
       method:  'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -87,7 +83,7 @@ loginForm?.addEventListener('submit', async (e) => {
     if (data.success) {
       sessionStorage.setItem('wh_firebase_token', idToken);
       sessionStorage.setItem('wh_usuario', JSON.stringify(data.usuario));
-      sessionStorage.removeItem('wh_just_logged_out'); // limpiar flag de logout previo
+      sessionStorage.removeItem('wh_just_logged_out');
       showAlert('<i class="fa-solid fa-circle-check"></i> Bienvenido, redirigiendo...', 'success');
       setTimeout(() => { window.location.href = data.redirect; }, 800);
     } else {
@@ -114,7 +110,6 @@ loginForm?.addEventListener('submit', async (e) => {
 
 // ── Verificar si ya está logueado al cargar ────────────────
 document.addEventListener('DOMContentLoaded', () => {
-  // Bloquear caracteres inválidos en el campo email del login
   const emailInput = document.getElementById('email');
   if (emailInput) {
     emailInput.addEventListener('input', function () {
@@ -137,7 +132,6 @@ document.addEventListener('DOMContentLoaded', () => {
   try { if (!auth && typeof firebaseAuth !== 'undefined') auth = firebaseAuth; } catch(e){}
   if (!auth) return;
 
-  // Auto-redirigir solo si Firebase tiene sesión activa Y el backend la valida
   auth.onAuthStateChanged(async (user) => {
     if (!user) return;
     try {

@@ -336,6 +336,50 @@ service apache2 restart
 
 ---
 
+## Limpieza de código (2026-05-15)
+
+Eliminados comentarios redundantes (WHAT) de todos los archivos del proyecto — JS, PHP, API y plantillas HTML. Se conservaron únicamente: separadores de sección, restricciones de seguridad no obvias, invariantes de concurrencia y comportamientos contraintuitivos de Firebase/navegador.
+
+---
+
+## Correcciones de bugs críticos (v9 — 2026-05-14)
+
+### Bug 1 — Sesión del cliente se cerraba al navegar
+
+**Causa:** `SESSION_IDLE_TIMEOUT` estaba en 120 segundos. Clientes que tardaban más de 2 minutos en navegar entre páginas perdían su sesión y veían el modal de login.
+
+**Corrección (`includes/config.php`):** Cambiado a 900 segundos (15 minutos).
+
+### Bug 2 — Correo de confirmación de pedido se enviaba dos veces
+
+**Causa:** `stripe_confirm` (cliente) y `stripe_webhook` (Stripe) llegaban casi simultáneamente. Ambos leían `notificacion_enviada = 0` antes de que el otro escribiera, y ambos enviaban el correo.
+
+**Corrección (`api/pagos.php`):** Reemplazado el patrón lectura-verificación-escritura por un `UPDATE ... WHERE notificacion_enviada = 0` atómico. Solo el proceso que modifica 1 fila envía el correo. Mismo patrón aplicado a los 4 puntos de notificación (stripe_confirm, stripe_webhook, paypal_webhook, paypal_capturar).
+
+### Bug 3 — Datos del checkout correspondían a un cliente anterior
+
+**Causa:** `localStorage` guarda el formulario de checkout indefinidamente. `prefillSiLogueado()` usaba `if (!el.value)` para rellenar campos, por lo que nunca sobrescribía los valores del cliente anterior ya almacenados.
+
+**Corrección (`public/assets/js/checkout.js`):** Los campos de identidad (nombre, correo, teléfono) siempre se sobreescriben con los datos del cliente autenticado. Los campos de dirección conservan el comportamiento `!el.value` (sin deshacer lo que el usuario ya escribió).
+
+### Bugs 4–6 — Contaminación de sesiones entre cliente y empleado en mismo navegador
+
+**Causa:** `_destruirSesion()` llamaba `session_destroy()` destruyendo ambas sesiones simultáneamente. La clave `_login_time` era compartida entre sesiones de personal y de cliente, así que cada login sobreescribía el tiempo del otro.
+
+**Corrección (`includes/auth.php`):**
+- Claves de sesión separadas: `_usuario_login_time` para personal, `_cliente_login_time` para clientes.
+- Dos funciones nuevas: `_destruirSesionCliente()` y `_destruirSesionPersonal()` que eliminan solo sus propias claves sin afectar la otra sesión.
+- El token CSRF solo se regenera cuando no hay sesión paralela activa.
+- `api/auth.php`: los `case 'logout'` y `case 'cliente-logout'` usan las nuevas funciones selectivas.
+
+### Bug 7 — Validación de teléfono en "Mi cuenta" bloqueaba guardado
+
+**Causa:** Condición con precedencia incorrecta de operadores `&&` y `||` en `mi-cuenta.js`. El resultado era un booleano siempre `true`, bloqueando el guardado aunque el teléfono fuera válido.
+
+**Corrección (`public/assets/js/mi-cuenta.js`):** Reescrita como expresión única y clara: `telefono && telefono.replace(/\D/g, '').length > 0 && telefono.replace(/\D/g, '').length < 10`.
+
+---
+
 ## Mejoras de UX y exportación real (v8 — 2026-04-23)
 
 ### Exportación real .xlsx en reportes del admin
@@ -450,12 +494,12 @@ service apache2 restart
 - `solicitudes.php` — Convertida de HTML puro a PHP: ahora incluye `config.php` y valida sesión + verificación de correo. Sin sesión o sin correo verificado → `/catalogo`.
 - `carrito-checkout.php` — Incluye `config.php` para iniciar sesión PHP correctamente (la protección real está en `/pago` y en los endpoints API).
 
-### Timeout de inactividad de sesión (2 minutos)
+### Timeout de inactividad de sesión (15 minutos)
 
 **Problema detectado:** Una sesión podía mantenerse activa indefinidamente si el usuario no cerraba sesión explícitamente.
 
 **Corrección (`includes/config.php`):**
-- Constante `SESSION_IDLE_TIMEOUT = 120` (2 minutos, fácil de cambiar).
+- Constante `SESSION_IDLE_TIMEOUT = 900` (15 minutos, fácil de cambiar).
 - En cada request PHP se compara `time() - $_SESSION['_last_activity']` con el timeout. Si se supera, la sesión se destruye completamente (`session_unset` + `session_destroy`) y se crea una nueva.
 - Timeout absoluto adicional de 2 horas — aunque haya actividad constante, la sesión se renueva.
 - La marca `_last_activity` se actualiza en cada petición válida.

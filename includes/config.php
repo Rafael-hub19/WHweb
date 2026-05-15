@@ -1,16 +1,9 @@
 <?php
-/**
- * config.php - Configuración de Wooden House
- * 
- * TODOS los valores sensibles vienen del .env
- * NUNCA pongas credenciales reales aquí
- */
+// config.php — configuración central de Wooden House
 
 define('WH_LOADED', true);
 
 // ── Encoding UTF-8 global ─────────────────────────────────────────
-// Fuerza UTF-8 en todas las funciones de string de PHP y en la cabecera HTTP
-// para que ñ, acentos y caracteres especiales se muestren correctamente.
 mb_internal_encoding('UTF-8');
 mb_http_output('UTF-8');
 // Solo enviar el header Content-Type HTML para páginas web (no para API JSON)
@@ -48,7 +41,6 @@ define('APP_ENV',   env('APP_ENV', 'development'));
 define('APP_DEBUG', filter_var(env('APP_DEBUG', 'false'), FILTER_VALIDATE_BOOLEAN));
 define('APP_URL',   rtrim(env('APP_URL', 'http://localhost'), '/'));
 
-// Nunca mostrar errores en producción
 if (APP_DEBUG) {
     ini_set('display_errors', 1);
     error_reporting(E_ALL);
@@ -96,9 +88,9 @@ define('SMTP_PASS',       env('SMTP_PASS',       ''));
 // ── Negocio ────────────────────────────────────────────────────────
 define('COSTO_INSTALACION', (float) env('COSTO_INSTALACION', 1500));
 define('COSTO_ENVIO',       (float) env('COSTO_ENVIO',       500));
-define('DIAS_FABRICACION',    (int)   env('DIAS_FABRICACION',   15)); // 15 días hábiles de fabricación
-define('LIMITE_DIA',          (int)   env('LIMITE_DIA',          10)); // máximo productos por día en producción
-define('MARGEN_HABILES',      (int)   env('MARGEN_HABILES',        2)); // días hábiles mínimos para fabricación
+define('DIAS_FABRICACION',    (int)   env('DIAS_FABRICACION',   15));
+define('LIMITE_DIA',          (int)   env('LIMITE_DIA',          10));
+define('MARGEN_HABILES',      (int)   env('MARGEN_HABILES',        2));
 define('SITE_NAME',         'Wooden House');
 define('SITE_PHONE',        env('SITE_PHONE',   '33 1705 4017'));
 define('SITE_EMAIL',        env('SITE_EMAIL',   'contacto@woodenhouse.com'));
@@ -109,42 +101,32 @@ if (session_status() === PHP_SESSION_NONE) {
     $isHttps = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
              || (int)($_SERVER['SERVER_PORT'] ?? 80) === 443;
 
-    // Dominio de cookie con punto inicial = válido para www y sin www
-    // Ej: .muebleswh.com cubre muebleswh.com Y www.muebleswh.com
-    $appHost    = parse_url(APP_URL, PHP_URL_HOST) ?: '';
-    // Quitar www si existe para obtener el dominio raíz
+    $appHost      = parse_url(APP_URL, PHP_URL_HOST) ?: '';
     $cookieDomain = preg_replace('/^www\./', '', $appHost);
-    // No usar dominio con punto para localhost o IPs: los navegadores rechazan
-    // cookies con domain=".localhost" o domain=".127.0.0.1", lo que causa que
-    // la sesión creada en /api no llegue al panel_empleado/panel_administrador.
+    // Localhost e IPs no admiten domain con punto — el navegador los rechaza
     if ($cookieDomain && $cookieDomain !== 'localhost'
         && !preg_match('/^\d{1,3}(\.\d{1,3}){3}$/', $cookieDomain)) {
         $cookieDomain = '.' . $cookieDomain;
     } else {
-        $cookieDomain = ''; // Sin atributo domain → el navegador usa el hostname actual
+        $cookieDomain = '';
     }
 
-    // lifetime = 0 → la cookie de sesión expira al cerrar el navegador.
-    // Así cada visita nueva (nueva pestaña o navegador cerrado) arranca sin sesión previa,
-    // lo que evita que datos de otro usuario persistan en computadoras compartidas.
+    // lifetime=0: la cookie muere al cerrar el navegador (protege equipos compartidos)
     session_set_cookie_params([
         'lifetime' => 0,
         'path'     => '/',
-        'domain'   => $cookieDomain,  // .muebleswh.com — funciona en www y sin www
+        'domain'   => $cookieDomain,
         'secure'   => $isHttps,
-        'httponly'  => true,
+        'httponly' => true,
         'samesite' => 'Lax',
     ]);
 
-    // Inactividad máxima permitida: 2 minutos (120 seg) — configurable aquí
-    define('SESSION_IDLE_TIMEOUT', 120);
-
-    // Máximo de vida absoluta del lado servidor: 2 horas
+    define('SESSION_IDLE_TIMEOUT', 900);
     ini_set('session.gc_maxlifetime', 7200);
 
     session_start();
 
-    // Regenerar ID de sesión en la primera visita (evita session fixation)
+    // Regenerar ID en la primera visita — previene session fixation
     if (empty($_SESSION['_initiated'])) {
         session_regenerate_id(true);
         $_SESSION['_initiated']     = true;
@@ -152,7 +134,7 @@ if (session_status() === PHP_SESSION_NONE) {
         $_SESSION['_last_activity'] = time();
     }
 
-    // ── Timeout por inactividad (2 minutos sin peticiones = cierre de sesión) ──
+    // ── Timeout por inactividad ───────────────────────────────────
     if (isset($_SESSION['_last_activity'])
         && (time() - $_SESSION['_last_activity']) > SESSION_IDLE_TIMEOUT) {
         session_unset();
@@ -163,11 +145,10 @@ if (session_status() === PHP_SESSION_NONE) {
         $_SESSION['_created']       = time();
         $_SESSION['_last_activity'] = time();
     } else {
-        // Actualizar marca de última actividad en cada request
         $_SESSION['_last_activity'] = time();
     }
 
-    // ── Timeout absoluto: destruir sesiones de más de 2 horas ────────────────
+    // ── Timeout absoluto (2 horas) ────────────────────────────────
     if (isset($_SESSION['_created']) && (time() - $_SESSION['_created']) > 7200) {
         session_unset();
         session_destroy();

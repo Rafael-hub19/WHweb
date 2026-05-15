@@ -7,14 +7,12 @@ $id     = trim($_GET['id'] ?? '');
 
 switch ($method) {
     case 'GET':
-        // Leer notificaciones de Firestore via REST
         $destinosValidos = ['todos', 'admin', 'empleado'];
         $destino = trim($_GET['destino'] ?? 'todos');
         if (!in_array($destino, $destinosValidos, true)) $destino = 'todos';
         $projectId = FIREBASE_PROJECT_ID;
         $apiKey    = FIREBASE_API_KEY;
 
-        // Consulta Firestore REST
         $url = "https://firestore.googleapis.com/v1/projects/{$projectId}/databases/(default)/documents/notificaciones?key={$apiKey}&pageSize=50&orderBy=fecha+desc";
 
         $ch = curl_init($url);
@@ -69,7 +67,6 @@ switch ($method) {
         break;
 
     case 'PUT':
-        // Marcar como leída
         if (!$id) jsonError('ID requerido', 400);
         if (!preg_match('/^[a-zA-Z0-9_-]{1,128}$/', $id)) jsonError('ID inválido', 422);
         $ok = marcarNotificacionLeida($id);

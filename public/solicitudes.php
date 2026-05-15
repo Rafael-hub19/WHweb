@@ -21,18 +21,15 @@ if (empty($_SESSION['cliente_email_verified'])) {
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Solicitudes - Wooden House</title>
   
-  <!-- Bootstrap 5 CSS - Grid, utilidades responsive. CSS propio de Wooden House carga después y tiene prioridad en colores -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" crossorigin="anonymous">
   <link rel="stylesheet" href="./assets/css/variables.css">
   <link rel="stylesheet" href="./assets/css/solicitudes.css?v=3">
   <link rel="stylesheet" href="./assets/css/modal-auth.css?v=4">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-  <!-- Bootstrap 5 JS - Solo componentes interactivos (modales, dropdowns). CSS propio de Wooden House tiene prioridad -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous" defer></script>
 </head>
 <body>
 
-  <!-- ========== HEADER (UNIFICADO) ========== -->
   <div class="header-nav">
     <div class="logo">
       <a href="/inicio" aria-label="Wooden House – ir al inicio" style="display:block;line-height:0;">
@@ -58,10 +55,8 @@ if (empty($_SESSION['cliente_email_verified'])) {
       Solicita asesoría y cotización personalizada o agenda una visita técnica para medición de tu proyecto
     </p>
 
-    <!-- Alert Messages -->
     <div id="alertMessage" class="alert"></div>
 
-    <!-- Tab Navigation -->
     <div class="tab-navigation">
       <button class="tab-btn active" data-tab="cotizacion">
         <span class="tab-icon"><i class="fa-solid fa-tag"></i></span>
@@ -355,7 +350,6 @@ if (empty($_SESSION['cliente_email_verified'])) {
     <div id="tab-seguimiento" class="tab-content">
       <div class="tracking-section">
 
-        <!-- Encabezado -->
         <div class="tracking-header">
           <div class="tracking-icon-circle">
             <i class="fa-solid fa-magnifying-glass"></i>
@@ -366,7 +360,6 @@ if (empty($_SESSION['cliente_email_verified'])) {
           </p>
         </div>
 
-        <!-- Input de búsqueda -->
         <div class="tracking-search-box">
           <div class="tracking-input-wrap">
             <i class="fa-solid fa-hashtag tracking-search-icon"></i>
@@ -379,7 +372,6 @@ if (empty($_SESSION['cliente_email_verified'])) {
           </button>
         </div>
 
-        <!-- Tipos de número aceptados -->
         <div class="tracking-types-row">
           <div class="tracking-type-chip">
             <i class="fa-solid fa-box" style="color:#8b7355;"></i>
@@ -395,7 +387,6 @@ if (empty($_SESSION['cliente_email_verified'])) {
           </div>
         </div>
 
-        <!-- Info box -->
         <div class="tracking-hint-box">
           <i class="fa-solid fa-envelope-open-text" style="color:#8b7355;font-size:20px;flex-shrink:0;"></i>
           <div>
@@ -416,7 +407,6 @@ if (empty($_SESSION['cliente_email_verified'])) {
     </div>
   </div>
 
-  <!-- Footer -->
   <div class="footer">
     <p>&copy; 2026 Wooden House. Todos los derechos reservados.</p>
     <p style="margin-top: 10px;">Muebles de madera a medida en Guadalajara, Jalisco</p>
@@ -431,7 +421,6 @@ if (empty($_SESSION['cliente_email_verified'])) {
     </p>
   </div>
 
-  <!-- Barra de navegación fija móvil -->
   <nav class="mobile-bottom-nav" aria-label="Navegación rápida">
     <div class="mobile-bottom-nav-inner">
       <a href="/inicio" class="mbn-item"><i class="fa-solid fa-house"></i><span>Inicio</span></a>

@@ -38,7 +38,6 @@ switch ($method) {
         $rolesValidos = ['administrador', 'empleado'];
         if (!in_array($body['rol'], $rolesValidos)) jsonError('rol inválido', 422);
 
-        // Verificar duplicados
         if (dbRow("SELECT id FROM usuarios_personal WHERE correo = ?", [$body['correo']])) {
             jsonError('correo ya registrado', 409);
         }

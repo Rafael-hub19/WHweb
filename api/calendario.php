@@ -10,14 +10,12 @@ $hasta = trim($_GET['hasta'] ?? date('Y-m-t'));
 $colorCita = ['nueva' => '#f59e0b', 'confirmada' => '#3b82f6', 'completada' => '#22c55e', 'cancelada' => '#ef4444'];
 $colorPedido = ['pendiente' => '#a855f7', 'en_produccion' => '#f97316', 'listo' => '#06b6d4', 'entregado' => '#22c55e', 'cancelado' => '#ef4444'];
 
-// Citas
 $citas = dbRows(
     "SELECT id, numero_cita, nombre_cliente, fecha_cita, rango_horario, tipo, estado, direccion
      FROM citas WHERE DATE(fecha_cita) BETWEEN ? AND ?",
     [$desde, $hasta]
 );
 
-// Pedidos con fecha estimada
 $pedidos = dbRows(
     "SELECT id, numero_pedido, nombre_cliente, fecha_estimada, estado
      FROM pedidos WHERE fecha_estimada IS NOT NULL AND DATE(fecha_estimada) BETWEEN ? AND ?",
