@@ -529,7 +529,7 @@
         _loginTimer = null;
         _loginIntentos = 0;
         if (btn) btn.disabled = false;
-        _authShowAlert('Ya puedes intentar de nuevo.', 'error');
+        _authShowAlert('Puedes intentar de nuevo. Si el problema persiste, espera unos minutos.', 'error');
       } else {
         _actualizar();
       }
