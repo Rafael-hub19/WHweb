@@ -703,7 +703,7 @@
         const hay  = [p.id, p.nombre, p.categoria].join(' ').toLowerCase();
         const okQ  = !q   || hay.includes(q);
         const okCat= !cat || p.categoria === cat;
-        const okSt = !st  || p.estado === st;
+        const okSt = st ? p.estado === st : p.estado === 'activo';
         return okQ && okCat && okSt;
       });
 
