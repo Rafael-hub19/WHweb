@@ -24,6 +24,7 @@ if ($area === 'admin') {
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Acceso restringido — Wooden House</title>
+  <meta name="description" content="Acceso restringido a Wooden House. Inicia sesión con tu cuenta para continuar.">
   <link rel="icon" type="image/x-icon" href="/favicon.ico">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <style>
@@ -169,6 +170,7 @@ if ($area === 'admin') {
 </head>
 <body>
 
+  <main id="contenido-principal">
   <div class="ad-card">
     <div class="ad-logo">
       <a href="/inicio">
@@ -201,6 +203,7 @@ if ($area === 'admin') {
       ¿Eres cliente? <a href="/catalogo" style="color:#8a7860; text-decoration:none;">Ver catálogo →</a>
     </p>
   </div>
+  </main>
 
 </body>
 </html>

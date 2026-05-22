@@ -20,6 +20,8 @@ unset($_usuario);
   <link rel="icon" type="image/x-icon" href="/favicon.ico">
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Panel Empleado - Wooden House</title>
+  <meta name="description" content="Panel de empleados de Wooden House. Gestión de pedidos, cotizaciones y citas del personal.">
+  <meta name="robots" content="noindex, nofollow">
 
 
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" crossorigin="anonymous">

@@ -20,6 +20,7 @@ if (empty($_SESSION['cliente_email_verified'])) {
   <link rel="icon" type="image/x-icon" href="/favicon.ico">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Solicitudes - Wooden House</title>
+  <meta name="description" content="Solicita una cotización personalizada o agenda una visita técnica con Wooden House. Asesoría gratuita para tu proyecto de muebles a medida.">
   
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" crossorigin="anonymous">
   <link rel="stylesheet" href="./assets/css/variables.css">
@@ -49,6 +50,7 @@ if (empty($_SESSION['cliente_email_verified'])) {
     </div>
   </div>
 
+  <main id="contenido-principal">
   <div class="container">
     <h1 class="page-title"><i class="fa-solid fa-clipboard-list"></i> Centro de Solicitudes</h1>
     <p class="page-subtitle">
@@ -97,7 +99,7 @@ if (empty($_SESSION['cliente_email_verified'])) {
           <label>No llenar este campo <input type="text" name="website" tabindex="-1" autocomplete="off"></label>
         </div>
         <div class="form-section">
-          <h3 class="section-title"><i class="fa-solid fa-phone"></i> Información de Contacto</h3>
+          <h2 class="section-title"><i class="fa-solid fa-phone"></i> Información de Contacto</h2>
           <div class="row g-3">
             <div class="col-12 form-group">
               <label>Nombre Completo <span class="required">*</span></label>
@@ -143,7 +145,7 @@ if (empty($_SESSION['cliente_email_verified'])) {
         </div>
 
         <div class="form-section">
-          <h3 class="section-title"><i class="fa-solid fa-ruler-combined"></i> Especificaciones del Proyecto</h3>
+          <h2 class="section-title"><i class="fa-solid fa-ruler-combined"></i> Especificaciones del Proyecto</h2>
           <div class="row g-3">
             <div class="col-md-6 form-group">
               <label>Modelo de Mueble <span class="required">*</span>
@@ -260,7 +262,7 @@ if (empty($_SESSION['cliente_email_verified'])) {
           <label>No llenar este campo <input type="text" name="website" tabindex="-1" autocomplete="off"></label>
         </div>
         <div class="form-section">
-          <h3 class="section-title"><i class="fa-solid fa-user"></i> Información de Contacto</h3>
+          <h2 class="section-title"><i class="fa-solid fa-user"></i> Información de Contacto</h2>
           <div class="row g-3">
             <div class="col-md-6 form-group">
               <label>Nombre Completo <span class="required">*</span></label>
@@ -305,7 +307,7 @@ if (empty($_SESSION['cliente_email_verified'])) {
         </div>
 
         <div class="form-section">
-          <h3 class="section-title"><i class="fa-solid fa-calendar-days"></i> Fecha y Hora</h3>
+          <h2 class="section-title"><i class="fa-solid fa-calendar-days"></i> Fecha y Hora</h2>
           <div class="row g-3">
             <div class="col-md-6 form-group">
               <label>Fecha Preferida <span class="required">*</span>
@@ -431,6 +433,7 @@ if (empty($_SESSION['cliente_email_verified'])) {
     </div>
   </nav>
 
+  </main>
   <script src="./assets/js/firebase-config.js"></script>
   <script src="./assets/js/modal-auth.js?v=9"></script>
   <script src="./assets/js/solicitudes.js"></script>

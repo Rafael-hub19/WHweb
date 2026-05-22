@@ -6,6 +6,7 @@
   <link rel="icon" type="image/x-icon" href="/favicon.ico">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Términos y Condiciones – Wooden House</title>
+  <meta name="description" content="Términos y condiciones de Wooden House. Conoce nuestras políticas de compra, envíos, devoluciones, garantías y aviso de privacidad.">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" crossorigin="anonymous">
   <link rel="stylesheet" href="./assets/css/variables.css">
   <link rel="stylesheet" href="./assets/css/styles.css?v=4">
@@ -32,6 +33,7 @@
 </div>
 
 <!-- Contenido -->
+<main id="contenido-principal">
 <div class="page-wrap">
 
   <div class="page-header">
@@ -305,6 +307,6 @@
     <button class="mbn-item" onclick="AuthModal && AuthModal.openMenuMovil(this)"><i class="fa-solid fa-user"></i><span>Mi cuenta</span></button>
   </div>
 </nav>
-
+</main>
 </body>
 </html>

@@ -22,6 +22,7 @@ header('Content-Type: text/html; charset=utf-8');
   <link rel="icon" type="image/x-icon" href="/favicon.ico">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Mi Cuenta – Wooden House</title>
+  <meta name="description" content="Gestiona tu cuenta en Wooden House. Consulta tu historial de pedidos, cotizaciones y actualiza tus datos personales.">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" crossorigin="anonymous">
   <link rel="stylesheet" href="./assets/css/variables.css">
   <link rel="stylesheet" href="./assets/css/styles.css?v=4">
@@ -57,6 +58,7 @@ header('Content-Type: text/html; charset=utf-8');
 <!-- ── Main ────────────────────────────────────────────────────── -->
 <div class="mc-container" id="mcContainer">
 
+  <main id="contenido-principal">
   <div id="mcLoading" class="mc-loading">
     <div class="mc-spinner"></div>
     <p>Verificando sesión…</p>
@@ -64,7 +66,7 @@ header('Content-Type: text/html; charset=utf-8');
 
   <div id="mcNoAuth" style="display:none;" class="mc-noauth">
     <div class="mc-noauth-icon"><i class="fa-solid fa-user-lock"></i></div>
-    <h2>Inicia sesión para ver tu cuenta</h2>
+    <h1>Inicia sesión para ver tu cuenta</h1>
     <p>Accede a tu historial de pedidos, cotizaciones y datos personales.</p>
     <button class="btn-mc-primary" onclick="AuthModal.open(() => location.reload())">
       <i class="fa-solid fa-right-to-bracket"></i> Iniciar sesión
@@ -198,6 +200,7 @@ header('Content-Type: text/html; charset=utf-8');
   </div>
 </nav>
 
+  </main>
 <script src="./assets/js/firebase-config.js"></script>
 <script src="./assets/js/modal-auth.js?v=9"></script>
 <script src="./assets/js/mi-cuenta.js"></script>

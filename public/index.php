@@ -14,6 +14,7 @@ if (!empty($_SESSION['_flash'])) {
   <link rel="icon" type="image/x-icon" href="/favicon.ico">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Wooden House - Muebles de Madera a Medida en Guadalajara</title>
+  <meta name="description" content="Wooden House — muebles de madera a medida en Guadalajara, Jalisco. Cocinas integrales, clósets, muebles de baño y más. Calidad artesanal con entrega en toda la ZMG.">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" crossorigin="anonymous">
   <link rel="stylesheet" href="./assets/css/styles.css?v=4">
@@ -85,6 +86,7 @@ if (!empty($_SESSION['_flash'])) {
     </nav>
   </div>
 
+  <main id="contenido-principal">
   <!-- Hero Section -->
   <div class="hero" id="inicio">
     <h1>WOODEN HOUSE</h1>
@@ -469,7 +471,8 @@ if (!empty($_SESSION['_flash'])) {
 
   </div><!-- /container -->
 
-  <div class="footer">
+  </main>
+  <footer class="footer">
     <p>&copy; 2026 Wooden House. Todos los derechos reservados.</p>
     <p style="margin-top:10px;">Muebles de madera a medida en Guadalajara, Jalisco</p>
     <p style="margin-top:10px; font-size:14px;">
@@ -480,7 +483,7 @@ if (!empty($_SESSION['_flash'])) {
       &nbsp;·&nbsp;
       <a href="/terminos#privacidad" style="color:#8b7355; text-decoration:none;">Aviso de Privacidad</a>
     </p>
-  </div>
+  </footer>
 
   <!-- ── Barra de navegación fija móvil ──────────────────────────── -->
   <nav class="mobile-bottom-nav" aria-label="Navegación rápida">

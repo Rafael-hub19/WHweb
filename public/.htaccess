@@ -51,6 +51,8 @@ Options -Indexes -ExecCGI
     Header always set Referrer-Policy "strict-origin-when-cross-origin"
     Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains"
     Header always set Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=(self), usb=(), interest-cohort=()"
+    Header always set Cross-Origin-Opener-Policy "same-origin-allow-popups"
+    Header always set Cross-Origin-Resource-Policy "same-origin"
 
     # ── Content Security Policy ───────────────────────────────────
     Header always set Content-Security-Policy "default-src 'self'; \

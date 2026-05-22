@@ -28,6 +28,7 @@ if (!$paypalId)  error_log('[pago.php] PAYPAL_CLIENT_ID vacío o no definido');
   <link rel="icon" type="image/x-icon" href="/favicon.ico">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Proceso de Pago - Wooden House</title>
+  <meta name="description" content="Completa tu compra en Wooden House de forma segura. Pago con tarjeta de crédito/débito o PayPal. Transacciones cifradas con SSL.">
 
   <link rel="icon" href="/assets/img/favicon.ico">
 
@@ -79,6 +80,7 @@ if (!$paypalId)  error_log('[pago.php] PAYPAL_CLIENT_ID vacío o no definido');
     </div>
   </div>
 
+  <main id="contenido-principal">
   <div class="container">
     <div class="page-header">
       <h1 class="page-title"><i class="fa-solid fa-credit-card"></i> Proceso de Pago</h1>
@@ -164,6 +166,7 @@ if (!$paypalId)  error_log('[pago.php] PAYPAL_CLIENT_ID vacío o no definido');
     </div>
   </div>
 
+  </main>
   <footer class="footer">
     <p><i class="fa-solid fa-shield-halved" style="color:#4caf50;"></i> Pago 100% seguro &nbsp;|&nbsp; <i class="fa-solid fa-lock" style="color:#8b7355;"></i> SSL 256-bit &nbsp;|&nbsp; Wooden House &copy; 2026</p>
     <p style="margin-top:8px; font-size:12px;">

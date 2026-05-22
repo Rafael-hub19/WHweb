@@ -6,6 +6,7 @@
   <link rel="icon" type="image/x-icon" href="/favicon.ico">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title id="pageTitle">Producto - Wooden House</title>
+  <meta name="description" content="Descubre los detalles de nuestros muebles de madera artesanales en Wooden House. Características, especificaciones y precio. Fabricación a medida en Guadalajara.">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" crossorigin="anonymous">
   <link rel="stylesheet" href="/assets/css/variables.css">
   <link rel="stylesheet" href="/assets/css/styles.css?v=4">
@@ -35,6 +36,7 @@
   </div>
 
 
+  <main id="contenido-principal">
   <div id="loadingState" class="container" style="text-align:center; padding:60px 20px;">
     <div class="spinner-large"></div>
     <p>Cargando producto...</p>
@@ -61,7 +63,7 @@
       <div class="col-md-6 product-info">
         <div class="product-header">
           <span id="pCategoria" class="product-category-badge"></span>
-          <div class="product-title" id="pNombre"></div>
+          <h1 class="product-title" id="pNombre"></h1>
           <span id="pEtiqueta" class="product-etiqueta" style="display:none;"></span>
         </div>
 
@@ -139,6 +141,7 @@
     </div>
   </nav>
 
+  </main>
   <script src="/assets/js/firebase-config.js"></script>
   <script src="/assets/js/modal-auth.js?v=9"></script>
   <script src="/assets/js/detalle_producto.js"></script>

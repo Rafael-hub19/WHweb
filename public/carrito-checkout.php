@@ -22,6 +22,7 @@ header('Content-Type: text/html; charset=utf-8');
     <link rel="icon" type="image/x-icon" href="/favicon.ico">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Carrito – Wooden House</title>
+    <meta name="description" content="Revisa tu carrito de compras en Wooden House. Elige tu método de entrega, fecha y completa tu pedido de muebles a medida.">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" crossorigin="anonymous">
     <link rel="stylesheet" href="./assets/css/variables.css">
     <link rel="stylesheet" href="./assets/css/carrito.css?v=4">
@@ -64,6 +65,7 @@ header('Content-Type: text/html; charset=utf-8');
 </div>
 
 <!-- ── Main ──────────────────────────────────────────────────────── -->
+<main id="contenido-principal">
 <div class="container">
     <div class="page-header">
         <h1 class="page-title"><i class="fa-solid fa-cart-shopping"></i> Tu Carrito de Compras</h1>
@@ -76,17 +78,17 @@ header('Content-Type: text/html; charset=utf-8');
         <div class="col-lg-8 cart-items">
 
             <div class="section-card">
-                <h3 class="section-title"><span class="section-icon"><i class="fa-solid fa-bath"></i></span> Productos en tu carrito</h3>
+                <h2 class="section-title"><span class="section-icon"><i class="fa-solid fa-bath"></i></span> Productos en tu carrito</h2>
                 <div id="carritoItems">
                     <div class="fecha-loading">Cargando carrito</div>
                 </div>
             </div>
 
             <div class="section-card">
-                <h3 class="section-title">
+                <h2 class="section-title">
                   <span class="section-icon"><i class="fa-solid fa-truck"></i></span> Tipo de entrega
                   <span class="wh-help" data-tip="Elige cómo quieres recibir tus muebles. Puedes recogerlos gratis en nuestra sucursal o solicitar envío a domicilio dentro del área metropolitana de Guadalajara.">?</span>
-                </h3>
+                </h2>
                 <div class="delivery-options">
                     <div class="option-card selected" id="optionRecoger" onclick="seleccionarEntrega('recoger')">
                         <input type="radio" name="tipoEntrega" value="recoger" checked>
@@ -117,10 +119,10 @@ header('Content-Type: text/html; charset=utf-8');
             </div>
 
             <div class="section-card">
-                <h3 class="section-title">
+                <h2 class="section-title">
                   <span class="section-icon"><i class="fa-solid fa-wrench"></i></span> Servicios adicionales
                   <span class="wh-help" data-tip="La instalación profesional incluye colocación del mueble, conexión hidráulica del lavabo y ajustes finales. Se aplica un cargo de $<?= number_format(COSTO_INSTALACION, 0) ?> por mueble instalado.">?</span>
-                </h3>
+                </h2>
                 <div class="delivery-options">
 
                     <div class="option-card selected" id="optionSinInstalacion" onclick="seleccionarInstalacion(false)">
@@ -157,10 +159,10 @@ header('Content-Type: text/html; charset=utf-8');
 
             <!-- ── SELECTOR DE FECHA ──────────────────────────── -->
             <div class="section-card">
-                <h3 class="section-title">
+                <h2 class="section-title">
                   <span class="section-icon"><i class="fa-solid fa-calendar-days"></i></span> Fecha de entrega
                   <span class="wh-help" data-tip="Selecciona el día preferido para recibir tu pedido. Solo aparecen los días disponibles según la capacidad del taller. Si la fecha que necesitas no aparece, contáctanos.">?</span>
-                </h3>
+                </h2>
 
                 <div class="date-info">
                     <strong><i class="fa-solid fa-clock"></i> Fabricación bajo pedido — entrega estimada en 2 días hábiles</strong>
@@ -192,10 +194,10 @@ header('Content-Type: text/html; charset=utf-8');
             </div>
 
             <div class="section-card">
-                <h3 class="section-title">
+                <h2 class="section-title">
                   <span class="section-icon"><i class="fa-solid fa-user"></i></span> Datos de contacto
                   <span class="wh-help" data-tip="Usamos estos datos para confirmar tu pedido y coordinar la entrega. Si ya tienes cuenta, tus datos se rellenan automáticamente.">?</span>
-                </h3>
+                </h2>
                 <form id="formularioCliente" novalidate>
                   <!-- Anti-bot honeypot: invisible para humanos, bots lo llenan -->
                   <div style="position:absolute;left:-9999px;top:-9999px;opacity:0;height:0;overflow:hidden;" aria-hidden="true">
@@ -282,7 +284,7 @@ header('Content-Type: text/html; charset=utf-8');
         <!-- ── Columna derecha: resumen ───────────────────────── -->
         <div class="col-lg-4 cart-summary-col">
         <div class="cart-summary">
-            <h3 class="summary-title"><i class="fa-solid fa-clipboard-list"></i> Resumen del pedido</h3>
+            <h3 class="summary-title"><i class="fa-solid fa-clipboard-list"></i> Resumen del pedido</h2>
 
             <div id="resumenItems"></div>
 
@@ -344,6 +346,7 @@ header('Content-Type: text/html; charset=utf-8');
   </div>
 </nav>
 
+</main>
 <script src="./assets/js/utils.js"></script>
 <script src="./assets/js/firebase-config.js"></script>
 <script src="./assets/js/modal-auth.js?v=9"></script>

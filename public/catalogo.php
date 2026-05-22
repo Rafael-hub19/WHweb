@@ -6,6 +6,7 @@
   <link rel="icon" type="image/x-icon" href="/favicon.ico">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Catálogo - Wooden House</title>
+  <meta name="description" content="Explora el catálogo completo de Wooden House. Muebles de madera artesanales: cocinas, clósets, muebles de baño y más. Encuentra el mueble perfecto para tu hogar.">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" crossorigin="anonymous">
   <link rel="stylesheet" href="./assets/css/variables.css">
   <link rel="stylesheet" href="./assets/css/styles.css?v=4">
@@ -36,8 +37,9 @@
     </div>
   </div>
 
+  <main id="contenido-principal">
   <div class="container">
-    <h1 class="page-title">Catálogo de Muebles de Baño</h1>
+    <h1 class="page-title">Catálogo de Muebles de Madera</h1>
 
     <div class="d-flex flex-wrap gap-4 align-items-center justify-content-between catalog-header">
       <div class="search-bar">
@@ -154,6 +156,7 @@
     </div>
   </div>
 
+  </main>
   <script>
     document.addEventListener('keydown', function(e){
       if(e.key === 'Escape') document.getElementById('whGuideCatModal').classList.remove('open');
