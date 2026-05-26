@@ -164,54 +164,11 @@ if (session_status() === PHP_SESSION_NONE) {
     }
 }
 
-// ── CSP con nonce por petición (solo páginas web, no API) ────────
+// ── CSP nonce (infraestructura lista para migración futura) ───────
+// El CSP activo vive en .htaccess. El nonce se genera aquí para
+// que los <script nonce="<?= CSP_NONCE ?>"> ya estén preparados.
 if (!defined('WH_API_REQUEST') && !defined('CSP_NONCE')) {
-    $cspNonce = base64_encode(random_bytes(16));
-    define('CSP_NONCE', $cspNonce);
-    header('Content-Security-Policy: ' .
-        "default-src 'self'; " .
-        "script-src 'self' 'nonce-{$cspNonce}' " .
-            "https://cdn.sheetjs.com https://js.stripe.com " .
-            "https://www.paypal.com https://www.sandbox.paypal.com https://www.paypalobjects.com " .
-            "https://www.gstatic.com https://apis.google.com https://maps.googleapis.com " .
-            "https://cdnjs.cloudflare.com https://cdn.jsdelivr.net " .
-            "https://woodenhouse-898de.firebaseapp.com " .
-            "https://static.cloudflareinsights.com " .
-            "https://www.googletagmanager.com https://www.google-analytics.com; " .
-        "style-src 'self' 'unsafe-inline' " .
-            "https://fonts.googleapis.com https://cdnjs.cloudflare.com " .
-            "https://cdn.jsdelivr.net https://maps.googleapis.com; " .
-        "font-src 'self' data: https://fonts.gstatic.com https://cdnjs.cloudflare.com; " .
-        "img-src 'self' data: blob: https:; " .
-        "media-src 'self' blob: https: " .
-            "https://firebasestorage.googleapis.com https://*.firebasestorage.app " .
-            "https://storage.googleapis.com; " .
-        "connect-src 'self' " .
-            "https://www.gstatic.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com " .
-            "https://*.firebaseio.com wss://*.firebaseio.com " .
-            "https://firestore.googleapis.com https://firebase.googleapis.com " .
-            "https://www.googleapis.com https://identitytoolkit.googleapis.com " .
-            "https://securetoken.googleapis.com https://oauth2.googleapis.com " .
-            "https://accounts.google.com https://firebasestorage.googleapis.com " .
-            "https://*.firebasestorage.app https://*.firebaseapp.com " .
-            "https://woodenhouse-898de.firebaseapp.com " .
-            "https://js.stripe.com https://api.stripe.com https://m.stripe.com " .
-            "https://m.stripe.network https://merchant-ui-api.stripe.com " .
-            "https://api-m.sandbox.paypal.com https://api-m.paypal.com " .
-            "https://www.paypal.com https://www.sandbox.paypal.com " .
-            "https://maps.googleapis.com " .
-            "https://cloudflareinsights.com https://static.cloudflareinsights.com; " .
-        "frame-src " .
-            "https://js.stripe.com https://hooks.stripe.com " .
-            "https://m.stripe.com https://m.stripe.network " .
-            "https://www.paypal.com https://www.sandbox.paypal.com " .
-            "https://woodenhouse-898de.firebaseapp.com " .
-            "https://accounts.google.com https://www.google.com " .
-            "https://maps.google.com https://www.google.com/maps; " .
-        "worker-src 'self' blob:; " .
-        "object-src 'none'; " .
-        "base-uri 'self';"
-    );
+    define('CSP_NONCE', base64_encode(random_bytes(16)));
 }
 
 // ── Logs ───────────────────────────────────────────────────────────
