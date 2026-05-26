@@ -31,7 +31,7 @@ if (!empty($_SESSION['_flash'])) {
     <span><?= htmlspecialchars($_flash['msg'], ENT_QUOTES, 'UTF-8') ?></span>
     <button class="wh-alerta-cerrar" onclick="this.parentElement.remove()" aria-label="Cerrar">×</button>
   </div>
-  <script nonce="<?= CSP_NONCE ?>">
+  <script>
     setTimeout(function() {
       var a = document.getElementById('whAlerta');
       if (a) { a.style.transition = 'opacity .4s'; a.style.opacity = '0'; setTimeout(function(){ a.remove(); }, 400); }
@@ -571,7 +571,7 @@ if (!empty($_SESSION['_flash'])) {
     </div>
   </div>
 
-  <script nonce="<?= CSP_NONCE ?>">
+  <script>
     document.addEventListener('keydown', function(e){
       if(e.key === 'Escape') document.getElementById('whGuideModal').classList.remove('open');
     });
@@ -581,7 +581,7 @@ if (!empty($_SESSION['_flash'])) {
   <script src="./assets/js/modal-auth.js?v=9"></script>
   <script src="./assets/js/index.js?v=2"></script>
 
-  <script nonce="<?= CSP_NONCE ?>">
+  <script>
     if (new URLSearchParams(location.search).get('registro') === '1') {
       window.addEventListener('load', function () {
         setTimeout(function () {

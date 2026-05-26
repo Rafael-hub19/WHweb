@@ -164,13 +164,6 @@ if (session_status() === PHP_SESSION_NONE) {
     }
 }
 
-// ── CSP nonce (infraestructura lista para migración futura) ───────
-// El CSP activo vive en .htaccess. Las vistas usan CSP_NONCE
-// en sus script tags inline como atributo nonce.
-if (!defined('WH_API_REQUEST') && !defined('CSP_NONCE')) {
-    define('CSP_NONCE', base64_encode(random_bytes(16)));
-}
-
 // ── Logs ───────────────────────────────────────────────────────────
 $logDir = dirname(__DIR__) . '/logs';
 if (!is_dir($logDir)) @mkdir($logDir, 0750, true);
