@@ -111,7 +111,7 @@ header('Content-Type: text/html; charset=utf-8');
       </div>
       <div id="mcPerfilAlert" class="mc-alert"></div>
       <p class="mc-form-hint"><i class="fa-solid fa-circle-info"></i> Completa tu dirección para agilizar cotizaciones y pedidos — no tendrás que escribirla de nuevo.</p>
-      <form id="mcPerfilForm" class="mc-form" onsubmit="mcGuardarPerfil(event)">
+      <form id="mcPerfilForm" class="mc-form">
         <div class="row g-3">
           <div class="col-md-6 mc-form-group">
             <label>Nombre completo <span class="mc-req">*</span>

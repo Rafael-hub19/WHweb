@@ -211,8 +211,14 @@ function pushNotif(title, meta, tipo=''){
 }
 
 function markAllNotifRead(){
+  const ids = getNotifs().map(n => n.id).filter(Boolean);
+  if (ids.length) _addSeenIds(ids);
+  saveNotifs([]);
   setUnreadCount(0);
   renderNotifPanel();
+  ids.forEach(id => {
+    fetch('/api/notificaciones.php?id=' + encodeURIComponent(id), { method: 'PUT', credentials: 'same-origin' }).catch(() => {});
+  });
 }
 
 function _getSeenIds(){ return new Set(JSON.parse(localStorage.getItem(NOTIF_SEEN_KEY) || '[]')); }
@@ -228,6 +234,9 @@ function clearAllNotifs(){
   saveNotifs([]);
   setUnreadCount(0);
   renderNotifPanel();
+  ids.forEach(id => {
+    fetch('/api/notificaciones.php?id=' + encodeURIComponent(id), { method: 'PUT', credentials: 'same-origin' }).catch(() => {});
+  });
 }
 
 // ── Cargar notificaciones desde la API (Firestore) ─────────────
@@ -534,7 +543,7 @@ function renderInventory(){
       <td class="sup-cell">${escapeHtml(item.supplier)}</td>
       <td class="cost-cell">$${Number(item.cost).toLocaleString('es-MX')}</td>
       <td><span class="status-badge ${statusClass}">${statusText}</span></td>
-      <td><button class="btn btn-secondary btn-small" onclick="openStockModal('${item.id}')">Actualizar</button></td>
+      <td><button class="btn btn-secondary btn-small" data-call="openStockModal" data-args='["${item.id}"]'>Actualizar</button></td>
     `;
     tbody.appendChild(tr);
   });
@@ -804,7 +813,7 @@ function renderDayEvents(dayISO){
       <div class="t">${escapeHtml((e.time ? e.time + ' — ' : '') + e.title)}${e.cliente_id ? ` <span style="background:#e8f5e9;color:#2E7D32;border-radius:8px;padding:1px 7px;font-size:10px;font-weight:700;"><i class="fa-solid fa-user-check"></i> #${e.cliente_id}</span>` : ''}</div>
       <div class="m">${escapeHtml(e.notes || '')}</div>
       <div style="display:flex; gap:8px; margin-top:6px;">
-        <button class="btn btn-secondary btn-small" onclick="deleteEvent('${e.id}')">Eliminar</button>
+        <button class="btn btn-secondary btn-small" data-call="deleteEvent" data-args='["${e.id}"]'>Eliminar</button>
       </div>
     </div>
   `).join('');
@@ -1065,10 +1074,10 @@ async function cargarPedidosEmpleadoAPI() {
         <td><span class="status-badge ${clsMap[p.estado] || ''}">${labMap[p.estado] || p.estado}</span></td>
         <td style="color:var(--accent);font-weight:800;">$${parseFloat(p.total||0).toLocaleString('es-MX')}</td>
         <td style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
-          <button onclick="verDetallePedidoEmp(${p.id})" style="background:var(--accent);color:#fff;border:none;padding:5px 12px;border-radius:4px;cursor:pointer;font-size:12px;white-space:nowrap;flex-shrink:0;">
+          <button data-call="verDetallePedidoEmp" data-args="[${p.id}]" style="background:var(--accent);color:#fff;border:none;padding:5px 12px;border-radius:4px;cursor:pointer;font-size:12px;white-space:nowrap;flex-shrink:0;">
             <i class="fa-solid fa-eye"></i> Ver
           </button>
-          <select class="form-select" style="width:120px;font-size:12px;" onchange="actualizarEstadoPedidoEmp(${p.id}, this.value)">
+          <select class="form-select" style="width:120px;font-size:12px;" data-onchange="actualizarEstadoPedidoEmp" data-id="${p.id}">
             ${['pendiente','pagado','en_produccion','listo','entregado'].map(s =>
               `<option value="${s}" ${s===p.estado?'selected':''}>${labMap[s]}</option>`
             ).join('')}
@@ -1113,9 +1122,9 @@ async function cargarCitasAPI() {
         <td>${c.tipo}</td>
         <td><span class="status-badge ${clsMap[c.estado]||''}">${c.estado}</span></td>
         <td style="display:flex;gap:4px;flex-wrap:wrap;align-items:center;">
-          <button onclick="verDetalleCitaEmp(${c.id})" class="btn btn-primary btn-small" title="Ver detalle"><i class='fa-solid fa-eye'></i> Ver</button>
-          <button class="btn btn-secondary btn-small" onclick="confirmarCita(${c.id})" title="Confirmar cita"><i class="fa-solid fa-check"></i></button>
-          <button class="btn btn-secondary btn-small" onclick="completarCita(${c.id})" title="Marcar como completada"><i class="fa-solid fa-flag-checkered"></i></button>
+          <button data-call="verDetalleCitaEmp" data-args="[${c.id}]" class="btn btn-primary btn-small" title="Ver detalle"><i class='fa-solid fa-eye'></i> Ver</button>
+          <button class="btn btn-secondary btn-small" data-call="confirmarCita" data-args="[${c.id}]" title="Confirmar cita"><i class="fa-solid fa-check"></i></button>
+          <button class="btn btn-secondary btn-small" data-call="completarCita" data-args="[${c.id}]" title="Marcar como completada"><i class="fa-solid fa-flag-checkered"></i></button>
         </td>
       </tr>
     `).join('');
@@ -1161,8 +1170,8 @@ async function cargarCotizacionesAPI() {
         <td><span class="status-badge ${clsMap[c.estado]||''}">${estadoLabels[c.estado]||c.estado}</span></td>
         <td>
           <div style="display:flex;gap:4px;flex-wrap:wrap;align-items:center;">
-            <button onclick="verDetalleCotEmp(${c.id})" class="btn btn-primary btn-small" title="Ver detalle"><i class='fa-solid fa-eye'></i> Ver</button>
-            <select class="form-select" style="width:115px;font-size:11px;" onchange="actualizarCotizacion(${c.id}, this.value)">
+            <button data-call="verDetalleCotEmp" data-args="[${c.id}]" class="btn btn-primary btn-small" title="Ver detalle"><i class='fa-solid fa-eye'></i> Ver</button>
+            <select class="form-select" style="width:115px;font-size:11px;" data-onchange="actualizarCotizacion" data-id="${c.id}">
               ${['nueva','en_revision','respondida','cerrada'].map(s =>
                 `<option value="${s}" ${s===c.estado?'selected':''}>${estadoLabels[s]||s}</option>`
               ).join('')}
@@ -1475,6 +1484,11 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 window.actualizarEstadoPedidoEmp = actualizarEstadoPedidoEmp;
-window.confirmarCita  = confirmarCita;
-window.completarCita  = completarCita;
+window.confirmarCita      = confirmarCita;
+window.completarCita      = completarCita;
 window.actualizarCotizacion = actualizarCotizacion;
+window.openStockModal     = openStockModal;
+window.deleteEvent        = deleteEvent;
+window.verDetallePedidoEmp = verDetallePedidoEmp;
+window.verDetalleCitaEmp  = verDetalleCitaEmp;
+window.verDetalleCotEmp   = verDetalleCotEmp;

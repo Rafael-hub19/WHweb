@@ -13,7 +13,7 @@ Incluye catálogo, carrito, cuentas de cliente, proceso de pago, cotizaciones, s
 | Utilidades JS | Bootstrap 5.3.3 bundle (solo para compatibilidad; dropdowns y nav son custom CSS/JS) |
 | Backend | PHP 8+ |
 | Base de datos | MySQL 8 / MariaDB 10.4+ |
-| Autenticación | Firebase Auth SDK v10 compat |
+| Autenticación | Firebase Auth SDK v10 modular (dynamic import) |
 | Base de datos RT | Firebase Firestore SDK v10 compat |
 | Almacenamiento | Firebase Storage SDK v10 compat |
 | Cloud Functions | Firebase Functions v2 (Node.js 22) |
@@ -39,10 +39,10 @@ Wooden House/
 │   ├── pago.php                     # Proceso de pago (Stripe + PayPal)
 │   ├── solicitudes.php              # Cotizaciones, citas y seguimiento
 │   ├── mi-cuenta.php                # Portal del cliente registrado (pedidos, perfil)
-│   ├── login.php                    # Autenticación de personal (Firebase)
+│   ├── login.php                    # Redirige a /inicio; AuthModal maneja el login
 │   ├── robots.txt
 │   ├── sitemap.xml
-│   ├── .htaccess                    # URLs limpias + CSP + caché + compresión
+│   ├── .htaccess                    # URLs limpias + CSP estricta + HTTPS + caché + compresión
 │   ├── admin/
 │   │   └── panel_administrador.php  # Panel completo del administrador
 │   ├── empleado/
@@ -51,30 +51,32 @@ Wooden House/
 │       ├── css/
 │       │   ├── variables.css        # Variables globales — paleta ámbar premium
 │       │   ├── styles.css           # Estilos compartidos (header, footer, nav)
+│       │   ├── animations.css       # Animaciones, reveal, skeleton, lightbox
 │       │   ├── index.css
 │       │   ├── catalogo.css
 │       │   ├── carrito.css          # Incluye estilos del selector de fechas
 │       │   ├── pago.css
-│       │   ├── solicitudes.css
+│       │   ├── solicitudes.css      # Incluye decision cards y status badges
 │       │   ├── login.css
 │       │   ├── detalle_producto.css
 │       │   ├── panel_administrador.css
 │       │   ├── panel_empleado.css
-│       │   ├── modal-auth.css       # Modal de login/registro de clientes
+│       │   ├── modal-auth.css       # Modal de login/registro + barra móvil inferior
 │       │   ├── mi-cuenta.css        # Estilos del portal del cliente
-│       │   └── terminos.css         # Estilos de la página de términos y condiciones
+│       │   └── terminos.css
 │       ├── js/
-│       │   ├── app.js               # Utilidades globales y carrito
 │       │   ├── utils.js             # Funciones compartidas
 │       │   ├── firebase-config.js   # Inicialización Firebase (Auth+Firestore+Storage)
+│       │   ├── event-delegation.js  # Delegación central de eventos + lightbox de imágenes
+│       │   ├── page-init.js         # Inicialización (alertas, Escape modal, URL params)
+│       │   ├── animations.js        # IntersectionObserver scroll-reveal + ripple
 │       │   ├── index.js             # Inicio (FAQ, animaciones)
-│       │   ├── catalogo.js          # Carga de productos y filtros
+│       │   ├── catalogo.js          # Carga de productos, filtros y carrito
 │       │   ├── detalle_producto.js  # Galería, tabs, agregar al carrito
-│       │   ├── carrito.js           # Gestión del carrito (localStorage)
+│       │   ├── carrito.js           # Gestión del carrito (sessionStorage)
 │       │   ├── checkout.js          # Selector de fechas y validación
 │       │   ├── pago.js              # Stripe Elements + PayPal Buttons
 │       │   ├── solicitudes.js       # Cotizaciones, citas y seguimiento (tabs)
-│       │   ├── login.js             # Autenticación Firebase
 │       │   ├── panel_administrador.js  # Panel admin con auto-polling 30s
 │       │   ├── panel_empleado.js    # Panel empleado con auto-polling 30s
 │       │   ├── modal-auth.js        # Modal de autenticación de clientes (Firebase)
@@ -130,7 +132,7 @@ Wooden House/
 │                                    #   · limpiarNotificacionesAntiguas — scheduled (cada 24h)
 │
 ├── logs/                            # Logs del servidor (excluidos de Git)
-├── .htaccess                        # Bloqueo de carpetas internas sensibles
+├── .htaccess                        # Redirige a HTTPS + bloquea carpetas internas
 ├── .env                             # Variables de entorno (excluido de Git)
 ├── .env.example                     # Plantilla de variables de entorno
 ├── .gitignore
@@ -149,6 +151,7 @@ Wooden House/
 | `/carrito` | `public/carrito-checkout.php` |
 | `/pago` | `public/pago.php` |
 | `/solicitudes` | `public/solicitudes.php` |
+| `/seguimiento` | `public/solicitudes.php` |
 | `/login` | `public/login.php` |
 | `/mi-cuenta` | `public/mi-cuenta.php` |
 | `/terminos` | `public/terminos.php` |
@@ -275,6 +278,12 @@ ADMIN_EMAIL=contacto@woodenhouse.com.mx
 4. Habilitar **Storage** → desplegar `firebase/storage.rules`
 5. Actualizar `public/assets/js/firebase-config.js` con las credenciales del proyecto
 
+```bash
+# Desplegar solo las reglas de seguridad (sin funciones ni hosting)
+cd firebase
+firebase deploy --only firestore:rules,storage
+```
+
 ### 3. Firebase Cloud Functions (opcional, mejora correos)
 
 ```bash
@@ -336,6 +345,124 @@ service apache2 restart
 
 ---
 
+## Seguridad y mejoras de producción (2026-06-07)
+
+### CSP sin `unsafe-inline` en `script-src`
+
+El CSP en `public/.htaccess` ya **no tiene `'unsafe-inline'` en `script-src`**. Toda ejecución de scripts inline está bloqueada por política. Las consecuencias que se resolvieron:
+
+- **`modal-auth.js`:** todos los `onclick`/`onsubmit` del HTML del modal reemplazados con `addEventListener` en `_initCamposModal()`. Afectados: botón ×, form login, form registro, links de tab, botón continuar, reenviar verificación, mi cuenta, cerrar sesión, mini menú y banner de verificación.
+- **`catalogo.js`:** filtros de categoría usan `data-cat-filter`, paginación usa `data-call + data-args`, botones de carrito se enlazan con `addEventListener` post-render; `onerror` en imágenes reemplazado por `data-img-fallback`.
+- **`detalle_producto.js`:** thumbnails sin `onclick` — manejados por `event-delegation.js` via `.thumb[data-idx]`.
+
+> **Regla para código nuevo:** No usar `onclick=`, `onsubmit=`, `onerror=` ni ningún handler inline. Usar `data-call`, `data-cat-filter`, `data-dismiss`, `data-auth-action`, o `addEventListener` desde JS externo.
+
+### HTTPS redirect — corrección de ERR_TOO_MANY_REDIRECTS
+
+El servidor usa un proxy/CDN (Cloudflare/Nginx) que termina SSL antes de Apache. La redirección HTTPS anterior causaba un loop infinito porque Apache siempre veía `HTTPS=off`.
+
+**Corrección (`.htaccess` raíz y `public/.htaccess`):**
+```apache
+RewriteCond %{HTTPS} off
+RewriteCond %{HTTP:X-Forwarded-Proto} !=https
+RewriteCond %{HTTP_HOST} !^localhost$ [NC]
+RewriteCond %{HTTP_HOST} !^127\.0\.0\.1$
+RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+```
+La segunda condición verifica el header `X-Forwarded-Proto` del proxy; si el proxy ya indica HTTPS, no redirige.
+
+### Rate limits más estrictos
+
+`api/auth.php`:
+- Login de personal: 5 intentos / 15 min
+- Login de clientes: 5 intentos / 15 min
+- Registro de clientes: 3 intentos / 15 min
+
+### Validación de URLs de imágenes (productos)
+
+`api/productos.php` — función `validarUrlImagen()` que verifica:
+- Esquema `https` obligatorio
+- Host en lista blanca: `firebasestorage.googleapis.com`, `storage.googleapis.com`, `*.firebasestorage.app`
+- Máximo 2 048 caracteres
+
+### Firebase Storage rules — lista explícita de MIME
+
+`firebase/storage.rules` — en lugar de `image/.*` (que permitía SVG como vector XSS), ahora lista explícita:
+```
+['image/jpeg', 'image/png', 'image/webp', 'image/gif']
+```
+
+### Firebase Firestore rules — validación de campos
+
+`firebase/firestore.rules` — el `allow create` valida estructura, tipos y longitudes:
+- `titulo`: string, máximo 200 caracteres
+- `mensaje`: string, máximo 1 000 caracteres
+
+> **Nota arquitectónica:** el backend PHP usa la REST API de Firestore con API key (no Admin SDK), por lo que `read` y `create` no pueden requerir `request.auth != null` sin romper las notificaciones.
+
+---
+
+## Mejoras visuales y UX (2026-06-07)
+
+### Sistema de animaciones global (`animations.css` + `animations.js`)
+
+- **Scroll-reveal:** clases `.wh-reveal`, `.wh-reveal-left`, `.wh-reveal-right`, `.wh-reveal-zoom` activadas por `IntersectionObserver` con umbral 0.12.
+- **Hover lift:** `.wh-lift` (8 px) y `.wh-lift-sm` (4 px) aplicados automáticamente a tarjetas y botones.
+- **Ripple:** `.wh-btn-ripple` en botones de acción.
+- **Skeleton loading:** `.wh-skeleton` para estados de carga.
+- **Keyframes:** `wh-fade-up`, `wh-fade-in`, `wh-slide-left`, `wh-slide-right`, `wh-zoom-in`, `wh-pulse-border`, `wh-shimmer`, `wh-bounce-in`, `wh-float`.
+- Respeta `prefers-reduced-motion`.
+
+### Lightbox de imágenes
+
+Al hacer clic en cualquier imagen con `data-lightbox`:
+- Se abre un overlay oscuro con la imagen en tamaño completo.
+- **Scroll para zoom** (0.5× a 4×) sobre la imagen.
+- Cierre con clic fuera, botón × o tecla Escape.
+- Activado en: imágenes del catálogo (`data-lightbox` generado en `catalogo.js`) e imagen principal del detalle de producto (asignado en `mostrarProducto()`).
+- Lógica en `event-delegation.js`, CSS en `animations.css`.
+
+### Pago — pasarelas directas
+
+`public/pago.php`: eliminados los cards de selección de método de pago. Las pasarelas de Stripe y PayPal aparecen directamente con cabeceras visuales y logos de tarjetas. Credenciales inyectadas via `<div data-*>` (CSP-safe).
+
+### Solicitudes — diferenciación cotización vs cita
+
+`public/solicitudes.php`: tres tarjetas de decisión al inicio:
+- Dorada: "Ya sé lo que quiero → Cotización" (precio sin visita, respuesta en 24 h)
+- Azul: "Necesito asesoría presencial → Visita a domicilio" (medición y consejo)
+- Verde: "Ya envié una solicitud → Seguimiento"
+
+### Status badges de alta visibilidad
+
+Reemplazado el patrón `background: ${color}30` (19% de opacidad, invisible sobre fondos oscuros) por clases CSS con fondos sólidos y texto claro:
+
+| Clase | Uso |
+|-------|-----|
+| `.status-pending` / `.st-pendiente` | Pendiente |
+| `.status-progress` / `.st-pagado` | Pagado / En proceso |
+| `.status-producing` / `.st-en_produccion` | En producción |
+| `.status-ready` / `.st-listo` | Listo |
+| `.status-completed` / `.st-completada` | Completado / Entregado |
+| `.status-cancelled` / `.st-cancelado` | Cancelado |
+| `.status-new` / `.st-nueva` | Nueva |
+| `.status-replied` / `.st-respondida` | Respondida |
+| `.status-active` | Activo (clientes registrados) |
+
+### Menú móvil — items sin recorte
+
+`modal-auth.css`: `.mobile-bottom-nav-inner` con `overflow: hidden`, `.mbn-item` con `max-width: 20%` y text ellipsis. Por debajo de 360 px se ocultan las etiquetas de texto y solo se muestran los íconos.
+
+### Tooltips de ayuda (`.wh-help`)
+
+Agregados en `panel_administrador.php` y `panel_empleado.php` para las KPI cards de "Ventas del Mes", "Pedidos Totales", "Citas Hoy" y "Pedidos Pendientes". CSS de tooltips incluido directamente en los CSS de paneles (no dependen de `styles.css`).
+
+### Inicio simplificado
+
+`public/index.php`: "¿Por qué elegirnos?" reducida de 6 a 3 tarjetas; "Proceso de trabajo" simplificado de 5 a 4 pasos.
+
+---
+
 ## Limpieza de código (2026-05-15)
 
 Eliminados comentarios redundantes (WHAT) de todos los archivos del proyecto — JS, PHP, API y plantillas HTML. Se conservaron únicamente: separadores de sección, restricciones de seguridad no obvias, invariantes de concurrencia y comportamientos contraintuitivos de Firebase/navegador.
@@ -346,37 +473,33 @@ Eliminados comentarios redundantes (WHAT) de todos los archivos del proyecto —
 
 ### Bug 1 — Sesión del cliente se cerraba al navegar
 
-**Causa:** `SESSION_IDLE_TIMEOUT` estaba en 120 segundos. Clientes que tardaban más de 2 minutos en navegar entre páginas perdían su sesión y veían el modal de login.
+**Causa:** `SESSION_IDLE_TIMEOUT` estaba en 120 segundos.
 
 **Corrección (`includes/config.php`):** Cambiado a 900 segundos (15 minutos).
 
 ### Bug 2 — Correo de confirmación de pedido se enviaba dos veces
 
-**Causa:** `stripe_confirm` (cliente) y `stripe_webhook` (Stripe) llegaban casi simultáneamente. Ambos leían `notificacion_enviada = 0` antes de que el otro escribiera, y ambos enviaban el correo.
+**Causa:** `stripe_confirm` y `stripe_webhook` llegaban casi simultáneamente y ambos enviaban el correo.
 
-**Corrección (`api/pagos.php`):** Reemplazado el patrón lectura-verificación-escritura por un `UPDATE ... WHERE notificacion_enviada = 0` atómico. Solo el proceso que modifica 1 fila envía el correo. Mismo patrón aplicado a los 4 puntos de notificación (stripe_confirm, stripe_webhook, paypal_webhook, paypal_capturar).
+**Corrección (`api/pagos.php`):** `UPDATE ... WHERE notificacion_enviada = 0` atómico. Solo el proceso que modifica 1 fila envía el correo. Mismo patrón aplicado a los 4 puntos de notificación.
 
 ### Bug 3 — Datos del checkout correspondían a un cliente anterior
 
-**Causa:** `localStorage` guarda el formulario de checkout indefinidamente. `prefillSiLogueado()` usaba `if (!el.value)` para rellenar campos, por lo que nunca sobrescribía los valores del cliente anterior ya almacenados.
+**Causa:** `prefillSiLogueado()` no sobreescribía los valores de `localStorage` del cliente anterior.
 
-**Corrección (`public/assets/js/checkout.js`):** Los campos de identidad (nombre, correo, teléfono) siempre se sobreescriben con los datos del cliente autenticado. Los campos de dirección conservan el comportamiento `!el.value` (sin deshacer lo que el usuario ya escribió).
+**Corrección (`public/assets/js/checkout.js`):** Los campos de identidad (nombre, correo, teléfono) siempre se sobreescriben con los datos del cliente autenticado.
 
-### Bugs 4–6 — Contaminación de sesiones entre cliente y empleado en mismo navegador
+### Bugs 4–6 — Contaminación de sesiones entre cliente y empleado
 
-**Causa:** `_destruirSesion()` llamaba `session_destroy()` destruyendo ambas sesiones simultáneamente. La clave `_login_time` era compartida entre sesiones de personal y de cliente, así que cada login sobreescribía el tiempo del otro.
+**Causa:** `session_destroy()` destruía ambas sesiones; clave `_login_time` compartida.
 
 **Corrección (`includes/auth.php`):**
-- Claves de sesión separadas: `_usuario_login_time` para personal, `_cliente_login_time` para clientes.
-- Dos funciones nuevas: `_destruirSesionCliente()` y `_destruirSesionPersonal()` que eliminan solo sus propias claves sin afectar la otra sesión.
-- El token CSRF solo se regenera cuando no hay sesión paralela activa.
-- `api/auth.php`: los `case 'logout'` y `case 'cliente-logout'` usan las nuevas funciones selectivas.
+- Claves de sesión separadas: `_usuario_login_time` y `_cliente_login_time`.
+- Funciones `_destruirSesionCliente()` y `_destruirSesionPersonal()` que eliminan solo sus propias claves.
 
 ### Bug 7 — Validación de teléfono en "Mi cuenta" bloqueaba guardado
 
-**Causa:** Condición con precedencia incorrecta de operadores `&&` y `||` en `mi-cuenta.js`. El resultado era un booleano siempre `true`, bloqueando el guardado aunque el teléfono fuera válido.
-
-**Corrección (`public/assets/js/mi-cuenta.js`):** Reescrita como expresión única y clara: `telefono && telefono.replace(/\D/g, '').length > 0 && telefono.replace(/\D/g, '').length < 10`.
+**Corrección (`public/assets/js/mi-cuenta.js`):** Condición reescrita con precedencia correcta de operadores.
 
 ---
 
@@ -384,51 +507,23 @@ Eliminados comentarios redundantes (WHAT) de todos los archivos del proyecto —
 
 ### Exportación real .xlsx en reportes del admin
 
-**Problema:** El botón "Exportar Excel" generaba un archivo `.csv` que Excel abría, pero no era formato nativo `.xlsx`.
+`exportReportXLSX()` genera un archivo `.xlsx` real con 4 hojas (Resumen, Productos, Cotizaciones, Citas) vía SheetJS 0.20.3.
 
-**Corrección (`panel_administrador.php`, `panel_administrador.js`):**
-- Agregada librería **SheetJS 0.20.3** vía CDN.
-- La función `exportReportXLSX()` genera un archivo `.xlsx` real con **4 hojas separadas**: Resumen general, Productos más vendidos, Cotizaciones y Citas.
-- Cada hoja tiene anchos de columna configurados (`!cols`) para legibilidad.
-- El botón ahora muestra ícono de Excel y descarga `reporte_wooden_house_YYYY-MM-DD.xlsx`.
-- La función original `exportReportCSV()` se conserva internamente como respaldo.
+### Logo clickeable + widget guía flotante "¿Cómo comprar?"
 
-### Logo clickeable como regreso al inicio
-
-**Problema:** El logo en catálogo, solicitudes, carrito, mi-cuenta y detalle\_producto no era clickeable y los usuarios no sabían cómo regresar al inicio.
-
-**Corrección (5 archivos PHP):**
-- Envuelto el `<img>` del logo en `<a href="/inicio" aria-label="...">` en: `catalogo.php`, `solicitudes.php`, `carrito-checkout.php`, `mi-cuenta.php`, `detalle_producto.php`.
-- `pago.php` ya tenía esta implementación.
-
-### Widget guía flotante "¿Cómo comprar?"
-
-**Problema:** Usuarios nuevos no entendían el flujo de compra (explorar → crear cuenta → carrito → pagar).
-
-**Corrección (`styles.css`, `index.php`, `catalogo.php`):**
-- Botón flotante fijo en esquina inferior derecha visible en inicio y catálogo.
-- Al hacer clic, abre un modal animado con 4 pasos ilustrados con íconos.
-- El modal del inicio explica el proceso general; el del catálogo explica los pasos específicos desde el catálogo.
-- Cierra con clic en el fondo, con botón `×` o con tecla `Escape`.
+- Logo envuelto en `<a href="/inicio">` en todas las páginas.
+- Botón flotante fijo que abre un modal con 4 pasos del proceso de compra (inicio y catálogo).
 
 ### Navegación más descriptiva
 
-**Corrección (múltiples páginas):**
-- En catálogo: "Solicitudes" → **"Cotización y Citas"** con subtítulo "Pide precio o agenda visita".
-- En carrito: link de regreso cambiado a **"← Seguir comprando"**.
-- En detalle de producto: nav muestra **"← Catálogo"** como regreso claro.
-- Atributos `title` agregados a todos los enlaces de navegación.
+- "Solicitudes" → **"Cotización y Citas"** con subtítulo.
+- Links con atributos `title` en toda la navegación.
 
 ### Login simplificado con acceso a registro de clientes
 
-**Problema:** El formulario de login de personal tenía el checkbox "Recordarme" innecesario, y clientes que llegaban a `/login` no tenían forma de crear su cuenta.
-
-**Corrección (`login.php`, `login.css`, `modal-auth.js`, `index.php`):**
-- Removido el checkbox "Recordarme" del formulario.
-- El link "¿Olvidaste tu contraseña?" queda solo, alineado a la derecha.
-- Agregado botón **"Regístrate aquí"** al fondo del formulario que redirige a `/inicio?registro=1`.
-- En `index.php`, el parámetro `?registro=1` detecta y abre automáticamente el `AuthModal` en la pestaña de **Crear cuenta**.
-- Agregado método `AuthModal.openRegistro()` que abre el modal directamente en la pestaña de registro.
+- Removido el checkbox "Recordarme".
+- Botón **"Regístrate aquí"** que redirige a `/inicio?registro=1`.
+- `AuthModal.openRegistro()` abre el modal directamente en la pestaña de registro.
 
 ---
 
@@ -436,50 +531,19 @@ Eliminados comentarios redundantes (WHAT) de todos los archivos del proyecto —
 
 ### Sincronización de datos de contacto al perfil del cliente
 
-**Problema:** Al completar un pedido, cotización o cita, los datos ingresados (teléfono, dirección, ciudad, CP) no se guardaban en la tabla `clientes`. El formulario de solicitudes seguía mostrando "Completa tu teléfono" aunque el usuario lo hubiera ingresado antes.
+Al completar un pedido/cotización/cita, los datos ingresados se guardan en la tabla `clientes` automáticamente.
 
-**Corrección (`api/pedidos.php`, `api/cotizaciones.php`, `api/citas.php`):**
-- Al insertar un pedido con éxito, si hay sesión de cliente activa, se hace `UPDATE clientes SET telefono, ciudad, cp, direccion` con los datos del checkout.
-- Al insertar una cotización o cita, si hay sesión activa, se actualiza `clientes.telefono`.
-- El update es silencioso (no cancela el pedido/cita/cotización si falla).
+### Vinculación correcta de `cliente_id`
 
-### Vinculación correcta de `cliente_id` en cotizaciones y citas
+`credentials: 'same-origin'` agregado a los fetch de POST en `solicitudes.js` para que la cookie de sesión PHP llegue al servidor.
 
-**Problema:** El campo `cliente_id` quedaba NULL en `cotizaciones` y `citas` aunque el usuario estuviera logueado, porque `solicitudes.js` no enviaba las cookies de sesión PHP con el fetch.
+### Badge "Cliente registrado" en paneles
 
-**Corrección (`public/assets/js/solicitudes.js`):**
-- Agregado `credentials: 'same-origin'` a los fetch de POST cotizaciones y POST citas, de modo que la cookie de sesión PHP llega al servidor y `sesionClienteActiva()` puede detectar al cliente.
-
-### Badge "Cliente registrado" en paneles admin y empleado
-
-**Mejora (`public/assets/js/panel_administrador.js`, `public/assets/js/panel_empleado.js`):**
-- En el modal de detalle de cotizaciones y citas, si el registro tiene `cliente_id` (no NULL), aparece un badge verde **"Cliente registrado #ID"** en la sección de datos del cliente.
-
-### Corrección de errores 500 en cotizaciones, citas y perfil
-
-- **`api/cotizaciones.php`** — columna `modelo_mueble` faltaba en la BD; agregado `ALTER TABLE IF NOT EXISTS` en `schema.sql` para instalaciones existentes.
-- **`api/citas.php`** — removido campo `notas` del INSERT (columna inexistente y el formulario no tiene ese campo).
-- **`api/clientes.php`** — reemplazado `dbExecute()` (inexistente) por `dbQuery()` para guardar el perfil correctamente.
+Si el registro tiene `cliente_id`, aparece badge verde en el modal de detalle de cotizaciones y citas.
 
 ### Email de confirmación de pago PayPal
 
-**Problema:** El correo de confirmación del cliente no mostraba el método de pago ni la referencia para pedidos con PayPal.
-
-**Corrección (`api/pagos.php`, `firebase/functions/index.js`):**
-- En el bloque `paypal_capturar`, se asignan `metodo_pago`, `referencia_pago` y `fecha_pago` antes de llamar a `notificarNuevoPedido`.
-- La sección "Comprobante de pago" del template de email ahora se muestra si existe `metodo_pago` O `referencia_pago`, y muestra la referencia solo si existe.
-
-### Admin solo recibe notificaciones internas (sin BCC de emails del cliente)
-
-**Problema:** El admin recibía tanto su email de notificación interna como un BCC de cada email enviado al cliente.
-
-**Corrección (`firebase/functions/index.js`):**
-- Removido `bcc: emails.admin` de las 5 funciones de envío al cliente (nuevo_pedido, estado_pedido, nueva_cotizacion, cotizacion_respondida, nueva_cita).
-
-### Firebase Cloud Functions — Node.js 22
-
-- `firebase/firebase.json` y `firebase/functions/package.json` actualizados de Node.js 20 a Node.js 22.
-- Paquete `firebase-functions` actualizado a la versión más reciente.
+Los campos `metodo_pago`, `referencia_pago` y `fecha_pago` se asignan antes de llamar a `notificarNuevoPedido` en el bloque `paypal_capturar`.
 
 ---
 
@@ -487,142 +551,54 @@ Eliminados comentarios redundantes (WHAT) de todos los archivos del proyecto —
 
 ### Guardas de acceso server-side en páginas protegidas
 
-**Problema detectado:** Un usuario con cuenta no verificada podía navegar directamente a `/pago` y `/solicitudes` omitiendo cualquier validación de JavaScript.
-
-**Corrección:**
-- `pago.php` — Verifica `$_SESSION['cliente_id']` y `$_SESSION['cliente_email_verified']` al inicio del archivo PHP. Si alguno falta, redirige con `header('Location: ...')` antes de emitir cualquier HTML. Sin sesión → `/catalogo`; sesión sin correo verificado → `/carrito`.
-- `solicitudes.php` — Convertida de HTML puro a PHP: ahora incluye `config.php` y valida sesión + verificación de correo. Sin sesión o sin correo verificado → `/catalogo`.
-- `carrito-checkout.php` — Incluye `config.php` para iniciar sesión PHP correctamente (la protección real está en `/pago` y en los endpoints API).
+- `pago.php` — verifica `$_SESSION['cliente_id']` y `$_SESSION['cliente_email_verified']`.
+- `solicitudes.php` — convertida a PHP para validar sesión antes de emitir HTML.
 
 ### Timeout de inactividad de sesión (15 minutos)
 
-**Problema detectado:** Una sesión podía mantenerse activa indefinidamente si el usuario no cerraba sesión explícitamente.
-
-**Corrección (`includes/config.php`):**
-- Constante `SESSION_IDLE_TIMEOUT = 900` (15 minutos, fácil de cambiar).
-- En cada request PHP se compara `time() - $_SESSION['_last_activity']` con el timeout. Si se supera, la sesión se destruye completamente (`session_unset` + `session_destroy`) y se crea una nueva.
-- Timeout absoluto adicional de 2 horas — aunque haya actividad constante, la sesión se renueva.
-- La marca `_last_activity` se actualiza en cada petición válida.
+`SESSION_IDLE_TIMEOUT = 900` + timeout absoluto de 2 horas. `_last_activity` se actualiza en cada petición.
 
 ### Cookie de sesión expira al cerrar el navegador
 
-**Problema detectado:** La cookie de sesión tenía `lifetime = 7200` segundos (2 horas). En computadoras compartidas (laboratorio), el segundo usuario heredaba la sesión del primero sin necesidad de autenticarse.
-
-**Corrección (`includes/config.php`):**
-- Cambiado a `lifetime = 0` — la cookie es de tipo *session cookie* y el navegador la elimina al cerrarse, por lo que cada apertura del navegador es una sesión limpia.
-
-### Sanitización de campos de entrada
-
-**Corrección:**
-- `catalogo.js` — El buscador elimina en tiempo real los caracteres `< > " ' & ; { } ( ) [ ] \ `` ` y limita el texto a 100 caracteres antes de enviarlo al API.
-- `modal-auth.js` — Los campos de nombre y correo ya tenían validación en tiempo real; se conservó y reforzó.
+`lifetime = 0` — session cookie, eliminada automáticamente al cerrar el navegador.
 
 ### Verificación de correo requerida para agregar al carrito
 
-**Corrección (`catalogo.js`):**
-- `agregarAlCarrito()` verifica `AuthModal.isAuthenticated()` y `AuthModal.isEmailVerified()`. Si el cliente está autenticado pero su correo no está verificado, muestra un error y bloquea la adición al carrito.
-
-### Modal de autenticación estático
-
-**Corrección (`modal-auth.js` v9):**
-- Eliminado el listener `click` en el fondo del overlay que cerraba el modal accidentalmente. Ahora solo se cierra con el botón `×` o programáticamente.
-
-### Campos del formulario de registro se limpian tras registrarse
-
-**Corrección (`modal-auth.js` v9):**
-- Al mostrar la pantalla de verificación de correo, se llama `formReg.reset()` para borrar nombre, correo y contraseñas del formulario.
+`agregarAlCarrito()` bloquea si `AuthModal.isAuthenticated() && !AuthModal.isEmailVerified()`.
 
 ### Usuario de base de datos con permisos mínimos
 
-**Acción requerida — ejecutar en MySQL como `root`:**
 ```sql
--- Crear usuario dedicado para la app (ajusta nombre y contraseña)
 CREATE USER IF NOT EXISTS 'whapp_user'@'%' IDENTIFIED BY 'TuContraseñaSegura123!';
 GRANT SELECT, INSERT, UPDATE, DELETE ON wooden_house.* TO 'whapp_user'@'%';
 FLUSH PRIVILEGES;
 ```
-Actualizar `.env`: `DB_USER=whapp_user` / `DB_PASS=TuContraseñaSegura123!`
-
-El usuario de app **nunca** puede ejecutar `DROP TABLE`, `ALTER TABLE`, `CREATE USER` ni acceder a otras bases de datos.
 
 ---
 
 ## Correcciones de responsivo y UX móvil (v6 — 2026-03-27)
 
-### Catálogo — layout en pantalla completa y grid corregido
+### Catálogo — grid corregido
 
-**Problema:** En pantallas anchas (>1400 px) el catálogo mostraba grandes márgenes laterales vacíos ("efecto zoom"). En teléfonos, las tarjetas de producto aparecían en 2 columnas de ~160 px, demasiado estrechas.
+- `> 768 px` — `auto-fill, minmax(260px, 1fr)`
+- `≤ 768 px` — `repeat(2, 1fr)`
+- `≤ 480 px` — `1fr` columna única
 
-**Corrección (`catalogo.css` v5):**
-- Contenedor cambiado de `max-width: 1400px` a `max-width: 100%` con `padding: clamp(20px, 4vw, 80px)`.
-- Grid de productos:
-  - `> 768 px` — `auto-fill, minmax(260px, 1fr)` (escritorio)
-  - `≤ 768 px` — `repeat(2, 1fr)` (tablets)
-  - `≤ 480 px` — `1fr` columna única (teléfonos: tarjetas a pantalla completa con imagen 16:9)
-- Eliminadas media queries duplicadas y contradictorias (480 px, 420 px, 380 px, 640 px se consolidaron en 2 breakpoints limpios).
+### Barra de navegación móvil reforzada
 
-### Barra de navegación móvil — `position: fixed` reforzado
-
-**Corrección (`modal-auth.css` v3):**
-- Agregado `!important` a `position: fixed`, `bottom`, `left`, `right`, `width: 100%` y `z-index: 9999`.
-- `transform: translateZ(0)` fuerza la barra a su propia capa de composición, inmune a transforms de elementos padre.
-- `min-height: 56px` garantiza que nunca colapse visualmente.
-- Breakpoint cambiado de `max-width: 900px` a `max-width: 992px` (alineado con Bootstrap `md`).
+`position: fixed !important` con `transform: translateZ(0)` en su propia capa de composición.
 
 ---
 
 ## Mejoras de UX y diseño responsivo (v4 — 2026-03-14)
 
-### Logout siempre visible — mini-menú de cuenta
+### Mini-menú de cuenta con logout visible
 
-**Problema:** Los usuarios no encontraban cómo cerrar sesión (estaba solo dentro del modal completo).
-**Corrección (`modal-auth.js` v6, `modal-auth.css`):**
-- Cuando el cliente está autenticado, el botón "Mi cuenta" en la nav muestra su avatar con iniciales + chevron.
-- Al hacer clic aparece un mini-popover `.auth-mini-menu` con el nombre, correo, link a "Mi cuenta" y botón "Cerrar sesión".
-- En móvil el menú se reposiciona con `position: fixed; bottom: calc(64px + ...)` para evitar que se corte.
-- También se agregó un botón "Cerrar sesión" visible directamente en el perfil de `mi-cuenta.php`.
+Al autenticarse, el botón "Mi cuenta" muestra avatar con iniciales + chevron. Click abre un popover con nombre, correo, link "Mi cuenta" y botón "Cerrar sesión".
 
 ### Navegación móvil — barra inferior fija
 
-**Problema:** Sin conocer las URLs, la navegación en móvil era confusa.
-**Corrección (HTML de cada página, `modal-auth.css`):**
-- Barra fija `position: fixed; bottom: 0` con 5 íconos: Inicio, Catálogo, Cotización, Carrito, Mi cuenta.
-- Se muestra solo en pantallas ≤ 900 px (`@media (max-width: 900px)`).
-- El ítem activo de la página actual recibe la clase `mbn-item--active` (color dorado).
-- Añadida a todas las páginas: `index.php`, `catalogo.php`, `carrito-checkout.php`, `pago.php`, `solicitudes.php`, `mi-cuenta.php`.
-
-### Texto confuso "Seguir comprando" en el carrito
-
-**Problema:** Usuarios interpretaban "Seguir comprando" como avanzar al siguiente paso del checkout.
-**Corrección (`carrito-checkout.php`):** Renombrado a **"← Volver al Catálogo"** con flecha direccional explícita.
-
-### Retroalimentación visual en opciones de selección
-
-**Problema:** Al elegir tipo de entrega/instalación en el carrito o método de pago, los usuarios no notaban que algo había cambiado y esperaban una redirección.
-**Corrección (`carrito.css` v2, `pago.css`):**
-- Badge **"✓ Seleccionado"** con fondo dorado aparece en la esquina superior derecha de la opción activa con animación `badge-pop-in` (escala + opacidad).
-- La tarjeta dispara `animation: option-select-in` (glow-pulse en el borde) al seleccionarse.
-- El radio button se oculta en móvil (`display: none`) — el área completa es clickeable.
-
-### Hover inestable en dispositivos táctiles
-
-**Problema:** En móvil, al tocar una tarjeta de producto/opción, el efecto `transform: translateY` quedaba "pegado" hasta el siguiente toque.
-**Corrección (`carrito.css`, `index.css`, `catalogo.css`, `pago.css`):** Se añadió `@media (hover: none)` que fuerza `transform: none !important` en todos los estados `:hover`, desactivando los efectos que no aplican a pantallas táctiles.
-
-### Diseño compacto para pantallas pequeñas (≤ 640 px)
-
-**Problema:** Padding y tamaños de fuente pensados para escritorio consumían demasiado espacio en móvil; algunos elementos quedaban fuera de pantalla.
-**Corrección (`carrito.css`, `pago.css`, `solicitudes.css`, `catalogo.css`, `index.css`):**
-- Contenedores: padding reducido a `14–16px 12px`.
-- Indicador de pasos: horizontal compacto con `flex: 1` por paso y `gap: 0` (reemplaza `flex-direction: column` que lo hacía vertical).
-- Imágenes en el carrito: `68 × 85 px` en lugar de `85 × 105 px`.
-- Opciones de pago/entrega: padding `12–16px 10px`, fuentes 11–14 px.
-- Totales: `font-size` reducidos para no desbordarse en pantallas de 360 px.
-
-### Catálogo sin autenticación de cliente
-
-**Problema:** `catalogo.php` no cargaba `modal-auth.css` ni `modal-auth.js`, por lo que el botón "Mi cuenta" y la barra inferior no funcionaban.
-**Corrección (`catalogo.php`):** Añadidos `modal-auth.css`, `firebase-config.js` y `modal-auth.js?v=6`; agregado botón `.btn-cuenta-nav` al nav.
+5 íconos fijos en la parte inferior: Inicio, Catálogo, Cotización, Carrito, Mi cuenta. Visible en `≤ 900 px`.
 
 ---
 
@@ -630,150 +606,113 @@ El usuario de app **nunca** puede ejecutar `DROP TABLE`, `ALTER TABLE`, `CREATE 
 
 ### Login empleado: 404 en primer intento
 
-**Causa:** PHP generaba la cookie de sesión con `domain=.localhost`. Los navegadores modernos rechazan cookies con ese dominio (tratado como TLD), por lo que la sesión creada en `/api/auth.php` no llegaba al panel del empleado.
-**Corrección (`includes/config.php`):** Si el host es `localhost` o una IP, la cookie de sesión se crea sin atributo `domain` (el navegador usa el hostname actual automáticamente).
+**Corrección:** Cookie de sesión sin atributo `domain` en localhost/IP.
 
-### Guard de paneles redirigía a 404
+### CSS/JS inline
 
-**Causa:** Cuando la sesión falla, el guard de `panel_empleado.php` y `panel_administrador.php` hacía `Location: /public/login.php`, URL que no existe (la raíz web es `public/`).
-**Corrección:** Cambiado a `Location: /login` (URL limpia definida en `.htaccess`).
-
-### CSS/JS inline en `terminos.php` y `carrito-checkout.php`
-
-**Corrección:** Extraídas las 102 líneas de CSS inline de `terminos.php` al nuevo archivo `assets/css/terminos.css`. El script inline de auth en `carrito-checkout.php` fue movido al final de `assets/js/checkout.js`.
+Extraído CSS de `terminos.php` a `terminos.css`. Script de auth de `carrito-checkout.php` movido a `checkout.js`.
 
 ---
 
 ## Correcciones de Seguridad aplicadas (v2)
 
-> Las siguientes vulnerabilidades fueron identificadas por auditoría de infraestructura y corregidas:
+### Validación de imágenes reales por magic bytes
 
-### 1. Validación de imágenes reales en el panel administrador
-**Vulnerabilidad:** Se podía subir cualquier archivo renombrándolo como `.jpg`.  
-**Corrección (`panel_administrador.js`):**
-- Verificación del tipo MIME antes de subir (`image/jpeg`, `image/png`, `image/webp`, `image/gif` únicamente).
-- Lectura de los **primeros 12 bytes (magic numbers)** del archivo para confirmar que es una imagen auténtica (JPEG = `FF D8 FF`, PNG = `89 50 4E 47`, WebP, GIF).
-- Filtrado en `handleImgSelect()` antes de añadir al array de pendientes.
+`panel_administrador.js` — verificación del tipo MIME y de los primeros 12 bytes antes de subir (JPEG, PNG, WebP, GIF).
 
-### 2. Sanitización de todos los campos de usuario
-**Vulnerabilidad:** Los campos de texto no filtraban caracteres especiales permitiendo inyección SQL potencial.  
-**Corrección (`solicitudes.js`, `api/cotizaciones.php`, `api/citas.php`):**
-- Funciones JS: `sanitizeName()`, `sanitizeText()`, `sanitizePhone()`, `sanitizeDescription()` que limpian etiquetas HTML, caracteres de control y comillas peligrosas antes de enviar.
-- Validación de longitud máxima en todos los campos (nombre: 150 chars, descripción: 2 000 chars, etc.).
-- Validación de formato de teléfono en backend (`isValidPhone()`).
-- Atributos `maxlength` y `pattern` añadidos a los `<input>` HTML.
+### Sanitización de todos los campos de usuario
 
-### 3. CSRF Token y sesiones fantasma
-**Vulnerabilidad:** Al cerrar sesión la cookie de sesión PHP quedaba activa permitiendo re-acceso.  
-**Corrección (`includes/auth.php`, `login.php`, `panel_administrador.js`):**
-- **Timeout absoluto de 8 horas** desde el login y **timeout de inactividad de 2 horas**.
-- `_destruirSesion()` ahora elimina también la cookie `XSRF-TOKEN` y regenera el ID de sesión.
-- `login.php` destruye cualquier sesión PHP activa al cargar (especialmente con `?logout=1`).
-- El logout en el panel establece el flag `wh_just_logged_out` en `sessionStorage` **antes** de hacer `signOut()` para que `login.js` no auto-redirija.
+`solicitudes.js` — `sanitizeName()`, `sanitizeText()`, `sanitizePhone()`, `sanitizeDescription()`.
 
-### 4. Verificación de usuarios reales (Anti-bot)
-**Vulnerabilidad:** Bots podían llenar cotizaciones y citas de forma masiva.  
-**Corrección (`solicitudes.php`, `api/cotizaciones.php`, `api/citas.php`):**
-- **Campo honeypot** oculto con CSS (no visible para humanos, los bots lo llenan) — si el campo tiene valor, el backend responde con éxito falso sin guardar nada.
-- **Rate limiting** en los endpoints POST: máximo 5 cotizaciones / 5 citas por minuto por IP.
-- El honeypot usa `position:absolute; left:-9999px` para que lectores de pantalla y humanos no lo vean ni lo activen.
+### CSRF Token y sesiones fantasma
+
+`_destruirSesion()` elimina la cookie `XSRF-TOKEN` y regenera el ID de sesión.
+
+### Campo honeypot anti-bot
+
+Formularios de cotización y cita con campo oculto (`position:absolute; left:-9999px`). Si el campo tiene valor, el backend responde con éxito falso sin guardar nada.
 
 ---
 
 ## Seguridad — .htaccess
 
-### `/public/.htaccess` — Content Security Policy completa
+### `/public/.htaccess` — Content Security Policy
 
-Todos los servicios externos están explícitamente permitidos. Si ves errores CSP en la consola del navegador, verifica que el dominio del error esté incluido en la directiva correspondiente:
+`script-src` sin `'unsafe-inline'`. Todos los handlers inline han sido eliminados del código JS.
 
 | Directiva | Dominios clave permitidos |
 |-----------|--------------------------|
 | `script-src` | gstatic.com, firebaseapp.com, stripe.com, paypal.com, jsdelivr.net, cdnjs |
+| `style-src` | `'unsafe-inline'`, fonts.googleapis.com, cdnjs |
 | `connect-src` | *.firebaseio.com, **wss://*.firebaseio.com**, firestore.googleapis.com, www.googleapis.com, identitytoolkit.googleapis.com, securetoken.googleapis.com, accounts.google.com, api.stripe.com, api-m.paypal.com |
-| `frame-src` | js.stripe.com, paypal.com, **woodenhouse-898de.firebaseapp.com**, accounts.google.com |
-| `img-src` | firebasestorage.googleapis.com, paypalobjects.com |
+| `frame-src` | js.stripe.com, paypal.com, woodenhouse-898de.firebaseapp.com, accounts.google.com |
+| `img-src` | firebasestorage.googleapis.com, paypalobjects.com, blob:, data: |
 | `worker-src` | 'self' blob: |
 
-> **`wss://*.firebaseio.com`** es crítico para que Firestore Realtime funcione (WebSocket).  
-> **`woodenhouse-898de.firebaseapp.com`** en `frame-src` y `script-src` es requerido por Firebase Auth.  
-> **`accounts.google.com`** en `connect-src` y `frame-src` es necesario para el refresh de tokens.
-
-### `/api/.htaccess` — CORS y protección
-
-- CORS abierto (`*`) para llamadas del frontend al backend PHP
-- Preflight OPTIONS respondido directamente sin llegar a PHP (204)
-- Solo métodos GET, POST, PUT, DELETE, OPTIONS permitidos
-- Errores PHP suprimidos para no contaminar las respuestas JSON
+> **`wss://*.firebaseio.com`** es crítico para que Firestore Realtime funcione (WebSocket).
+> **`woodenhouse-898de.firebaseapp.com`** en `frame-src` y `script-src` es requerido por Firebase Auth.
 
 ### `/.htaccess` — Raíz del proyecto
 
-- Bloquea acceso a carpetas internas: `includes/`, `database/`, `logs/`, `firebase/`, `.git/`
-- Bloquea archivos sensibles: `.env`, `.sql`, `.log`, `.sh`, etc.
+- HTTPS redirect con detección de proxy (`X-Forwarded-Proto`) para evitar loops en servidores con SSL termination.
+- Bloquea acceso a: `includes/`, `database/`, `logs/`, `firebase/`, `.git/`.
 
 ---
 
 ## Funcionalidades implementadas
 
 ### Frontend público
-- Página de inicio: hero, servicios, proceso de fabricación, proyectos y FAQ
-- Catálogo con filtro por categoría, búsqueda en tiempo real y ordenamiento
-- Detalle de producto con galería, especificaciones en tabs, selector de cantidad y productos relacionados por categoría
+- Página de inicio: hero, 3 razones, 4 pasos del proceso, proyectos y FAQ
+- Catálogo con filtro por categoría, búsqueda en tiempo real, ordenamiento y **lightbox de zoom** en imágenes
+- Detalle de producto con galería (thumbnails sin onclick), especificaciones en tabs, selector de cantidad, **zoom de imagen principal** y productos relacionados
 - Carrito con selector de semanas de entrega basado en disponibilidad real de la API
-- Proceso de pago completo: Stripe Elements (tarjeta) + PayPal Smart Buttons
-- Seguimiento de pedidos por número sin necesidad de login
-- Formularios de cotización y agendado de citas con tabs
+- Proceso de pago: Stripe Elements (tarjeta) + PayPal Smart Buttons, pasarelas mostradas directamente
+- Seguimiento de pedidos/cotizaciones/citas por token sin necesidad de login
+- Formularios de cotización y cita diferenciados con tarjetas de decisión guía
 
 ### Sistema de cuentas de cliente
-- Registro e inicio de sesión con Firebase Auth (mismo servicio que el personal interno)
-- **Verificación de correo:** al registrarse, Firebase envía automáticamente un link de verificación (`sendEmailVerification`); el cliente puede continuar usando la cuenta sin bloquearse
-- Modal de autenticación contextual: aparece al hacer clic en "Proceder al pago" o "Enviar solicitud", no al entrar al sitio
-- **Sugerencia de login no bloqueante:** en solicitudes y carrito, si el usuario no tiene sesión, aparece una tarjeta dorada opcional *"¿Ya tienes cuenta? Inicia sesión y llenamos tus datos"*. Al autenticarse, la tarjeta desaparece y los campos se pre-llenan solos
-- El carrito se conserva durante el proceso de registro/login (sin interrupciones)
-- Portal "Mi Cuenta" (`/mi-cuenta`): historial de pedidos, perfil editable, estadísticas
-- Los pedidos, cotizaciones y citas quedan vinculados a la cuenta del cliente automáticamente
-- **Header nav:** el botón "Mi cuenta" es un dropdown con dos entradas — *Clientes* (modal Auth) y *Personal* (link a `/login`), visible en todos los dispositivos
+- Registro e inicio de sesión con Firebase Auth (modular SDK v10, dynamic import)
+- **Verificación de correo** con polling automático cada 4 s; banner persistente hasta confirmar
+- Modal de autenticación contextual con event listeners (100% CSP-compatible, sin handlers inline)
+- **Sugerencia de login no bloqueante** en solicitudes y carrito
+- Portal "Mi Cuenta": historial de pedidos, perfil editable, estadísticas
+- Vinculación automática de pedidos/cotizaciones/citas a la cuenta
 
 ### Panel Administrador *(auto-polling 30s)*
-- Dashboard con KPIs en tiempo real, gráficas de ventas/estados y **8 acciones rápidas**: Pedidos, Citas, Cotizaciones, Catálogo, Empleados, Clientes, Ofertas, Reportes
-- Gestión completa de pedidos (listado, filtros por estado, cambio de estado, detalle con timeline)
-- Calendario de citas con vista mensual y tabla lista
-- Gestión de cotizaciones con cambio de estado y detalle
+- Dashboard con KPIs, gráficas de ventas/estados y 8 acciones rápidas
+- Gestión completa de pedidos, cotizaciones y citas con status badges de alta visibilidad
 - Gestión de productos (CRUD + galería Firebase Storage + especificaciones)
-- Gestión de empleados (crear/editar en Firebase Auth + MySQL, activar/desactivar)
-- Gestión de capacidad de producción por semana
-- Reportes avanzados: resumen, pedidos por período, productos más vendidos, ingresos, clientes (exportable **.xlsx real** vía SheetJS + PDF)
-- Análisis financiero
-- **Clientes Registrados:** lista completa con historial, total gastado, pedidos y cotizaciones por cliente
-- **Ofertas & Marketing:** CRUD de descuentos (porcentaje, monto fijo, envío gratis), códigos de cupón con vigencia y usos máximos
+- Gestión de empleados (Firebase Auth + MySQL)
+- Reportes avanzados exportables a `.xlsx` real (SheetJS) y PDF
+- Clientes registrados: historial, total gastado, pedidos y cotizaciones
+- **Ofertas & Marketing:** CRUD de descuentos y cupones con vigencia y usos máximos
 
 ### Panel Empleado *(auto-polling 30s)*
-- Vista de pedidos asignados con timeline de 4 etapas y actualización de estado
-- Citas programadas con carga real desde la API (confirmar / completar)
-- Cotizaciones activas con cambio de estado inline (nueva → en revisión → respondida)
-- Calendario interactivo sincronizado con citas de la API
-- Dashboard KPIs en tiempo real: pedidos pendientes, citas de hoy, cotizaciones nuevas
-- Crear citas y cotizaciones directamente desde el panel
+- Vista de pedidos con timeline de 4 etapas
+- Citas y cotizaciones con cambio de estado inline
+- Calendario interactivo sincronizado con la API
 - Notificaciones en tiempo real desde Firestore
 
 ### Sistema de notificaciones
 - Escritura en Firestore al crear pedidos/cotizaciones/citas
 - Listener en tiempo real en los paneles (sin recarga)
-- Email automático al admin vía SMTP PHP en cada evento nuevo
+- Email automático al admin vía SMTP PHP
 - Cloud Function `onNuevaNotificacion` como sistema complementario
 
 ### Seguridad
+- `script-src` sin `'unsafe-inline'` — toda ejecución inline bloqueada por CSP
+- HTTPS forzado con detección de proxy/CDN (`X-Forwarded-Proto`)
+- Rate limiting: 3–5 intentos por 15 min en autenticación, 5/min en formularios públicos
 - Tokens JWT de Firebase verificados en cada llamada a la API PHP
-- Rate limiting en endpoints críticos y en formularios públicos (5 req/min por IP)
 - Headers de seguridad HTTP completos (CSP, HSTS, X-Frame-Options, etc.)
-- CORS configurado en `/api/.htaccess`
-- Archivos sensibles bloqueados en los tres niveles de `.htaccess`
-- Firestore Rules: solo personal autenticado puede leer/escribir notificaciones
-- Storage Rules: solo usuarios autenticados pueden subir imágenes
-- **Validación de imágenes reales** por magic bytes en el panel administrador
-- **Sanitización completa** de todos los campos de usuario (JS + PHP)
-- **Campo honeypot** anti-bot en formularios de cotización y cita
-- **Session timeout** absoluto (8h) y por inactividad (2h) con destrucción completa de cookies
-- **CSRF fix:** sesión PHP destruida correctamente en logout
+- Firestore Rules con validación de estructura, tipos y longitudes
+- Storage Rules con lista explícita de MIME types (sin SVG)
+- Validación de URLs de imágenes: solo HTTPS + hosts de Firebase Storage en lista blanca
+- Validación de imágenes por magic bytes en el panel administrador
+- Sanitización completa de campos en JS y PHP
+- Campo honeypot anti-bot en formularios públicos
+- Session timeout absoluto (2h) y por inactividad (15 min)
+- Usuario de BD con permisos mínimos (SELECT/INSERT/UPDATE/DELETE únicamente)
 
 ---
 
@@ -813,11 +752,13 @@ Todos los servicios externos están explícitamente permitidos. Si ves errores C
 
 - Los iconos usan **Font Awesome 6.5.1** vía CDN — sin emojis en el código
 - **Bootstrap 5.3.3** se carga solo el JS (sin CSS) para no sobreescribir el tema oscuro personalizado
-- El carrito persiste en `localStorage` con la clave `wh_carrito`
+- El carrito persiste en `sessionStorage` con la clave `wh_carrito`
 - Los paneles de admin y empleado requieren sesión activa de Firebase Auth
 - **Los clientes usan la misma Firebase Auth** pero se almacenan en tabla `clientes`, no en `usuarios_personal`
 - Las sesiones PHP distinguen entre personal (`usuario_id`, `usuario_rol`) y clientes (`cliente_id`, `cliente_rol`)
-- El modal de auth del cliente se activa con `AuthModal.open(callback)` desde cualquier página; usa `AuthModal.openRegistro()` para abrirlo directamente en la pestaña de registro
+- `AuthModal.open(callback)` — abre el modal de auth desde cualquier página; `AuthModal.openRegistro()` lo abre en la pestaña de registro
+- `event-delegation.js` maneja todos los eventos del sitio via `data-*` attributes — incluir en toda página nueva
+- `animations.js` aplica automáticamente clases de reveal a tarjetas y botones via `IntersectionObserver`
 - La sección "Proyectos Realizados" del index está hardcodeada en `index.php`
 - Los logs del servidor se guardan en `logs/` (ignorado en `.gitignore`)
 - El `firebase/` completo está **fuera de `public/`** — no es accesible desde el navegador

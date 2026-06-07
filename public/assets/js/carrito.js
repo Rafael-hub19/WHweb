@@ -144,20 +144,25 @@ function renderizarCarrito() {
         <p class="item-precio">${formatCurrency(item.precio)} c/u</p>
       </div>
       <div class="item-cantidad">
-        <button class="btn-cantidad" onclick="cambiarCantidad(${item.id}, -1)">-</button>
-        <input type="number" value="${item.cantidad}" min="1" max="99"
-               onchange="actualizarCantidad(${item.id}, this.value)">
-        <button class="btn-cantidad" onclick="cambiarCantidad(${item.id}, 1)">+</button>
+        <button class="btn-cantidad" data-call="cambiarCantidad" data-args="[${item.id},-1]">-</button>
+        <input type="number" value="${item.cantidad}" min="1" max="99" data-item-id="${item.id}">
+        <button class="btn-cantidad" data-call="cambiarCantidad" data-args="[${item.id},1]">+</button>
       </div>
       <div class="item-subtotal">
         <p class="subtotal-label">Subtotal:</p>
         <p class="subtotal-precio">${formatCurrency(item.precio * item.cantidad)}</p>
       </div>
-      <button class="btn-eliminar" onclick="eliminarItem(${item.id})" title="Eliminar">
+      <button class="btn-eliminar" data-call="eliminarItem" data-args="[${item.id}]" title="Eliminar">
         <i class="fa-solid fa-trash"></i>
       </button>
     </div>
   `).join('');
+
+  container.querySelectorAll('input[data-item-id]').forEach(function (inp) {
+    inp.addEventListener('change', function () {
+      actualizarCantidad(parseInt(this.dataset.itemId), this.value);
+    });
+  });
 }
 
 function actualizarResumen() {

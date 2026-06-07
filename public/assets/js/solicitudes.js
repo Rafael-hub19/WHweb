@@ -437,7 +437,7 @@ async function cargarSlotsDisponibles(fecha) {
 
     container.innerHTML = HORARIOS_NEGOCIO.map(hora => {
       const ocupado = ocupados.has(hora);
-      return `<div class="time-slot${ocupado ? ' unavailable' : ''}"${!ocupado ? ` onclick="selectTime(this)"` : ''} title="${ocupado ? 'Horario no disponible' : 'Seleccionar'}">${hora}</div>`;
+      return `<div class="time-slot${ocupado ? ' unavailable' : ''}" title="${ocupado ? 'Horario no disponible' : 'Seleccionar'}">${hora}</div>`;
     }).join('');
 
     if (HORARIOS_NEGOCIO.length === ocupados.size) {
@@ -446,7 +446,7 @@ async function cargarSlotsDisponibles(fecha) {
   } catch (e) {
     console.warn('Error cargando slots:', e);
     container.innerHTML = HORARIOS_NEGOCIO.map(hora =>
-      `<div class="time-slot" onclick="selectTime(this)">${hora}</div>`
+      `<div class="time-slot">${hora}</div>`
     ).join('');
   }
 }
@@ -845,7 +845,7 @@ async function prefillContactoSiLogueado() {
           ${lineaDireccion ? `<div class="sesion-card-detalle">${escapeHtml(lineaDireccion)}</div>` : ''}
         </div>
         <button type="button" class="sesion-card-editar"
-                onclick="mostrarCamposContacto('${formId}')">
+                data-call="mostrarCamposContacto" data-args='["${formId}"]'>
           <i class="fa-solid fa-pen-to-square"></i> Editar datos
         </button>
       </div>`;
@@ -892,9 +892,9 @@ function _mostrarSugerenciaLogin() {
           Inicia sesión y llenamos tus datos automáticamente.
         </div>
         <button type="button" class="login-suggest-btn"
-                onclick="AuthModal.open()">Iniciar sesión</button>
+                data-auth-action="open">Iniciar sesión</button>
         <button type="button" class="login-suggest-close"
-                onclick="document.getElementById('loginSuggest_${formId}').remove()"
+                data-remove-id="loginSuggest_${formId}"
                 aria-label="Cerrar sugerencia">
           <i class="fa-solid fa-xmark"></i>
         </button>

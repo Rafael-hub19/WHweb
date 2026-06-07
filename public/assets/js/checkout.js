@@ -398,11 +398,11 @@ function renderizarItems() {
                     <div class="cart-item-price">${fmt(item.precio)} c/u</div>
                     <div style="display:flex;align-items:center;gap:10px;">
                         <div style="display:flex;align-items:center;gap:6px;">
-                            <button class="btn-remove" style="padding:4px 10px;font-size:16px;" onclick="cambiarCantidadItem(${i}, -1)">−</button>
+                            <button class="btn-remove" style="padding:4px 10px;font-size:16px;" data-call="cambiarCantidadItem" data-args="[${i},-1]">−</button>
                             <span style="min-width:24px;text-align:center;font-weight:700;">${item.cantidad}</span>
-                            <button class="btn-remove" style="padding:4px 10px;font-size:16px;" onclick="cambiarCantidadItem(${i}, 1)">+</button>
+                            <button class="btn-remove" style="padding:4px 10px;font-size:16px;" data-call="cambiarCantidadItem" data-args="[${i},1]">+</button>
                         </div>
-                        <button class="btn-remove" onclick="eliminarItemCarrito(${i})" title="Eliminar">
+                        <button class="btn-remove" data-call="eliminarItemCarrito" data-args="[${i}]" title="Eliminar">
                             <i class="fa-solid fa-trash"></i>
                         </button>
                     </div>
@@ -620,7 +620,7 @@ function renderizarDias(dias, fechaSugerida) {
         return `
         <div class="semana-card${esSugerida ? ' recomendada' : esZona ? ' misma-zona' : ''}"
              data-fecha="${d.fecha}" data-etiqueta="${d.etiqueta}"
-             onclick="seleccionarDia(this)">
+>
             ${esSugerida ? '<div class="badge-recomendada">Fecha sugerida</div>' : ''}
             ${esZona     ? '<div class="badge-recomendada" style="background:#2980b9;">Tu zona</div>' : ''}
             <div class="semana-etiqueta">${d.etiqueta}</div>
@@ -671,7 +671,7 @@ function renderFallback() {
         ${dias.map((d, i) => `
         <div class="semana-card${i === 0 ? ' recomendada' : ''}"
              data-fecha="${d.ymd}" data-etiqueta="${d.etq}"
-             onclick="seleccionarDia(this)">
+>
             ${i === 0 ? '<div class="badge-recomendada">Fecha sugerida</div>' : ''}
             <div class="semana-etiqueta">${d.etq}</div>
             <span class="semana-badge">Estimado</span>
@@ -832,9 +832,9 @@ function _mostrarSugerenciaLoginCheckout() {
         Inicia sesión y llenamos tus datos automáticamente.
       </div>
       <button type="button" class="login-suggest-btn"
-              onclick="AuthModal.open()">Iniciar sesión</button>
+              data-auth-action="open">Iniciar sesión</button>
       <button type="button" class="login-suggest-close"
-              onclick="this.closest('.login-suggest-card').remove()"
+              data-remove-closest=".login-suggest-card"
               aria-label="Cerrar sugerencia">
         <i class="fa-solid fa-xmark"></i>
       </button>`;

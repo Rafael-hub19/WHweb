@@ -41,7 +41,7 @@ switch ($method) {
                     'leida'      => ($fields['leida']['booleanValue'] ?? false) === true,
                     'fecha'      => $fields['fecha']['timestampValue'] ?? $fields['fecha']['stringValue'] ?? '',
                 ];
-                if ($destino === 'todos' || $notif['destino'] === $destino || $notif['destino'] === 'todos') {
+                if (!$notif['leida'] && ($destino === 'todos' || $notif['destino'] === $destino || $notif['destino'] === 'todos')) {
                     $notificaciones[] = $notif;
                 }
             }

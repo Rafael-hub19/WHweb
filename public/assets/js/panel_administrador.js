@@ -113,8 +113,14 @@
       document.getElementById('notifPanel')?.classList.remove('open');
     }
     function markAllNotifRead(){
+      const ids = getNotifs().map(n => n.id).filter(Boolean);
+      if (ids.length) _addSeenIds(ids);
+      saveNotifs([]);
       setUnreadCount(0);
       renderNotifPanel();
+      ids.forEach(id => {
+        fetch('/api/notificaciones.php?id=' + encodeURIComponent(id), { method: 'PUT', credentials: 'same-origin' }).catch(() => {});
+      });
     }
     function _getSeenIds(){ return new Set(JSON.parse(localStorage.getItem(NOTIF_SEEN_KEY_ADM) || '[]')); }
     function _addSeenIds(ids){
@@ -128,6 +134,9 @@
       saveNotifs([]);
       setUnreadCount(0);
       renderNotifPanel();
+      ids.forEach(id => {
+        fetch('/api/notificaciones.php?id=' + encodeURIComponent(id), { method: 'PUT', credentials: 'same-origin' }).catch(() => {});
+      });
     }
     function pushNotif(title, meta, tipo=''){
       const list = getNotifs();
@@ -474,7 +483,7 @@
               <div class="t">${escapeHtml(c.time)} • ${escapeHtml(c.cliente)}${cid ? ` <span style="background:#2d6a3f20;color:#2d6a3f;border-radius:8px;padding:1px 7px;font-size:10px;font-weight:700;"><i class="fa-solid fa-user-check"></i> #${cid}</span>` : ''}</div>
               <div class="m">${tipoTexto} • ${estadoTexto} • ${escapeHtml(c.id)}</div>
             </div>
-            ${dbId ? `<button onclick="verDetalleCitaAdmin(${dbId})" class="btn btn-primary btn-small" style="flex-shrink:0;white-space:nowrap;"><i class='fa-solid fa-eye'></i> Ver</button>` : ''}
+            ${dbId ? `<button data-call="verDetalleCitaAdmin" data-args="[${dbId}]" class="btn btn-primary btn-small" style="flex-shrink:0;white-space:nowrap;"><i class='fa-solid fa-eye'></i> Ver</button>` : ''}
           </div>
         `;
         list.appendChild(el);
@@ -588,7 +597,7 @@
             <td>${tipoMap[c.tipo] || c.tipo}</td>
             <td><span class="status-badge ${est.cls}">${est.label}</span></td>
             <td>
-              ${dbId ? `<button class="btn btn-primary btn-small" onclick="verDetalleCitaAdmin(${dbId})" title="Ver detalle"><i class="fa-solid fa-eye"></i> Ver</button>` : '—'}
+              ${dbId ? `<button class="btn btn-primary btn-small" data-call="verDetalleCitaAdmin" data-args="[${dbId}]" title="Ver detalle"><i class="fa-solid fa-eye"></i> Ver</button>` : '—'}
             </td>
           </tr>`;
       }).join('');
@@ -758,9 +767,9 @@
               <div class="cat-footer">
                 <div class="cat-price">${money(p.precio || p.precio_base || 0)}</div>
                 <div class="cat-actions">
-                  <button class="btn btn-secondary btn-small" onclick="openProductoDetalle('${escapeHtml(String(p.id))}')">Ver</button>
-                  <button class="btn btn-secondary btn-small" onclick="openProductoModal('edit','${escapeHtml(String(p.id))}')" title="Editar"><i class="fa-solid fa-pen"></i></button>
-                  <button class="btn btn-danger btn-small" onclick="deleteProducto('${escapeHtml(String(p.id))}')" title="Eliminar"><i class="fa-solid fa-trash"></i></button>
+                  <button class="btn btn-secondary btn-small btn-ver-prod">Ver</button>
+                  <button class="btn btn-secondary btn-small btn-edit-prod" title="Editar"><i class="fa-solid fa-pen"></i></button>
+                  <button class="btn btn-danger btn-small btn-del-prod" title="Eliminar"><i class="fa-solid fa-trash"></i></button>
                 </div>
               </div>
               <div style="margin-top:8px;font-size:11px;color:#666;">
@@ -769,6 +778,9 @@
               </div>
             </div>
           `;
+          card.querySelector('.btn-ver-prod').addEventListener('click', () => openProductoDetalle(String(p.id)));
+          card.querySelector('.btn-edit-prod').addEventListener('click', () => openProductoModal('edit', String(p.id)));
+          card.querySelector('.btn-del-prod').addEventListener('click', () => deleteProducto(String(p.id)));
           catalogCards.appendChild(card);
         });
       }
@@ -790,11 +802,14 @@
             <td style="color:var(--accent);font-weight:900;">${money(p.precio || p.precio_base || 0)}</td>
             <td><span class="status-badge ${p.estado === 'activo' ? 'status-completed' : 'status-disabled'}">${p.estado === 'activo' ? 'Activo' : 'Inactivo'}</span></td>
             <td>
-              <button class="btn btn-secondary btn-small" onclick="openProductoDetalle('${escapeHtml(String(p.id))}')">Ver</button>
-              <button class="btn btn-secondary btn-small" onclick="openProductoModal('edit','${escapeHtml(String(p.id))}')" title="Editar"><i class="fa-solid fa-pen"></i></button>
-              <button class="btn btn-danger btn-small" onclick="deleteProducto('${escapeHtml(String(p.id))}')" title="Eliminar"><i class="fa-solid fa-trash"></i></button>
+              <button class="btn btn-secondary btn-small btn-ver-prod">Ver</button>
+              <button class="btn btn-secondary btn-small btn-edit-prod" title="Editar"><i class="fa-solid fa-pen"></i></button>
+              <button class="btn btn-danger btn-small btn-del-prod" title="Eliminar"><i class="fa-solid fa-trash"></i></button>
             </td>
           `;
+          tr.querySelector('.btn-ver-prod').addEventListener('click', () => openProductoDetalle(String(p.id)));
+          tr.querySelector('.btn-edit-prod').addEventListener('click', () => openProductoModal('edit', String(p.id)));
+          tr.querySelector('.btn-del-prod').addEventListener('click', () => deleteProducto(String(p.id)));
           body.appendChild(tr);
         });
       }
@@ -1102,12 +1117,21 @@
       grid.innerHTML = todas.map((img, i) => `
         <div style="position:relative;">
           <img src="${img.src}" style="width:100%;height:80px;object-fit:cover;border-radius:8px;border:2px solid ${i===0?'#8b7355':'#333'};"
-               onerror="this.style.background='#2a2a2a'" title="${i===0?'Principal (primera imagen)':img.label}">
+               data-img-bg-fallback="#2a2a2a" title="${i===0?'Principal (primera imagen)':img.label}">
           ${i===0?'<span style="position:absolute;bottom:3px;left:3px;background:#8b7355;color:#fff;font-size:9px;padding:1px 5px;border-radius:3px;font-weight:700;">Principal</span>':''}
-          <button onclick="${img.tipo==='guardada'?`eliminarImgGuardada(${i})`:`eliminarImgPendiente(${i-existentes.length})`}"
+          <button class="btn-eliminar-img" data-img-tipo="${img.tipo}" data-img-idx="${i}" data-existentes="${existentes.length}"
             style="position:absolute;top:3px;right:3px;background:rgba(180,0,0,.85);border:none;color:#fff;border-radius:50%;width:20px;height:20px;font-size:13px;cursor:pointer;line-height:1;display:flex;align-items:center;justify-content:center;">×</button>
         </div>
       `).join('');
+      grid.querySelectorAll('.btn-eliminar-img').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+          const tipo = this.dataset.imgTipo;
+          const idx  = parseInt(this.dataset.imgIdx);
+          const existentesLen = parseInt(this.dataset.existentes);
+          if (tipo === 'guardada') { eliminarImgGuardada(idx); }
+          else { eliminarImgPendiente(idx - existentesLen); }
+        });
+      });
     }
 
     function eliminarImgGuardada(idx) {
@@ -1982,10 +2006,10 @@ async function cargarPedidosAPI() {
         <td><span class="status-badge ${statusMap[p.estado] || ''}">${labelMap[p.estado] || p.estado}</span></td>
         <td style="color:var(--accent);font-weight:800;">${money(p.total)}</td>
         <td style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
-          <button onclick="verDetallePedidoAdmin(${p.id})" style="background:var(--accent);color:#fff;border:none;padding:5px 12px;border-radius:4px;cursor:pointer;font-size:12px;white-space:nowrap;flex-shrink:0;">
+          <button data-call="verDetallePedidoAdmin" data-args="[${p.id}]" style="background:var(--accent);color:#fff;border:none;padding:5px 12px;border-radius:4px;cursor:pointer;font-size:12px;white-space:nowrap;flex-shrink:0;">
             <i class="fa-solid fa-eye"></i> Ver
           </button>
-          <select class="form-select" style="width:130px;font-size:12px;" onchange="actualizarEstadoPedido(${p.id}, this.value)">
+          <select class="form-select" style="width:130px;font-size:12px;" data-onchange="actualizarEstadoPedido" data-id="${p.id}">
             ${['pendiente','pagado','en_produccion','listo','entregado','cancelado'].map(s =>
               `<option value="${s}" ${s === p.estado ? 'selected' : ''}>${labelMap[s]}</option>`
             ).join('')}
@@ -2038,16 +2062,29 @@ async function cargarEmpleadosAPI() {
         <td>${e.rol === 'administrador' ? 'Administrador' : 'Empleado'}</td>
         <td><span class="status-badge ${e.activo ? 'status-completed' : 'status-disabled'}">${e.activo ? 'Activo' : 'Inactivo'}</span></td>
         <td>
-          <button class="btn btn-secondary btn-small"
-            onclick="abrirEditarEmpleado(${e.id}, '${escapeHtml(e.nombre_completo)}', '${escapeHtml(e.correo)}', '${e.rol}')">
+          <button class="btn btn-secondary btn-small btn-editar-emp"
+            data-id="${e.id}"
+            data-nombre="${escapeHtml(e.nombre_completo)}"
+            data-correo="${escapeHtml(e.correo)}"
+            data-rol="${e.rol}">
             <i class="fa-solid fa-pen"></i>
           </button>
-          <button class="btn btn-danger btn-small" onclick="desactivarEmpleado(${e.id})">
+          <button class="btn btn-danger btn-small" data-call="desactivarEmpleado" data-args="[${e.id}]">
             ${e.activo ? '<i class="fa-solid fa-lock"></i>' : '<i class="fa-solid fa-lock-open"></i>'}
           </button>
         </td>
       </tr>
     `).join('');
+    tbody.querySelectorAll('.btn-editar-emp').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        abrirEditarEmpleado(
+          parseInt(this.dataset.id),
+          this.dataset.nombre,
+          this.dataset.correo,
+          this.dataset.rol
+        );
+      });
+    });
   } catch(e) {
     tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#e05;padding:20px;">Error al cargar empleados</td></tr>';
     console.error('Empleados API error:', e);
@@ -2174,7 +2211,7 @@ async function verDetallePedidoAdmin(id) {
             const l2=estadoLabels[s]||s;
             const c2=estadoClass[s]||'status-pending';
             const isActive=s===est;
-            return `<button onclick="actualizarEstadoPedido(${id},'${s}');closeModal('adminPedidoDetalleModal');cargarPedidosAPI();"
+            return `<button data-admin-ped-estado="${s}"
               class="status-badge ${c2}" style="cursor:pointer;border:none;opacity:${isActive?'1':'0.45'};transition:opacity .2s;">${l2}</button>`;
           }).join('')}
         </div>
@@ -2354,10 +2391,10 @@ async function cargarCotizacionesAPI() {
           <td><span class="status-badge ${cls}">${label}</span></td>
           <td>
             <div style="display:flex;gap:4px;flex-wrap:wrap;align-items:center;">
-              <button onclick="verDetalleCotAdmin(${c.id})" class="btn btn-primary btn-small" title="Ver detalle"><i class='fa-solid fa-eye'></i> Ver</button>
-              <button onclick="cambiarEstadoCotAdmin(${c.id}, 'en_revision')" class="btn btn-secondary btn-small" title="Marcar en revisión"><i class="fa-solid fa-clipboard-list"></i></button>
-              <button onclick="cambiarEstadoCotAdmin(${c.id}, 'respondida')"  class="btn btn-secondary btn-small" title="Marcar respondida"><i class="fa-solid fa-check"></i></button>
-              <button onclick="cambiarEstadoCotAdmin(${c.id}, 'cerrada')"    class="btn btn-secondary btn-small" title="Cerrar cotización"><i class="fa-solid fa-lock"></i></button>
+              <button data-call="verDetalleCotAdmin" data-args="[${c.id}]" class="btn btn-primary btn-small" title="Ver detalle"><i class='fa-solid fa-eye'></i> Ver</button>
+              <button data-call="cambiarEstadoCotAdmin" data-args='[${c.id},"en_revision"]' class="btn btn-secondary btn-small" title="Marcar en revisión"><i class="fa-solid fa-clipboard-list"></i></button>
+              <button data-call="cambiarEstadoCotAdmin" data-args='[${c.id},"respondida"]'  class="btn btn-secondary btn-small" title="Marcar respondida"><i class="fa-solid fa-check"></i></button>
+              <button data-call="cambiarEstadoCotAdmin" data-args='[${c.id},"cerrada"]'    class="btn btn-secondary btn-small" title="Cerrar cotización"><i class="fa-solid fa-lock"></i></button>
             </div>
           </td>
         </tr>`;
@@ -2720,7 +2757,7 @@ async function cargarCapacidad() {
 
       return `<div style="padding:10px 12px;border-radius:10px;${colorBg}cursor:pointer;transition:opacity .2s;"
                title="${d.bloqueado ? '🔒 Día bloqueado' : d.productos + ' de ' + d.limite + ' productos · ' + d.pedidos + ' pedido(s)'}"
-               onclick="toggleBloqueoDia('${d.ymd}', ${d.bloqueado})">
+               data-call="toggleBloqueoDia" data-args='["${d.ymd}",${d.bloqueado}]'>
         <div style="font-size:11px;color:${colorText};font-weight:700;margin-bottom:4px;">${label}</div>
         ${d.bloqueado
           ? '<div style="font-size:10px;color:#555;"><i class="fa-solid fa-lock"></i> Bloqueado</div>'
@@ -2757,7 +2794,7 @@ function renderListaBloqueados(bloqueados) {
         <strong style="color:var(--muted2);">${fecha}</strong>${warn}
         <div style="color:var(--muted);font-size:11px;">${b.motivo}</div>
       </div>
-      <button onclick="desbloquearDia('${b.fecha}')"
+      <button data-call="desbloquearDia" data-args='["${b.fecha}"]'
         style="background:transparent;border:1px solid var(--danger);color:var(--danger);padding:2px 8px;border-radius:6px;font-size:10px;cursor:pointer;">
         <i class="fa-solid fa-lock-open"></i>
       </button>
@@ -2890,7 +2927,7 @@ async function cargarClientesAdmin() {
         <td style="font-weight:700;color:var(--accent);">${money(c.total_gastado)}</td>
         <td style="font-size:12px;color:var(--muted);">${(c.fecha_registro || '').substring(0, 10)}</td>
         <td>
-          <button class="btn btn-secondary btn-small" onclick="verDetalleCliente(${c.id})" title="Ver historial">
+          <button class="btn btn-secondary btn-small" data-call="verDetalleCliente" data-args="[${c.id}]" title="Ver historial">
             <i class="fa-solid fa-eye"></i>
           </button>
         </td>
@@ -3061,10 +3098,10 @@ async function cargarOfertasAdmin() {
         <td style="font-size:13px;">${usosStr}</td>
         <td>${estadoBadge}</td>
         <td>
-          <button class="btn btn-secondary btn-small" onclick="abrirOfertaModal('edit', ${o.id})" title="Editar">
+          <button class="btn btn-secondary btn-small" data-call="abrirOfertaModal" data-args='["edit",${o.id}]' title="Editar">
             <i class="fa-solid fa-pen"></i>
           </button>
-          <button class="btn btn-danger btn-small" onclick="eliminarOferta(${o.id})" title="Eliminar">
+          <button class="btn btn-danger btn-small" data-call="eliminarOferta" data-args="[${o.id}]" title="Eliminar">
             <i class="fa-solid fa-trash"></i>
           </button>
         </td>
@@ -3194,3 +3231,18 @@ window.showSection = function(section, ev) {
   if (section === 'clientes') { _clientesOffset = 0; cargarClientesAdmin(); }
   if (section === 'ofertas')  cargarOfertasAdmin();
 };
+
+// ── Exponer funciones para event-delegation.js (data-call) ────
+window.verDetallePedidoAdmin  = verDetallePedidoAdmin;
+window.verDetalleCitaAdmin    = verDetalleCitaAdmin;
+window.cargarPedidosAPI       = cargarPedidosAPI;
+window.cambiarEstadoCotAdmin  = cambiarEstadoCotAdmin;
+window.verDetalleCotAdmin     = verDetalleCotAdmin;
+window.cargarCotizacionesAPI  = cargarCotizacionesAPI;
+window.toggleBloqueoDia       = toggleBloqueoDia;
+window.desbloquearDia         = desbloquearDia;
+window.verDetalleCliente      = verDetalleCliente;
+window.cargarClientesAdmin    = cargarClientesAdmin;
+window.abrirOfertaModal       = abrirOfertaModal;
+window.eliminarOferta         = eliminarOferta;
+window.actualizarValorLabel   = actualizarValorLabel;

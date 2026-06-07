@@ -217,6 +217,12 @@
         toggle.setAttribute('aria-expanded', open);
       });
     }
+    const perfilForm = document.getElementById('mcPerfilForm');
+    if (perfilForm) {
+      perfilForm.addEventListener('submit', function(e) {
+        if (typeof window.mcGuardarPerfil === 'function') window.mcGuardarPerfil(e);
+      });
+    }
   });
 
 })();

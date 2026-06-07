@@ -155,11 +155,52 @@
       return;
     }
 
+    // Admin: botones de cambio de estado de pedido en modal detalle
+    t = e.target.closest('[data-admin-ped-estado]');
+    if (t) {
+      if (typeof window.actualizarEstadoPedido === 'function') {
+        window.actualizarEstadoPedido(window._admPedId, t.dataset.adminPedEstado);
+      }
+      if (typeof window.closeModal === 'function') window.closeModal('adminPedidoDetalleModal');
+      if (typeof window.cargarPedidosAPI === 'function') window.cargarPedidosAPI();
+      return;
+    }
+
     // [data-trigger-click="targetId"] → dispara click en otro elemento (ej: input[type=file])
     t = e.target.closest('[data-trigger-click]');
     if (t) {
       var target = document.getElementById(t.dataset.triggerClick);
       if (target) target.click();
+      return;
+    }
+
+    // [data-remove-closest="selector"] → elimina el ancestor más cercano que coincida
+    t = e.target.closest('[data-remove-closest]');
+    if (t) {
+      var removeTarget = t.closest(t.dataset.removeClosest);
+      if (removeTarget) removeTarget.remove();
+      return;
+    }
+
+    // [data-remove-id="elementId"] → elimina elemento por ID
+    t = e.target.closest('[data-remove-id]');
+    if (t) {
+      var removeById = document.getElementById(t.dataset.removeId);
+      if (removeById) removeById.remove();
+      return;
+    }
+
+    // .semana-card[data-fecha], .dia-card[data-fecha] → seleccionarDia(el) en checkout
+    t = e.target.closest('.semana-card[data-fecha], .dia-card[data-fecha]');
+    if (t) {
+      if (typeof window.seleccionarDia === 'function') window.seleccionarDia(t);
+      return;
+    }
+
+    // .time-slot:not(.unavailable) → selectTime(el) en solicitudes
+    t = e.target.closest('.time-slot');
+    if (t && !t.classList.contains('unavailable')) {
+      if (typeof window.selectTime === 'function') window.selectTime(t);
       return;
     }
 
@@ -262,8 +303,14 @@
     var t = e.target.closest('[data-onchange]');
     if (!t) return;
     var fn = window[t.dataset.onchange];
-    // Pasar el valor del elemento como argumento (compatible con onchange="fn(this.value)")
-    if (typeof fn === 'function') fn.call(t, t.value);
+    if (typeof fn === 'function') {
+      // data-id presente: pasar (id, value) para funciones de dos argumentos
+      if (t.dataset.id !== undefined) {
+        fn.call(t, t.dataset.id, t.value);
+      } else {
+        fn.call(t, t.value);
+      }
+    }
   });
 
   // ── Input delegation ──────────────────────────────────────────────
@@ -278,10 +325,14 @@
   // Reemplaza onerror="..." en imágenes — usar capture para atrapar bubbling
   document.addEventListener('error', function (e) {
     var t = e.target;
-    if (!t || t.tagName !== 'IMG' || !t.dataset.imgFallback) return;
-    t.style.display = 'none';
-    var fallback = document.getElementById(t.dataset.imgFallback);
-    if (fallback) fallback.style.display = 'flex';
+    if (!t || t.tagName !== 'IMG') return;
+    if (t.dataset.imgFallback) {
+      t.style.display = 'none';
+      var fallback = document.getElementById(t.dataset.imgFallback);
+      if (fallback) fallback.style.display = 'flex';
+    } else if (t.dataset.imgBgFallback) {
+      t.style.background = t.dataset.imgBgFallback;
+    }
   }, true);
 
 })();
