@@ -6,8 +6,9 @@ Options -Indexes
 <IfModule mod_rewrite.c>
     RewriteEngine On
 
-    # ── Forzar HTTPS (excepto localhost y 127.0.0.1) ─────────────
+    # ── Forzar HTTPS (excepto localhost, 127.0.0.1 y proxies que ya terminan SSL) ──
     RewriteCond %{HTTPS} off
+    RewriteCond %{HTTP:X-Forwarded-Proto} !=https
     RewriteCond %{HTTP_HOST} !^localhost$ [NC]
     RewriteCond %{HTTP_HOST} !^127\.0\.0\.1$
     RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
