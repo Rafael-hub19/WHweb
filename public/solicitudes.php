@@ -85,17 +85,6 @@ if (empty($_SESSION['cliente_email_verified'])) {
           <i class="fa-solid fa-location-dot"></i> Vamos a tu domicilio · ZMG
         </div>
       </div>
-      <div class="sol-decision-card sol-decision-card--seg" data-tab-goto="seguimiento">
-        <div class="sol-dec-icon"><i class="fa-solid fa-magnifying-glass"></i></div>
-        <div class="sol-dec-info">
-          <strong>Ya envié una solicitud</strong>
-          <span>Quiero ver el estado de mi pedido, cita o cotización</span>
-        </div>
-        <div class="sol-dec-badge">Ver estado →</div>
-        <div class="sol-dec-detail">
-          <i class="fa-solid fa-hashtag"></i> Busca por folio WH-, CIT- o COT-
-        </div>
-      </div>
     </div>
 
     <div class="tab-navigation" style="margin-top:24px;">
@@ -106,10 +95,6 @@ if (empty($_SESSION['cliente_email_verified'])) {
       <button class="tab-btn" data-tab="cita">
         <span class="tab-icon"><i class="fa-solid fa-house-chimney-user"></i></span>
         <span>Visita a domicilio</span>
-      </button>
-      <button class="tab-btn" data-tab="seguimiento">
-        <span class="tab-icon"><i class="fa-solid fa-magnifying-glass"></i></span>
-        <span>Seguimiento</span>
       </button>
     </div>
 
@@ -377,67 +362,7 @@ if (empty($_SESSION['cliente_email_verified'])) {
       </form>
       <div class="tab-nav-bottom">
         <button type="button" class="btn-tab-nav btn-tab-back" data-tab-goto="cotizacion"><i class="fa-solid fa-arrow-left"></i> Cotización</button>
-        <button type="button" class="btn-tab-nav btn-tab-next" data-tab-goto="seguimiento">Seguimiento <i class="fa-solid fa-arrow-right"></i></button>
-      </div>
-    </div>
-
-    <!-- TAB 3: SEGUIMIENTO -->
-    <div id="tab-seguimiento" class="tab-content">
-      <div class="tracking-section">
-
-        <div class="tracking-header">
-          <div class="tracking-icon-circle">
-            <i class="fa-solid fa-magnifying-glass"></i>
-          </div>
-          <h2 class="tracking-title">Consultar Estado de Solicitud</h2>
-          <p class="tracking-subtitle">
-            Ingresa el número de tu pedido, cotización o cita para ver su estado en tiempo real
-          </p>
-        </div>
-
-        <div class="tracking-search-box">
-          <div class="tracking-input-wrap">
-            <i class="fa-solid fa-hashtag tracking-search-icon"></i>
-            <input type="text" id="trackingNumber"
-              placeholder="WH-2026-000001 · CIT-2026-000001 · COT-2026-000001"
-              maxlength="25" autocomplete="off" autocapitalize="characters">
-          </div>
-          <button class="btn-track" data-call="trackOrder">
-            <i class="fa-solid fa-search"></i> Buscar
-          </button>
-        </div>
-
-        <div class="tracking-types-row">
-          <div class="tracking-type-chip">
-            <i class="fa-solid fa-box" style="color:#8b7355;"></i>
-            <span><strong>WH-</strong> Pedido</span>
-          </div>
-          <div class="tracking-type-chip">
-            <i class="fa-solid fa-calendar-days" style="color:#5b9aad;"></i>
-            <span><strong>CIT-</strong> Cita</span>
-          </div>
-          <div class="tracking-type-chip">
-            <i class="fa-solid fa-briefcase" style="color:#6aad7a;"></i>
-            <span><strong>COT-</strong> Cotización</span>
-          </div>
-        </div>
-
-        <div class="tracking-hint-box">
-          <i class="fa-solid fa-envelope-open-text" style="color:#8b7355;font-size:20px;flex-shrink:0;"></i>
-          <div>
-            <strong style="color:#e0e0e0;">¿Dónde encuentro mi número?</strong>
-            <p style="color:#a0a0a0;margin:4px 0 0;font-size:13px;">
-              Te lo enviamos automáticamente por correo al registrar tu pedido, cita o cotización.
-            </p>
-          </div>
-        </div>
-
-        <!-- Resultado dinámico — lo llena trackOrder() desde el JS -->
-        <div id="trackingResult"></div>
-
-      </div>
-      <div class="tab-nav-bottom">
-        <button type="button" class="btn-tab-nav btn-tab-back" data-tab-goto="cita"><i class="fa-solid fa-arrow-left"></i> Agendar Cita</button>
+        <a href="/seguimiento" class="btn-tab-nav btn-tab-next">Ver Seguimiento <i class="fa-solid fa-arrow-right"></i></a>
       </div>
     </div>
   </div>
@@ -456,12 +381,11 @@ if (empty($_SESSION['cliente_email_verified'])) {
     </p>
   </div>
 
-  <?php $esSeguimiento = (strpos($_SERVER['REQUEST_URI'], 'seguimiento') !== false); ?>
   <nav class="mobile-bottom-nav" aria-label="Navegación rápida">
     <div class="mobile-bottom-nav-inner">
       <a href="/catalogo" class="mbn-item"><i class="fa-solid fa-store"></i><span>Catálogo</span></a>
-      <a href="/solicitudes" class="mbn-item<?= !$esSeguimiento ? ' mbn-item--active' : '' ?>"><i class="fa-solid fa-file-invoice"></i><span>Solicitar</span></a>
-      <a href="/seguimiento" class="mbn-item<?= $esSeguimiento ? ' mbn-item--active' : '' ?>"><i class="fa-solid fa-magnifying-glass"></i><span>Seguimiento</span></a>
+      <a href="/solicitudes" class="mbn-item mbn-item--active"><i class="fa-solid fa-file-invoice"></i><span>Solicitar</span></a>
+      <a href="/seguimiento" class="mbn-item"><i class="fa-solid fa-magnifying-glass"></i><span>Seguimiento</span></a>
       <a href="/carrito" class="mbn-item"><span class="mbn-icon-wrap"><i class="fa-solid fa-cart-shopping"></i><span class="mbn-cart-badge"></span></span><span>Carrito</span></a>
       <button class="mbn-item" data-auth-action="openMenuMovil"><i class="fa-solid fa-user"></i><span>Mi cuenta</span></button>
     </div>

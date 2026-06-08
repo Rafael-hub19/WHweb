@@ -16,7 +16,6 @@ document.addEventListener('DOMContentLoaded', function () {
   initTabs();
   initFormCotizacion();
   initFormCita();
-  initSeguimiento();
   initMedidasField();
   setMinDate();
   checkURLParams();
@@ -56,28 +55,13 @@ function initCartBadge() {
   } catch { badge.style.display = 'none'; }
 }
 
-// ── URL params: tab y seguimiento desde pago ──────────────────────
+// ── URL params: activar tab por ?tab= ────────────────────────────
 function checkURLParams() {
   const params = new URLSearchParams(window.location.search);
   const tab    = params.get('tab');
   if (tab) {
     const btn = document.querySelector(`.tab-btn[data-tab="${tab}"]`);
     if (btn) btn.click();
-  }
-  const token  = params.get('token');
-  const pedido = params.get('pedido');
-  if (token && pedido) {
-    const btn = document.querySelector('.tab-btn[data-tab="seguimiento"]');
-    if (btn) btn.click();
-    const trackInput = document.getElementById('trackingNumber');
-    if (trackInput) { trackInput.value = pedido; trackOrder(); }
-  }
-  // Abrir tab seguimiento si URL es /seguimiento o tiene hash #seguimiento
-  if (!tab && !pedido) {
-    if (window.location.pathname === '/seguimiento' || window.location.hash === '#seguimiento') {
-      const btn = document.querySelector('.tab-btn[data-tab="seguimiento"]');
-      if (btn) btn.click();
-    }
   }
 }
 
@@ -465,203 +449,7 @@ function selectTime(element) {
   selectedTime = element.textContent.trim().split('\n')[0].trim();
 }
 
-// ── Seguimiento ───────────────────────────────────────────────────
-function initSeguimiento() {
-  const resultBox = document.getElementById('trackingResult');
-  if (resultBox) {
-    resultBox.style.display = 'none';
-    resultBox.innerHTML = '';
-  }
 
-  const input = document.getElementById('trackingNumber');
-  if (input) {
-    input.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') { e.preventDefault(); trackOrder(); }
-    });
-    input.addEventListener('input', function () {
-      this.value = this.value.toUpperCase().replace(/[^A-Z0-9\-]/g, '');
-    });
-  }
-}
-
-async function trackOrder() {
-  const input          = document.getElementById('trackingNumber');
-  const trackingNumber = (input?.value || '').trim().toUpperCase();
-  const resultBox      = document.getElementById('trackingResult');
-  const btn            = document.querySelector('.btn-track');
-
-  if (!trackingNumber) {
-    showAlert('Por favor ingresa un número de seguimiento', 'error'); return;
-  }
-
-  const regexPedido = /^WH-\d{4}-\d{6}$/;
-  const regexCita   = /^CIT-\d{4}-\d{6}$/;
-  const regexCot    = /^COT-\d{4,}-\d+$/;
-  const esPedido    = regexPedido.test(trackingNumber);
-  const esCita      = regexCita.test(trackingNumber);
-  const esCot       = regexCot.test(trackingNumber);
-
-  if (!esPedido && !esCita && !esCot) {
-    showAlert('Formato inválido. Ejemplos: WH-2026-000001 · CIT-2026-000001 · COT-2026-1', 'error');
-    return;
-  }
-
-  if (btn) {
-    btn.disabled  = true;
-    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Buscando...';
-  }
-  if (resultBox) {
-    resultBox.style.display = 'none';
-    resultBox.innerHTML = '';
-  }
-
-  try {
-    let endpoint = '';
-    if (esPedido)    endpoint = `${API_URL}/pedidos.php?numero=${encodeURIComponent(trackingNumber)}`;
-    else if (esCita) endpoint = `${API_URL}/citas.php?numero_cita=${encodeURIComponent(trackingNumber)}`;
-    else             endpoint = `${API_URL}/cotizaciones.php?numero=${encodeURIComponent(trackingNumber)}`;
-
-    const res  = await fetch(endpoint);
-
-    const ct = res.headers.get('content-type') || '';
-    if (!ct.includes('application/json')) {
-      throw new Error('El servidor no respondió correctamente. Intenta más tarde.');
-    }
-
-    const data = await res.json();
-
-    if (!data.success || (!data.pedido && !data.cotizacion && !data.cita)) {
-      showAlert('No se encontró ninguna solicitud con ese número. Verifica que esté escrito correctamente.', 'error');
-      return;
-    }
-
-    const item  = data.pedido || data.cotizacion || data.cita;
-    const tipo  = data.pedido ? 'Pedido' : data.cita ? 'Cita' : 'Cotización';
-    const folio = item.numero_pedido || item.numero_cita || item.numero_cotizacion || trackingNumber;
-
-    const estadoLabels = {
-      nueva:'Nueva', pendiente:'Pendiente', pagado:'Pago confirmado',
-      en_produccion:'En producción', listo:'Listo para entrega',
-      entregado:'Entregado', cancelado:'Cancelado',
-      en_revision:'En revisión', respondida:'Respondida', cerrada:'Cerrada',
-      confirmada:'Confirmada', completada:'Completada'
-    };
-    const est         = item.estado || 'nueva';
-    const label       = estadoLabels[est] || est;
-    const fechaCreada = (item.fecha_creacion || '').substring(0, 10);
-
-    let timelineHtml = '';
-    if (data.pedido && est !== 'cancelado') {
-      const stages      = ['pendiente','pagado','en_produccion','listo','entregado'];
-      const stageLabels = ['Recibido','Pagado','En fab.','Listo','Entregado'];
-      const stageIdx    = stages.indexOf(est);
-      timelineHtml = `
-        <div class="track-timeline">
-          <div class="track-timeline-label">Progreso del pedido</div>
-          <div class="track-timeline-steps">
-            ${stages.map((_s, i) => {
-              const done    = i < stageIdx;
-              const current = i === stageIdx;
-              return `<div class="track-step">
-                ${i > 0 ? `<div class="track-step-connector${done || current ? ' done' : ''}"></div>` : ''}
-                <div class="track-step-dot${current ? ' current' : done ? ' done' : ''}">
-                  ${done ? '✓' : current ? '●' : ''}
-                </div>
-                <div class="track-step-name${current || done ? ' active' : ''}">${stageLabels[i]}</div>
-              </div>`;
-            }).join('')}
-          </div>
-        </div>`;
-    }
-
-    let infoItems = `
-      <div class="track-info-item">
-        <div class="track-info-label">Cliente</div>
-        <div class="track-info-value">${escapeHtml(item.nombre_cliente || '—')}</div>
-      </div>
-      <div class="track-info-item">
-        <div class="track-info-label">Registrado</div>
-        <div class="track-info-value">${fechaCreada}</div>
-      </div>`;
-
-    if (data.pedido) {
-      if (item.fecha_estimada) infoItems += `
-        <div class="track-info-item">
-          <div class="track-info-label">Entrega estimada</div>
-          <div class="track-info-value">${item.fecha_estimada}</div>
-        </div>`;
-      if (item.total) infoItems += `
-        <div class="track-info-item">
-          <div class="track-info-label">Total</div>
-          <div class="track-info-value" style="color:#8b7355;font-size:16px;">
-            ${new Intl.NumberFormat('es-MX', { style:'currency', currency:'MXN' }).format(item.total)}
-          </div>
-        </div>`;
-    }
-
-    if (data.cita) {
-      if (item.fecha_cita) infoItems += `
-        <div class="track-info-item">
-          <div class="track-info-label">Fecha de cita</div>
-          <div class="track-info-value">${item.fecha_cita}</div>
-        </div>`;
-      if (item.rango_horario) infoItems += `
-        <div class="track-info-item">
-          <div class="track-info-label">Horario</div>
-          <div class="track-info-value">${escapeHtml(item.rango_horario)}</div>
-        </div>`;
-      const tipoLabels = { medicion:'Medición', instalacion:'Instalación', otro:'Otro' };
-      infoItems += `
-        <div class="track-info-item">
-          <div class="track-info-label">Tipo</div>
-          <div class="track-info-value">${tipoLabels[item.tipo] || escapeHtml(item.tipo) || '—'}</div>
-        </div>`;
-    }
-
-    if (data.cotizacion) {
-      if (item.modelo_mueble) infoItems += `
-        <div class="track-info-item">
-          <div class="track-info-label">Tipo de mueble</div>
-          <div class="track-info-value">${escapeHtml(item.modelo_mueble)}</div>
-        </div>`;
-    }
-
-    if (resultBox) {
-      resultBox.innerHTML = `
-        <div class="track-result-card">
-          <div class="track-result-header">
-            <div>
-              <div class="track-tipo">${tipo}</div>
-              <div class="track-folio">${escapeHtml(folio)}</div>
-            </div>
-            <span class="track-status-badge st-${est}">
-              ${escapeHtml(label)}
-            </span>
-          </div>
-          <div class="track-result-body">
-            ${timelineHtml}
-            <div class="track-info-grid">${infoItems}</div>
-          </div>
-          <div class="track-result-footer">
-            <i class="fa-solid fa-envelope"></i>
-            ¿Dudas? Escríbenos a <a href="mailto:ventas@muebleswh.com">ventas@muebleswh.com</a>
-          </div>
-        </div>`;
-      resultBox.style.display = 'block';
-      resultBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    }
-
-  } catch (err) {
-    console.error('[seguimiento]', err);
-    if (resultBox) { resultBox.innerHTML = ''; resultBox.style.display = 'none'; }
-    showAlert(err.message || 'Error al consultar. Por favor intenta más tarde.', 'error');
-  } finally {
-    if (btn) {
-      btn.disabled  = false;
-      btn.innerHTML = '<i class="fa-solid fa-search"></i> Buscar';
-    }
-  }
-}
 
 // ── Mostrar/ocultar campo medidas ─────────────────────────────────
 function initMedidasField() {
@@ -911,6 +699,5 @@ function _mostrarSugerenciaLogin() {
 }
 
 window.selectTime             = selectTime;
-window.trackOrder             = trackOrder;
 window.cargarSlotsDisponibles = cargarSlotsDisponibles;
 window.mostrarCamposContacto  = mostrarCamposContacto;
