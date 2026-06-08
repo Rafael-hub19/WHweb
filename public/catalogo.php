@@ -26,9 +26,7 @@
     </div>
     <div class="nav-links" id="navLinks">
       <a href="/inicio" title="Volver al inicio">Inicio</a>
-      <a href="/solicitudes" title="Pedir cotización o agendar una cita de medición">
-        <span class="nav-link-desc">Cotización y Citas<small>Pide precio o agenda visita</small></span>
-      </a>
+      <a href="/solicitudes" title="Pedir cotización o agendar una cita de medición">Solicitar</a>
       <a href="/seguimiento" title="Consulta el estado de tu pedido, cita o cotización">Seguimiento</a>
       <a href="/carrito" class="cart-icon" id="cartIcon" title="Ver mi carrito de compras">
         <i class="fa-solid fa-cart-shopping"></i> <span class="cart-badge" id="cartCount">0</span>

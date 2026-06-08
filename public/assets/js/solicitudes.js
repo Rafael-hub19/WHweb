@@ -60,8 +60,9 @@ function checkURLParams() {
   const params = new URLSearchParams(window.location.search);
   const tab    = params.get('tab');
   if (tab) {
-    const btn = document.querySelector(`.tab-btn[data-tab="${tab}"]`);
-    if (btn) btn.click();
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    const target = document.getElementById(`tab-${tab}`);
+    if (target) target.classList.add('active');
   }
 }
 

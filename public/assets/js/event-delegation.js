@@ -102,11 +102,13 @@
       return;
     }
 
-    // [data-tab-goto="tabName"] → simula clic en el tab-btn correspondiente
+    // [data-tab-goto="tabName"] → activa el tab directamente
     t = e.target.closest('[data-tab-goto]');
     if (t) {
-      var tabBtn = document.querySelector('.tab-btn[data-tab="' + t.dataset.tabGoto + '"]');
-      if (tabBtn) tabBtn.click();
+      var targetTab = t.dataset.tabGoto;
+      document.querySelectorAll('.tab-content').forEach(function(c) { c.classList.remove('active'); });
+      var tabContent = document.getElementById('tab-' + targetTab);
+      if (tabContent) tabContent.classList.add('active');
       return;
     }
 

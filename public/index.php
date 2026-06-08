@@ -64,9 +64,7 @@ if (!empty($_SESSION['_flash'])) {
       </div>
 
       <a href="/catalogo" class="nav-link-item">Catálogo</a>
-      <a href="/solicitudes" title="Pedir cotización o agendar una cita de medición">
-        <span class="nav-link-desc">Cotización y Citas<small>Pide precio o agenda visita</small></span>
-      </a>
+      <a href="/solicitudes" title="Pedir cotización o agendar una cita de medición">Solicitar</a>
       <a href="/seguimiento" title="Consulta el estado de tu pedido, cita o cotización">Seguimiento</a>
 
       <a href="/carrito" class="cart-icon" id="cartIcon" aria-label="Ver carrito">
@@ -135,7 +133,7 @@ if (!empty($_SESSION['_flash'])) {
         </a>
       </div>
       <div class="col">
-        <a href="/solicitudes#seguimiento" class="quick-action-card h-100">
+        <a href="/seguimiento" class="quick-action-card h-100">
           <div class="qa-icon qa-icon--seg"><i class="fa-solid fa-magnifying-glass"></i></div>
           <div class="qa-info">
             <div class="qa-title">Seguimiento de Pedido</div>
