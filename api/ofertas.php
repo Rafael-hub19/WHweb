@@ -91,6 +91,7 @@ if ($method === 'GET' && $id) {
 // ── POST crear oferta (admin) ─────────────────────────────────────
 if ($method === 'POST' && !$action) {
     requerirAdmin();
+    requerirCsrf();
     $body        = getJsonBody();
     $nombre      = sanitize($body['nombre'] ?? '');
     $descripcion = sanitize($body['descripcion'] ?? '');
@@ -122,6 +123,7 @@ if ($method === 'POST' && !$action) {
 // ── PUT actualizar oferta (admin) ─────────────────────────────────
 if ($method === 'PUT' && $id) {
     requerirAdmin();
+    requerirCsrf();
     if (!dbRow("SELECT id FROM ofertas WHERE id=?", [$id])) jsonError('Oferta no encontrada', 404);
 
     $body        = getJsonBody();
@@ -153,6 +155,7 @@ if ($method === 'PUT' && $id) {
 // ── DELETE eliminar oferta (admin) ────────────────────────────────
 if ($method === 'DELETE' && $id) {
     requerirAdmin();
+    requerirCsrf();
     if (!dbRow("SELECT id FROM ofertas WHERE id=?", [$id])) jsonError('Oferta no encontrada', 404);
     dbExecute("DELETE FROM ofertas WHERE id=?", [$id]);
     jsonSuccess(['mensaje' => 'Oferta eliminada']);

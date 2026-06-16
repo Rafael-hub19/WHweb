@@ -1,6 +1,41 @@
 // event-delegation.js — reemplaza todos los onclick/onchange inline de las páginas
 (function () {
 
+  // ── CSRF: adjunta el token a toda petición que cambia datos ───────
+  // Patrón "double-submit cookie": el servidor deja el token en la cookie
+  // legible XSRF-TOKEN; aquí lo reenviamos como header en cada fetch del
+  // mismo origen. Las peticiones de solo lectura (GET) y a otros dominios
+  // (ej. Stripe.js) no se tocan.
+  function leerCookieCsrf() {
+    var match = document.cookie.match('(?:^|; )XSRF-TOKEN=([^;]*)');
+    return match ? decodeURIComponent(match[1]) : null;
+  }
+
+  var fetchOriginal = window.fetch;
+  window.fetch = function (recurso, opciones) {
+    opciones = opciones || {};
+    var metodo = (opciones.method || 'GET').toUpperCase();
+    var cambiaEstado = ['POST', 'PUT', 'DELETE', 'PATCH'].indexOf(metodo) !== -1;
+
+    if (cambiaEstado && typeof recurso === 'string') {
+      var esMismoOrigen = false;
+      try { esMismoOrigen = new URL(recurso, window.location.href).origin === window.location.origin; }
+      catch (e) { esMismoOrigen = false; }
+
+      if (esMismoOrigen) {
+        var token = leerCookieCsrf();
+        if (token) {
+          if (opciones.headers instanceof Headers) {
+            opciones.headers.set('X-CSRF-Token', token);
+          } else {
+            opciones.headers = Object.assign({}, opciones.headers, { 'X-CSRF-Token': token });
+          }
+        }
+      }
+    }
+    return fetchOriginal(recurso, opciones);
+  };
+
   // ── Click delegation ──────────────────────────────────────────────
   document.addEventListener('click', function (e) {
     var t;

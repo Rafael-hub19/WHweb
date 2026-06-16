@@ -10,6 +10,7 @@ switch ($action) {
     // ── Login ─────────────────────────────────────────────────────
     case 'login':
         if ($method !== 'POST') jsonError('Método no permitido', 405);
+        requerirCsrf();
 
         checkRateLimit('auth_login', 5, 900);
 
@@ -59,6 +60,7 @@ switch ($action) {
     // ── Logout ────────────────────────────────────────────────────
     case 'logout':
         if ($method !== 'POST') jsonError('Método no permitido', 405);
+        requerirCsrf();
         _destruirSesionPersonal();
         jsonSuccess(['mensaje' => 'Sesión cerrada']);
         break;
@@ -95,6 +97,7 @@ switch ($action) {
     // ── Registro de cliente ───────────────────────────────────────
     case 'cliente-registro':
         if ($method !== 'POST') jsonError('Método no permitido', 405);
+        requerirCsrf();
         checkRateLimit('cliente_registro', 3, 900);
         $body = getJsonBody();
         checkHoneypot($body);
@@ -128,6 +131,7 @@ switch ($action) {
     // ── Login de cliente ──────────────────────────────────────────
     case 'cliente-login':
         if ($method !== 'POST') jsonError('Método no permitido', 405);
+        requerirCsrf();
         checkRateLimit('cliente_login', 5, 900);
         $body = getJsonBody();
         checkHoneypot($body);
@@ -186,6 +190,7 @@ switch ($action) {
     // ── Marcar correo como verificado (llamado desde el frontend tras confirmar con Firebase) ─
     case 'cliente-email-verificado':
         if ($method !== 'POST') jsonError('Método no permitido', 405);
+        requerirCsrf();
         $cliente = sesionClienteActiva();
         if (!$cliente) jsonError('No autenticado', 401);
         $body = getJsonBody();
@@ -202,6 +207,7 @@ switch ($action) {
     // ── Logout de cliente ─────────────────────────────────────────
     case 'cliente-logout':
         if ($method !== 'POST') jsonError('Método no permitido', 405);
+        requerirCsrf();
         _destruirSesionCliente();
         jsonSuccess(['mensaje' => 'Sesión de cliente cerrada']);
         break;

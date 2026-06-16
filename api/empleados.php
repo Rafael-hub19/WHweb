@@ -35,6 +35,7 @@ switch ($method) {
 
     case 'POST':
         requerirAdmin();
+        requerirCsrf();
         $body = getJsonBody();
         requireFields($body, ['firebase_uid', 'nombre_completo', 'correo', 'rol']);
         if (!isValidEmail($body['correo'])) jsonError('correo inválido', 422);
@@ -60,6 +61,7 @@ switch ($method) {
 
     case 'PUT':
         requerirAdmin();
+        requerirCsrf();
         if (!$id) jsonError('ID requerido', 400);
         if (!dbRow("SELECT id FROM usuarios_personal WHERE id = ?", [$id])) jsonError('Empleado no encontrado', 404);
         $body = getJsonBody();
@@ -80,6 +82,7 @@ switch ($method) {
 
     case 'DELETE':
         requerirAdmin();
+        requerirCsrf();
         if (!$id) jsonError('ID requerido', 400);
         dbUpdate('usuarios_personal', ['activo' => 0], 'id = ?', [$id]);
         jsonSuccess(['mensaje' => 'Empleado desactivado']);

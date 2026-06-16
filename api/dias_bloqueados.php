@@ -68,6 +68,7 @@ switch ($_SERVER['REQUEST_METHOD']) {
 
     // ── POST: bloquear un día ────────────────────────────────────────────────
     case 'POST':
+        requerirCsrf();
         $body  = getJsonBody();
         $fecha = trim($body['fecha'] ?? '');
         $motivo = sanitize($body['motivo'] ?? 'Día no hábil');
@@ -107,6 +108,7 @@ switch ($_SERVER['REQUEST_METHOD']) {
 
     // ── DELETE: desbloquear un día ───────────────────────────────────────────
     case 'DELETE':
+        requerirCsrf();
         $fecha = trim($_GET['fecha'] ?? '');
         if (!$fecha || !preg_match('/^\d{4}-\d{2}-\d{2}$/', $fecha)) {
             jsonError('fecha inválida (YYYY-MM-DD)', 422);

@@ -62,6 +62,7 @@ $action    = $_GET['action'] ?? $_jsonBody['accion'] ?? $_jsonBody['action'] ?? 
 // ── STRIPE ────────────────────────────────────────────
 if ($action === 'stripe_intent') {
     if ($method !== 'POST') jsonError('Método no permitido', 405);
+    requerirCsrf();
     $body     = $_jsonBody;
     requireFields($body, ['pedido_id']);
     $pedidoId = sanitizeInt($body['pedido_id']);
@@ -102,6 +103,7 @@ if ($action === 'stripe_intent') {
 
 if ($action === 'stripe_confirm') {
     if ($method !== 'POST') jsonError('Método no permitido', 405);
+    requerirCsrf();
     $body     = $_jsonBody;
     requireFields($body, ['payment_intent_id', 'pedido_id']);
     $piId     = trim($body['payment_intent_id']);
@@ -258,6 +260,7 @@ if ($action === 'paypal_webhook') {
 
 if ($action === 'paypal_orden') {
     if ($method !== 'POST') jsonError('Método no permitido', 405);
+    requerirCsrf();
     $body     = $_jsonBody;
     requireFields($body, ['pedido_id']);
     $pedidoId = sanitizeInt($body['pedido_id']);
@@ -293,6 +296,7 @@ if ($action === 'paypal_orden') {
 
 if ($action === 'paypal_capturar') {
     if ($method !== 'POST') jsonError('Método no permitido', 405);
+    requerirCsrf();
     $body     = $_jsonBody;
     requireFields($body, ['order_id', 'pedido_id']);
     $orderId  = trim($body['order_id']);
@@ -335,6 +339,7 @@ if ($action === 'paypal_capturar') {
 if ($action === 'marcar_saldo_manual') {
     if ($method !== 'POST') jsonError('Método no permitido', 405);
     requerirEmpleado();
+    requerirCsrf();
     $body     = $_jsonBody;
     requireFields($body, ['pedido_id']);
     $pedidoId = sanitizeInt($body['pedido_id']);

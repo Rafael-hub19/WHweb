@@ -51,6 +51,7 @@ switch ($method) {
         break;
 
     case 'POST':
+        requerirCsrf();
         $body = getJsonBody();
         requireFields($body, ['tipo', 'titulo', 'mensaje']);
         $ok = crearNotificacionFirestore(
@@ -67,6 +68,7 @@ switch ($method) {
         break;
 
     case 'PUT':
+        requerirCsrf();
         if (!$id) jsonError('ID requerido', 400);
         if (!preg_match('/^[a-zA-Z0-9_-]{1,128}$/', $id)) jsonError('ID inválido', 422);
         $ok = marcarNotificacionLeida($id);

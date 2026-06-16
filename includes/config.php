@@ -162,6 +162,23 @@ if (session_status() === PHP_SESSION_NONE) {
         $_SESSION['_created']       = time();
         $_SESSION['_last_activity'] = time();
     }
+
+    // ── CSRF: emitir token en cada visita (patrón double-submit cookie) ──
+    // No depende de includes/auth.php (no todas las páginas lo cargan).
+    // El mismo $_SESSION['_csrf'] es leído por verificarCsrfToken() en auth.php.
+    if (empty($_SESSION['_csrf'])) {
+        $_SESSION['_csrf'] = bin2hex(random_bytes(32));
+    }
+    if (($_COOKIE['XSRF-TOKEN'] ?? '') !== $_SESSION['_csrf']) {
+        setcookie('XSRF-TOKEN', $_SESSION['_csrf'], [
+            'expires'  => 0,
+            'path'     => '/',
+            'domain'   => $cookieDomain,
+            'secure'   => $isHttps,
+            'httponly' => false, // debe ser legible por JS para reenviarlo como header
+            'samesite' => 'Strict',
+        ]);
+    }
 }
 
 // ── Logs ───────────────────────────────────────────────────────────

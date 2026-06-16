@@ -111,6 +111,7 @@ if ($method === 'GET' && $id) {
 // ── PUT actualizar perfil del cliente ─────────────────────────────
 if ($method === 'PUT' && $id) {
     $cliente = requerirCliente();
+    requerirCsrf();
     if ((int)$cliente['id'] !== $id) jsonError('No autorizado', 403);
 
     $body      = getJsonBody();

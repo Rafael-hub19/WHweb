@@ -96,6 +96,7 @@ switch ($method) {
         break;
 
     case 'POST':
+        requerirCsrf();
         checkRateLimit('pedidos_post', 10, 60);
         $body = getJsonBody();
         requireFields($body, ['nombre_cliente', 'correo_cliente', 'items']);
@@ -264,6 +265,7 @@ switch ($method) {
 
     case 'PUT':
         $usuarioActual = requerirEmpleado();
+        requerirCsrf();
         if (!$id) jsonError('ID requerido', 400);
         $pedido = dbRow("SELECT * FROM pedidos WHERE id = ?", [$id]);
         if (!$pedido) jsonError('Pedido no encontrado', 404);

@@ -45,6 +45,7 @@ switch ($method) {
         break;
 
     case 'POST':
+        requerirCsrf();
         checkRateLimit('cotizaciones_post', 5, 60);
         $body = getJsonBody();
         requireFields($body, ['nombre_cliente', 'correo_cliente', 'telefono_cliente', 'descripcion_solicitud']);
@@ -161,6 +162,7 @@ switch ($method) {
 
     case 'PUT':
         requerirEmpleado();
+        requerirCsrf();
         if (!$id) jsonError('ID requerido', 400);
         $cotActual = dbRow("SELECT * FROM cotizaciones WHERE id = ?", [$id]);
         if (!$cotActual) jsonError('Cotización no encontrada', 404);

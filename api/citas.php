@@ -71,6 +71,7 @@ switch ($method) {
         break;
 
     case 'POST':
+        requerirCsrf();
         checkRateLimit('citas_post', 5, 60);
         $body = getJsonBody();
         requireFields($body, ['nombre_cliente', 'correo_cliente', 'telefono_cliente', 'fecha_cita', 'tipo']);
@@ -165,6 +166,7 @@ switch ($method) {
 
     case 'PUT':
         requerirEmpleado();
+        requerirCsrf();
         if (!$id) jsonError('ID requerido', 400);
         if (!dbRow("SELECT id FROM citas WHERE id = ?", [$id])) jsonError('Cita no encontrada', 404);
         $body = getJsonBody();
@@ -183,6 +185,7 @@ switch ($method) {
 
     case 'DELETE':
         requerirEmpleado();
+        requerirCsrf();
         if (!$id) jsonError('ID requerido', 400);
         dbUpdate('citas', ['estado' => 'cancelada'], 'id = ?', [$id]);
         jsonSuccess(['mensaje' => 'Cita cancelada']);

@@ -39,6 +39,7 @@ if ($method === 'GET') {
 
 // ── POST: crear/actualizar semana o acciones especiales ───────────
 if ($method === 'POST') {
+    requerirCsrf();
 
     if ($action === 'generar') {
         $body    = getJsonBody();

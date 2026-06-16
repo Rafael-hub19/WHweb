@@ -108,6 +108,17 @@ function checkRateLimit(string $key, int $maxRequests = 60, int $windowSec = 60)
     file_put_contents($file, json_encode(array_values($data)), LOCK_EX);
 }
 
+// ── CSRF: validar token en peticiones que cambian datos ───────────
+// Llamar explícitamente en cada acción POST/PUT/DELETE de cada endpoint.
+// NO usar en los webhooks de Stripe/PayPal: esos llegan directo desde sus
+// servidores sin sesión de navegador y se autentican por firma, no por token.
+function requerirCsrf(): void {
+    $token = $_SERVER['HTTP_X_CSRF_TOKEN'] ?? '';
+    if (!verificarCsrfToken($token)) {
+        jsonError('Token de seguridad inválido o ausente. Recarga la página e intenta de nuevo.', 403);
+    }
+}
+
 // ── Honeypot anti-spam ────────────────────────────────────────────
 function checkHoneypot(array $body): void {
     if (!empty($body['_hp']) || !empty($body['website']) || !empty($body['url'])) {
