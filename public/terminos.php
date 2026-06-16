@@ -1,6 +1,7 @@
 <?php
 header('Content-Type: text/html; charset=utf-8');
 require_once dirname(__DIR__) . '/includes/assets.php';
+require_once dirname(__DIR__) . '/includes/env.php';
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -11,10 +12,10 @@ require_once dirname(__DIR__) . '/includes/assets.php';
   <title>Términos y Condiciones – Wooden House</title>
   <meta name="description" content="Términos y condiciones de Wooden House. Conoce nuestras políticas de compra, envíos, devoluciones, garantías y aviso de privacidad.">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" crossorigin="anonymous">
-  <link rel="stylesheet" href="./assets/css/variables.css">
-  <link rel="stylesheet" href="./assets/css/styles.css?v=4">
-  <link rel="stylesheet" href="./assets/css/terminos.css?v=2">
-  <link rel="stylesheet" href="./assets/css/modal-auth.css?v=4">
+  <link rel="stylesheet" href="./assets/<?= av('css/variables.css') ?>">
+  <link rel="stylesheet" href="./assets/<?= av('css/styles.css') ?>">
+  <link rel="stylesheet" href="./assets/<?= av('css/terminos.css') ?>">
+  <link rel="stylesheet" href="./assets/<?= av('css/modal-auth.css') ?>">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 </head>
 <body>
@@ -51,7 +52,7 @@ require_once dirname(__DIR__) . '/includes/assets.php';
       <strong>Wooden House</strong> es una empresa mexicana dedicada a la fabricación y comercialización
       de muebles de madera a medida — cocinas integrales, clósets y muebles de baño —, con domicilio en Guadalajara, Jalisco.
     </p>
-    <p>Contacto: <a href="mailto:ventas@muebleswh.com">ventas@muebleswh.com</a> &nbsp;|&nbsp; <a href="tel:3317054017">33 1705 4017</a></p>
+    <p>Contacto: <a href="mailto:<?= SITE_EMAIL ?>"><?= SITE_EMAIL ?></a> &nbsp;|&nbsp; <a href="tel:<?= sitePhoneDigits() ?>"><?= SITE_PHONE ?></a></p>
   </div>
 
   <!-- 2. Uso del sitio -->
@@ -184,7 +185,7 @@ require_once dirname(__DIR__) . '/includes/assets.php';
     <ul>
       <li>El cliente puede cancelar su pedido <strong>dentro de las primeras 24 horas</strong> después de confirmado, siempre que la producción no haya iniciado. Se realizará el reembolso completo al método de pago original.</li>
       <li>Una vez iniciada la fabricación, no se aceptan cancelaciones ni cambios de especificaciones, dado que los muebles son fabricados a medida.</li>
-      <li>En caso de defecto de fabricación comprobado, el cliente deberá reportarlo en un plazo máximo de <strong>72 horas</strong> tras la entrega, enviando fotografías a <a href="mailto:ventas@muebleswh.com">ventas@muebleswh.com</a>.</li>
+      <li>En caso de defecto de fabricación comprobado, el cliente deberá reportarlo en un plazo máximo de <strong>72 horas</strong> tras la entrega, enviando fotografías a <a href="mailto:<?= SITE_EMAIL ?>"><?= SITE_EMAIL ?></a>.</li>
       <li>Los gastos de flete por devolución derivada de defecto de fabricación corren a cargo de Wooden House. Devoluciones por cambio de opinión corren a cargo del cliente.</li>
       <li>Los reembolsos se procesarán en un plazo de <strong>5 a 10 días hábiles</strong> a partir de la aprobación de la devolución.</li>
     </ul>
@@ -245,7 +246,7 @@ require_once dirname(__DIR__) . '/includes/assets.php';
     <div class="highlight-box">
       <strong>Derechos ARCO:</strong> Conforme a la LFPDPPP, tienes derecho a <strong>Acceder, Rectificar,
       Cancelar u Oponerte</strong> al uso de tus datos personales. Para ejercer estos derechos, escríbenos a
-      <a href="mailto:ventas@muebleswh.com">ventas@muebleswh.com</a> desde el correo registrado en tu cuenta.
+      <a href="mailto:<?= SITE_EMAIL ?>"><?= SITE_EMAIL ?></a> desde el correo registrado en tu cuenta.
       Responderemos en un plazo máximo de 20 días hábiles.
     </div>
   </div>
@@ -292,10 +293,10 @@ require_once dirname(__DIR__) . '/includes/assets.php';
 
 <!-- Footer -->
 <div class="footer">
-  <p>&copy; 2026 Wooden House · Guadalajara, Jalisco</p>
+  <p>&copy; <?= date('Y') ?> Wooden House · Guadalajara, Jalisco</p>
   <p style="margin-top:8px;">
-    <a href="mailto:ventas@muebleswh.com">ventas@muebleswh.com</a> &nbsp;|&nbsp;
-    <a href="tel:3317054017">33 1705 4017</a>
+    <a href="mailto:<?= SITE_EMAIL ?>"><?= SITE_EMAIL ?></a> &nbsp;|&nbsp;
+    <a href="tel:<?= sitePhoneDigits() ?>"><?= SITE_PHONE ?></a>
   </p>
 </div>
 

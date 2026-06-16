@@ -24,10 +24,10 @@ header('Content-Type: text/html; charset=utf-8');
     <title>Carrito – Wooden House</title>
     <meta name="description" content="Revisa tu carrito de compras en Wooden House. Elige tu método de entrega, fecha y completa tu pedido de muebles a medida.">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" crossorigin="anonymous">
-    <link rel="stylesheet" href="./assets/css/variables.css">
-    <link rel="stylesheet" href="./assets/css/carrito.css?v=4">
-    <link rel="stylesheet" href="./assets/css/animations.css">
-    <link rel="stylesheet" href="./assets/css/modal-auth.css?v=4">
+    <link rel="stylesheet" href="./assets/<?= av('css/variables.css') ?>">
+    <link rel="stylesheet" href="./assets/<?= av('css/carrito.css') ?>">
+    <link rel="stylesheet" href="./assets/<?= av('css/animations.css') ?>">
+    <link rel="stylesheet" href="./assets/<?= av('css/modal-auth.css') ?>">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous" defer></script>
 </head>
@@ -369,10 +369,10 @@ header('Content-Type: text/html; charset=utf-8');
 </div>
 
 <div class="footer">
-    <p>© 2026 Wooden House · Guadalajara, Jalisco</p>
+    <p>© <?= date('Y') ?> Wooden House · Guadalajara, Jalisco</p>
     <p style="margin-top:8px;font-size:14px;">
-        <a href="mailto:ventas@muebleswh.com" style="color:#8b7355">ventas@muebleswh.com</a> |
-        <a href="tel:3317054017" style="color:#8b7355">33 1705 4017</a>
+        <a href="mailto:<?= SITE_EMAIL ?>" style="color:#8b7355"><?= SITE_EMAIL ?></a> |
+        <a href="tel:<?= sitePhoneDigits() ?>" style="color:#8b7355"><?= SITE_PHONE ?></a>
     </p>
     <p style="margin-top:8px; font-size:12px;">
       <a href="/terminos" style="color:#8b7355; text-decoration:none;">Términos y Condiciones</a>

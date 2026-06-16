@@ -2,6 +2,7 @@
 // Wooden House — Seguimiento de solicitudes
 // =====================================================
 const API_URL = '/api';
+const siteEmail = document.body.dataset.siteEmail || 'ventas@muebleswh.com';
 
 document.addEventListener('DOMContentLoaded', function () {
   initCartBadge();
@@ -232,7 +233,7 @@ async function trackOrder() {
           </div>
           <div class="track-result-footer">
             <i class="fa-solid fa-envelope"></i>
-            ¿Dudas? Escríbenos a <a href="mailto:ventas@muebleswh.com">ventas@muebleswh.com</a>
+            ¿Dudas? Escríbenos a <a href="mailto:${siteEmail}">${siteEmail}</a>
           </div>
         </div>`;
       resultBox.style.display = 'block';

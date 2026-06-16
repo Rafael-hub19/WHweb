@@ -24,10 +24,10 @@ header('Content-Type: text/html; charset=utf-8');
   <title>Mi Cuenta – Wooden House</title>
   <meta name="description" content="Gestiona tu cuenta en Wooden House. Consulta tu historial de pedidos, cotizaciones y actualiza tus datos personales.">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" crossorigin="anonymous">
-  <link rel="stylesheet" href="./assets/css/variables.css">
-  <link rel="stylesheet" href="./assets/css/styles.css?v=4">
-  <link rel="stylesheet" href="./assets/css/modal-auth.css?v=4">
-  <link rel="stylesheet" href="./assets/css/mi-cuenta.css?v=2">
+  <link rel="stylesheet" href="./assets/<?= av('css/variables.css') ?>">
+  <link rel="stylesheet" href="./assets/<?= av('css/styles.css') ?>">
+  <link rel="stylesheet" href="./assets/<?= av('css/modal-auth.css') ?>">
+  <link rel="stylesheet" href="./assets/<?= av('css/mi-cuenta.css') ?>">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous" defer></script>
 </head>
@@ -177,10 +177,10 @@ header('Content-Type: text/html; charset=utf-8');
 </div>
 
 <div class="footer">
-  <p>© 2026 Wooden House · Guadalajara, Jalisco</p>
+  <p>© <?= date('Y') ?> Wooden House · Guadalajara, Jalisco</p>
   <p style="margin-top:8px;font-size:14px;">
-    <a href="mailto:ventas@muebleswh.com" style="color:var(--color-primary)">ventas@muebleswh.com</a> |
-    <a href="tel:3317054017" style="color:var(--color-primary)">33 1705 4017</a>
+    <a href="mailto:<?= SITE_EMAIL ?>" style="color:var(--color-primary)"><?= SITE_EMAIL ?></a> |
+    <a href="tel:<?= sitePhoneDigits() ?>" style="color:var(--color-primary)"><?= SITE_PHONE ?></a>
   </p>
   <p style="margin-top:8px; font-size:12px;">
     <a href="/terminos" style="color:var(--color-primary); text-decoration:none;">Términos y Condiciones</a>
