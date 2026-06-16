@@ -322,13 +322,26 @@ function refreshKpisFromPedidosTable(){
 }
 
 // ================== PEDIDOS: FILTROS ==================
+// Bug corregido: los botones usaban "pending"/"progress"/"completed" pero
+// el estado real es "pendiente"/"en_produccion"/etc. — nunca coincidían.
+const ESTADO_PEDIDO_CATEGORIA = {
+  pendiente:       'pending',
+  anticipo_pagado: 'pending',
+  pagado:          'progress',
+  en_produccion:   'progress',
+  listo:           'completed',
+  entregado:       'completed',
+  cancelado:       null, // solo visible en "Todos"
+};
 function filterTable(filter, ev){
   document.querySelectorAll('#pedidos-section .filter-btn').forEach(btn => btn.classList.remove('active'));
-  ev?.target?.classList?.add('active');
+  const btnActivo = ev?.target || document.querySelector(`#pedidos-section .filter-btn[data-filter="${filter}"]`);
+  btnActivo?.classList?.add('active');
 
   const rows = document.querySelectorAll('#pedidosTable tr');
   rows.forEach(row => {
-    row.style.display = (filter === 'all' || row.dataset.status === filter) ? '' : 'none';
+    const categoria = ESTADO_PEDIDO_CATEGORIA[row.dataset.status];
+    row.style.display = (filter === 'all' || categoria === filter) ? '' : 'none';
   });
 }
 
@@ -343,132 +356,6 @@ function fmtISOtoDMY(iso){
   if(!iso) return '—';
   const [y,m,d] = iso.split('-');
   return `${d}/${m}/${String(y).slice(-2)}`;
-}
-
-function timelineStageFromStatus(status){
-  if(status === 'pending') return 1;
-  if(status === 'progress') return 2;
-  if(status === 'install') return 3;
-  if(status === 'completed') return 4;
-  return 1;
-}
-
-function renderPedidoTimeline(stage){
-  const steps = [
-    { key:1, label:'Recibido' },
-    { key:2, label:'En proceso' },
-    { key:3, label:'Instalación' },
-    { key:4, label:'Completado' }
-  ];
-  const box = document.getElementById('pTimeline');
-  box.innerHTML = steps.map(s => {
-    const done = s.key < stage;
-    const active = s.key === stage;
-    return `
-      <div class="step ${done ? 'done' : ''} ${active ? 'active' : ''}">
-        <span class="dot"></span>
-        ${s.label}
-      </div>
-    `;
-  }).join('');
-}
-
-function viewPedidoFromRow(btn){
-  const tr = btn.closest('tr');
-  if(!tr) return;
-  currentPedidoRow = tr;
-
-  const id = tr.dataset.id;
-  const cliente = tr.dataset.cliente;
-  const producto = tr.dataset.producto;
-  const entrega = tr.dataset.entrega;
-  const total = tr.dataset.total;
-  const status = tr.dataset.status;
-
-  document.getElementById('pDetId').textContent = '#' + id;
-  document.getElementById('pDetCliente').textContent = cliente;
-  document.getElementById('pDetProducto').textContent = producto;
-  document.getElementById('pDetEntrega').textContent = fmtISOtoDMY(entrega);
-  document.getElementById('pDetTotal').textContent = fmtMoney(total);
-
-  renderPedidoTimeline(timelineStageFromStatus(status));
-  openModal('pedidoModal');
-}
-
-function openUpdateFromRow(btn){
-  const tr = btn.closest('tr');
-  if(!tr) return;
-  currentPedidoRow = tr;
-  openUpdateWithRow(tr);
-}
-
-function openUpdateFromPedidoModal(){
-  closeModal('empPedidoDetalleModal');
-  if(currentPedidoRow) openUpdateWithRow(currentPedidoRow);
-}
-
-function openUpdateWithRow(tr){
-  const id = tr.dataset.id;
-  const entrega = tr.dataset.entrega || '';
-  const status = tr.dataset.status || 'pendiente';
-
-  document.getElementById('uId').textContent = '#' + id;
-  document.getElementById('uEntrega').value = entrega;
-  document.getElementById('uNotas').value = '';
-  document.getElementById('uStatus').value = status;
-
-  openModal('updatePedidoModal');
-}
-
-function statusLabel(status){
-  const map = { pendiente:'Pendiente', pagado:'Pagado', en_produccion:'En Producción', listo:'Listo', entregado:'Entregado', cancelado:'Cancelado' };
-  return map[status] || status;
-}
-
-function statusBadgeClass(status){
-  if(status === 'pendiente')     return 'status-pending';
-  if(status === 'pagado')        return 'status-progress';
-  if(status === 'en_produccion') return 'status-progress';
-  if(status === 'listo')         return 'status-progress';
-  if(status === 'entregado')     return 'status-completed';
-  if(status === 'cancelado')     return 'status-disabled';
-  return 'status-pending';
-}
-
-async function applyPedidoUpdate(){
-  if(!currentPedidoRow) return;
-
-  const newStatus  = document.getElementById('uStatus').value;
-  const newEntrega = document.getElementById('uEntrega').value;
-  const notas      = document.getElementById('uNotas').value.trim();
-  const id         = currentPedidoRow.dataset.id;
-
-  closeModal('updatePedidoModal');
-
-  try {
-    const payload = { estado: newStatus };
-    if(newEntrega) payload.fecha_estimada = newEntrega;
-    if(notas)      payload.notas          = notas;
-
-    const data = await apiFetch(`${API_BASE}/pedidos.php?id=${id}`, {
-      method: 'PUT',
-      body: JSON.stringify(payload),
-    });
-
-    if(data.success){
-      showNotification('<i class="fa-solid fa-circle-check"></i> Pedido actualizado', 'success');
-      addActivity(`<i class="fa-solid fa-box"></i> Pedido #${id} actualizado`, `Estado: ${statusLabel(newStatus)}`);
-      pushNotif(`Pedido #${id} actualizado`, `Estado: ${statusLabel(newStatus)}`);
-      cargarPedidosEmpleadoAPI();
-    } else {
-      showNotification('<i class="fa-solid fa-circle-xmark"></i> ' + (data.error || 'Error al guardar'), 'error');
-    }
-  } catch(e) {
-    showNotification('<i class="fa-solid fa-circle-xmark"></i> Error de conexión', 'error');
-  }
-
-  refreshKpisFromPedidosTable();
-  renderActivity();
 }
 
 // ================== INVENTARIO ==================
@@ -1055,6 +942,25 @@ async function logout() {
 }
 
 // ── Pedidos ───────────────────────────────────────────────────
+// ── Máquina de estados estricta (espejo de api/pedidos.php) ──────
+// El empleado no puede cancelar pedidos — esa transición es solo para admin.
+const ESTADO_PEDIDO_LABELS = { pendiente:'Pendiente', anticipo_pagado:'Anticipo pagado', pagado:'Pagado', en_produccion:'En Producción', listo:'Listo', entregado:'Entregado', cancelado:'Cancelado' };
+const ESTADO_PEDIDO_CLASS  = { pendiente:'status-pending', anticipo_pagado:'status-pending', pagado:'status-progress', en_produccion:'status-progress', listo:'status-info', entregado:'status-completed', cancelado:'status-disabled' };
+function estadosSiguientesPedidoEmp(estadoActual, montoPagado) {
+  const transiciones = {
+    pendiente:       [],
+    anticipo_pagado: ['en_produccion'],
+    pagado:          ['en_produccion'],
+    en_produccion:   ['listo'],
+    listo:           ['entregado'],
+    entregado:       [],
+    cancelado:       [],
+  };
+  let opciones = transiciones[estadoActual] || [];
+  if (!((montoPagado || 0) > 0)) opciones = opciones.filter(s => s !== 'en_produccion');
+  return opciones;
+}
+
 async function cargarPedidosEmpleadoAPI() {
   const tbody = document.getElementById('pedidosTable');
   if (!tbody) return;
@@ -1062,34 +968,65 @@ async function cargarPedidosEmpleadoAPI() {
     const data = await apiFetch(`${API_BASE}/pedidos.php?limit=30`);
     if (!data.success) return;
 
-    const labMap = { pendiente:'Pendiente', anticipo_pagado:'Anticipo pagado', pagado:'Pagado', en_produccion:'En Producción', listo:'Listo', entregado:'Entregado', cancelado:'Cancelado' };
-    const clsMap = { pendiente:'status-pending', anticipo_pagado:'status-pending', pagado:'status-progress', en_produccion:'status-progress', listo:'status-info', entregado:'status-completed', cancelado:'status-disabled' };
-
-    tbody.innerHTML = (data.pedidos || []).map(p => `
+    tbody.innerHTML = (data.pedidos || []).map(p => {
+      const siguientes = estadosSiguientesPedidoEmp(p.estado, p.monto_pagado);
+      const opciones = [p.estado, ...siguientes];
+      return `
       <tr data-status="${p.estado}" data-id="${p.id}" data-entrega="${p.fecha_estimada||''}">
         <td>${p.numero_pedido}</td>
         <td>${escapeHtml(p.nombre_cliente)}${p.cliente_id?` <span class="status-badge status-active" style="font-size:10px;padding:2px 8px;" title="Cliente registrado #${p.cliente_id}"><i class="fa-solid fa-user-check"></i> #${p.cliente_id}</span>`:''}</td>
         <td>${p.correo_cliente}</td>
         <td>${p.fecha_estimada || '—'}</td>
-        <td><span class="status-badge ${clsMap[p.estado] || ''}">${labMap[p.estado] || p.estado}</span></td>
+        <td><span class="status-badge ${ESTADO_PEDIDO_CLASS[p.estado] || ''}">${ESTADO_PEDIDO_LABELS[p.estado] || p.estado}</span></td>
         <td style="color:var(--accent);font-weight:800;">$${parseFloat(p.total||0).toLocaleString('es-MX')}</td>
         <td style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
           <button data-call="verDetallePedidoEmp" data-args="[${p.id}]" style="background:var(--accent);color:#fff;border:none;padding:5px 12px;border-radius:4px;cursor:pointer;font-size:12px;white-space:nowrap;flex-shrink:0;">
             <i class="fa-solid fa-eye"></i> Ver
           </button>
-          <select class="form-select" style="width:120px;font-size:12px;" data-onchange="actualizarEstadoPedidoEmp" data-id="${p.id}">
-            ${['pendiente','anticipo_pagado','pagado','en_produccion','listo','entregado'].map(s =>
-              `<option value="${s}" ${s===p.estado?'selected':''}>${labMap[s]}</option>`
+          <select class="form-select" style="width:120px;font-size:12px;" data-onchange="actualizarEstadoPedidoEmp" data-id="${p.id}" ${siguientes.length===0?'disabled':''}>
+            ${opciones.map(s =>
+              `<option value="${s}" ${s===p.estado?'selected':''}>${ESTADO_PEDIDO_LABELS[s]||s}</option>`
             ).join('')}
           </select>
         </td>
       </tr>
-    `).join('');
+    `;
+    }).join('');
+
+    // La tabla se reconstruye por completo — reaplicar el filtro que estaba activo
+    const filtroActivo = document.querySelector('#pedidos-section .filter-btn.active')?.dataset.filter || 'all';
+    filterTable(filtroActivo);
   } catch(e) { console.error('Pedidos API error:', e); }
 }
 
 async function actualizarEstadoPedidoEmp(id, estado) {
   try {
+    // Al entregar un pedido con anticipo y saldo pendiente, resolver el cobro
+    // del saldo en el mismo paso — evita el doble clic (entregado + pagado).
+    if (estado === 'entregado') {
+      const detalle = await apiFetch(`${API_BASE}/pedidos.php?id=${id}`);
+      const p = detalle?.pedido;
+      if (p && p.tipo_pago === 'anticipo') {
+        const saldo = Math.max(0, (p.total || 0) - (p.monto_pagado || 0));
+        if (saldo > 0.009) {
+          const cobrado = confirm(`Este pedido tiene un saldo pendiente de $${saldo.toLocaleString('es-MX')} (anticipo). ¿Se cobró el saldo al momento de la entrega?`);
+          if (cobrado) {
+            const r = await apiFetch(`${API_BASE}/pagos.php?action=marcar_saldo_manual`, {
+              method: 'POST', body: JSON.stringify({ pedido_id: id }),
+            });
+            if (!r.success) {
+              showNotification('<i class="fa-solid fa-circle-xmark"></i> ' + (r.error || 'Error al registrar el saldo'), 'error');
+              cargarPedidosEmpleadoAPI(); // restaura el <select> a su valor real, el cambio no se aplicó
+              return;
+            }
+          } else if (!confirm('¿Marcar como entregado de todas formas? El saldo seguirá pendiente.')) {
+            cargarPedidosEmpleadoAPI(); // restaura el <select> — el usuario canceló, no se aplicó nada
+            return;
+          }
+        }
+      }
+    }
+
     const data = await apiFetch(`${API_BASE}/pedidos.php?id=${id}`, {
       method: 'PUT',
       body: JSON.stringify({ estado }),
@@ -1097,6 +1034,7 @@ async function actualizarEstadoPedidoEmp(id, estado) {
     if (data.success) {
       showNotification('<i class="fa-solid fa-circle-check"></i> Estado actualizado', 'success');
       cargarPedidosEmpleadoAPI();
+      if (window._empPedId === id) verDetallePedidoEmp(id);
     } else {
       showNotification('<i class="fa-solid fa-circle-xmark"></i> ' + (data.error || 'Error'), 'error');
     }
@@ -1192,6 +1130,7 @@ async function verDetallePedidoEmp(id) {
   const folio = document.getElementById('emp_ped_folio');
   openModal('empPedidoDetalleModal');
   body.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted);"><i class="fa-solid fa-spinner fa-spin fa-2x"></i></div>';
+  window._empPedId = id;
 
   const tr = document.querySelector(`tr[data-id="${id}"]`);
   if (tr) currentPedidoRow = tr;
@@ -1257,16 +1196,19 @@ async function verDetallePedidoEmp(id) {
         </div>`).join('')
       : '<p style="color:var(--muted);font-style:italic;font-size:12px;padding:6px 0;">Sin pagos registrados</p>';
 
-    const saldoPendiente = p.tipo_pago === 'anticipo' ? Math.max(0, (p.total||0) - (p.monto_pagado||0)) : 0;
-    const saldoHtml = p.tipo_pago === 'anticipo'
+    const esAnticipo     = p.tipo_pago === 'anticipo';
+    const saldoPendiente = Math.max(0, (p.total||0) - (p.monto_pagado||0));
+    const saldoHtml = saldoPendiente > 0.009
       ? `<div style="background:var(--bg);border-left:3px solid #c9a96e;border-radius:6px;padding:12px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
           <div>
-            <div style="font-weight:700;color:#c9a96e;margin-bottom:4px;font-size:11px;text-transform:uppercase;letter-spacing:.8px;">Anticipo (50%)</div>
-            <div style="font-size:12px;color:var(--muted2);">Pagado: <strong>${money(p.monto_pagado||0)}</strong>${saldoPendiente>0?` · Saldo pendiente: <strong style="color:#c9a96e;">${money(saldoPendiente)}</strong>`:' · <strong style="color:var(--ok);">Liquidado</strong>'}</div>
+            <div style="font-weight:700;color:#c9a96e;margin-bottom:4px;font-size:11px;text-transform:uppercase;letter-spacing:.8px;">${esAnticipo ? 'Anticipo (50%)' : 'Pago pendiente'}</div>
+            <div style="font-size:12px;color:var(--muted2);">Pagado: <strong>${money(p.monto_pagado||0)}</strong> · Saldo pendiente: <strong style="color:#c9a96e;">${money(saldoPendiente)}</strong></div>
           </div>
-          ${saldoPendiente>0?`<button class="btn btn-secondary btn-small" data-call="marcarSaldoManualEmp" data-args="[${id}]"><i class="fa-solid fa-hand-holding-dollar"></i> Marcar saldo pagado</button>`:''}
+          <button class="btn btn-secondary btn-small" data-call="marcarSaldoManualEmp" data-args="[${id}]"><i class="fa-solid fa-hand-holding-dollar"></i> ${p.monto_pagado>0?'Marcar saldo pagado':'Marcar como pagado'}</button>
         </div>`
-      : '';
+      : (esAnticipo ? `<div style="background:var(--bg);border-left:3px solid var(--ok);border-radius:6px;padding:12px;margin-bottom:14px;">
+          <div style="font-weight:700;color:var(--ok);font-size:12px;"><i class="fa-solid fa-circle-check"></i> Anticipo y saldo liquidados</div>
+        </div>` : '');
 
     body.innerHTML = `
       <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px;margin-bottom:18px;">
@@ -1298,9 +1240,23 @@ async function verDetallePedidoEmp(id) {
         ${itemsHtml}
       </div>
 
-      <div>
+      <div style="margin-bottom:14px;">
         <div style="font-weight:700;color:var(--accent);margin-bottom:6px;font-size:11px;text-transform:uppercase;letter-spacing:.8px;">Historial de Pagos</div>
         ${pagosHtml}
+      </div>
+
+      <div style="padding-top:14px;border-top:1px solid var(--border);">
+        <div style="font-weight:700;color:var(--accent);margin-bottom:8px;font-size:11px;text-transform:uppercase;letter-spacing:.8px;">Cambiar Estado</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
+          <span class="status-badge ${cls}" style="opacity:1;">${label} (actual)</span>
+          ${estadosSiguientesPedidoEmp(est, p.monto_pagado).map(s=>{
+            const l2=estadoLabels[s]||s;
+            const c2=estadoClass[s]||'status-pending';
+            return `<button data-emp-ped-estado="${s}"
+              class="status-badge ${c2}" style="cursor:pointer;border:none;opacity:0.85;">→ ${l2}</button>`;
+          }).join('') || '<span style="color:var(--muted);font-size:12px;">Estado final — sin más transiciones</span>'}
+        </div>
+        ${est==='pendiente' && (p.monto_pagado||0)<=0 ? '<p style="color:var(--muted);font-size:11px;margin-top:8px;"><i class="fa-solid fa-circle-info"></i> No se puede iniciar producción sin registrar al menos el anticipo o pago.</p>' : ''}
       </div>
     `;
   } catch(e) {

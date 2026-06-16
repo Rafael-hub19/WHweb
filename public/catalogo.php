@@ -41,6 +41,21 @@
   <div class="container">
     <h1 class="page-title">Catálogo de Muebles de Madera</h1>
 
+    <div class="catalog-main-categories" id="categoriasMain">
+      <button class="main-cat-btn active" data-main-cat="banos">
+        <i class="fa-solid fa-bath"></i>
+        <span>Baños</span>
+      </button>
+      <button class="main-cat-btn" data-main-cat="cocinas">
+        <i class="fa-solid fa-utensils"></i>
+        <span>Cocinas</span>
+      </button>
+      <button class="main-cat-btn" data-main-cat="closets">
+        <i class="fa-solid fa-shirt"></i>
+        <span>Closets</span>
+      </button>
+    </div>
+
     <div class="d-flex flex-wrap gap-4 align-items-center justify-content-between catalog-header">
       <div class="search-bar">
         <input type="text" id="buscar-producto" placeholder="Buscar por nombre, características...">

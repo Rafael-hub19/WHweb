@@ -32,8 +32,20 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 });
 
+// ── Ajusta el header/pasos cuando se llega a pagar un saldo (no viene del carrito) ──
+function ajustarUIParaModoSaldo() {
+  const link      = document.getElementById('linkRegresar');
+  const linkTexto = document.getElementById('linkRegresarTexto');
+  if (link)      link.setAttribute('href', '/seguimiento');
+  if (linkTexto) linkTexto.textContent = 'Regresar a seguimiento';
+
+  const steps = document.getElementById('stepsIndicator');
+  if (steps) steps.style.display = 'none';
+}
+
 // ── Resumen: pagar el saldo pendiente de un pedido existente ──────
 async function cargarResumenSaldo(numeroPedido) {
+  ajustarUIParaModoSaldo();
   try {
     const res  = await fetch(`${API_BASE}/pedidos.php?numero=${encodeURIComponent(numeroPedido)}`);
     const data = await res.json();
@@ -133,12 +145,20 @@ function cargarResumen() {
 
   if (checkout.tipo_pago === 'anticipo') {
     const montoAnticipo = Math.round(total * 0.5 * 100) / 100;
+    const saldoPendiente = total - montoAnticipo;
+
     const banner = document.getElementById('tipoPagoBanner');
     if (banner) {
       banner.style.display = 'block';
       banner.innerHTML = `<i class="fa-solid fa-circle-info"></i> Pagando anticipo del 50% — `
-        + `Pagas ahora: <strong>${formatCurrency(montoAnticipo)}</strong> · Saldo pendiente: ${formatCurrency(total - montoAnticipo)}`;
+        + `Pagas ahora: <strong>${formatCurrency(montoAnticipo)}</strong> · Saldo pendiente: ${formatCurrency(saldoPendiente)}`;
     }
+
+    // Reflejar el anticipo también en el resumen del pedido, no solo en el banner
+    document.getElementById('lineaAnticipoPago').style.display = 'flex';
+    document.getElementById('lineaSaldoPago').style.display    = 'flex';
+    setText('montoAnticipoPago', formatCurrency(montoAnticipo));
+    setText('montoSaldoPago',    formatCurrency(saldoPendiente));
   }
 
   const itemsEl = document.getElementById('cart-items-summary');

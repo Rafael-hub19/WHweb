@@ -281,6 +281,55 @@
 
     .empty-state i { font-size: 48px; color: #4a4a4a; margin-bottom: 16px; }
 
+    /* === CATEGORÍAS PRINCIPALES (Baños / Cocinas / Closets) === */
+    .catalog-main-categories {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+      margin-bottom: 22px;
+    }
+
+    .main-cat-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      flex: 1 1 180px;
+      padding: 16px 24px;
+      background: #2d2d2d;
+      border: 2px solid #3d3d3d;
+      border-radius: 14px;
+      color: #e0e0e0;
+      cursor: pointer;
+      transition: all 0.25s;
+      font-weight: 700;
+      font-size: 16px;
+    }
+
+    .main-cat-btn i { font-size: 19px; color: #8b7355; transition: color 0.25s; }
+
+    .main-cat-btn:hover {
+      border-color: #8b7355;
+      transform: translateY(-2px);
+    }
+
+    .main-cat-btn.active {
+      background: #8b7355;
+      border-color: #8b7355;
+      color: #fff;
+      box-shadow: 0 6px 20px rgba(139,115,85,0.35);
+    }
+
+    .main-cat-btn.active i { color: #fff; }
+
+    @media (hover: none) {
+      .main-cat-btn:hover { transform: none; }
+    }
+
+    @media (max-width: 600px) {
+      .main-cat-btn { flex: 1 1 100%; padding: 13px 18px; font-size: 15px; }
+    }
+
     .filter-btn {
       padding: 12px 14px;
       background: #2d2d2d;

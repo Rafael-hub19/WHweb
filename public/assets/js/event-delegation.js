@@ -67,11 +67,11 @@
       return;
     }
 
-    // [data-cat-demo] → mostrarCategoriaDemo() — vista previa sin backend (Cocinas/Closets)
-    t = e.target.closest('[data-cat-demo]');
+    // [data-main-cat] → seleccionarCategoriaPrincipal() — Baños / Cocinas / Closets
+    t = e.target.closest('[data-main-cat]');
     if (t) {
-      if (typeof window.mostrarCategoriaDemo === 'function') {
-        window.mostrarCategoriaDemo(t.dataset.catDemo, t);
+      if (typeof window.seleccionarCategoriaPrincipal === 'function') {
+        window.seleccionarCategoriaPrincipal(t.dataset.mainCat, t);
       }
       return;
     }
@@ -174,13 +174,23 @@
     }
 
     // Admin: botones de cambio de estado de pedido en modal detalle
+    // (actualizarEstadoPedido ya se encarga de confirmar saldo, refrescar la
+    // tabla y refrescar este mismo modal — no cerrar/refrescar aquí, o la
+    // confirmación de saldo aparecería después de que el modal ya se cerró)
     t = e.target.closest('[data-admin-ped-estado]');
     if (t) {
       if (typeof window.actualizarEstadoPedido === 'function') {
         window.actualizarEstadoPedido(window._admPedId, t.dataset.adminPedEstado);
       }
-      if (typeof window.closeModal === 'function') window.closeModal('adminPedidoDetalleModal');
-      if (typeof window.cargarPedidosAPI === 'function') window.cargarPedidosAPI();
+      return;
+    }
+
+    // Empleado: botones de cambio de estado de pedido en modal detalle
+    t = e.target.closest('[data-emp-ped-estado]');
+    if (t) {
+      if (typeof window.actualizarEstadoPedidoEmp === 'function') {
+        window.actualizarEstadoPedidoEmp(window._empPedId, t.dataset.empPedEstado);
+      }
       return;
     }
 

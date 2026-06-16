@@ -16,25 +16,38 @@ function montoPendienteAPagar(array $pedido): float {
     return round(max(0, $total - $montoPagado), 2);
 }
 
-// Acumula un pago aprobado en el pedido y avanza su estado.
-// Si el pedido queda completamente liquidado tras venir de 'anticipo_pagado',
-// notifica el cambio de estado (dispara el correo de saldo liquidado).
+// Acumula un pago aprobado en el pedido. Si el pedido todavía está en fase de
+// pago (pendiente/anticipo_pagado/pagado), avanza el estado automáticamente.
+// Si producción ya avanzó (en_produccion/listo/entregado), NO se debe regresar
+// el estado — solo se actualiza monto_pagado, conservando el progreso real.
 function registrarPagoAprobado(int $pedidoId, float $montoPago): void {
     $pedido = dbRow("SELECT total, monto_pagado, estado, tipo_pago FROM pedidos WHERE id = ?", [$pedidoId]);
     if (!$pedido) return;
 
-    $estadoPrevio     = $pedido['estado'];
-    $total            = (float)$pedido['total'];
-    $nuevoMontoPagado = round((float)$pedido['monto_pagado'] + $montoPago, 2);
-    $liquidado        = $nuevoMontoPagado >= ($total - 0.01);
-    $nuevoEstado      = $liquidado ? 'pagado' : 'anticipo_pagado';
+    $estadoPrevio      = $pedido['estado'];
+    $montoPagadoPrevio = (float)$pedido['monto_pagado'];
+    $total             = (float)$pedido['total'];
+    $nuevoMontoPagado  = round($montoPagadoPrevio + $montoPago, 2);
+    $liquidado         = $nuevoMontoPagado >= ($total - 0.01);
+    // Es liquidación de saldo (no el primer pago) si ya había algo pagado antes.
+    $esLiquidacionSaldo = $liquidado && $montoPagadoPrevio > 0.009;
 
-    dbUpdate('pedidos', ['monto_pagado' => $nuevoMontoPagado, 'estado' => $nuevoEstado], 'id = ?', [$pedidoId]);
+    $datosUpdate = ['monto_pagado' => $nuevoMontoPagado];
+    $estadosFasePago = ['pendiente', 'anticipo_pagado', 'pagado'];
+    if (in_array($estadoPrevio, $estadosFasePago, true)) {
+        $datosUpdate['estado'] = $liquidado ? 'pagado' : 'anticipo_pagado';
+    }
+    dbUpdate('pedidos', $datosUpdate, 'id = ?', [$pedidoId]);
 
-    if ($liquidado && $estadoPrevio === 'anticipo_pagado') {
+    if ($esLiquidacionSaldo) {
         try {
             $pedidoActualizado = dbRow("SELECT * FROM pedidos WHERE id = ?", [$pedidoId]);
-            if ($pedidoActualizado) notificarCambioPedido($pedidoActualizado, 'anticipo_pagado');
+            if ($pedidoActualizado) {
+                // Para el correo: indica que el saldo quedó liquidado, sin alterar
+                // el estado real de fulfillment ya guardado en la base de datos.
+                $pedidoActualizado['estado'] = 'pagado';
+                notificarCambioPedido($pedidoActualizado, 'anticipo_pagado');
+            }
         } catch (Exception $e) {
             appLog('warning', 'Notif saldo liquidado error', ['error' => $e->getMessage()]);
         }

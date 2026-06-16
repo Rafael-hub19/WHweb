@@ -329,9 +329,6 @@ unset($_usuario);
       </div>
       <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end;padding:12px 0 0;margin-top:4px;border-top:1px solid var(--border);">
         <button class="btn btn-secondary" data-dismiss="empPedidoDetalleModal">Cerrar</button>
-        <button class="btn btn-primary" data-call="openUpdateFromPedidoModal">
-          <i class="fa-solid fa-pen"></i> Actualizar Estado
-        </button>
       </div>
     </div>
   </div>
@@ -379,39 +376,6 @@ unset($_usuario);
         </div>
         <button class="btn btn-secondary" data-dismiss="empCotDetalleModal">Cerrar</button>
       </div>
-    </div>
-  </div>
-
-  <!-- MODAL: Actualizar Pedido -->
-  <div class="modal" id="updatePedidoModal">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h3 class="modal-title">Actualizar Pedido <span id="uId" style="color:var(--muted2); font-weight:900;"></span></h3>
-        <button class="modal-close" data-dismiss="updatePedidoModal">×</button>
-      </div>
-
-      <div class="form-group">
-        <label class="form-label">Estado</label>
-        <select class=”form-select” id=”uStatus”>
-          <option value=”pendiente”>Pendiente</option>
-          <option value=”en_produccion”>En Producción</option>
-          <option value=”listo”>Listo para entrega</option>
-          <option value=”entregado”>Entregado</option>
-          <option value=”cancelado”>Cancelado</option>
-        </select>
-      </div>
-
-      <div class="form-group">
-        <label class="form-label">Fecha de entrega</label>
-        <input type="date" class="form-input" id="uEntrega">
-      </div>
-
-      <div class="form-group">
-        <label class="form-label">Notas (opcional)</label>
-        <textarea class="form-textarea" id="uNotas" placeholder="Ej: Cliente pidió cambio de horario / material..."></textarea>
-      </div>
-
-      <button class="btn btn-primary" style="width:100%;" data-call="applyPedidoUpdate">Guardar cambios</button>
     </div>
   </div>
 

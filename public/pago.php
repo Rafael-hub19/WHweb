@@ -64,12 +64,12 @@ if (!$paypalId)  error_log('[pago.php] PAYPAL_CLIENT_ID vacío o no definido');
     <a href="/inicio" class="logo" style="text-decoration:none;">
       <img src="/assets/img/logo-header.png" alt="Wooden House" style="height:80px;">
     </a>
-    <a href="/carrito" style="color:#a0a0a0;text-decoration:none;font-size:14px;display:flex;align-items:center;gap:6px;">
-      <i class="fa-solid fa-arrow-left"></i> Regresar al carrito
+    <a href="/carrito" id="linkRegresar" style="color:#a0a0a0;text-decoration:none;font-size:14px;display:flex;align-items:center;gap:6px;">
+      <i class="fa-solid fa-arrow-left"></i> <span id="linkRegresarTexto">Regresar al carrito</span>
     </a>
   </div>
 
-  <div class="steps-indicator">
+  <div class="steps-indicator" id="stepsIndicator">
     <div class="step completed">
       <div class="step-number"><i class="fa-solid fa-check"></i></div><span>Carrito</span>
     </div>
@@ -170,6 +170,8 @@ if (!$paypalId)  error_log('[pago.php] PAYPAL_CLIENT_ID vacío o no definido');
           <div class="total-row" id="installationLine" style="display:none;"><span>Instalación</span><span id="installationDisplay">$0</span></div>
           <div class="total-row" id="discountLine" style="display:none;"><span>Descuento</span><span id="discountDisplay">-$0</span></div>
           <div class="total-row total-final"><span><strong>TOTAL</strong></span><span id="totalDisplay"><strong>$0</strong></span></div>
+          <div class="total-row" id="lineaAnticipoPago" style="display:none;"><span>Anticipo (50%)</span><span id="montoAnticipoPago">$0</span></div>
+          <div class="total-row" id="lineaSaldoPago" style="display:none;"><span>Saldo pendiente</span><span id="montoSaldoPago">$0</span></div>
         </div>
       </div>
     </div>

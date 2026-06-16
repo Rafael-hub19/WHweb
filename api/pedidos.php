@@ -88,7 +88,7 @@ switch ($method) {
         $params[] = $limit; $params[] = $offset;
         $pedidos = dbRows(
             "SELECT id, numero_pedido, nombre_cliente, correo_cliente, telefono_cliente,
-                    tipo_entrega, estado, total, fecha_estimada, fecha_creacion
+                    tipo_entrega, estado, total, tipo_pago, monto_pagado, fecha_estimada, fecha_creacion
              FROM pedidos $whereStr ORDER BY fecha_creacion DESC LIMIT ? OFFSET ?",
             $params
         );
@@ -263,17 +263,46 @@ switch ($method) {
         break;
 
     case 'PUT':
-        requerirEmpleado();
+        $usuarioActual = requerirEmpleado();
         if (!$id) jsonError('ID requerido', 400);
         $pedido = dbRow("SELECT * FROM pedidos WHERE id = ?", [$id]);
         if (!$pedido) jsonError('Pedido no encontrado', 404);
 
         $body   = getJsonBody();
         $update = [];
-        $estadiosValidos = ['pendiente', 'anticipo_pagado', 'pagado', 'en_produccion', 'listo', 'entregado', 'cancelado'];
 
+        // ── Máquina de estados estricta ────────────────────────────
+        // 'pagado'/'anticipo_pagado' NUNCA se asignan manualmente aquí — solo
+        // los produce un pago real (Stripe/PayPal/manual) vía api/pagos.php.
         if (isset($body['estado'])) {
-            if (!in_array($body['estado'], $estadiosValidos)) jsonError('Estado inválido', 422);
+            // Validar contra una whitelist ANTES de reflejar el valor en cualquier
+            // mensaje de error — nunca interpolar input crudo del cliente sin filtrar.
+            $estadosConocidos = ['pendiente','anticipo_pagado','pagado','en_produccion','listo','entregado','cancelado'];
+            if (!is_string($body['estado']) || !in_array($body['estado'], $estadosConocidos, true)) {
+                jsonError('Estado inválido', 422);
+            }
+            // Cancelar es exclusivo de administrador — un empleado no debe
+            // poder hacerlo ni siquiera llamando la API directamente.
+            if ($body['estado'] === 'cancelado' && $usuarioActual['rol'] !== 'administrador') {
+                jsonError('Solo un administrador puede cancelar pedidos', 403);
+            }
+            $estadoActual = $pedido['estado'];
+            $transicionesValidas = [
+                'pendiente'       => ['cancelado'],
+                'anticipo_pagado' => ['en_produccion', 'cancelado'],
+                'pagado'          => ['en_produccion', 'cancelado'],
+                'en_produccion'   => ['listo', 'cancelado'],
+                'listo'           => ['entregado', 'cancelado'],
+                'entregado'       => [],
+                'cancelado'       => [],
+            ];
+            $permitidos = $transicionesValidas[$estadoActual] ?? [];
+            if (!in_array($body['estado'], $permitidos, true)) {
+                jsonError("No se puede cambiar de '$estadoActual' a '{$body['estado']}'", 422);
+            }
+            if ($body['estado'] === 'en_produccion' && (float)($pedido['monto_pagado'] ?? 0) <= 0) {
+                jsonError('No se puede iniciar producción sin al menos el anticipo o pago registrado', 422);
+            }
             $update['estado'] = $body['estado'];
         }
         if (isset($body['fecha_estimada'])) $update['fecha_estimada'] = $body['fecha_estimada'];

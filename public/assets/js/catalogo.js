@@ -73,15 +73,28 @@ function renderCategorias() {
     ${state.categorias.map(cat => `
       <button class="filter-btn" data-cat-filter="${cat.id}">${escHtml(cat.nombre)}</button>
     `).join('')}
-    <button class="filter-btn" data-cat-demo="Cocinas"><i class="fa-solid fa-kitchen-set"></i> Cocinas</button>
-    <button class="filter-btn" data-cat-demo="Closets"><i class="fa-solid fa-door-closed"></i> Closets</button>
   `;
 }
 
-// ---- DEMO: vista previa de "Cocinas"/"Closets" (sin backend todavía) ----
-function mostrarCategoriaDemo(nombre, btnEl) {
-  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+// ---- Categorías principales: Baños / Cocinas / Closets ----
+// "Baños" usa el catálogo real. Cocinas y Closets son vista previa (sin backend todavía).
+function seleccionarCategoriaPrincipal(cat, btnEl) {
+  document.querySelectorAll('.main-cat-btn').forEach(b => b.classList.remove('active'));
   if (btnEl) btnEl.classList.add('active');
+
+  const headerFiltros = document.querySelector('.catalog-header');
+
+  if (cat === 'banos') {
+    if (headerFiltros) headerFiltros.style.display = '';
+    state.filtro.categoria = null;
+    document.querySelectorAll('#categorias-filtro .filter-btn').forEach(b => b.classList.remove('active'));
+    document.querySelector('#categorias-filtro .filter-btn[data-cat-filter=""]')?.classList.add('active');
+    cargarProductos(true);
+    return;
+  }
+
+  if (headerFiltros) headerFiltros.style.display = 'none';
+  const nombre = cat === 'cocinas' ? 'Cocinas' : 'Closets';
 
   const grid = document.getElementById('productos-grid');
   if (grid) {
@@ -222,6 +235,11 @@ function filtrarPorCategoria(catId, btnEl) {
   state.filtro.categoria = catId;
   document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
   if (btnEl) btnEl.classList.add('active');
+
+  // Las categorías reales actuales son todas de baños — mantiene sincronizado el botón principal
+  document.querySelectorAll('.main-cat-btn').forEach(b => b.classList.remove('active'));
+  document.querySelector('.main-cat-btn[data-main-cat="banos"]')?.classList.add('active');
+
   cargarProductos(true);
 }
 
@@ -333,7 +351,7 @@ function showToast(msg, type = 'success') {
 
 // Exponer globales
 window.filtrarPorCategoria = filtrarPorCategoria;
-window.mostrarCategoriaDemo = mostrarCategoriaDemo;
+window.seleccionarCategoriaPrincipal = seleccionarCategoriaPrincipal;
 window.limpiarFiltros = limpiarFiltros;
 window.agregarAlCarrito = agregarAlCarrito;
 window.agregarAlCarritoBtn = agregarAlCarritoBtn;
