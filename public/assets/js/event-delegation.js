@@ -67,6 +67,15 @@
       return;
     }
 
+    // [data-cat-demo] → mostrarCategoriaDemo() — vista previa sin backend (Cocinas/Closets)
+    t = e.target.closest('[data-cat-demo]');
+    if (t) {
+      if (typeof window.mostrarCategoriaDemo === 'function') {
+        window.mostrarCategoriaDemo(t.dataset.catDemo, t);
+      }
+      return;
+    }
+
     // .faq-item → toggleFAQ()
     t = e.target.closest('.faq-item');
     if (t) {

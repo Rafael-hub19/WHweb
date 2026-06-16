@@ -46,7 +46,7 @@
     <h2><i class="fa-solid fa-building"></i> 1. Datos de la empresa</h2>
     <p>
       <strong>Wooden House</strong> es una empresa mexicana dedicada a la fabricación y comercialización
-      de muebles de madera y baño a medida, con domicilio en Guadalajara, Jalisco.
+      de muebles de madera a medida — cocinas integrales, clósets y muebles de baño —, con domicilio en Guadalajara, Jalisco.
     </p>
     <p>Contacto: <a href="mailto:ventas@muebleswh.com">ventas@muebleswh.com</a> &nbsp;|&nbsp; <a href="tel:3317054017">33 1705 4017</a></p>
   </div>

@@ -338,11 +338,11 @@ header('Content-Type: text/html; charset=utf-8');
                 <span id="totalFinal">$0</span>
             </div>
             <div class="summary-item" id="lineaAnticipo" style="display:none">
-                <span><i class="fa-solid fa-circle-info" style="color:#8b7355;"></i> Pagas ahora (anticipo 50%)</span>
+                <span><i class="fa-solid fa-circle-info" style="color:#8b7355;"></i> Anticipo (50%)</span>
                 <span id="montoAnticipo">$0</span>
             </div>
             <div class="summary-item" id="lineaSaldoPendiente" style="display:none">
-                <span>Saldo pendiente (después)</span>
+                <span>Saldo pendiente</span>
                 <span id="montoSaldoPendiente">$0</span>
             </div>
 

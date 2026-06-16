@@ -73,7 +73,31 @@ function renderCategorias() {
     ${state.categorias.map(cat => `
       <button class="filter-btn" data-cat-filter="${cat.id}">${escHtml(cat.nombre)}</button>
     `).join('')}
+    <button class="filter-btn" data-cat-demo="Cocinas"><i class="fa-solid fa-kitchen-set"></i> Cocinas</button>
+    <button class="filter-btn" data-cat-demo="Closets"><i class="fa-solid fa-door-closed"></i> Closets</button>
   `;
+}
+
+// ---- DEMO: vista previa de "Cocinas"/"Closets" (sin backend todavía) ----
+function mostrarCategoriaDemo(nombre, btnEl) {
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  if (btnEl) btnEl.classList.add('active');
+
+  const grid = document.getElementById('productos-grid');
+  if (grid) {
+    grid.innerHTML = `
+      <div class="no-productos" style="grid-column:1/-1; text-align:center; padding:50px 20px;">
+        <i class="fa-solid fa-hammer" style="font-size:32px;color:#8b7355;margin-bottom:14px;display:block;"></i>
+        <p style="font-size:18px;font-weight:600;color:#e0e0e0;">¡Línea de ${escHtml(nombre)} próximamente!</p>
+        <p style="color:#a0a0a0;margin-top:6px;">Estamos preparando nuestro catálogo de ${escHtml(nombre.toLowerCase())} a la medida. Vuelve pronto.</p>
+      </div>`;
+  }
+
+  const contador = document.getElementById('productos-count');
+  if (contador) contador.textContent = 'Próximamente';
+
+  const paginacion = document.getElementById('paginacion-container');
+  if (paginacion) paginacion.innerHTML = '';
 }
 
 // ---- Cargar productos desde API ----
@@ -309,6 +333,7 @@ function showToast(msg, type = 'success') {
 
 // Exponer globales
 window.filtrarPorCategoria = filtrarPorCategoria;
+window.mostrarCategoriaDemo = mostrarCategoriaDemo;
 window.limpiarFiltros = limpiarFiltros;
 window.agregarAlCarrito = agregarAlCarrito;
 window.agregarAlCarritoBtn = agregarAlCarritoBtn;

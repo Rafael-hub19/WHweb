@@ -111,7 +111,7 @@ function emailWrapper(titulo, contenido) {
           <p style="margin:0;font-size:11px;letter-spacing:3px;color:rgba(255,255,255,.70);font-family:Arial,sans-serif;text-transform:uppercase;">WOODEN HOUSE</p>
           <div style="width:48px;height:2px;background:rgba(255,255,255,.40);margin:10px auto;"></div>
           <h1 style="margin:0;color:#ffffff;font-size:22px;letter-spacing:1px;font-family:Georgia,'Times New Roman',serif;font-weight:normal;">${titulo}</h1>
-          <p style="margin:8px 0 0;color:rgba(255,255,255,.75);font-size:12px;font-family:Arial,sans-serif;letter-spacing:.5px;">Muebles de baño de madera • Guadalajara, México</p>
+          <p style="margin:8px 0 0;color:rgba(255,255,255,.75);font-size:12px;font-family:Arial,sans-serif;letter-spacing:.5px;">Muebles de madera a medida • Guadalajara, México</p>
         </td>
       </tr>
       <tr>
