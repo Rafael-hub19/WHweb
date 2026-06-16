@@ -241,6 +241,13 @@
     });
     navClose.addEventListener('click', closeNav);
 
+    navLinks.addEventListener('click', (e) => {
+      const a = e.target.closest('a[data-section]');
+      if (!a) return;
+      e.preventDefault();
+      showSection(a.dataset.section, e);
+    });
+
     document.addEventListener('keydown', (e) => {
       if(e.key === 'Escape') closeNav();
     });
