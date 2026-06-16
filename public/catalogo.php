@@ -1,4 +1,7 @@
-<?php header('Content-Type: text/html; charset=utf-8'); ?>
+<?php
+header('Content-Type: text/html; charset=utf-8');
+require_once dirname(__DIR__) . '/includes/assets.php';
+?>
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -172,11 +175,11 @@
   </div>
 
   </main>
-  <script src="./assets/js/firebase-config.js"></script>
-  <script src="./assets/js/modal-auth.js?v=9"></script>
-  <script src="./assets/js/catalogo.js?v=2"></script>
-  <script src="./assets/js/event-delegation.js"></script>
-  <script src="./assets/js/page-init.js"></script>
-  <script src="./assets/js/animations.js"></script>
+  <script src="./assets/<?= av('js/firebase-config.js') ?>"></script>
+  <script src="./assets/<?= av('js/modal-auth.js') ?>"></script>
+  <script src="./assets/<?= av('js/catalogo.js') ?>"></script>
+  <script src="./assets/<?= av('js/event-delegation.js') ?>"></script>
+  <script src="./assets/<?= av('js/page-init.js') ?>"></script>
+  <script src="./assets/<?= av('js/animations.js') ?>"></script>
 </body>
 </html>

@@ -35,9 +35,10 @@ Wooden House/
 │   ├── index.php                    # Página de inicio
 │   ├── catalogo.php                 # Catálogo de productos
 │   ├── detalle_producto.php         # Detalle de un producto
-│   ├── carrito-checkout.php         # Carrito + selector de fecha de entrega
-│   ├── pago.php                     # Proceso de pago (Stripe + PayPal)
-│   ├── solicitudes.php              # Cotizaciones, citas y seguimiento
+│   ├── carrito-checkout.php         # Carrito + forma de pago (completo/anticipo) + fecha de entrega
+│   ├── pago.php                     # Proceso de pago (Stripe + PayPal) + modo "pagar saldo pendiente"
+│   ├── solicitudes.php              # Cotizaciones y citas (seguimiento es módulo aparte)
+│   ├── seguimiento.php              # Seguimiento público de pedidos/cotizaciones/citas por folio
 │   ├── mi-cuenta.php                # Portal del cliente registrado (pedidos, perfil)
 │   ├── login.php                    # Redirige a /inicio; AuthModal maneja el login
 │   ├── robots.txt

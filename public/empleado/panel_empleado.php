@@ -589,9 +589,9 @@ unset($_usuario);
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-  <script src="../assets/js/firebase-config.js"></script>
-  <script src="../assets/js/panel_empleado.js"></script>
-  <script src="../assets/js/event-delegation.js"></script>
-  <script src="../assets/js/animations.js"></script>
+  <script src="../assets/<?= av('js/firebase-config.js') ?>"></script>
+  <script src="../assets/<?= av('js/panel_empleado.js') ?>"></script>
+  <script src="../assets/<?= av('js/event-delegation.js') ?>"></script>
+  <script src="../assets/<?= av('js/animations.js') ?>"></script>
 </body>
 </html>

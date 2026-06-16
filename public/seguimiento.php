@@ -133,10 +133,10 @@ header('Content-Type: text/html; charset=utf-8');
   </nav>
 
   </main>
-  <script src="./assets/js/firebase-config.js"></script>
-  <script src="./assets/js/modal-auth.js?v=9"></script>
-  <script src="./assets/js/seguimiento.js"></script>
-  <script src="./assets/js/event-delegation.js"></script>
-  <script src="./assets/js/animations.js"></script>
+  <script src="./assets/<?= av('js/firebase-config.js') ?>"></script>
+  <script src="./assets/<?= av('js/modal-auth.js') ?>"></script>
+  <script src="./assets/<?= av('js/seguimiento.js') ?>"></script>
+  <script src="./assets/<?= av('js/event-delegation.js') ?>"></script>
+  <script src="./assets/<?= av('js/animations.js') ?>"></script>
 </body>
 </html>
