@@ -370,6 +370,8 @@ if (empty($_SESSION['cliente_email_verified'])) {
     </p>
   </div>
 
+  </main>
+
   <nav class="mobile-bottom-nav" aria-label="Navegación rápida">
     <div class="mobile-bottom-nav-inner">
       <a href="/catalogo" class="mbn-item"><i class="fa-solid fa-store"></i><span>Catálogo</span></a>
@@ -380,7 +382,6 @@ if (empty($_SESSION['cliente_email_verified'])) {
     </div>
   </nav>
 
-  </main>
   <script src="./assets/<?= av('js/firebase-config.js') ?>"></script>
   <script src="./assets/<?= av('js/modal-auth.js') ?>"></script>
   <script src="./assets/<?= av('js/solicitudes.js') ?>"></script>

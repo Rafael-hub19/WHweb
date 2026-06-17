@@ -394,17 +394,37 @@
       width:100%;
       max-width:860px;
       border:1px solid var(--border);
-      max-height:85vh;
-      overflow:auto;
+      max-height:90vh;
+      overflow-y:auto;
+      overflow-x:hidden;
     }
     .modal-header{
       display:flex;
       justify-content:space-between;
       align-items:center;
-      margin-bottom:12px;
-      padding-bottom:10px;
+      margin:-18px -18px 14px;
+      padding:14px 18px;
       border-bottom:1px solid var(--border);
       gap:10px;
+      position:sticky;
+      top:-18px;
+      background:var(--panel);
+      border-radius:14px 14px 0 0;
+      z-index:1;
+    }
+    /* Botones de acción al pie de los modales — sticky para no perderlos al hacer scroll */
+    .modal-footer{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      justify-content:flex-end;
+      margin:14px -18px -18px;
+      padding:12px 18px;
+      border-top:1px solid var(--border);
+      position:sticky;
+      bottom:-18px;
+      background:var(--panel);
+      border-radius:0 0 14px 14px;
     }
     .modal-title{ color:var(--accent); font-size:15px; font-weight:900; }
     .modal-close{
@@ -914,17 +934,29 @@
       .container{ height:auto; min-height:calc(100vh - 55px); }
       .sidebar{ display:none; }
       .menu-toggle{ display:inline-flex; }
-      .main-content{ padding:14px; overflow-x: hidden; }
+      .main-content{ padding:12px; overflow-x: hidden; }
       /* Scroll horizontal en tablas — sin el wrapper las contenemos en sección */
       .section, .table-wrap, .module-body { overflow-x: auto; -webkit-overflow-scrolling: touch; }
       table{ min-width:680px; }
       .cal-day{ min-height:78px; }
+      /* Modal ocupa casi toda la pantalla en tablet */
+      .modal{ padding:8px; align-items:flex-start; padding-top:8px; }
+      .modal-content{ max-height:96vh; }
     }
     @media (max-width: 600px){
       .header{ padding:10px 12px; }
       .user-info span{ display:none; }
       .table-filters{ flex-direction:column; align-items:stretch; }
       .notification{ right:12px; left:12px; max-width:none; }
+
+      /* Catálogo: vista tarjetas en columna única */
+      .cat-grid{ grid-template-columns:1fr !important; }
+      .cat-toolbar{ flex-direction:column; align-items:stretch; }
+      .cat-search{ flex-direction:column; }
+      .cat-search .form-input, .cat-search .form-select{ max-width:none !important; }
+
+      /* Formulario de producto — campos de 2 columnas pasan a 1 */
+      .form-grid .col-md-6{ width:100% !important; flex:0 0 100% !important; max-width:100% !important; }
 
       .calendar-grid{ gap:5px; }
       .cal-dow{ padding:6px 0; font-size:10px; }

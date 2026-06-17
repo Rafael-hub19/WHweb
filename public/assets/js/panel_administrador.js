@@ -353,12 +353,13 @@
     // el estado real es "pendiente"/"en_produccion"/etc. — nunca coincidían.
     const ESTADO_PEDIDO_CATEGORIA = {
       pendiente:       'pending',
-      anticipo_pagado: 'pending',
-      pagado:          'progress',
-      en_produccion:   'progress',
-      listo:           'completed',
-      entregado:       'completed',
-      cancelado:       null, // solo visible en "Todos"
+      anticipo_pagado:    'pending',
+      pagado:             'progress',
+      en_produccion:      'progress',
+      listo:              'progress',
+      listo_para_entrega: 'progress',
+      entregado:          'completed',
+      cancelado:          null, // solo visible en "Todos"
     };
     function filterTable(filter, ev){
       $$('#pedidos-section .filter-btn').forEach(btn => btn.classList.remove('active'));
@@ -1803,9 +1804,9 @@
           const ep = resResult.value.estados_pedidos || [];
           ep.forEach(e => {
             const n = parseInt(e.total) || 0;
-            if (['pendiente','pagado'].includes(e.estado))                 pendiente += n;
-            else if (['en_produccion','listo'].includes(e.estado))         proceso   += n;
-            else if (e.estado === 'entregado')                             completo  += n;
+            if (['pendiente','anticipo_pagado','pagado'].includes(e.estado))                       pendiente += n;
+            else if (['en_produccion','listo','listo_para_entrega'].includes(e.estado))        proceso   += n;
+            else if (e.estado === 'entregado')                                                 completo  += n;
           });
         }
         drawDonut('chartEstados', [pendiente, proceso, completo], ['Pendiente','En Proceso','Completado']);
@@ -1998,30 +1999,39 @@ async function cargarProductosAPI() {
 // ── PEDIDOS - Cargar y gestionar desde API ────────────
 // ── Máquina de estados estricta (espejo de la validación en api/pedidos.php) ──
 const ESTADO_PEDIDO_LABELS = {
-  pendiente: 'Pendiente', anticipo_pagado: 'Anticipo pagado', pagado: 'Pagado', en_produccion: 'En Producción',
-  listo: 'Listo', entregado: 'Entregado', cancelado: 'Cancelado',
+  pendiente:          'Pendiente',
+  anticipo_pagado:    'Anticipo pagado',
+  pagado:             'Pagado',
+  en_produccion:      'En Producción',
+  listo:              'Listo',
+  listo_para_entrega: 'Listo para entrega',
+  entregado:          'Entregado',
+  cancelado:          'Cancelado',
 };
 const ESTADO_PEDIDO_CLASS = {
-  pendiente:       'status-pending',
-  anticipo_pagado: 'status-pending',
-  pagado:          'status-progress',
-  en_produccion:   'status-progress',
-  listo:           'status-info',
-  entregado:       'status-completed',
-  cancelado:       'status-disabled',
+  pendiente:          'status-pending',
+  anticipo_pagado:    'status-pending',
+  pagado:             'status-progress',
+  en_produccion:      'status-producing',
+  listo:              'status-info',
+  listo_para_entrega: 'status-ready',
+  entregado:          'status-completed',
+  cancelado:          'status-cancelled',
 };
 function estadosSiguientesPedido(estadoActual, montoPagado) {
   const transiciones = {
-    pendiente:       ['cancelado'],
-    anticipo_pagado: ['en_produccion', 'cancelado'],
-    pagado:          ['en_produccion', 'cancelado'],
-    en_produccion:   ['listo', 'cancelado'],
-    listo:           ['entregado', 'cancelado'],
-    entregado:       [],
-    cancelado:       [],
+    pendiente:          ['listo', 'cancelado'],
+    anticipo_pagado:    ['pendiente', 'cancelado'],
+    pagado:             ['pendiente', 'cancelado'],
+    en_produccion:      ['listo', 'cancelado'],      // compatibilidad pedidos anteriores
+    listo:              ['listo_para_entrega', 'cancelado'],
+    listo_para_entrega: ['entregado'],
+    entregado:          [],
+    cancelado:          [],
   };
   let opciones = transiciones[estadoActual] || [];
-  if (!((montoPagado || 0) > 0)) opciones = opciones.filter(s => s !== 'en_produccion');
+  // Requiere al menos anticipo o pago registrado para avanzar a listo
+  if (!((montoPagado || 0) > 0)) opciones = opciones.filter(s => s !== 'listo');
   return opciones;
 }
 
@@ -2077,18 +2087,20 @@ async function actualizarEstadoPedido(id, estado) {
       if (estado === 'entregado' && p && p.tipo_pago === 'anticipo') {
         const saldo = Math.max(0, (p.total || 0) - (p.monto_pagado || 0));
         if (saldo > 0.009) {
-          const cobrado = confirm(`Este pedido tiene un saldo pendiente de ${money(saldo)} (anticipo). ¿Se cobró el saldo al momento de la entrega?`);
+          const cobrado = confirm(`Este pedido tiene un saldo pendiente de ${money(saldo)} (anticipo). ¿Se cobró el saldo en efectivo/en persona al momento de la entrega?`);
           if (cobrado) {
             const r = await apiFetch(`${API_BASE}/pagos.php?action=marcar_saldo_manual`, {
               method: 'POST', body: JSON.stringify({ pedido_id: id }),
             });
             if (!r.success) {
               showNotification('<i class="fa-solid fa-xmark"></i> ' + (r.error || 'Error al registrar el saldo'), 'error');
-              cargarPedidosAPI(); // restaura el <select> a su valor real, el cambio no se aplicó
+              cargarPedidosAPI();
               return;
             }
-          } else if (!confirm('¿Marcar como entregado de todas formas? El saldo seguirá pendiente.')) {
-            cargarPedidosAPI(); // restaura el <select> — el usuario canceló, no se aplicó nada
+          } else {
+            // No permitir entregado si el saldo no está liquidado
+            showNotification('<i class="fa-solid fa-triangle-exclamation"></i> El pedido no puede marcarse como entregado con saldo pendiente. Registra el pago primero.', 'warning');
+            cargarPedidosAPI();
             return;
           }
         }
@@ -2203,8 +2215,8 @@ async function verDetallePedidoAdmin(id) {
     folio.textContent = p.numero_pedido;
     window._admPedId  = id;
 
-    const estadoLabels = { pendiente:'Pendiente',anticipo_pagado:'Anticipo pagado',pagado:'Pagado ✓',en_produccion:'En Producción',listo:'Listo para entrega',entregado:'Entregado',cancelado:'Cancelado' };
-    const estadoClass  = { pendiente:'status-pending',anticipo_pagado:'status-pending',pagado:'status-progress',en_produccion:'status-producing',listo:'status-ready',entregado:'status-completed',cancelado:'status-cancelled' };
+    const estadoLabels = { pendiente:'Pendiente',anticipo_pagado:'Anticipo pagado',pagado:'Pagado ✓',en_produccion:'En Producción',listo:'Listo',listo_para_entrega:'Listo para entrega',entregado:'Entregado',cancelado:'Cancelado' };
+    const estadoClass  = { pendiente:'status-pending',anticipo_pagado:'status-pending',pagado:'status-progress',en_produccion:'status-producing',listo:'status-info',listo_para_entrega:'status-ready',entregado:'status-completed',cancelado:'status-cancelled' };
     const est   = p.estado || 'pendiente';
     const label = estadoLabels[est] || est;
     const cls   = estadoClass[est]  || 'status-pending';
@@ -3093,10 +3105,12 @@ async function verDetalleCliente(id) {
     const pedidos = data.pedidos || [];
     const cots    = data.cotizaciones || [];
 
-    const estLabels = { pendiente:'Pendiente', pagado:'Pagado', en_produccion:'En producción',
-                        listo:'Listo', entregado:'Entregado', cancelado:'Cancelado' };
-    const estColors = { pendiente:'var(--warn)', pagado:'var(--accent)', en_produccion:'#4a7c8b',
-                        listo:'#3a9e6e', entregado:'var(--muted)', cancelado:'var(--danger)' };
+    const estLabels = { pendiente:'Pendiente', anticipo_pagado:'Anticipo pagado', pagado:'Pagado',
+                        en_produccion:'En producción', listo:'Listo',
+                        listo_para_entrega:'Listo para entrega', entregado:'Entregado', cancelado:'Cancelado' };
+    const estColors = { pendiente:'var(--warn)', anticipo_pagado:'var(--warn)', pagado:'var(--accent)',
+                        en_produccion:'#4a7c8b', listo:'#2a8e6e',
+                        listo_para_entrega:'#1e7c5a', entregado:'var(--muted)', cancelado:'var(--danger)' };
 
     body.innerHTML = `
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px;">

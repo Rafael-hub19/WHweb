@@ -326,12 +326,13 @@ function refreshKpisFromPedidosTable(){
 // el estado real es "pendiente"/"en_produccion"/etc. — nunca coincidían.
 const ESTADO_PEDIDO_CATEGORIA = {
   pendiente:       'pending',
-  anticipo_pagado: 'pending',
-  pagado:          'progress',
-  en_produccion:   'progress',
-  listo:           'completed',
-  entregado:       'completed',
-  cancelado:       null, // solo visible en "Todos"
+  anticipo_pagado:    'pending',
+  pagado:             'progress',
+  en_produccion:      'progress',
+  listo:              'progress',
+  listo_para_entrega: 'progress',
+  entregado:          'completed',
+  cancelado:          null, // solo visible en "Todos"
 };
 function filterTable(filter, ev){
   document.querySelectorAll('#pedidos-section .filter-btn').forEach(btn => btn.classList.remove('active'));
@@ -944,20 +945,30 @@ async function logout() {
 // ── Pedidos ───────────────────────────────────────────────────
 // ── Máquina de estados estricta (espejo de api/pedidos.php) ──────
 // El empleado no puede cancelar pedidos — esa transición es solo para admin.
-const ESTADO_PEDIDO_LABELS = { pendiente:'Pendiente', anticipo_pagado:'Anticipo pagado', pagado:'Pagado', en_produccion:'En Producción', listo:'Listo', entregado:'Entregado', cancelado:'Cancelado' };
-const ESTADO_PEDIDO_CLASS  = { pendiente:'status-pending', anticipo_pagado:'status-pending', pagado:'status-progress', en_produccion:'status-progress', listo:'status-info', entregado:'status-completed', cancelado:'status-disabled' };
+const ESTADO_PEDIDO_LABELS = {
+  pendiente:'Pendiente', anticipo_pagado:'Anticipo pagado', pagado:'Pagado',
+  en_produccion:'En Producción', listo:'Listo',
+  listo_para_entrega:'Listo para entrega', entregado:'Entregado', cancelado:'Cancelado',
+};
+const ESTADO_PEDIDO_CLASS  = {
+  pendiente:'status-pending', anticipo_pagado:'status-pending', pagado:'status-progress',
+  en_produccion:'status-producing', listo:'status-info',
+  listo_para_entrega:'status-ready', entregado:'status-completed', cancelado:'status-cancelled',
+};
 function estadosSiguientesPedidoEmp(estadoActual, montoPagado) {
   const transiciones = {
-    pendiente:       [],
-    anticipo_pagado: ['en_produccion'],
-    pagado:          ['en_produccion'],
-    en_produccion:   ['listo'],
-    listo:           ['entregado'],
-    entregado:       [],
-    cancelado:       [],
+    pendiente:          ['listo'],
+    anticipo_pagado:    ['pendiente'],
+    pagado:             ['pendiente'],
+    en_produccion:      ['listo'],           // compatibilidad pedidos anteriores
+    listo:              ['listo_para_entrega'],
+    listo_para_entrega: ['entregado'],
+    entregado:          [],
+    cancelado:          [],
   };
   let opciones = transiciones[estadoActual] || [];
-  if (!((montoPagado || 0) > 0)) opciones = opciones.filter(s => s !== 'en_produccion');
+  // Requiere al menos anticipo o pago registrado para avanzar a listo
+  if (!((montoPagado || 0) > 0)) opciones = opciones.filter(s => s !== 'listo');
   return opciones;
 }
 
@@ -1009,18 +1020,19 @@ async function actualizarEstadoPedidoEmp(id, estado) {
       if (p && p.tipo_pago === 'anticipo') {
         const saldo = Math.max(0, (p.total || 0) - (p.monto_pagado || 0));
         if (saldo > 0.009) {
-          const cobrado = confirm(`Este pedido tiene un saldo pendiente de $${saldo.toLocaleString('es-MX')} (anticipo). ¿Se cobró el saldo al momento de la entrega?`);
+          const cobrado = confirm(`Este pedido tiene un saldo pendiente de $${saldo.toLocaleString('es-MX')} (anticipo). ¿Se cobró el saldo en efectivo/en persona al momento de la entrega?`);
           if (cobrado) {
             const r = await apiFetch(`${API_BASE}/pagos.php?action=marcar_saldo_manual`, {
               method: 'POST', body: JSON.stringify({ pedido_id: id }),
             });
             if (!r.success) {
               showNotification('<i class="fa-solid fa-circle-xmark"></i> ' + (r.error || 'Error al registrar el saldo'), 'error');
-              cargarPedidosEmpleadoAPI(); // restaura el <select> a su valor real, el cambio no se aplicó
+              cargarPedidosEmpleadoAPI();
               return;
             }
-          } else if (!confirm('¿Marcar como entregado de todas formas? El saldo seguirá pendiente.')) {
-            cargarPedidosEmpleadoAPI(); // restaura el <select> — el usuario canceló, no se aplicó nada
+          } else {
+            showNotification('<i class="fa-solid fa-triangle-exclamation"></i> El pedido no puede marcarse como entregado con saldo pendiente. Registra el pago primero.', 'warning');
+            cargarPedidosEmpleadoAPI();
             return;
           }
         }
@@ -1147,8 +1159,8 @@ async function verDetallePedidoEmp(id) {
       currentPedidoRow.dataset.entrega = p.tipo_entrega || '';
     }
 
-    const estadoLabels = { pendiente:'Pendiente',anticipo_pagado:'Anticipo pagado',pagado:'Pagado ✓',en_produccion:'En Producción',listo:'Listo para entrega',entregado:'Entregado',cancelado:'Cancelado' };
-    const estadoClass  = { pendiente:'status-pending',anticipo_pagado:'status-pending',pagado:'status-progress',en_produccion:'status-producing',listo:'status-ready',entregado:'status-completed',cancelado:'status-cancelled' };
+    const estadoLabels = { pendiente:'Pendiente',anticipo_pagado:'Anticipo pagado',pagado:'Pagado ✓',en_produccion:'En Producción',listo:'Listo',listo_para_entrega:'Listo para entrega',entregado:'Entregado',cancelado:'Cancelado' };
+    const estadoClass  = { pendiente:'status-pending',anticipo_pagado:'status-pending',pagado:'status-progress',en_produccion:'status-producing',listo:'status-info',listo_para_entrega:'status-ready',entregado:'status-completed',cancelado:'status-cancelled' };
     const est   = p.estado || 'pendiente';
     const cls   = estadoClass[est]  || 'status-pending';
     const label = estadoLabels[est] || est;
@@ -1256,7 +1268,7 @@ async function verDetallePedidoEmp(id) {
               class="status-badge ${c2}" style="cursor:pointer;border:none;opacity:0.85;">→ ${l2}</button>`;
           }).join('') || '<span style="color:var(--muted);font-size:12px;">Estado final — sin más transiciones</span>'}
         </div>
-        ${est==='pendiente' && (p.monto_pagado||0)<=0 ? '<p style="color:var(--muted);font-size:11px;margin-top:8px;"><i class="fa-solid fa-circle-info"></i> No se puede iniciar producción sin registrar al menos el anticipo o pago.</p>' : ''}
+        ${(p.monto_pagado||0)<=0 ? '<p style="color:var(--muted);font-size:11px;margin-top:8px;"><i class="fa-solid fa-circle-info"></i> No se puede avanzar el estado sin registrar al menos el anticipo o pago.</p>' : ''}
       </div>
     `;
   } catch(e) {

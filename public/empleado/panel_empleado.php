@@ -327,7 +327,7 @@ unset($_usuario);
       <div id="emp_ped_body" style="max-height:70vh;overflow-y:auto;overflow-x:hidden;">
         <div style="text-align:center;padding:40px;color:var(--muted);"><i class="fa-solid fa-spinner fa-spin fa-2x"></i></div>
       </div>
-      <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end;padding:12px 0 0;margin-top:4px;border-top:1px solid var(--border);">
+      <div class="modal-footer">
         <button class="btn btn-secondary" data-dismiss="empPedidoDetalleModal">Cerrar</button>
       </div>
     </div>

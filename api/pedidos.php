@@ -74,7 +74,7 @@ switch ($method) {
         $desde  = preg_match('/^\d{4}-\d{2}-\d{2}$/', $_GET['fecha_desde'] ?? '') ? $_GET['fecha_desde'] : '';
         $hasta  = preg_match('/^\d{4}-\d{2}-\d{2}$/', $_GET['fecha_hasta'] ?? '') ? $_GET['fecha_hasta'] : '';
 
-        $estadosValidos = ['pendiente','anticipo_pagado','pagado','en_produccion','listo','entregado','cancelado'];
+        $estadosValidos = ['pendiente','anticipo_pagado','pagado','en_produccion','listo','listo_para_entrega','entregado','cancelado'];
         if ($estado && !in_array($estado, $estadosValidos, true)) $estado = '';
 
         $where = ['1=1']; $params = [];
@@ -279,7 +279,7 @@ switch ($method) {
         if (isset($body['estado'])) {
             // Validar contra una whitelist ANTES de reflejar el valor en cualquier
             // mensaje de error — nunca interpolar input crudo del cliente sin filtrar.
-            $estadosConocidos = ['pendiente','anticipo_pagado','pagado','en_produccion','listo','entregado','cancelado'];
+            $estadosConocidos = ['pendiente','anticipo_pagado','pagado','en_produccion','listo','listo_para_entrega','entregado','cancelado'];
             if (!is_string($body['estado']) || !in_array($body['estado'], $estadosConocidos, true)) {
                 jsonError('Estado inválido', 422);
             }
@@ -290,20 +290,23 @@ switch ($method) {
             }
             $estadoActual = $pedido['estado'];
             $transicionesValidas = [
-                'pendiente'       => ['cancelado'],
-                'anticipo_pagado' => ['en_produccion', 'cancelado'],
-                'pagado'          => ['en_produccion', 'cancelado'],
-                'en_produccion'   => ['listo', 'cancelado'],
-                'listo'           => ['entregado', 'cancelado'],
-                'entregado'       => [],
-                'cancelado'       => [],
+                // Flujo principal: pagado/anticipo_pagado → pendiente → listo → listo_para_entrega → entregado
+                'pendiente'          => ['listo', 'cancelado'],
+                'anticipo_pagado'    => ['pendiente', 'cancelado'],
+                'pagado'             => ['pendiente', 'cancelado'],
+                'en_produccion'      => ['listo', 'cancelado'],      // compatibilidad pedidos anteriores
+                'listo'              => ['listo_para_entrega', 'cancelado'],
+                'listo_para_entrega' => ['entregado'],
+                'entregado'          => [],
+                'cancelado'          => [],
             ];
             $permitidos = $transicionesValidas[$estadoActual] ?? [];
             if (!in_array($body['estado'], $permitidos, true)) {
                 jsonError("No se puede cambiar de '$estadoActual' a '{$body['estado']}'", 422);
             }
-            if ($body['estado'] === 'en_produccion' && (float)($pedido['monto_pagado'] ?? 0) <= 0) {
-                jsonError('No se puede iniciar producción sin al menos el anticipo o pago registrado', 422);
+            // Avanzar a 'listo' requiere al menos el anticipo o pago registrado
+            if ($body['estado'] === 'listo' && (float)($pedido['monto_pagado'] ?? 0) <= 0) {
+                jsonError('No se puede marcar como listo sin al menos el anticipo o pago registrado', 422);
             }
             $update['estado'] = $body['estado'];
         }

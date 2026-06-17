@@ -300,6 +300,8 @@ require_once dirname(__DIR__) . '/includes/env.php';
   </p>
 </div>
 
+</main>
+
 <!-- Barra de navegación fija móvil -->
 <nav class="mobile-bottom-nav" aria-label="Navegación rápida">
   <div class="mobile-bottom-nav-inner">
@@ -310,7 +312,6 @@ require_once dirname(__DIR__) . '/includes/env.php';
     <button class="mbn-item" data-auth-action="openMenuMovil"><i class="fa-solid fa-user"></i><span>Mi cuenta</span></button>
   </div>
 </nav>
-</main>
 <script src="/assets/<?= av('js/firebase-config.js') ?>"></script>
 <script src="/assets/<?= av('js/modal-auth.js') ?>"></script>
 <script src="/assets/<?= av('js/event-delegation.js') ?>"></script>

@@ -111,6 +111,8 @@ require_once dirname(__DIR__) . '/includes/env.php';
     </p>
   </div>
 
+  </main>
+
   <nav class="mobile-bottom-nav" aria-label="Navegación rápida">
     <div class="mobile-bottom-nav-inner">
       <a href="/catalogo" class="mbn-item mbn-item--active"><i class="fa-solid fa-store"></i><span>Catálogo</span></a>
@@ -175,7 +177,6 @@ require_once dirname(__DIR__) . '/includes/env.php';
     </div>
   </div>
 
-  </main>
   <script src="./assets/<?= av('js/firebase-config.js') ?>"></script>
   <script src="./assets/<?= av('js/modal-auth.js') ?>"></script>
   <script src="./assets/<?= av('js/catalogo.js') ?>"></script>

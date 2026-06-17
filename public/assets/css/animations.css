@@ -105,8 +105,12 @@
 .wh-reveal:nth-child(6), .wh-reveal-zoom:nth-child(6) { transition-delay: 0.36s; }
 
 /* ── Animación de entrada de página ──────────────────────────────── */
+@keyframes wh-page-enter-kf {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: none; }
+}
 .wh-page-enter {
-  animation: wh-fade-up 0.45s ease both;
+  animation: wh-page-enter-kf 0.45s ease both;
 }
 
 /* ── Hover enhancements globales ─────────────────────────────────── */

@@ -692,7 +692,7 @@ unset($_usuario);
             <div class="help" style="margin-top:8px;">La primera imagen será la principal en el catálogo. Puedes reordenar arrastrando.</div>
           </div>
 
-          <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end;margin-top:18px;">
+          <div class="modal-footer">
             <button class="btn btn-secondary" data-dismiss="productoModal">Cancelar</button>
             <button class="btn btn-primary" id="btnGuardarProducto" data-call="saveProductoFull">
               <i class="fa-solid fa-floppy-disk"></i> Guardar
@@ -711,7 +711,7 @@ unset($_usuario);
 
           <div id="detalleBody"></div>
 
-          <div style="display:flex; gap:10px; flex-wrap:wrap; justify-content:flex-end; margin-top:12px;">
+          <div class="modal-footer">
             <button class="btn btn-secondary" data-dismiss="productoDetalleModal">Cerrar</button>
             <button class="btn btn-primary" data-call="detailEditFromModal">Editar este producto</button>
           </div>
@@ -1053,7 +1053,7 @@ unset($_usuario);
 
           <div id="of_error" style="display:none;color:#e05;font-size:13px;margin-bottom:12px;padding:10px;background:#2a0a0a;border-radius:6px;"></div>
 
-          <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end;margin-top:16px;">
+          <div class="modal-footer">
             <button class="btn btn-secondary" data-dismiss="ofertaModal">Cancelar</button>
             <button class="btn btn-primary" id="of_btn_guardar" data-call="guardarOferta">
               <i class="fa-solid fa-floppy-disk"></i> Guardar Oferta
@@ -1088,7 +1088,7 @@ unset($_usuario);
       <div id="adm_ped_body" style="max-height:70vh;overflow-y:auto;overflow-x:hidden;">
         <div style="text-align:center;padding:40px;color:var(--muted);"><i class="fa-solid fa-spinner fa-spin fa-2x"></i></div>
       </div>
-      <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end;padding:12px 0 0;margin-top:4px;border-top:1px solid var(--border);">
+      <div class="modal-footer">
         <button class="btn btn-secondary" data-dismiss="adminPedidoDetalleModal">Cerrar</button>
         <button class="btn btn-primary" id="adm_ped_edit_btn" data-dismiss="adminPedidoDetalleModal">
           <i class="fa-solid fa-pen"></i> Cambiar Estado

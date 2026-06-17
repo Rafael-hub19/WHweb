@@ -381,6 +381,8 @@ header('Content-Type: text/html; charset=utf-8');
     </p>
 </div>
 
+</main>
+
 <nav class="mobile-bottom-nav" aria-label="Navegación rápida">
   <div class="mobile-bottom-nav-inner">
     <a href="/catalogo" class="mbn-item"><i class="fa-solid fa-store"></i><span>Catálogo</span></a>
@@ -390,8 +392,6 @@ header('Content-Type: text/html; charset=utf-8');
     <button class="mbn-item" data-auth-action="openMenuMovil"><i class="fa-solid fa-user"></i><span>Mi cuenta</span></button>
   </div>
 </nav>
-
-</main>
 <script src="./assets/<?= av('js/utils.js') ?>"></script>
 <script src="./assets/<?= av('js/firebase-config.js') ?>"></script>
 <script src="./assets/<?= av('js/modal-auth.js') ?>"></script>
