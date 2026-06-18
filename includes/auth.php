@@ -261,11 +261,13 @@ function _crearSesion(array $usuario): void {
     $_SESSION['_usuario_login_time'] = time();
     // Solo regenerar CSRF si no hay sesión de cliente activa en paralelo
     if (empty($_SESSION['cliente_id'])) {
+        $p = session_get_cookie_params();
         $_SESSION['_csrf'] = bin2hex(random_bytes(32));
         setcookie('XSRF-TOKEN', $_SESSION['_csrf'], [
             'expires'  => 0,
             'path'     => '/',
-            'secure'   => true,
+            'domain'   => $p['domain'],
+            'secure'   => $p['secure'],
             'httponly' => false,
             'samesite' => 'Strict',
         ]);
@@ -404,10 +406,15 @@ function _crearSesionCliente(array $cliente): void {
     $_SESSION['_cliente_login_time'] = time();
     // Solo regenerar CSRF si no hay sesión de personal activa en paralelo
     if (empty($_SESSION['usuario_id'])) {
+        $p = session_get_cookie_params();
         $_SESSION['_csrf'] = bin2hex(random_bytes(32));
         setcookie('XSRF-TOKEN', $_SESSION['_csrf'], [
-            'expires' => 0, 'path' => '/', 'secure' => true,
-            'httponly' => false, 'samesite' => 'Strict',
+            'expires'  => 0,
+            'path'     => '/',
+            'domain'   => $p['domain'],
+            'secure'   => $p['secure'],
+            'httponly' => false,
+            'samesite' => 'Strict',
         ]);
     }
 }
