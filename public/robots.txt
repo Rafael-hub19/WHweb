@@ -15,6 +15,9 @@ Disallow: /mi-cuenta
 Disallow: /carrito
 Disallow: /pago
 
+# Catálogo filtrado por parámetros (evitar contenido duplicado)
+Disallow: /catalogo?
+
 # APIs y backend
 Disallow: /api/
 
@@ -39,3 +42,4 @@ Disallow: /mi-cuenta
 Disallow: /carrito
 Disallow: /pago
 Disallow: /api/
+Disallow: /catalogo?
