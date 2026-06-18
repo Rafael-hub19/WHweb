@@ -603,7 +603,7 @@ exports.onNuevaNotificacion = onDocumentCreated(
 
       await Promise.allSettled([
         sendEmail({
-          from: emails.pedidos, fromName: 'Wooden House Pedidos',
+          from: emails.pedidos, fromName: 'WOODEN HOUSE PEDIDOS',
           to:      pedido.correo_cliente,
           replyTo: emails.replyTo,
           subject: `Pedido confirmado – ${pedido.numero_pedido} | Wooden House`,
@@ -613,7 +613,7 @@ exports.onNuevaNotificacion = onDocumentCreated(
           .catch(e => console.error('[CF] Error emailPedidoConfirmado:', e.message)),
 
         sendEmail({
-          from: emails.pedidos, fromName: 'Wooden House Sistema',
+          from: emails.pedidos, fromName: 'WOODEN HOUSE SISTEMA',
           to:      emails.admin,
           replyTo: pedido.correo_cliente || emails.pedidos,
           subject: adminEmail.subject,
@@ -632,7 +632,7 @@ exports.onNuevaNotificacion = onDocumentCreated(
       if (!pedido.correo_cliente || !pedido.estado) return;
 
       await sendEmail({
-        from: emails.pedidos, fromName: 'Wooden House Pedidos',
+        from: emails.pedidos, fromName: 'WOODEN HOUSE PEDIDOS',
         to:      pedido.correo_cliente,
         replyTo: emails.replyTo,
         subject: `Pedido ${pedido.numero_pedido} — ${pedido.estado} | Wooden House`,
@@ -653,7 +653,7 @@ exports.onNuevaNotificacion = onDocumentCreated(
 
       await Promise.allSettled([
         sendEmail({
-          from: emails.cotizaciones, fromName: 'Wooden House Cotizaciones',
+          from: emails.cotizaciones, fromName: 'WOODEN HOUSE COTIZACIONES',
           to:      cot.correo_cliente,
           replyTo: emails.replyTo,
           subject: `Cotización ${cot.numero_cotizacion} recibida | Wooden House`,
@@ -663,7 +663,7 @@ exports.onNuevaNotificacion = onDocumentCreated(
           .catch(e => console.error('[CF] Error emailCotizacionRecibida:', e.message)),
 
         sendEmail({
-          from: emails.cotizaciones, fromName: 'Wooden House Sistema',
+          from: emails.cotizaciones, fromName: 'WOODEN HOUSE SISTEMA',
           to:      emails.admin,
           replyTo: cot.correo_cliente || emails.cotizaciones,
           subject: adminEmail.subject,
@@ -682,7 +682,7 @@ exports.onNuevaNotificacion = onDocumentCreated(
       if (!cot.correo_cliente) return;
 
       await sendEmail({
-        from: emails.cotizaciones, fromName: 'Wooden House Cotizaciones',
+        from: emails.cotizaciones, fromName: 'WOODEN HOUSE COTIZACIONES',
         to:      cot.correo_cliente,
         replyTo: emails.replyTo,
         subject: `Tu cotización ${cot.numero_cotizacion} ha sido respondida | Wooden House`,
@@ -703,7 +703,7 @@ exports.onNuevaNotificacion = onDocumentCreated(
 
       await Promise.allSettled([
         sendEmail({
-          from: emails.citas, fromName: 'Wooden House Citas',
+          from: emails.citas, fromName: 'WOODEN HOUSE CITAS',
           to:      cita.correo_cliente,
           replyTo: emails.replyTo,
           subject: `Cita confirmada – ${cita.numero_cita} | Wooden House`,
@@ -713,7 +713,7 @@ exports.onNuevaNotificacion = onDocumentCreated(
           .catch(e => console.error('[CF] Error emailCitaConfirmada:', e.message)),
 
         sendEmail({
-          from: emails.citas, fromName: 'Wooden House Sistema',
+          from: emails.citas, fromName: 'WOODEN HOUSE SISTEMA',
           to:      emails.admin,
           replyTo: cita.correo_cliente || emails.citas,
           subject: adminEmail.subject,
