@@ -61,7 +61,9 @@ function verificarPropiedadRecurso(
 function _calcularHuellaSesion(): string {
     $ip = $_SERVER['REMOTE_ADDR'] ?? '';
     $ua = $_SERVER['HTTP_USER_AGENT'] ?? '';
-    $ipBase = preg_replace('/\.\d+$/', '', $ip);   // descarta último octeto
+    // Solo los primeros 2 octetos de IPv4 (/16) para tolerar CGNAT, redes móviles y VPNs
+    // que cambian el tercer/cuarto octeto entre peticiones del mismo usuario.
+    $ipBase = implode('.', array_slice(explode('.', $ip), 0, 2));
     $semilla = defined('APP_KEY') ? APP_KEY : 'wh-session-key-2026';
     return hash('sha256', $ipBase . '|' . $ua . '|' . $semilla);
 }
@@ -73,7 +75,10 @@ function inicializarHuellaSesion(): void {
 }
 
 function verificarHuellaSesion(): bool {
-    if (empty($_SESSION['_session_fp'])) return true;   // primera visita sin huella
+    // Sin huella previa → primera visita, no hay nada que comparar
+    if (empty($_SESSION['_session_fp'])) return true;
+    // Sin sesión activa → no tiene sentido bloquear; el CSRF protege las mutaciones
+    if (empty($_SESSION['usuario_id']) && empty($_SESSION['cliente_id'])) return true;
     return hash_equals($_SESSION['_session_fp'], _calcularHuellaSesion());
 }
 
