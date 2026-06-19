@@ -1,6 +1,12 @@
 // ================== UTILIDADES ==================
-function openModal(id){ document.getElementById(id)?.classList.add('active'); }
-function closeModal(id){ document.getElementById(id)?.classList.remove('active'); }
+function openModal(id){
+  document.getElementById(id)?.classList.add('active');
+  document.body.style.overflow = 'hidden';
+}
+function closeModal(id){
+  document.getElementById(id)?.classList.remove('active');
+  if (!document.querySelector('.modal.active')) document.body.style.overflow = '';
+}
 
 function showNotification(message, type='info'){
   document.querySelectorAll('.notification').forEach(n => n.remove());
@@ -106,7 +112,10 @@ function showSection(section){
 // ================== MODALES: click fuera ==================
 document.querySelectorAll('.modal').forEach(modal => {
   modal.addEventListener('click', function(e){
-    if(e.target === this) this.classList.remove('active');
+    if(e.target === this){
+      this.classList.remove('active');
+      if (!document.querySelector('.modal.active')) document.body.style.overflow = '';
+    }
   });
 });
 

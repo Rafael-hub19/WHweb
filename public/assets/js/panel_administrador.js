@@ -298,12 +298,21 @@
     /* =========================
        MODALES
     ========================= */
-    function openModal(id){ $('#'+id).classList.add('active'); }
-    function closeModal(id){ $('#'+id).classList.remove('active'); }
+    function openModal(id){
+      $('#'+id).classList.add('active');
+      document.body.style.overflow = 'hidden';
+    }
+    function closeModal(id){
+      $('#'+id).classList.remove('active');
+      if (!document.querySelector('.modal.active')) document.body.style.overflow = '';
+    }
 
     $$('.modal').forEach(modal => {
       modal.addEventListener('click', function(e){
-        if(e.target === this) this.classList.remove('active');
+        if(e.target === this){
+          this.classList.remove('active');
+          if (!document.querySelector('.modal.active')) document.body.style.overflow = '';
+        }
       });
     });
 

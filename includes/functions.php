@@ -127,9 +127,31 @@ function formatearMoneda(float $monto): string {
 // ---- Logging ----
 function appLog(string $level, string $message, array $context = []): void {
     $logDir = dirname(__DIR__) . '/logs';
-    $file = $logDir . '/' . date('Y-m') . '_app.log';
-    $line = sprintf('[%s] [%s] %s %s', date('Y-m-d H:i:s'), strtoupper($level), $message, $context ? json_encode($context) : '');
+    $file   = $logDir . '/' . date('Y-m') . '_app.log';
+    $line   = sprintf('[%s] [%s] %s %s', date('Y-m-d H:i:s'), strtoupper($level), $message, $context ? json_encode($context, JSON_UNESCAPED_UNICODE) : '');
     @file_put_contents($file, $line . PHP_EOL, FILE_APPEND | LOCK_EX);
+
+    // Enviar email al desarrollador en errores — máx. 1 correo por mensaje único por hora
+    if ($level === 'error' && defined('DESARROLLADOR_EMAIL') && DESARROLLADOR_EMAIL) {
+        $throttleFile = $logDir . '/err_' . md5($message) . '.throttle';
+        $enviarEmail  = !file_exists($throttleFile) || (time() - (int)filemtime($throttleFile)) > 3600;
+        if ($enviarEmail) {
+            @touch($throttleFile);
+            $from    = (defined('EMAIL_FROM') && EMAIL_FROM) ? EMAIL_FROM : 'no-reply@woodenhouse.com.mx';
+            $subject = '[WH Error] ' . substr($message, 0, 80);
+            $body    = "Error en Wooden House\n\n"
+                     . $line . "\n\n"
+                     . "URL: " . ($_SERVER['REQUEST_URI'] ?? 'CLI') . "\n"
+                     . "IP:  " . ($_SERVER['REMOTE_ADDR'] ?? '-') . "\n"
+                     . "APP: " . APP_URL;
+            @mail(
+                DESARROLLADOR_EMAIL,
+                $subject,
+                $body,
+                "From: $from\r\nContent-Type: text/plain; charset=utf-8"
+            );
+        }
+    }
 }
 
 // ---- ID desde URL ----

@@ -939,9 +939,11 @@
       .section, .table-wrap, .module-body { overflow-x: auto; -webkit-overflow-scrolling: touch; }
       table{ min-width:680px; }
       .cal-day{ min-height:78px; }
-      /* Modal ocupa casi toda la pantalla en tablet */
-      .modal{ padding:8px; align-items:flex-start; padding-top:8px; }
-      .modal-content{ max-height:96vh; }
+      /* Bottom-sheet: modal sube desde abajo */
+      .modal{ padding:0; align-items:flex-end; }
+      .modal-content{ max-height:92dvh; max-height:92vh; border-radius:20px 20px 0 0; max-width:100%; width:100%; }
+      .modal-header{ border-radius:20px 20px 0 0; }
+      .modal-footer{ border-radius:0; }
     }
     @media (max-width: 600px){
       .header{ padding:10px 12px; }
@@ -955,8 +957,9 @@
       .cat-search{ flex-direction:column; }
       .cat-search .form-input, .cat-search .form-select{ max-width:none !important; }
 
-      /* Formulario de producto — campos de 2 columnas pasan a 1 */
-      .form-grid .col-md-6{ width:100% !important; flex:0 0 100% !important; max-width:100% !important; }
+      /* Formularios — toda cuadrícula de 2+ columnas pasa a 1 */
+      .form-grid .col-md-6,
+      .row .col-md-6{ width:100% !important; flex:0 0 100% !important; max-width:100% !important; }
 
       .calendar-grid{ gap:5px; }
       .cal-dow{ padding:6px 0; font-size:10px; }
@@ -964,6 +967,17 @@
       .cal-chip{ display:none; }
       .cal-dots{ display:flex; }
       .cal-list-body{ max-height:none; }
+
+      /* Panel notificaciones — ancho completo */
+      .notif-panel{ right:8px; left:8px; width:auto; }
+
+      /* Safe area iPhone home bar */
+      .modal-footer{ padding-bottom:calc(12px + env(safe-area-inset-bottom, 0px)); }
+
+      /* Encabezado de sección: botones en columna */
+      .section-header{ flex-direction:column; align-items:stretch; }
+      .section-header > .btn,
+      .section-header > div > .btn{ width:100%; justify-content:center; }
     }
 
     /* =========================
@@ -996,9 +1010,11 @@
       .header{ padding:8px 12px; }
       .header h1{ font-size:15px; }
       .btn{ padding:6px 10px; font-size:11px; }
-      .modal-content{ padding:14px 12px; }
+      .modal-content{ padding:14px 12px; max-height:98dvh; max-height:98vh; }
+      .modal-footer{ flex-direction:column; }
+      .modal-footer .btn{ width:100%; justify-content:center; }
       .section{ padding:12px 10px; }
-      table{ min-width:600px; font-size:12px; }
+      table{ min-width:540px; font-size:12px; }
       td, th{ padding:8px 6px; }
       .quick-action-card{ padding:14px 10px; }
     }

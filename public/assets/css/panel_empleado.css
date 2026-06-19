@@ -857,27 +857,30 @@
     .table-wrap, .section, .module-body{ overflow-x:auto; -webkit-overflow-scrolling:touch; width:100%; }
     table{ min-width:680px; }
     .cal-day{ min-height:78px; }
-    /* Modal ocupa casi toda la pantalla */
-    .modal{ padding:8px; align-items:flex-start; padding-top:8px; }
-    .modal-content{ max-height:96vh; }
+    /* Bottom-sheet: modal sube desde abajo */
+    .modal{ padding:0; align-items:flex-end; }
+    .modal-content{ max-height:92dvh; max-height:92vh; border-radius:20px 20px 0 0; max-width:100%; width:100%; }
+    .modal-header{ border-radius:20px 20px 0 0; }
+    .modal-footer{ border-radius:0; }
   }
   @media (max-width: 600px){
     .header{ padding:10px 12px; }
     .user-info span{ display:none; }
     .table-filters{ flex-direction:column; align-items:stretch; }
     .notification{ right:12px; left:12px; max-width:none; }
-  }
-
-  @media (max-width: 600px){
-    .header{ padding:10px 12px; }
-    .user-info span{ display:none; }
-    .table-filters{ flex-direction:column; align-items:stretch; }
-    .notification{ right:12px; left:12px; max-width:none; }
-    .notif-panel{ right:12px; left:12px; width:auto; }
+    /* Panel notificaciones — ancho completo */
+    .notif-panel{ right:8px; left:8px; width:auto; }
     .calendar-grid{ gap:5px; }
     .cal-dow{ font-size:10px; padding:6px 0; }
     .cal-day{ min-height:56px; padding:6px; border-radius:10px; }
     .cal-chip{ display:none; }
+    /* Safe area iPhone home bar */
+    .modal-footer{ padding-bottom:calc(12px + env(safe-area-inset-bottom, 0px)); }
+    /* Formularios a 1 columna dentro de modales */
+    .row .col-md-6{ width:100% !important; flex:0 0 100% !important; max-width:100% !important; }
+    /* Encabezado de sección: botones en columna */
+    .section-header{ flex-direction:column; align-items:stretch; }
+    .section-header > .btn{ width:100%; justify-content:center; }
   }
 
   /* ── CLASES DE ESTADO FALTANTES ──────────────────── */
@@ -905,16 +908,18 @@
   }
   .table-scroll-wrapper table { min-width: 700px; }
 
-  /* ── MEJOR RESPONSIVE 480px ─────────────────────── */
+  /* 480px */
   @media (max-width: 480px) {
     .stat-value { font-size: 20px; }
     .stat-title { font-size: 10px; }
     .btn { padding: 6px 8px; font-size: 11px; }
-    .modal-content { padding: 14px; }
+    .modal-content { padding: 14px; max-height:98dvh; max-height:98vh; }
+    .modal-footer{ flex-direction:column; }
+    .modal-footer .btn{ width:100%; justify-content:center; }
     .timeline { gap: 6px; }
     .step { font-size: 10px; padding: 6px 8px; }
     .section { padding: 12px; }
-    table { min-width: 600px; }
+    table { min-width: 540px; }
   }
 
   /* ── wh-help tooltip ─────────────────────────────────────── */
