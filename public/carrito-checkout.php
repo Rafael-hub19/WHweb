@@ -281,6 +281,13 @@ header('Content-Type: text/html; charset=utf-8');
                         <!-- Picker de mapa (Google Maps) -->
                         <div id="mapPickerContainer" class="form-group"></div>
 
+                        <div style="text-align:right;margin-top:-4px;margin-bottom:4px;">
+                          <button type="button" id="btnSkipMapa"
+                            style="background:none;border:none;color:var(--muted,#888);font-size:12px;cursor:pointer;text-decoration:underline;padding:0;">
+                            Ingresar dirección manualmente
+                          </button>
+                        </div>
+
                         <!-- Campos individuales ocultos — se rellenan automáticamente desde el mapa -->
                         <input type="hidden" id="clienteDireccion">
                         <input type="hidden" id="clienteColonia">
@@ -290,10 +297,10 @@ header('Content-Type: text/html; charset=utf-8');
                         <input type="hidden" id="clienteLat">
                         <input type="hidden" id="clienteLng">
 
-                        <!-- Detalle editable (se muestra tras confirmar en el mapa) -->
+                        <!-- Detalle editable (se muestra tras confirmar en el mapa o al hacer clic en "ingresar manualmente") -->
                         <div id="direccionDetalleEdit" style="display:none;margin-top:6px;">
                           <p style="font-size:12px;color:var(--muted);margin-bottom:8px;">
-                            <i class="fa-solid fa-pen-to-square"></i> ¿Necesitas corregir algún campo? Edítalos aquí:
+                            <i class="fa-solid fa-pen-to-square"></i> Ingresa o corrige tu dirección:
                           </p>
                           <div class="row g-2">
                             <div class="col-md-8 form-group" style="margin-bottom:8px;">

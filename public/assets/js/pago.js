@@ -194,7 +194,9 @@ function cargarResumen() {
       instalacion: !!checkout.incluye_instalacion,
     },
     subtotal, envio, instalacion, descuento: 0, total,
-    tipoPago: checkout.tipo_pago === 'anticipo' ? 'anticipo' : 'completo',
+    tipoPago:       checkout.tipo_pago === 'anticipo' ? 'anticipo' : 'completo',
+    fechaEstimada:  checkout.fecha_estimada  || '',
+    semanaEtiqueta: checkout.semana_etiqueta || '',
   };
 
   initStripe();
@@ -370,6 +372,8 @@ async function crearPedidoEnBD() {
       items:               orderData.carrito.map(i => ({ producto_id: i.id, cantidad: i.cantidad })),
       descuento:           orderData.descuento || 0,
       tipo_pago:           orderData.tipoPago || 'completo',
+      fecha_estimada:      orderData.fechaEstimada  || '',
+      semana_etiqueta:     orderData.semanaEtiqueta || '',
     };
 
     const res  = await fetch(`${API_BASE}/pedidos.php`, {

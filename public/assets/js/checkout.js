@@ -527,6 +527,20 @@ function _initMapPickerCheckout() {
     if (!container) return;
     _mapPickerInitialized = true;
 
+    // Fallback: si Google Maps no cargó en 4 s, mostrar campos manuales directamente
+    const _mapsLoadTimer = setTimeout(() => {
+        if (!window.google?.maps) {
+            const editSection = document.getElementById('direccionDetalleEdit');
+            if (editSection) editSection.style.display = 'block';
+            const canvas = document.getElementById('mpMapCanvas');
+            if (canvas) canvas.innerHTML =
+                '<p style="text-align:center;padding:20px 12px;color:#888;font-size:13px;">' +
+                '<i class="fa-solid fa-map-location-dot" style="font-size:28px;display:block;margin-bottom:8px;"></i>' +
+                'Mapa no disponible. Ingresa tu dirección en los campos de abajo.</p>';
+        }
+    }, 4000);
+    document.addEventListener('maps-picker-ready', () => clearTimeout(_mapsLoadTimer), { once: true });
+
     MapsPicker.init(container, {
         onConfirm(v) {
             // Llenar los hidden inputs con los datos del mapa
@@ -601,6 +615,17 @@ function _initMapPickerCheckout() {
             const e = document.getElementById(eId);
             const h = document.getElementById(hId);
             if (e && h) e.value = h.value;
+        });
+    }
+
+    // Botón "Ingresar dirección manualmente"
+    const btnSkip = document.getElementById('btnSkipMapa');
+    if (btnSkip) {
+        btnSkip.addEventListener('click', () => {
+            const detalle = document.getElementById('direccionDetalleEdit');
+            if (detalle) detalle.style.display = 'block';
+            detalle?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            btnSkip.style.display = 'none';
         });
     }
 }
@@ -846,10 +871,7 @@ function procederAlPago() {
     }
 
     const camposBase = ['clienteNombre', 'clienteTelefono', 'clienteCorreo', 'clienteCorreoConfirm'];
-    const camposEnvio = estado.tipoEntrega === 'envio'
-        ? ['clienteDireccion', 'clienteCiudad', 'clienteMunicipio', 'clienteCP']
-        : [];
-    if (resaltarCamposVaciosCheckout([...camposBase, ...camposEnvio])) {
+    if (resaltarCamposVaciosCheckout(camposBase)) {
         showToast('Por favor completa todos los campos obligatorios marcados en rojo', 'error');
         return;
     }
@@ -872,10 +894,16 @@ function procederAlPago() {
         const ciu = sanitizeText(document.getElementById('clienteCiudad')?.value    || '', 100);
         const mun = sanitizeText(document.getElementById('clienteMunicipio')?.value || '', 100);
         const cp  = sanitizeCP(document.getElementById('clienteCP')?.value           || '');
-        if (!dir)          { _marcarError('clienteDireccion');  showToast('Ingresa la dirección de entrega',  'error'); return; }
-        if (!ciu)          { _marcarError('clienteCiudad');      showToast('Ingresa la ciudad',                'error'); return; }
-        if (!mun)          { _marcarError('clienteMunicipio');   showToast('Ingresa el municipio',             'error'); return; }
-        if (cp.length < 4) { _marcarError('clienteCP');          showToast('Ingresa el código postal',         'error'); return; }
+        if (!dir || !ciu || !mun) {
+            document.getElementById('seccionDireccion')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            showToast('Busca y confirma tu dirección de entrega en el mapa', 'error');
+            return;
+        }
+        if (cp.length < 4) {
+            document.getElementById('seccionDireccion')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            showToast('Ingresa el código postal en los campos de dirección', 'error');
+            return;
+        }
     }
 
     const subtotal   = estado.items.reduce((s, i) => s + i.precio * i.cantidad, 0);
