@@ -75,8 +75,7 @@ unset($_usuario);
     <button class="nav-close" id="navClose" aria-label="Cerrar menú">×</button>
     <div class="nav-title">Panel Empleado</div>
 
-    <a href="#" data-section="dashboard"><i class="fa-solid fa-chart-bar"></i> Dashboard</a>
-    <a href="#" data-section="calendario" class="active"><i class="fa-solid fa-calendar-check"></i> Mi Calendario</a>
+    <a href="#" data-section="dashboard" class="active"><i class="fa-solid fa-chart-bar"></i> Dashboard</a>
     <a href="#" data-section="pedidos"><i class="fa-solid fa-box"></i> Gestión de Pedidos</a>
     <a href="#" data-section="citas"><i class="fa-solid fa-calendar-days"></i> Citas Programadas</a>
     <a href="#" data-section="cotizaciones"><i class="fa-solid fa-briefcase"></i> Cotizaciones</a>
@@ -85,17 +84,12 @@ unset($_usuario);
 
   <div class="container">
     <aside class="sidebar" id="sidebarDesktop">
-      <div class="sidebar-item" data-section="dashboard">
+      <div class="sidebar-item active" data-section="dashboard">
         <span class="icon"><i class="fa-solid fa-chart-bar"></i></span>
         <span>Dashboard</span>
       </div>
 
       <div class="sidebar-section">GESTIÓN</div>
-
-      <div class="sidebar-item active" data-section="calendario">
-        <span class="icon"><i class="fa-solid fa-calendar-check"></i></span>
-        <span>Mi Calendario</span>
-      </div>
 
       <div class="sidebar-item" data-section="pedidos">
         <span class="icon"><i class="fa-solid fa-box"></i></span>
@@ -121,9 +115,9 @@ unset($_usuario);
 
     <main class="main-content">
       <!-- DASHBOARD -->
-      <div id="dashboard-section" class="content-section hidden">
+      <div id="dashboard-section" class="content-section">
         <h1 class="page-title">Dashboard</h1>
-        <p class="page-subtitle">Resumen general de actividades</p>
+        <p class="page-subtitle">Resumen general y calendario de actividades</p>
 
         <div class="row row-cols-2 row-cols-md-3 g-3 stats-grid">
           <div class="col">
@@ -149,15 +143,45 @@ unset($_usuario);
           </div>
         </div>
 
-        <div class="section">
-          <div class="section-header">
-            <h2 class="section-title">Actividad Reciente</h2>
-          </div>
+        <!-- Calendario embebido en dashboard -->
+        <div class="section" style="margin-top:24px;">
+          <div class="calendar-wrap">
+            <div class="calendar-toolbar">
+              <div class="cal-title" id="calTitle">—</div>
+              <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                <button class="btn btn-secondary" data-call="prevMonth">← Mes</button>
+                <button class="btn btn-secondary" data-call="goToday">Hoy</button>
+                <button class="btn btn-secondary" data-call="nextMonth">Mes →</button>
+                <button class="btn btn-primary" data-call="openAddEventModal">+ Evento</button>
+              </div>
+            </div>
 
-          <div class="activity-list" id="activityList">
-            <div class="activity-item">
-              <div class="t"><i class="fa-solid fa-clipboard-list"></i> Panel listo</div>
-              <div class="m">Aquí verás cambios recientes (pedidos, citas, inventario).</div>
+            <div class="calendar-grid" id="calDow"></div>
+            <div class="calendar-grid" id="calGrid"></div>
+
+            <div class="row g-3 cal-side">
+              <div class="col-md-8">
+                <div class="cal-list">
+                  <div class="cal-list-head" id="selectedDayTitle" style="display:flex;justify-content:space-between;align-items:center;">
+                    <span>Eventos del día</span>
+                    <button id="rutaDiaCal" class="btn btn-primary btn-small" style="display:none;" data-call="generarRutaDia" data-args='[]'>
+                      <i class="fa-solid fa-route"></i> Ruta
+                    </button>
+                  </div>
+                  <div class="cal-list-body" id="dayEventsList">
+                    <div style="color: var(--muted);">Selecciona un día para ver eventos.</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="col-md-4">
+                <div class="cal-list">
+                  <div class="cal-list-head">Próximos (7 días)</div>
+                  <div class="cal-list-body" id="nextEventsList">
+                    <div style="color: var(--muted);">—</div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -171,11 +195,6 @@ unset($_usuario);
         <div class="section">
           <div class="section-header">
             <h2 class="section-title">Pedidos</h2>
-            <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
-              <label style="font-size:13px;color:var(--muted);">Ruta del día:</label>
-              <input type="date" id="rutaFechaEmp" style="padding:5px 10px;border:1px solid var(--border);background:var(--panel2);color:var(--muted2);border-radius:6px;font-size:13px;">
-              <button data-call="abrirRutaDiaEmp" style="display:inline-flex;align-items:center;gap:6px;padding:6px 14px;background:#4285F420;border:1px solid #4285F460;border-radius:6px;color:#4285F4;font-size:13px;cursor:pointer;"><i class="fa-solid fa-route"></i> Generar ruta</button>
-            </div>
           </div>
 
           <div class="table-container">
@@ -277,54 +296,6 @@ unset($_usuario);
             </div>
           </div>
 
-        </div>
-      </div>
-
-      <!-- CALENDARIO -->
-      <div id="calendario-section" class="content-section">
-        <h1 class="page-title">Mi Calendario</h1>
-        <p class="page-subtitle">Calendario interactivo: selecciona un día para ver citas</p>
-
-        <div class="section">
-          <div class="calendar-wrap">
-            <div class="calendar-toolbar">
-              <div class="cal-title" id="calTitle">—</div>
-              <div style="display:flex; gap:8px; flex-wrap:wrap;">
-                <button class="btn btn-secondary" data-call="prevMonth">← Mes</button>
-                <button class="btn btn-secondary" data-call="goToday">Hoy</button>
-                <button class="btn btn-secondary" data-call="nextMonth">Mes →</button>
-                <button class="btn btn-primary" data-call="openAddEventModal">+ Evento</button>
-              </div>
-            </div>
-
-            <div class="calendar-grid" id="calDow"></div>
-            <div class="calendar-grid" id="calGrid"></div>
-
-            <div class="row g-3 cal-side">
-              <div class="col-md-8">
-                <div class="cal-list">
-                  <div class="cal-list-head" id="selectedDayTitle" style="display:flex;justify-content:space-between;align-items:center;">
-                    <span>Eventos del día</span>
-                    <button id="rutaDiaCal" class="btn btn-primary btn-small" style="display:none;" data-call="generarRutaDia" data-args='[]'>
-                      <i class="fa-solid fa-route"></i> Ruta
-                    </button>
-                  </div>
-                  <div class="cal-list-body" id="dayEventsList">
-                    <div style="color: var(--muted);">Selecciona un día para ver eventos.</div>
-                  </div>
-                </div>
-              </div>
-
-              <div class="col-md-4">
-                <div class="cal-list">
-                  <div class="cal-list-head">Próximos (7 días)</div>
-                  <div class="cal-list-body" id="nextEventsList">
-                    <div style="color: var(--muted);">—</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
 

@@ -213,7 +213,7 @@ CREATE TABLE pedidos (
   descuento DECIMAL(10,2) NOT NULL DEFAULT 0.00,
   total DECIMAL(10,2) NOT NULL DEFAULT 0.00,
 
-  estado ENUM('pendiente','pagado','en_produccion','listo','entregado','cancelado')
+  estado ENUM('pendiente','anticipo_pagado','pagado','en_produccion','listo','listo_para_entrega','entregado','cancelado')
     NOT NULL DEFAULT 'pendiente',
 
   notas VARCHAR(255) NULL,
@@ -495,7 +495,14 @@ CREATE TABLE IF NOT EXISTS carritos_guardados (
 -- ================================================================
 ALTER TABLE pedidos ADD COLUMN tipo_pago ENUM('completo','anticipo') NOT NULL DEFAULT 'completo' AFTER total;
 ALTER TABLE pedidos ADD COLUMN monto_pagado DECIMAL(10,2) NOT NULL DEFAULT 0.00 AFTER tipo_pago;
-ALTER TABLE pedidos MODIFY COLUMN estado ENUM('pendiente','anticipo_pagado','pagado','en_produccion','listo','entregado','cancelado')
+ALTER TABLE pedidos MODIFY COLUMN estado ENUM('pendiente','anticipo_pagado','pagado','en_produccion','listo','listo_para_entrega','entregado','cancelado')
+  NOT NULL DEFAULT 'pendiente';
+
+-- ================================================================
+-- ESTADO listo_para_entrega — agregar a ENUM para ruta del día
+-- Ejecutar en producción si la BD ya existía antes de este cambio:
+-- ================================================================
+ALTER TABLE pedidos MODIFY COLUMN estado ENUM('pendiente','anticipo_pagado','pagado','en_produccion','listo','listo_para_entrega','entregado','cancelado')
   NOT NULL DEFAULT 'pendiente';
 
 -- ================================================================
