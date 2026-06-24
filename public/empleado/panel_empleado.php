@@ -148,10 +148,11 @@ unset($_usuario);
           <div class="calendar-wrap">
             <div class="calendar-toolbar">
               <div class="cal-title" id="calTitle">—</div>
-              <div style="display:flex; gap:8px; flex-wrap:wrap;">
+              <div style="display:flex; gap:8px; flex-wrap:wrap;align-items:center;">
                 <button class="btn btn-secondary" data-call="prevMonth">← Mes</button>
                 <button class="btn btn-secondary" data-call="goToday">Hoy</button>
                 <button class="btn btn-secondary" data-call="nextMonth">Mes →</button>
+                <button class="btn btn-secondary" data-call="refrescarCalendarioEmp" title="Actualizar calendario" id="calRefreshBtn"><i class="fa-solid fa-arrows-rotate"></i></button>
                 <button class="btn btn-primary" data-call="openAddEventModal">+ Evento</button>
               </div>
             </div>

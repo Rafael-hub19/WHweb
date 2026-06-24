@@ -183,9 +183,10 @@ unset($_usuario);
         <div class="section">
           <div class="section-header">
             <h2 class="section-title"><i class="fa-solid fa-calendar-days"></i> Agenda del Mes</h2>
-            <div style="display:flex; gap:8px; flex-wrap:wrap;">
+            <div style="display:flex; gap:8px; flex-wrap:wrap;align-items:center;">
               <button class="btn btn-secondary" data-call="prevMonth"><i class="fa-solid fa-chevron-left"></i></button>
               <button class="btn btn-secondary" data-call="nextMonth"><i class="fa-solid fa-chevron-right"></i></button>
+              <button class="btn btn-secondary" data-call="refrescarCalendarioAdmin" title="Actualizar calendario" id="admCalRefreshBtn"><i class="fa-solid fa-arrows-rotate"></i></button>
             </div>
           </div>
 
@@ -205,7 +206,12 @@ unset($_usuario);
             <div class="row g-3 cal-side">
               <div class="col-md-8">
                 <div class="cal-list">
-                  <div class="cal-list-head" id="dayHead">Selecciona un día</div>
+                  <div class="cal-list-head" id="dayHead" style="display:flex;justify-content:space-between;align-items:center;">
+                    <span id="dayHeadLabel">Selecciona un día</span>
+                    <button id="admRutaDiaBtn" class="btn btn-primary btn-small" style="display:none;" data-call="generarRutaDiaAdmin" data-args='[]'>
+                      <i class="fa-solid fa-route"></i> Ruta
+                    </button>
+                  </div>
                   <div class="cal-list-body" id="dayList">
                     <div class="cal-item">
                       <div class="t">Toca un día del calendario</div>
@@ -240,11 +246,6 @@ unset($_usuario);
         <div class="section">
           <div class="section-header">
             <h2 class="section-title">Todos los Pedidos</h2>
-            <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
-              <label style="font-size:13px;color:var(--muted);">Ruta del día:</label>
-              <input type="date" id="rutaFechaAdmin" style="padding:5px 10px;border:1px solid var(--border);background:var(--panel2);color:var(--muted2);border-radius:6px;font-size:13px;">
-              <button data-call="abrirRutaDiaAdmin" style="display:inline-flex;align-items:center;gap:6px;padding:6px 14px;background:#4285F420;border:1px solid #4285F460;border-radius:6px;color:#4285F4;font-size:13px;cursor:pointer;"><i class="fa-solid fa-route"></i> Generar ruta</button>
-            </div>
           </div>
 
           <div class="table-container">
@@ -514,6 +515,28 @@ unset($_usuario);
           </div>
           <div id="finProductosBody" style="color:var(--muted);font-size:13px;padding:12px 0;">
             <i class="fa-solid fa-spinner fa-spin"></i> Cargando...
+          </div>
+        </div>
+      </div>
+
+      <!-- MODAL: RUTA DEL DÍA (Admin) -->
+      <div class="modal" id="admRutaDiaModal">
+        <div class="modal-content" style="max-width:620px;width:min(620px,96vw);">
+          <div class="modal-header" style="background:#1a3a4a;color:#fff;border-radius:8px 8px 0 0;margin:-18px -18px 16px;padding:16px 18px;">
+            <h3 class="modal-title" style="color:#fff;display:flex;align-items:center;gap:10px;">
+              <i class="fa-solid fa-route"></i> Ruta del Día
+              <span id="admRutaDiaFechaLabel" style="font-size:13px;opacity:.75;font-weight:400;"></span>
+            </h3>
+            <button class="modal-close" data-dismiss="admRutaDiaModal" style="color:#fff;">×</button>
+          </div>
+          <div id="admRutaDiaBody" style="overflow-y:auto;min-height:120px;max-height:60vh;">
+            <div style="text-align:center;padding:30px;color:var(--muted);"><i class="fa-solid fa-spinner fa-spin fa-2x"></i></div>
+          </div>
+          <div class="modal-footer" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+            <button class="btn btn-secondary" data-dismiss="admRutaDiaModal">Cerrar</button>
+            <button id="admRutaDiaMapsBtn" class="btn btn-primary" style="display:none;">
+              <i class="fa-solid fa-map-location-dot"></i> Abrir en Google Maps
+            </button>
           </div>
         </div>
       </div>

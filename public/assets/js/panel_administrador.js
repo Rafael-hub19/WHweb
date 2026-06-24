@@ -394,9 +394,10 @@
     ========================= */
     let calYear  = new Date().getFullYear();
     let calMonth = new Date().getMonth();
-    let _citasCache        = [];
-    let _pedidosCalCache   = [];
+    let _citasCache           = [];
+    let _pedidosCalCache      = [];
     let _cotizacionesCalCache = [];
+    let _calAdmLastLoaded     = 0;
 
     function _todosEventos() {
       return [..._citasCache, ..._pedidosCalCache, ..._cotizacionesCalCache];
@@ -404,12 +405,13 @@
 
     async function cargarCitasCalendarioAPI() {
       try {
-        const hoy = new Date();
-        const desde = `${hoy.getFullYear()}-01-01`;
-        const hasta = `${hoy.getFullYear()}-12-31`;
+        const hoy  = new Date();
+        const anio = hoy.getFullYear();
+        const desde = `${anio}-01-01`;
+        const hasta  = `${anio + 1}-12-31`;
 
         // Citas
-        const dataCitas = await apiFetch(`${API_BASE}/citas.php?limit=200&fecha_desde=${desde}&fecha_hasta=${hasta}`);
+        const dataCitas = await apiFetch(`${API_BASE}/citas.php?limit=500&fecha_desde=${desde}&fecha_hasta=${hasta}`);
         if (dataCitas.success && dataCitas.citas) {
           _citasCache = dataCitas.citas.map(c => ({
             id:         c.numero_cita || c.id,
@@ -424,7 +426,7 @@
         }
 
         // Pedidos (fecha_estimada)
-        const dataPed = await apiFetch(`${API_BASE}/pedidos.php?limit=200&fecha_desde=${desde}&fecha_hasta=${hasta}`);
+        const dataPed = await apiFetch(`${API_BASE}/pedidos.php?limit=500&fecha_desde=${desde}&fecha_hasta=${hasta}`);
         if (dataPed.success && dataPed.pedidos) {
           _pedidosCalCache = dataPed.pedidos
             .filter(p => p.fecha_estimada)
@@ -459,9 +461,18 @@
       } catch(e) {
         console.warn('Error cargando agenda:', e);
       }
+      _calAdmLastLoaded = Date.now();
       renderCalendar();
       renderCitasTable();
     }
+
+    async function refrescarCalendarioAdmin(silencioso = false) {
+      const btn = document.getElementById('admCalRefreshBtn');
+      if (btn && !silencioso) btn.innerHTML = '<i class="fa-solid fa-arrows-rotate fa-spin"></i>';
+      await cargarCitasCalendarioAPI();
+      if (btn) btn.innerHTML = '<i class="fa-solid fa-arrows-rotate"></i>';
+    }
+    window.refrescarCalendarioAdmin = refrescarCalendarioAdmin;
 
     function getCitas(){ return _citasCache; }
     function pad(n){ return String(n).padStart(2,'0'); }
@@ -501,11 +512,14 @@
       const mm = dateObj.getMonth();
       const dd = dateObj.getDate();
       const iso = `${yy}-${pad(mm+1)}-${pad(dd)}`;
+      const _t = new Date();
+      const todayISO = `${_t.getFullYear()}-${pad(_t.getMonth()+1)}-${pad(_t.getDate())}`;
+      const isToday  = iso === todayISO;
 
       const dayEvts = eventos.filter(e => e.date === iso);
 
       const cell = document.createElement('div');
-      cell.className = 'cal-day' + (muted ? ' muted' : '');
+      cell.className = 'cal-day' + (muted ? ' muted' : '') + (isToday ? ' today' : '');
       cell.setAttribute('data-date', iso);
       cell.onclick = () => selectDay(iso);
 
@@ -527,16 +541,29 @@
       return cell;
     }
 
+    let _admSelectedDate = null;
+
     function selectDay(iso){
+      _admSelectedDate = iso;
       $$('.cal-day').forEach(x => x.style.outline = 'none');
       const cell = $(`.cal-day[data-date="${iso}"]`);
       if(cell) cell.style.outline = `2px solid ${getComputedStyle(document.documentElement).getPropertyValue('--accent')}`;
 
       const eventos = _todosEventos().filter(e => e.date === iso).sort((a,b)=>a.time.localeCompare(b.time));
-      const head = $('#dayHead');
+      const headLabel = $('#dayHeadLabel');
       const list = $('#dayList');
 
-      if(head) head.textContent = `Agenda del ${fmtDMY(iso)}`;
+      if(headLabel) headLabel.textContent = `Agenda del ${fmtDMY(iso)}`;
+
+      // Mostrar botón Ruta cuando hay pedidos listo_para_entrega o citas activas
+      const rutaBtn = $('#admRutaDiaBtn');
+      if (rutaBtn) {
+        const tieneParadas = eventos.some(e =>
+          (e.eventoTipo === 'pedido' && e.datos?.tipo_entrega === 'envio' && e.datos?.estado === 'listo_para_entrega') ||
+          (e.eventoTipo === 'cita'   && !['cancelada'].includes(e.datos?.estado || ''))
+        );
+        rutaBtn.style.display = tieneParadas ? '' : 'none';
+      }
       if(!list) return;
       list.innerHTML = '';
 
@@ -2274,6 +2301,8 @@ async function actualizarEstadoPedido(id, estado) {
       showNotification('✅ Estado del pedido actualizado', 'success');
       cargarPedidosAPI();
       if (window._admPedId === id) verDetallePedidoAdmin(id);
+      // Sincronizar calendario con el nuevo estado
+      refrescarCalendarioAdmin(true);
     } else {
       showNotification('<i class="fa-solid fa-xmark"></i> ' + (data.error || 'Error'), 'error');
     }
@@ -3243,7 +3272,13 @@ function _autoRefreshAdmin() {
     else if (section === 'catalogo'     && typeof cargarProductosAPI === 'function')        cargarProductosAPI().then(() => { if(typeof renderCatalogo==='function') renderCatalogo(); });
     else if (section === 'empleados'    && typeof cargarEmpleadosAPI === 'function')        cargarEmpleadosAPI();
     else if (section === 'reportes'     && typeof cargarReportesAPI === 'function')         cargarReportesAPI();
-    else if (section === 'dashboard'    && typeof refreshKPIsFromAPI === 'function')        refreshKPIsFromAPI();
+    else if (section === 'dashboard'    && typeof refreshKPIsFromAPI === 'function') {
+      refreshKPIsFromAPI();
+      // Refresca el calendario cada 90 s mientras el admin está en el dashboard
+      if (Date.now() - _calAdmLastLoaded > 90_000) {
+        refrescarCalendarioAdmin(true);
+      }
+    }
   } catch(e) { console.warn('[autoRefresh] Error en sección', section, e); }
 }
 
@@ -3825,62 +3860,217 @@ window.cancelarSetup2FA       = cancelarSetup2FA;
 window.confirmarDesactivar2FA = confirmarDesactivar2FA;
 window.prevMonth              = prevMonth;
 window.nextMonth              = nextMonth;
-window.abrirRutaDiaAdmin      = abrirRutaDiaAdmin;
+window.generarRutaDiaAdmin    = generarRutaDiaAdmin;
 
-function abrirRutaDiaAdmin() {
-  const fecha = document.getElementById('rutaFechaAdmin')?.value;
-  if (!fecha) { showNotification('Selecciona una fecha para la ruta', 'warning'); return; }
+// ── Helpers de ruta (Admin) ───────────────────────────────────────────────────
 
-  // Recopilar pedidos del día con tipo envío desde la tabla en memoria
-  const filas = document.querySelectorAll('#pedidosTable tr[data-entrega]');
-  const destinos = [];
-  filas.forEach(tr => {
-    if ((tr.dataset.entrega || '').substring(0,10) !== fecha) return;
-    const estado = tr.dataset.status || '';
-    if (['cancelado','entregado'].includes(estado)) return;
-    // Leer el id del pedido y buscar en cache
-    const id = parseInt(tr.dataset.id);
-    if (!id) return;
-    destinos.push(id);
+const _ORIGEN_ADM = {
+  label:   'Ignacio Zaragoza 36, La Florida, San Pedro Tlaquepaque, Jal.',
+  address: 'Ignacio Zaragoza 36, La Florida, 45236 San Pedro Tlaquepaque, Jal.',
+  lat: 20.64531, lng: -103.32675,
+};
+
+function _haversineAdm(lat1, lng1, lat2, lng2) {
+  const R = 6371, dLat = (lat2-lat1)*Math.PI/180, dLng = (lng2-lng1)*Math.PI/180;
+  const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLng/2)**2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+
+function _getPosAdm() {
+  return new Promise(resolve => {
+    if (!navigator.geolocation) return resolve(null);
+    navigator.geolocation.getCurrentPosition(
+      p => resolve({ lat: p.coords.latitude, lng: p.coords.longitude }),
+      () => resolve(null),
+      { timeout: 5000, enableHighAccuracy: false }
+    );
+  });
+}
+
+function _sortDistAdm(stops, oLat, oLng) {
+  const w = stops.filter(s => s.lat != null && s.lng != null);
+  const n = stops.filter(s => s.lat == null || s.lng == null);
+  w.forEach(s => { s._distKm = _haversineAdm(oLat, oLng, s.lat, s.lng); });
+  w.sort((a, b) => a._distKm - b._distKm);
+  return [...w, ...n];
+}
+
+function _buildTimedAdm(stops, oLat, oLng) {
+  function parseHoraMs(h) {
+    const m = ('' + h).split('-')[0].trim().match(/^(\d{1,2}):(\d{2})/);
+    if (!m) return null;
+    const d = new Date(); d.setHours(+m[1], +m[2], 0, 0); return d.getTime();
+  }
+  function fmtH(ms) { const d=new Date(ms); return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`; }
+
+  const citasH=[], citasN=[], pGPS=[], sinGPS=[];
+  stops.forEach(s => {
+    if (s.tipo === 'cita') {
+      const t = parseHoraMs(s.hora);
+      (t != null ? citasH : citasN).push(t != null ? { ...s, _timeMs: t } : s);
+    } else {
+      (s.lat != null && s.lng != null ? pGPS : sinGPS).push(s);
+    }
   });
 
-  if (!destinos.length) {
-    showNotification(`No hay pedidos de envío pendientes para ${fecha}`, 'info');
-    return;
-  }
+  if (!citasH.length) return _sortDistAdm(stops, oLat, oLng);
+  citasH.sort((a, b) => a._timeMs - b._timeMs);
 
-  // Cargamos detalles de cada pedido para obtener la dirección
-  Promise.all(destinos.map(id => apiFetch(`${API_BASE}/pedidos.php?id=${id}`)))
-    .then(resultados => {
-      const waypoints = [];
-      resultados.forEach(r => {
-        if (!r?.success || !r.pedido) return;
-        const p = r.pedido;
-        if (p.tipo_entrega !== 'envio') return;
-        // Preferir coordenadas exactas del mapa picker, si no texto
-        if (p.lat && p.lng) {
-          waypoints.push(`${p.lat},${p.lng}`);
-        } else {
-          const addr = [p.direccion_envio, p.colonia_envio, p.ciudad_envio, p.cp_envio].filter(Boolean).join(', ');
-          if (addr) waypoints.push(addr);
-        }
+  const anchors = [{ lat: oLat, lng: oLng }, ...citasH.map(c => ({ lat: c.lat, lng: c.lng }))];
+  const slots = anchors.map(() => []);
+  pGPS.forEach(p => {
+    let best=0, bestD=Infinity;
+    anchors.forEach((a, i) => {
+      if (a.lat==null||a.lng==null) return;
+      const d = _haversineAdm(a.lat, a.lng, p.lat, p.lng);
+      if (d < bestD) { bestD=d; best=i; }
+    });
+    p._distKm = bestD < Infinity ? bestD : null;
+    slots[best].push(p);
+  });
+  slots.forEach((slot, i) => { const a=anchors[i]; if(a.lat!=null) slot.sort((x,y)=>(x._distKm??999)-(y._distKm??999)); });
+  citasH.forEach((c, i) => { const a=anchors[i]; if(a.lat!=null&&c.lat!=null) c._distKm=_haversineAdm(a.lat,a.lng,c.lat,c.lng); });
+  const lastA=anchors[anchors.length-1];
+  citasN.forEach(c => { if(lastA.lat!=null&&c.lat!=null) c._distKm=_haversineAdm(lastA.lat,lastA.lng,c.lat,c.lng); });
+  citasN.sort((a,b)=>(a._distKm??999)-(b._distKm??999));
+
+  const h = label => ({ tipo: '_header', label });
+  const route = [];
+  if (slots[0].length) { route.push(h(`Antes de las ${fmtH(citasH[0]._timeMs)}`)); route.push(...slots[0]); }
+  citasH.forEach((cita, i) => {
+    route.push(cita);
+    const ns = slots[i+1];
+    if (ns.length) {
+      route.push(h(i+1 < citasH.length ? `Entre las ${fmtH(cita._timeMs)} y las ${fmtH(citasH[i+1]._timeMs)}` : `Después de las ${fmtH(cita._timeMs)}`));
+      route.push(...ns);
+    }
+  });
+  if (citasN.length) { route.push(h('Citas sin horario definido')); route.push(...citasN); }
+  route.push(...sinGPS);
+  return route;
+}
+
+async function generarRutaDiaAdmin(fecha) {
+  if (!fecha) fecha = _admSelectedDate || new Date().toISOString().substring(0, 10);
+
+  const label = document.getElementById('admRutaDiaFechaLabel');
+  const body  = document.getElementById('admRutaDiaBody');
+  const mBtn  = document.getElementById('admRutaDiaMapsBtn');
+  if (label) label.textContent = fecha;
+  if (body)  body.innerHTML = '<div style="text-align:center;padding:30px;color:var(--muted);"><i class="fa-solid fa-spinner fa-spin fa-xl"></i><br><span style="font-size:13px;margin-top:10px;display:block;">Recopilando paradas...</span></div>';
+  if (mBtn)  mBtn.style.display = 'none';
+  openModal('admRutaDiaModal');
+
+  try {
+    const stops = [];
+
+    // Citas del día (no canceladas) — datos ya en caché, incluye lat/lng
+    _citasCache.filter(e => e.date === fecha && !['cancelada'].includes(e.datos?.estado || '')).forEach(e => {
+      const c = e.datos || {};
+      const dir = [c.direccion, c.colonia ? `Col. ${c.colonia}` : '', c.ciudad, c.cp ? `CP ${c.cp}` : ''].filter(Boolean).join(', ');
+      if (!dir && !c.lat) return;
+      const tipoLabel = c.tipo === 'medicion' ? 'Medición' : c.tipo === 'instalacion' ? 'Instalación' : 'Cita';
+      stops.push({
+        tipo: 'cita', icon: '📅',
+        label: `${tipoLabel}: ${c.nombre_cliente || ''}`,
+        hora:  e.time || '',
+        address: dir,
+        lat: c.lat ? parseFloat(c.lat) : null,
+        lng: c.lng ? parseFloat(c.lng) : null,
       });
+    });
 
-      if (!waypoints.length) {
-        showNotification(`Ningún pedido de ${fecha} tiene envío a domicilio`, 'info');
-        return;
-      }
+    // Pedidos listo_para_entrega con envío — datos ya en caché
+    _pedidosCalCache.filter(e => e.date === fecha && e.datos?.estado === 'listo_para_entrega' && e.datos?.tipo_entrega === 'envio').forEach(e => {
+      const p = e.datos || {};
+      const dir = [p.direccion_envio, p.colonia_envio ? `Col. ${p.colonia_envio}` : '', p.ciudad_envio, p.cp_envio ? `CP ${p.cp_envio}` : ''].filter(Boolean).join(', ');
+      if (!dir && !p.lat) return;
+      stops.push({
+        tipo: 'pedido', icon: '📦',
+        label: `${p.numero_pedido}: ${p.nombre_cliente}`,
+        hora: '',
+        address: dir,
+        lat: p.lat ? parseFloat(p.lat) : null,
+        lng: p.lng ? parseFloat(p.lng) : null,
+      });
+    });
 
-      let url;
-      if (waypoints.length === 1) {
-        url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(waypoints[0])}`;
-      } else {
-        const origin = encodeURIComponent(waypoints[0]);
-        const destination = encodeURIComponent(waypoints[waypoints.length - 1]);
-        const wps = waypoints.slice(1, -1).map(encodeURIComponent).join('|');
-        url = `https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${destination}${wps ? '&waypoints=' + wps : ''}&travelmode=driving`;
+    if (!stops.length) {
+      if (body) body.innerHTML = `<div style="padding:28px;text-align:center;color:var(--muted);">
+        <i class="fa-solid fa-map-pin" style="font-size:2rem;margin-bottom:10px;display:block;opacity:.35;"></i>
+        No hay paradas para <strong>${fecha}</strong>.<br>
+        <span style="font-size:12px;margin-top:6px;display:block;">Solo se incluyen pedidos "Listo para entrega" y citas con domicilio.</span>
+      </div>`;
+      return;
+    }
+
+    const pos = await _getPosAdm();
+    let oLat, oLng, originLabel, originStr;
+    if (pos) {
+      oLat = pos.lat; oLng = pos.lng;
+      originStr   = `${pos.lat},${pos.lng}`;
+      originLabel = `<i class="fa-solid fa-location-dot" style="color:#4CAF50;"></i> Tu ubicación actual (GPS)`;
+    } else {
+      oLat = _ORIGEN_ADM.lat; oLng = _ORIGEN_ADM.lng;
+      originStr   = _ORIGEN_ADM.address;
+      originLabel = `<i class="fa-solid fa-store" style="color:var(--accent);"></i> ${_ORIGEN_ADM.label}`;
+    }
+
+    const sorted   = _buildTimedAdm(stops, oLat, oLng);
+    const realStops = sorted.filter(s => s.tipo !== '_header');
+
+    let stopNum = 0;
+    const stopsHtml = sorted.map(s => {
+      if (s.tipo === '_header') {
+        return `<div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.9px;padding:10px 2px 5px;border-top:1px solid var(--border);margin-top:6px;"><i class="fa-solid fa-clock" style="margin-right:4px;"></i>${escapeHtml(s.label)}</div>`;
       }
-      window.open(url, '_blank', 'noopener');
-    })
-    .catch(() => showNotification('Error al obtener direcciones', 'error'));
+      stopNum++;
+      const isCita = s.tipo === 'cita';
+      const distBadge = s._distKm != null
+        ? `<span style="font-size:10px;color:var(--muted);"><i class="fa-solid fa-arrows-left-right"></i> ~${s._distKm < 1 ? (s._distKm*1000).toFixed(0)+' m' : s._distKm.toFixed(1)+' km'}</span>`
+        : '';
+      return `
+      <div style="display:flex;gap:12px;align-items:flex-start;padding:10px 0;border-bottom:1px solid var(--border);">
+        <div style="flex-shrink:0;width:28px;height:28px;border-radius:50%;background:${isCita?'#3d5a80':'var(--accent)'};color:#fff;font-size:12px;font-weight:900;display:flex;align-items:center;justify-content:center;">${stopNum}</div>
+        <div style="flex:1;min-width:0;">
+          <div style="font-weight:700;font-size:13px;color:var(--text);">${s.icon} ${escapeHtml(s.label)}</div>
+          ${s.hora ? `<div style="font-size:11px;color:#4CAF50;margin-top:2px;font-weight:700;"><i class="fa-regular fa-clock"></i> Cita a las ${escapeHtml(s.hora)}</div>` : ''}
+          <div style="font-size:12px;color:var(--muted2);margin-top:4px;word-break:break-word;">${escapeHtml(s.address || '(sin dirección registrada)')}</div>
+          <div style="display:flex;gap:6px;margin-top:5px;flex-wrap:wrap;">
+            ${s.lat && s.lng
+              ? `<span style="font-size:10px;background:#1b5e2020;color:#2e7d32;border-radius:10px;padding:1px 8px;"><i class="fa-solid fa-map-pin"></i> GPS exacto</span>`
+              : `<span style="font-size:10px;background:var(--bg);color:var(--muted);border-radius:10px;padding:1px 8px;"><i class="fa-solid fa-magnifying-glass-location"></i> Búsqueda por dirección</span>`}
+            ${distBadge}
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+
+    const hasCitasH = stops.some(s => s.tipo === 'cita' && s.hora);
+    if (body) body.innerHTML = `
+      <div style="padding:10px 12px;background:var(--bg);border-radius:8px;font-size:12px;color:var(--muted2);margin-bottom:12px;">
+        <div style="margin-bottom:4px;"><strong>Salida:</strong> ${originLabel}</div>
+        ${!pos ? `<div style="font-size:11px;color:var(--muted);margin-top:2px;"><i class="fa-solid fa-circle-info"></i> Activa el GPS del dispositivo para partir desde tu ubicación actual.</div>` : ''}
+      </div>
+      <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px;padding:0 2px;">
+        ${realStops.length} ${realStops.length===1?'parada':'paradas'} · ${hasCitasH ? 'ordenada por horario de citas + proximidad' : 'más cercana a más lejana'}
+      </div>
+      ${stopsHtml}
+      ${realStops.some(s => !s.lat || !s.lng) ? `<div style="margin-top:10px;font-size:11px;color:var(--muted);padding:8px 10px;background:var(--bg);border-radius:6px;"><i class="fa-solid fa-circle-info"></i> Google Maps geocodificará las paradas sin coordenadas GPS.</div>` : ''}
+    `;
+
+    const waypoints = realStops.map(s => s.lat && s.lng ? `${s.lat},${s.lng}` : s.address).filter(Boolean);
+    let mapsUrl;
+    if (waypoints.length === 1) {
+      mapsUrl = `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(originStr)}&destination=${encodeURIComponent(waypoints[0])}&travelmode=driving`;
+    } else {
+      const dest = encodeURIComponent(waypoints[waypoints.length - 1]);
+      const wpsParam = waypoints.slice(0, -1).length ? '&waypoints=' + waypoints.slice(0, -1).map(encodeURIComponent).join('|') : '';
+      mapsUrl = `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(originStr)}&destination=${dest}${wpsParam}&travelmode=driving`;
+    }
+    if (mBtn) { mBtn.style.display = ''; mBtn.onclick = () => window.open(mapsUrl, '_blank', 'noopener'); }
+
+  } catch(e) {
+    if (body) body.innerHTML = `<div style="color:var(--danger);padding:24px;text-align:center;"><i class="fa-solid fa-circle-exclamation"></i> Error: ${escapeHtml(e.message)}</div>`;
+  }
 }

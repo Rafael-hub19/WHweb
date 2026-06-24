@@ -683,7 +683,8 @@ function buildCalendar(){
     const dayEvents = events.filter(e => e.date === dayISO).slice(0,3);
 
     const cell = document.createElement('div');
-    cell.className = 'cal-day' + (isMuted ? ' muted' : '');
+    const isToday = dayISO === todayISO;
+    cell.className = 'cal-day' + (isMuted ? ' muted' : '') + (isToday ? ' today' : '');
     cell.innerHTML = `
       <div class="num">${day.getDate()}</div>
       <div class="cal-chip">
@@ -914,12 +915,22 @@ async function saveCotizacion() {
   } catch(e) { showNotification('Error de conexión', 'error'); }
 }
 
-async function cargarCitasParaCalendario() {
-  // Carga desde API y almacena en caché — NO modifica localStorage
+let _calEmpLastLoaded = 0; // timestamp ms de la última carga
+
+async function cargarCitasParaCalendario(silencioso = false) {
+  const btn = document.getElementById('calRefreshBtn');
+  if (btn && !silencioso) btn.innerHTML = '<i class="fa-solid fa-arrows-rotate fa-spin"></i>';
+
   try {
+    const hoy  = new Date();
+    const anio = hoy.getFullYear();
+    // Cargar año actual + siguiente para que eventos futuros sean visibles
+    const desde = `${anio}-01-01`;
+    const hasta  = `${anio + 1}-12-31`;
+
     const [dataCitas, dataPedidos] = await Promise.allSettled([
-      apiFetch(`${API_BASE}/citas.php?limit=100`),
-      apiFetch(`${API_BASE}/pedidos.php?limit=100`)
+      apiFetch(`${API_BASE}/citas.php?limit=500&fecha_desde=${desde}&fecha_hasta=${hasta}`),
+      apiFetch(`${API_BASE}/pedidos.php?limit=500&fecha_desde=${desde}&fecha_hasta=${hasta}`)
     ]);
 
     if (dataCitas.status === 'fulfilled' && dataCitas.value?.success) {
@@ -951,7 +962,12 @@ async function cargarCitasParaCalendario() {
           datos: p
         }));
     }
+
+    _calEmpLastLoaded = Date.now();
   } catch(e) { /* silencioso — el calendario muestra eventos de localStorage */ }
+  finally {
+    if (btn) btn.innerHTML = '<i class="fa-solid fa-arrows-rotate"></i>';
+  }
 }
 
 // ================== INIT (primer DOMContentLoaded) ==================
@@ -1123,6 +1139,8 @@ async function actualizarEstadoPedidoEmp(id, estado) {
       showNotification('<i class="fa-solid fa-circle-check"></i> Estado actualizado', 'success');
       cargarPedidosEmpleadoAPI();
       if (window._empPedId === id) verDetallePedidoEmp(id);
+      // Sincronizar calendario con el nuevo estado del pedido
+      cargarCitasParaCalendario(true).then(() => { buildCalendar(); renderNext7(); if (selectedDateISO) renderDayEvents(selectedDateISO); });
     } else {
       showNotification('<i class="fa-solid fa-circle-xmark"></i> ' + (data.error || 'Error'), 'error');
     }
@@ -1159,11 +1177,19 @@ async function cargarCitasAPI() {
 
 async function confirmarCita(id) {
   const data = await apiFetch(`${API_BASE}/citas.php?id=${id}`, { method:'PUT', body: JSON.stringify({ estado: 'confirmada' }) });
-  if (data.success) { showNotification('<i class="fa-solid fa-circle-check"></i> Cita confirmada', 'success'); cargarCitasAPI(); }
+  if (data.success) {
+    showNotification('<i class="fa-solid fa-circle-check"></i> Cita confirmada', 'success');
+    cargarCitasAPI();
+    cargarCitasParaCalendario(true).then(() => { buildCalendar(); renderNext7(); if (selectedDateISO) renderDayEvents(selectedDateISO); });
+  }
 }
 async function completarCita(id) {
   const data = await apiFetch(`${API_BASE}/citas.php?id=${id}`, { method:'PUT', body: JSON.stringify({ estado: 'completada' }) });
-  if (data.success) { showNotification('<i class="fa-solid fa-circle-check"></i> Cita completada', 'success'); cargarCitasAPI(); }
+  if (data.success) {
+    showNotification('<i class="fa-solid fa-circle-check"></i> Cita completada', 'success');
+    cargarCitasAPI();
+    cargarCitasParaCalendario(true).then(() => { buildCalendar(); renderNext7(); if (selectedDateISO) renderDayEvents(selectedDateISO); });
+  }
 }
 
 // ── Cotizaciones ──────────────────────────────────────────────
@@ -1525,13 +1551,29 @@ async function refreshKpisAPI() {
 
 // ── AUTO-POLLING cada 30 segundos ────────────────────────────
 // Refresca la sección visible automáticamente sin que el empleado tenga que hacerlo manual
+async function refrescarCalendarioEmp() {
+  await cargarCitasParaCalendario(false);
+  buildCalendar();
+  renderNext7();
+  if (selectedDateISO) renderDayEvents(selectedDateISO);
+}
+window.refrescarCalendarioEmp = refrescarCalendarioEmp;
+
+const _CAL_REFRESH_MS = 90_000; // 90 s entre recargas silenciosas del calendario
+
 function _autoRefresh() {
   const section = window._currentSection || 'dashboard';
   try {
     if      (section === 'pedidos'       && typeof cargarPedidosEmpleadoAPI === 'function') cargarPedidosEmpleadoAPI();
     else if (section === 'citas'         && typeof cargarCitasAPI === 'function')           cargarCitasAPI();
     else if (section === 'cotizaciones'  && typeof cargarCotizacionesAPI === 'function')    cargarCotizacionesAPI();
-    else if (section === 'dashboard'     && typeof refreshKpisAPI === 'function')           refreshKpisAPI();
+    else if (section === 'dashboard') {
+      if (typeof refreshKpisAPI === 'function') refreshKpisAPI();
+      // Refresca el calendario cada 90 s mientras el usuario está en el dashboard
+      if (Date.now() - _calEmpLastLoaded > _CAL_REFRESH_MS) {
+        cargarCitasParaCalendario(true).then(() => { buildCalendar(); renderNext7(); if (selectedDateISO) renderDayEvents(selectedDateISO); });
+      }
+    }
   } catch(e) { console.warn('[autoRefresh] Error en sección', section, e); }
 }
 
