@@ -57,7 +57,14 @@ foreach ($productos as $p) {
     echo "    <changefreq>monthly</changefreq>\n";
     echo "    <priority>0.8</priority>\n";
     if (!empty($p['url_imagen'])) {
-        $imgUrl = htmlspecialchars($p['url_imagen']);
+        // Decode all entity-encoding layers stored in DB, then encode once for XML
+        $rawUrl = $p['url_imagen'];
+        $prev   = null;
+        while ($prev !== $rawUrl) {
+            $prev   = $rawUrl;
+            $rawUrl = html_entity_decode($rawUrl, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        }
+        $imgUrl = htmlspecialchars($rawUrl, ENT_QUOTES | ENT_HTML5, 'UTF-8');
         echo "    <image:image>\n";
         echo "      <image:loc>{$imgUrl}</image:loc>\n";
         echo "    </image:image>\n";
